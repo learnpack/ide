@@ -36,7 +36,7 @@ export const getStatus = function (status = 'initializing') {
 
 export const isPending = (status:any) => (status) ? (['initializing', 'compiling', 'testing', 'pending', 'conecting', 'internal-error'].indexOf(status.code || status) > 0) : true
 
-const actions = ['build', 'prettify', 'test', 'run', 'input', 'open', 'preview', 'reset', 'reload', 'open_window']
+const actions = ['build', 'prettify', 'test', 'run', 'input', 'open', 'preview', 'reset', 'reload', 'open_window', 'generate']
 
 export default {
     socket: null,

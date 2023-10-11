@@ -45,6 +45,8 @@ interface IStore {
   compilerSocket: any;
   token: string;
   languageMap: ILanguageMap;
+  checkLoggedStatus: () => void;
+  storeFeedback: (feedback:string) => void;
   setToken: (newToken: string) => void;
   setBuildButtonText: (t:string, c:string) => void;
   toggleFeedback: ()=>void;
@@ -78,6 +80,7 @@ const useStore = create<IStore>((set, get) => ({
     className: ""
   },
   compilerSocket: Socket.createScope('compiler'),
+  // functions
   setBuildButtonText: (t, c="") => {
     set({buildbuttonText: {text: t, className: c}})
   },
@@ -85,7 +88,6 @@ const useStore = create<IStore>((set, get) => ({
     const {showFeedback} = get();
     set({showFeedback: !showFeedback})
   },
-  // functions
   setStatus: (newStatus) => {
     set({status: newStatus});
     setTimeout(()=>{
@@ -95,6 +97,18 @@ const useStore = create<IStore>((set, get) => ({
   setToken: (newToken) => {
     set({token: newToken});
   },
+  checkLoggedStatus:async () => {
+    try {
+      const res = await fetch(`${HOST}/check/rigo/status`)
+      const json = await res.json();
+      set({token: json.rigoToken})
+
+    }
+    catch (err) {
+      set({token:""})
+    }
+    
+  },
   fetchExercises: async () => {
     const { fetchReadme, getLessonTitle } = get();
     const res = await fetch(`${HOST}/exercise`)
@@ -103,6 +117,13 @@ const useStore = create<IStore>((set, get) => ({
     set({numberOfExercises: files.length})
     fetchReadme();
     getLessonTitle();
+
+  },
+  storeFeedback: (feedback) => {
+    const {toggleFeedback} = get();
+    const htmlFeedback = convertMarkdownToHTML(feedback);
+    set({feedback: htmlFeedback})
+    toggleFeedback();
 
   },
   getAIFeedback: async () => {
@@ -122,8 +143,8 @@ const useStore = create<IStore>((set, get) => ({
       // Handle non-JSON responses, like reading as text
       currentCode = await response.text();
     }
-    console.log("currentContent", currentContent);
-    console.log("currentCode", currentCode);
+    // console.log("currentContent", currentContent);
+    // console.log("currentCode", currentCode);
     
     const feedback = await getRigobotFeedback(currentContent, currentCode, token)
     const htmlFeedback = convertMarkdownToHTML(feedback);
