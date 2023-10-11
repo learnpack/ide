@@ -6,7 +6,7 @@ import { StatusBar } from "../client/StaturBar"
 import LanguageButton from "../client/LanguageButton"
 
 function LessonOptions () {
-    const {currentExercisePosition,language, setPosition, fetchReadme, exercises, toggleLanguage, setBuildButtonText} = useStore();
+    const {currentExercisePosition, setPosition, fetchReadme, exercises, setBuildButtonText} = useStore();
 
     const handlePositionChange = (action:string) => {
         if (action === "next" && currentExercisePosition != exercises.length - 1) {

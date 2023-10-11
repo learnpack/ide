@@ -31,7 +31,7 @@ interface IFeedbackDropdown {
 
 function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
     const [showLoginModal, setShowLoginModal] = useState(false);
-    const { storeFeedback, feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token, checkLoggedStatus } = useStore();
+    const { storeFeedback, feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token } = useStore();
 
 
     const getFeedbackAndHide = () => {
@@ -93,6 +93,7 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
 
         let debouncedFunc = debounce((data: any) => {
             //   console.log(data);
+            data;
             //   setBuildButtonText("Try again", "bg-fail");
             toast.error(getStatus("compiler-error"));
         }, 100);
