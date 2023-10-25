@@ -9,6 +9,7 @@ import { toast } from 'react-hot-toast';
 export default function FeedbackButton() {
     const [showFeedback, setShowFeedback] = useState(false);
 
+    const { feedbackbuttonProps }= useStore();
     const {checkLoggedStatus}=useStore();
     const toggleFeedback = () => {
         setShowFeedback((prev) => !prev);
@@ -18,8 +19,8 @@ export default function FeedbackButton() {
         checkLoggedStatus()
     },[])
 
-    return (<div className="pos-relative">
-        <SimpleButton text="Feedback" svg={svgs.feedbackIcon} extraClass="pill border-blue color-blue row-reverse" action={toggleFeedback} />
+    return (<div className="pos-relative feedback-dropdown-container">
+        <SimpleButton text={feedbackbuttonProps.text} svg={svgs.feedbackIcon} extraClass={`pill border-blue color-blue row-reverse ${feedbackbuttonProps.className}`} action={toggleFeedback} />
         {showFeedback && <FeedbackDropdown toggleFeedbackVisibility={toggleFeedback} />}
     </div>
     )
@@ -31,7 +32,7 @@ interface IFeedbackDropdown {
 
 function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
     const [showLoginModal, setShowLoginModal] = useState(false);
-    const { storeFeedback, feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token } = useStore();
+    const { storeFeedback, feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token, setFeedbackButtonProps, increaseSolvedExercises } = useStore();
 
 
     const getFeedbackAndHide = () => {
@@ -66,7 +67,6 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
     const runTests = () => {
 
         toggleFeedbackVisibility();
-
         toast.success(getStatus("testing"));
 
         const data = {
@@ -75,10 +75,14 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
 
         compilerSocket.emit('test', data);
 
-        compilerSocket.onStatus('testing-success', () => {
+        let debounceSuccess = debounce(()=>{
             toast.success(getStatus("testing-success"));
-        })
+            setFeedbackButtonProps("Succeded", "bg-success text-white");
+            exercises[currentExercisePosition].done = true;
+            increaseSolvedExercises();
+        }, 100)
 
+        compilerSocket.onStatus('testing-success',debounceSuccess) 
         function debounce(func: any, wait: any) {
             let timeout: any;
             return function executedFunction(...args: any[]) {
@@ -96,6 +100,7 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
             data;
             //   setBuildButtonText("Try again", "bg-fail");
             toast.error(getStatus("compiler-error"));
+            setFeedbackButtonProps("Try again", "bg-fail text-white");
         }, 100);
 
         compilerSocket.onStatus('testing-error', debouncedFunc);
@@ -111,15 +116,25 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
         // toggleFeedbackVisibility();
     }
     
+    const openWindow = (e:any) => {
+        e.preventDefault();
+        const url = e.target.href
+        const data = {
+            url,
+            exerciseSlug: exercises[currentExercisePosition].slug,
+        }
+        compilerSocket.openWindow(data);
+
+    }
+
     return (
         <div className="feedback-dropdown">
             {showLoginModal && <LoginModal toggleFeedbackVisibility={toggleFeedbackVisibility} />}
+            <SimpleButton svg={svgs.testIcon} text="Run tests" action={runTests} />
             {Boolean(token) ? <SimpleButton svg={svgs.brainIcon} text="Get AI Feedback" action={getFeedbackAndHide} /> : <SimpleButton svg={svgs.fourGeeksIcon} text="Login to use AI feedback" action={openLoginModal} />}
             {feedback ? <SimpleButton action={toggleAndHide} text="Show stored feedback" /> : null}
 
-            <SimpleButton svg={svgs.testIcon} text="Run tests" action={runTests} />
-            {/* TODO: The anchor must be done with Learnpack to succesfully do so */}
-            <p>Feedback plays an important role when learning technical skills. <a href="https://docs.learnpack.co/">Learn why.</a></p>
+            <p>Feedback plays an important role when learning technical skills. <a onClick={openWindow} href="https://4geeks.com/docs/learnpack">Learn why.</a></p>
         </div>
     )
 }

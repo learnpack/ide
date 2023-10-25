@@ -42,13 +42,19 @@ interface IStore {
   feedback: string;
   showFeedback: boolean;
   buildbuttonText: IBuildProps;
+  feedbackbuttonProps: IBuildProps;
   compilerSocket: any;
   token: string;
+  solvedExercises: number;
   languageMap: ILanguageMap;
+
+  increaseSolvedExercises: () => void;
+  setLanguage: (language: string) => void;
   checkLoggedStatus: () => void;
   storeFeedback: (feedback:string) => void;
   setToken: (newToken: string) => void;
   setBuildButtonText: (t:string, c:string) => void;
+  setFeedbackButtonProps: (t:string, c:string) => void;
   toggleFeedback: ()=>void;
   fetchExercises: () => void;
   setStatus: (newStatus:string) => void;
@@ -71,6 +77,7 @@ const useStore = create<IStore>((set, get) => ({
   currentExercisePosition: 0,
   lessonTitle: "",
   numberOfExercises: 0,
+  solvedExercises: 0,
   status: "",
   feedback: "",
   showFeedback: false,
@@ -79,10 +86,22 @@ const useStore = create<IStore>((set, get) => ({
     text: "Run",
     className: ""
   },
+  feedbackbuttonProps: {
+    text: "Feedback",
+    className: ""
+  },
   compilerSocket: Socket.createScope('compiler'),
   // functions
+  increaseSolvedExercises: () => {
+    const {solvedExercises} = get();
+    set({solvedExercises:solvedExercises+1 });
+
+  },
   setBuildButtonText: (t, c="") => {
     set({buildbuttonText: {text: t, className: c}})
+  },
+  setFeedbackButtonProps: (t, c="") => {
+    set({feedbackbuttonProps: {text: t, className: c}})
   },
   toggleFeedback: () => {
     const {showFeedback} = get();
@@ -107,7 +126,6 @@ const useStore = create<IStore>((set, get) => ({
     catch (err) {
       set({token:""})
     }
-    
   },
   fetchExercises: async () => {
     const { fetchReadme, getLessonTitle } = get();
@@ -150,17 +168,31 @@ const useStore = create<IStore>((set, get) => ({
     const htmlFeedback = convertMarkdownToHTML(feedback);
     set({feedback: htmlFeedback})
     toggleFeedback();
-
-    
   },
+
   getLessonTitle: async () => {
     const res = await fetch(`${HOST}/config`);
     const {config} = await res.json();
     set({ lessonTitle: config.title });
   },
+
   setPosition: (newPosition) => {
+    let params = window.location.hash.substring(1);
+    let paramsArray = params.split('&');
+    let language = "";
+    if (paramsArray.length >1 ) {
+      // get the index of the item that includes "language"
+      const langIndex = paramsArray.findIndex(item => item.includes("language"));
+      // retrieve the item and save it in a variable
+      language = paramsArray[langIndex]
+    }
+    let hash = `currentExercise=${newPosition}`
+    if (language) {
+      hash += `&${language}`
+    }
+    window.location.hash = hash;
     set({ currentExercisePosition: newPosition });
-  },
+},
 
   fetchReadme: async () => {
     const { language, exercises, currentExercisePosition } = get();
@@ -174,11 +206,35 @@ const useStore = create<IStore>((set, get) => ({
     changeSidebarVisibility()
   },
 
+  setLanguage: (language) => {
+    const { fetchReadme } = get();
+    set({ language: language});
+    fetchReadme();
+  },
+
   toggleLanguage: () => {
     const { language, fetchReadme } = get();
-
     const newLang = language === 'us' ? 'es' : 'us';
     set({ language: newLang });
+
+
+    let params = window.location.hash.substring(1);
+    let paramsArray = params.split('&');
+    let position = "";
+    console.log(paramsArray);
+    
+    if (paramsArray) {
+      // get the index of the item that includes "language"
+      const posIndex = paramsArray.findIndex(item => item.includes("currentExercise"));
+      // retrieve the item and save it in a variable
+      position = paramsArray[posIndex]
+    }
+    let hash = `language=${newLang}`
+    if (position) {
+      hash += `&${position}`
+    }
+    window.location.hash = hash;
+    
     fetchReadme();
   },
 

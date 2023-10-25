@@ -22,10 +22,20 @@
       align-items: center;
 
       >button {
-          height: max-content;
+          height: 70%;
           display: flex;
           gap: 5px;
+          /* background-color: rebeccapurple; */
       }
+      >div.feedback-dropdown-container {
+        position: relative;
+        height: 70%;
+      }
+      >div.feedback-dropdown-container >button {
+        display: flex;
+        gap: 5px;
+      }
+      
   }
 }
 
@@ -36,6 +46,17 @@
   /* min-height: 90vh; */
   padding: 15px;
   overflow-y: scroll;
+}
+
+
+.lesson-content-component {
+  line-height: 20px;
+  >h1,h2,h3,h4,h5,h6 {
+    margin: 15px 0px;
+  }
+  >pre {
+    margin: 10px 0;
+  }
 }
 
 .lesson-options {
@@ -186,7 +207,7 @@
     }
     > p {
       font-weight: 700;
-      font-size: 18px;
+      font-size: 14px;
     }
   }
 }
@@ -230,12 +251,12 @@
       display: flex;
       align-items: center;
       gap: 5px;
-      font-size: 16px;
+      font-size: 12px;
       font-weight: 600;
     }
   }
   >p {
-    font-size: 20px;
+    font-size: 16px;
   }
   >.-content {
     padding: 10px;
@@ -290,7 +311,7 @@
   background-color: #FAFAFB;
   animation: appear-4-right 0.5s ease 1 forwards;
   >section:not(:last-child) {
-    padding: 4px;
+    padding: 6px;
     display: flex;
     justify-content: end;
     gap: 8px

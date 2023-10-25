@@ -11,8 +11,5 @@ export default function Navbar () {
             <ResetButton />
         </section>
         <Sidebar />
-        {/* <section>
-            <ShowSidebarButton svg={svgs.dropdownButton} />
-        </section> */}
     </nav>
 }

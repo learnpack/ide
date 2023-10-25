@@ -1,12 +1,10 @@
-"use client"
-
 import useStore from "../../utils/store";
 import {useEffect } from "react";
 export default function LessonContent () {
     const {currentContent, fetchExercises} = useStore();
     
     useEffect(()=>{
-        fetchExercises()
+        fetchExercises();
     },[])
 
     return <>

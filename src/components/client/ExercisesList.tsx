@@ -8,10 +8,10 @@ interface IExerciseList {
 
 export default function ExercisesList({closeSidebar}:IExerciseList) {
     const { exercises } = useStore();
-
+    
     return (
         <ul className="exercise-list">
-            {exercises.map((item, index) => <ExerciseCard key={index} name={item.title} position={item.position} closeSidebar={closeSidebar} />)}
+            {exercises.map((item, index) => <ExerciseCard key={index} name={item.title} position={item.position} done={item.done} closeSidebar={closeSidebar} />)}
         </ul>
 
     )
@@ -19,11 +19,12 @@ export default function ExercisesList({closeSidebar}:IExerciseList) {
 
 interface IExerciseProps {
     name: string;
+    done: boolean;
     position: number;
     closeSidebar: () => void;
 }
 
-function ExerciseCard({ name, position, closeSidebar }: IExerciseProps) {
+function ExerciseCard({ name, position, closeSidebar, done }: IExerciseProps) {
     const { setPosition, fetchReadme } = useStore();
 
     const getNameWithoutNumber = (str:string) => {
@@ -50,7 +51,7 @@ function ExerciseCard({ name, position, closeSidebar }: IExerciseProps) {
                 </span>
             </div>
             <div>
-                <SimpleButton svg={svgs.checkIcon} text="" />
+                <SimpleButton svg={done ? svgs.checkIcon : svgs.blankCircle} text="" />
             </div>
         </li>
     )

@@ -6,7 +6,7 @@ import { svgs } from "../../resources/svgs";
 import {useState} from "react"
 
 export default function Sidebar() {
-    const {numberOfExercises} = useStore();
+    const {numberOfExercises, compilerSocket, exercises, currentExercisePosition, solvedExercises} = useStore();
     const [showSidebar, setShowSidebar] = useState(false);
 
     const closeSidebar = () => {
@@ -19,8 +19,12 @@ export default function Sidebar() {
 
     const redirectTo = () => {
         // TODO: This needs to be done with the learnpack socket to do so!
-        const docsUrl = "https://docs.learnpack.co/"
-        window.location.href = docsUrl;
+        const url = "https://docs.learnpack.co/"
+        const data = {
+            url,
+            exerciseSlug: exercises[currentExercisePosition].slug
+        }
+        compilerSocket.openWindow(data);
     }
 
     return showSidebar ? <div className="sidebar-component">
@@ -29,7 +33,7 @@ export default function Sidebar() {
     </section>
 
     <section className="">
-        <p>0/{numberOfExercises} Solved exercises</p>
+        <p>{solvedExercises}/{numberOfExercises} Solved exercises</p>
 
         <SimpleButton text="" svg={svgs.videoIcon} action={()=>{}}/>
         <SimpleButton text="" svg={svgs.bulbIcon} action={()=>{redirectTo()}}/>
