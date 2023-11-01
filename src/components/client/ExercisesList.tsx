@@ -8,6 +8,9 @@ interface IExerciseList {
 
 export default function ExercisesList({closeSidebar}:IExerciseList) {
     const { exercises } = useStore();
+
+    
+
     
     return (
         <ul className="exercise-list">
@@ -38,8 +41,7 @@ function ExerciseCard({ name, position, closeSidebar, done }: IExerciseProps) {
             () => {
                 setPosition(position);
                 fetchReadme();
-                closeSidebar()
-
+                closeSidebar();
             }
         }>
             <div>

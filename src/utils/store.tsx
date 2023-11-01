@@ -30,6 +30,16 @@ interface ILanguageMap {
     [key: string]: string;
 }
 
+interface IConfig {
+  intro: any;
+  editor: any;
+  grading: string;
+}
+
+interface IConfigObject {
+  config: IConfig
+}
+
 
 interface IStore {
   exercises: any[];
@@ -47,7 +57,10 @@ interface IStore {
   token: string;
   solvedExercises: number;
   languageMap: ILanguageMap;
-
+  configObject: IConfigObject;
+  allowedActions: string[];
+  setAllowedActions: (actions:string[])=> void;
+  getConfigObject: () => void;
   increaseSolvedExercises: () => void;
   setLanguage: (language: string) => void;
   checkLoggedStatus: () => void;
@@ -90,7 +103,21 @@ const useStore = create<IStore>((set, get) => ({
     text: "Feedback",
     className: ""
   },
-  compilerSocket: Socket.createScope('compiler'),
+  configObject: {
+    config: {
+      intro:"",
+      grading: "",
+      editor: {
+        agent: "",
+      }
+      
+    }
+  },
+  allowedActions: [],
+  
+  setAllowedActions:(actions)=>{
+    set({allowedActions: actions});
+  },
   // functions
   increaseSolvedExercises: () => {
     const {solvedExercises} = get();
@@ -127,12 +154,19 @@ const useStore = create<IStore>((set, get) => ({
       set({token:""})
     }
   },
+
+  getConfigObject: async () => {
+    const res = await fetch(`${HOST}/config`)
+    const config= await res.json();
+    set({configObject: config})
+  },
+
   fetchExercises: async () => {
     const { fetchReadme, getLessonTitle } = get();
-    const res = await fetch(`${HOST}/exercise`)
-    const files = await res.json();
-    set({ exercises: files });
-    set({numberOfExercises: files.length})
+    const res = await fetch(`${HOST}/config`)
+    const config = await res.json();
+    set({ exercises: config.exercises });
+    set({numberOfExercises: config.exercises.length})
     fetchReadme();
     getLessonTitle();
 
@@ -195,11 +229,16 @@ const useStore = create<IStore>((set, get) => ({
 },
 
   fetchReadme: async () => {
-    const { language, exercises, currentExercisePosition } = get();
-    const slug = exercises[currentExercisePosition].slug;
+    const { language, exercises, currentExercisePosition, getConfigObject } = get();
+    const slug = await exercises[currentExercisePosition]?.slug;
+    if (!slug) {
+      return;
+    }
+    
     const response = await fetch(`${HOST}/exercise/${slug}/readme?lang=${language}`);
     const exercise = await response.json();
     set({ currentContent: convertMarkdownToHTML(exercise.body) })
+    getConfigObject();
   },
 
   toggleSidebar: () => {
@@ -209,6 +248,26 @@ const useStore = create<IStore>((set, get) => ({
   setLanguage: (language) => {
     const { fetchReadme } = get();
     set({ language: language});
+
+    let params = window.location.hash.substring(1);
+    let paramsArray = params.split('&');
+    let position = "";
+    // console.log(paramsArray);
+    
+    if (paramsArray) {
+      // get the index of the item that includes "language"
+      const posIndex = paramsArray.findIndex(item => item.includes("currentExercise"));
+      // retrieve the item and save it in a variable
+      position = paramsArray[posIndex]
+    }
+    let hash = `language=${language}`
+    if (position) {
+      hash += `&${position}`
+    }
+    window.location.hash = hash;
+    
+    fetchReadme();
+
     fetchReadme();
   },
 
@@ -237,6 +296,8 @@ const useStore = create<IStore>((set, get) => ({
     
     fetchReadme();
   },
+
+  compilerSocket: Socket.createScope('compiler'),
 
 })
 );

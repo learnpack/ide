@@ -44,10 +44,7 @@ export default function BuildButton () {
 
         compilerSocket.onStatus('compiler-error', debouncedFunc);
 
-        compilerSocket.whenUpdated((scope:any, data:any) => {
-          console.log(data);
-          console.log(scope);
-      });
+       
     }
     
     return <SimpleButton text={buildbuttonText.text} svg={svgs.buildIcon} extraClass={`pill bg-blue ${buildbuttonText.className}`} action={build} />

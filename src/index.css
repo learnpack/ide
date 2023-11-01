@@ -1,6 +1,6 @@
-@tailwind base;
+/* @tailwind base;
 @tailwind components;
-@tailwind utilities;
+@tailwind utilities; */
 
 :root {
   --background-start-rgb: 214, 219, 220;
@@ -192,4 +192,12 @@ button {
   }
   border: white;
   color: white !important;
+}
+
+.d-block {
+  display: block;
+}
+
+.align-center {
+  align-items: center;
 }

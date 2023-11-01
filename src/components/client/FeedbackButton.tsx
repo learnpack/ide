@@ -32,7 +32,7 @@ interface IFeedbackDropdown {
 
 function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
     const [showLoginModal, setShowLoginModal] = useState(false);
-    const { storeFeedback, feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token, setFeedbackButtonProps, increaseSolvedExercises } = useStore();
+    const { storeFeedback, feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token, setFeedbackButtonProps, increaseSolvedExercises, fetchExercises, configObject } = useStore();
 
 
     const getFeedbackAndHide = () => {
@@ -65,7 +65,6 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
     }
 
     const runTests = () => {
-
         toggleFeedbackVisibility();
         toast.success(getStatus("testing"));
 
@@ -78,11 +77,13 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
         let debounceSuccess = debounce(()=>{
             toast.success(getStatus("testing-success"));
             setFeedbackButtonProps("Succeded", "bg-success text-white");
-            exercises[currentExercisePosition].done = true;
+            // exercises[currentExercisePosition].done = true;
+            fetchExercises();
             increaseSolvedExercises();
         }, 100)
 
-        compilerSocket.onStatus('testing-success',debounceSuccess) 
+        compilerSocket.onStatus('testing-success',debounceSuccess);
+
         function debounce(func: any, wait: any) {
             let timeout: any;
             return function executedFunction(...args: any[]) {
@@ -118,13 +119,42 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
     
     const openWindow = (e:any) => {
         e.preventDefault();
+        console.log();
         const url = e.target.href
-        const data = {
-            url,
-            exerciseSlug: exercises[currentExercisePosition].slug,
-        }
-        compilerSocket.openWindow(data);
 
+        if (configObject.config.editor.agent == "vscode") {
+            const data = {
+                url,
+                exerciseSlug: exercises[currentExercisePosition].slug,
+            }
+            compilerSocket.openWindow(data);
+
+        }
+
+        else if (configObject.config.editor.agent == "standalone") {
+            window.location.href = url
+        }
+        
+
+    }
+    
+    const redirectToVideo = () => {
+        const url = configObject.config.intro
+        if (url) {
+            if (configObject.config.editor.agent == "vscode") {
+                const data = {
+                    url,
+                    exerciseSlug: exercises[currentExercisePosition].slug,
+                }
+                compilerSocket.openWindow(data);
+    
+            }
+    
+            else if (configObject.config.editor.agent == "standalone") {
+                window.location.href = url
+            }
+
+        }
     }
 
     return (
@@ -133,6 +163,7 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
             <SimpleButton svg={svgs.testIcon} text="Run tests" action={runTests} />
             {Boolean(token) ? <SimpleButton svg={svgs.brainIcon} text="Get AI Feedback" action={getFeedbackAndHide} /> : <SimpleButton svg={svgs.fourGeeksIcon} text="Login to use AI feedback" action={openLoginModal} />}
             {feedback ? <SimpleButton action={toggleAndHide} text="Show stored feedback" /> : null}
+            <SimpleButton text={`Video tutorial ${configObject.config.intro ? "" : "(not available)"}`}  svg={svgs.videoIcon} action={redirectToVideo} />
 
             <p>Feedback plays an important role when learning technical skills. <a onClick={openWindow} href="https://4geeks.com/docs/learnpack">Learn why.</a></p>
         </div>

@@ -149,7 +149,7 @@
   width: fit-content !important;
   border: 1px solid var(--bg-color-gray);
   padding: 7px;
-  
+  position: relative;
   border-radius: 10px;
   >button {
     display: flex;
@@ -326,6 +326,25 @@
 .sidebar-disappear {
   animation: disappear-4-right 0.4s ease 1 forwards;
 }
+
+
+.language-dropdown {
+  display: flex;
+  position: absolute;
+  top: 101%;
+  left: 50%;
+  transform: translate(-50%, 0);
+  border: 1px solid #d1d0d0cc;
+  padding: 6px;
+  border-radius: 9px;
+  flex-direction: column;
+  >button {
+    display: flex;
+    gap: 7px;
+    align-items: center;
+  }
+}
+
 
 @keyframes appear-4-right {
   0% {
