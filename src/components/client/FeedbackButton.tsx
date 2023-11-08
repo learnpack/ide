@@ -32,12 +32,13 @@ interface IFeedbackDropdown {
 
 function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
     const [showLoginModal, setShowLoginModal] = useState(false);
-    const { storeFeedback, feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token, setFeedbackButtonProps, increaseSolvedExercises, fetchExercises, configObject } = useStore();
+    const { storeFeedback, feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token, setFeedbackButtonProps, increaseSolvedExercises, fetchExercises, configObject,allowedActions } = useStore();
 
 
     const getFeedbackAndHide = () => {
 
-        toast.success("Thinking...")
+        toast.success("Thinking...");
+        setFeedbackButtonProps("Running...", "palpitate");
         toggleFeedbackVisibility();
 
         const data = {
@@ -52,11 +53,12 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
             console.log(data);
             
             storeFeedback(data.logs[0]);
+            setFeedbackButtonProps("Feedback", "");
           })
      
         setTimeout(() => {
             toast.success("Wait a little more")
-        }, 2000)
+        }, 2432)
     }
 
     const toggleAndHide = () => {
@@ -66,6 +68,7 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
 
     const runTests = () => {
         toggleFeedbackVisibility();
+        setFeedbackButtonProps("Running...", "palpitate");
         toast.success(getStatus("testing"));
 
         const data = {
@@ -119,7 +122,6 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
     
     const openWindow = (e:any) => {
         e.preventDefault();
-        console.log();
         const url = e.target.href
 
         if (configObject.config.editor.agent == "vscode") {
@@ -160,7 +162,7 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
     return (
         <div className="feedback-dropdown">
             {showLoginModal && <LoginModal toggleFeedbackVisibility={toggleFeedbackVisibility} />}
-            <SimpleButton svg={svgs.testIcon} text="Run tests" action={runTests} />
+            {allowedActions.includes("test") ? <SimpleButton svg={svgs.testIcon} text="Run tests" action={runTests} /> : null}
             {Boolean(token) ? <SimpleButton svg={svgs.brainIcon} text="Get AI Feedback" action={getFeedbackAndHide} /> : <SimpleButton svg={svgs.fourGeeksIcon} text="Login to use AI feedback" action={openLoginModal} />}
             {feedback ? <SimpleButton action={toggleAndHide} text="Show stored feedback" /> : null}
             <SimpleButton text={`Video tutorial ${configObject.config.intro ? "" : "(not available)"}`}  svg={svgs.videoIcon} action={redirectToVideo} />
