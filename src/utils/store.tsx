@@ -4,13 +4,11 @@
 import { create } from 'zustand';
 import { convertMarkdownToHTML, changeSidebarVisibility, getRigobotFeedback } from './lib';
 import Socket from './socket';
-const HOST = "http://localhost:3000";
-// const RIGOBOT_HOST = "https://rigobot.herokuapp.com";
+import { getHost } from './lib';
 
+const HOST = getHost();
 
-Socket.start('http://localhost:3000', disconnected);
-    
-
+Socket.start(HOST, disconnected);
     
 function disconnected() {
   const modal:HTMLElement|null = document.querySelector("#socket-disconnected");

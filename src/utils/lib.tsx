@@ -1,5 +1,10 @@
 import { Remarkable } from 'remarkable';
+// import process from 'process';
 
+const DEV_MODE = false;
+
+
+const fullURL = location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '');
 /**
   * Converts markdown to HTML and injects it into a div.
   * @param {string} markdown - The markdown string to be converted.
@@ -58,7 +63,7 @@ function replaceSrc(rawText: string) {
 
 
 // const TOKEN = "407f2194babf39d6d3e7870043717d37c35e0919";
-export const getRigobotFeedback = async (tutorial:string, currentCode:string, token:string = "407f2194babf39d6d3e7870043717d37c35e0919", host:string = "https://rigobot.herokuapp.com") => {
+export const getRigobotFeedback = async (tutorial: string, currentCode: string, token: string = "407f2194babf39d6d3e7870043717d37c35e0919", host: string = "https://rigobot.herokuapp.com") => {
   const tutorialEncoded = encodeURIComponent(tutorial);
   const currentCodeEncoded = encodeURIComponent(currentCode);
   const encoder = new TextEncoder();
@@ -82,7 +87,7 @@ export const getRigobotFeedback = async (tutorial:string, currentCode:string, to
   return responseData.feedback;
 };
 
-function base64ArrayBuffer(arrayBuffer:any) {
+function base64ArrayBuffer(arrayBuffer: any) {
   let base64 = '';
   const encodings = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   const bytes = new Uint8Array(arrayBuffer);
@@ -115,3 +120,30 @@ function base64ArrayBuffer(arrayBuffer:any) {
   }
   return base64;
 }
+
+//@ts-ignore
+export function getParams(opts) {
+  if (!Array.isArray(opts)) opts = [opts];
+  const urlParams = new URLSearchParams(window.location.search);
+  let obj = {};
+  //@ts-ignore
+  opts.forEach(name => obj[name] = urlParams.get(name));
+  //@ts-ignore
+  return opts.length == 1 ? obj[opts[0]] : obj;
+}
+
+
+export const getHost = function(){
+  let preConfig = getParams("config");
+  if(preConfig && preConfig!=="") preConfig = JSON.parse(atob(preConfig));
+  
+  // const HOST = preConfig ? `${preConfig.address}:${preConfig.port}` : process.env.HOST || getParams('host') || fullURL;
+  const HOST = preConfig ? `${preConfig.address}:${preConfig.port}` : getParams('host') || fullURL;
+
+  console.log("HOST", HOST);
+  
+  if (DEV_MODE) {
+    return 'http://localhost:3000';
+  }
+  return HOST;
+};
