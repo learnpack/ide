@@ -37,7 +37,8 @@ async function checkExistingFile() {
     if (answers.action !== 'Overwrite') {
       const incrementType = answers.action.includes('Major') ? 'major' : 'minor';
       _v = await incrementVersion(version, incrementType);
-      packageJson.version = version;
+      packageJson.version = _v;
+      console.log(`Overriding version at package.json at ${packageJsonPath}`)
       fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
     }
   }
