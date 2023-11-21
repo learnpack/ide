@@ -1,7 +1,6 @@
 import { Remarkable } from 'remarkable';
-// import process from 'process';
 
-const DEV_MODE = false;
+const DEV_MODE = process.env.NODE_ENV === 'development';
 
 
 const fullURL = location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '');
@@ -55,7 +54,9 @@ function replaceSrc(rawText: string) {
   // Use a regular expression to find all occurrences of src="../.."
   const regex = /src="\.\.\/\.\./g;
   // Replace all occurrences with http://localhost:3000
-  const modifiedText = rawText.replace(regex, 'src="http://localhost:3000');
+
+  const host = getHost();
+  const modifiedText = rawText.replace(regex, `src=${host}`);
   // Return the modified text
   return modifiedText;
 }
@@ -140,7 +141,7 @@ export const getHost = function(){
   // const HOST = preConfig ? `${preConfig.address}:${preConfig.port}` : process.env.HOST || getParams('host') || fullURL;
   const HOST = preConfig ? `${preConfig.address}:${preConfig.port}` : getParams('host') || fullURL;
 
-  console.log("HOST", HOST);
+  // console.log("HOST", HOST);
   
   if (DEV_MODE) {
     return 'http://localhost:3000';

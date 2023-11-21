@@ -112,7 +112,7 @@
   display: flex;
   gap: 5px;
   align-items: baseline;
-  z-index: 200;
+  z-index: 1;
   flex-direction: column;
 
   >* {
@@ -222,8 +222,10 @@
 
 
 .feedback-container {
-  background-color: rgba(128, 128, 128, 0.506);
+  background-color: rgba(31, 31, 31, 0.821);
+  backdrop-filter: blur(1px);
   position: absolute;
+  z-index: 2;
   width: 100% !important;
   min-height: 100% !important;
 }
@@ -307,7 +309,7 @@
   /* min-height: 100vh; */
   position: absolute;
   left: 101%;
-  z-index: 900;
+  z-index: 2;
   background-color: #FAFAFB;
   animation: appear-4-right 0.5s ease 1 forwards;
   >section:not(:last-child) {

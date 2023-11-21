@@ -44,7 +44,7 @@ export default {
         this.socket = io.connect(host)
         if (this.socket) {
             this.socket.on('disconnect', () => onDisconnect && onDisconnect())
-            console.log("Connected to host " + host);
+            // console.log("Connected to host " + host);
         } else {
             console.error(`Failed to connect to hosty: ${host}`);
         }
