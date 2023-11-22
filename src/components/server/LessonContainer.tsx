@@ -6,11 +6,12 @@ import { StatusBar } from "../client/StaturBar"
 import LanguageButton from "../client/LanguageButton"
 
 function LessonOptions() {
-    const { currentExercisePosition, setPosition, fetchReadme, exercises, setBuildButtonText, setFeedbackButtonProps, compilerSocket, configObject, allowedActions } = useStore();
+    const { currentExercisePosition, setPosition, fetchReadme, exercises, setBuildButtonText, setFeedbackButtonProps, compilerSocket, configObject, allowedActions, setShowVideoTutorial } = useStore();
 
     const handlePositionChange = (action: string) => {
         if (action === "next" && currentExercisePosition != exercises.length - 1) {
             if (configObject.config.grading == "isolated" || (configObject.config.grading == "incremental" && exercises[currentExercisePosition].done) || (!allowedActions.includes("test"))) {
+                setShowVideoTutorial(true);
                 const nextPosition = currentExercisePosition +1
                 setPosition(nextPosition);
               

@@ -121,6 +121,8 @@ const useStore = create<IStore>((set, get) => ({
   showVideoTutorial: true,
 
   setShowVideoTutorial: (show:boolean) => {
+    console.log("Setting up showVideoTutorial", show);
+    
     set({showVideoTutorial: show});
   },
   setAllowedActions:(actions)=>{
@@ -238,7 +240,7 @@ const useStore = create<IStore>((set, get) => ({
 },
 
   fetchReadme: async () => {
-    const { language, exercises, currentExercisePosition, getConfigObject } = get();
+    const { language, exercises, currentExercisePosition, getConfigObject, setShowVideoTutorial } = get();
     const slug = await exercises[currentExercisePosition]?.slug;
     if (!slug) {
       return;
@@ -247,11 +249,13 @@ const useStore = create<IStore>((set, get) => ({
     const response = await fetch(`${HOST}/exercise/${slug}/readme?lang=${language}`);
     const exercise = await response.json();
     if (exercise.attributes.tutorial) {
+      
       set({videoTutorial: exercise.attributes.tutorial})
-      set({showVideoTutorial: true})
+      
     }
     else {
       set({videoTutorial: ""})
+      setShowVideoTutorial(false);
     }
     
     set({ currentContent: convertMarkdownToHTML(exercise.body) })

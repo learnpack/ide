@@ -141,8 +141,6 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
     }
     
     const redirectToVideo = () => {
-        // const url = videoTutorial || configObject.config.intro;
-
         setShowVideoTutorial(true);
         toggleFeedbackVisibility();
         
