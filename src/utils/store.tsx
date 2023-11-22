@@ -74,7 +74,7 @@ interface IStore {
   fetchExercises: () => void;
   setStatus: (newStatus:string) => void;
   getLessonTitle: () => void;
-  setPosition: (position: number, showVideo: boolean) => void;
+  setPosition: (position: number) => void;
   fetchReadme: () => void;
   toggleSidebar: () => void;
   toggleLanguage: () => void;
@@ -218,8 +218,7 @@ const useStore = create<IStore>((set, get) => ({
     set({ lessonTitle: config.title });
   },
 
-  setPosition: (newPosition, showVideo) => {
-    const { fetchReadme } = get();
+  setPosition: (newPosition) => {
     let params = window.location.hash.substring(1);
     let paramsArray = params.split('&');
     let language = "";

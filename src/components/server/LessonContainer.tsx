@@ -12,7 +12,7 @@ function LessonOptions() {
         if (action === "next" && currentExercisePosition != exercises.length - 1) {
             if (configObject.config.grading == "isolated" || (configObject.config.grading == "incremental" && exercises[currentExercisePosition].done) || (!allowedActions.includes("test"))) {
                 const nextPosition = currentExercisePosition +1
-                setPosition(nextPosition, true);
+                setPosition(nextPosition);
               
                 
                 const files = exercises[nextPosition].files.filter((f: any) => f.hidden === false);
@@ -31,7 +31,7 @@ function LessonOptions() {
             }
         }
         else if (action === "prev" && currentExercisePosition != 0) {
-            setPosition(currentExercisePosition - 1, false);
+            setPosition(currentExercisePosition - 1);
         }
         setBuildButtonText("Run", "");
         setFeedbackButtonProps("Feedback", "");

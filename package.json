@@ -1,7 +1,7 @@
 {
   "name": "learnpack-ai",
   "private": true,
-  "version": "2.0.3",
+  "version": "2.0.4",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && node bin/publish.js",
