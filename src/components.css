@@ -1,0 +1,66 @@
+/* Modal styles */
+.video-modal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 999;
+
+    > .modal-content {
+        position: relative;
+        background-color: #fff;
+        /* padding: 10px; */
+        border-radius: 8px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        width: fit-content;
+    }
+
+    & .close {
+        position: absolute;
+        top: 100%;
+        right: 50%;
+        transform: translate(50%, 50%);
+        font-size: 20px;
+        cursor: pointer;
+        > svg {
+            /* fill: white; */
+            width: 50px !important;
+            height: auto;
+            >path {
+                stroke:#2980b9;
+            }
+        }
+        &:hover {
+            > svg {
+                fill: #297fb97c;
+                > path {
+                    stroke: rgba(255, 255, 255, 0.647);
+                }
+            }
+        }
+    }
+
+}
+
+
+
+
+/* Button styles */
+/* button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #2980b9;
+} */
