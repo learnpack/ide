@@ -59,8 +59,8 @@ export function StatusBar() {
 
             }
             
-
-            setPosition(Number(position));
+            
+            setPosition(Number(position), false);
             setLanguage(language);
         }
 

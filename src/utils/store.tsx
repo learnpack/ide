@@ -57,6 +57,10 @@ interface IStore {
   languageMap: ILanguageMap;
   configObject: IConfigObject;
   allowedActions: string[];
+  videoTutorial: string;
+  showVideoTutorial: boolean;
+
+  setShowVideoTutorial: (show:boolean) => void;
   setAllowedActions: (actions:string[])=> void;
   getConfigObject: () => void;
   increaseSolvedExercises: () => void;
@@ -70,7 +74,7 @@ interface IStore {
   fetchExercises: () => void;
   setStatus: (newStatus:string) => void;
   getLessonTitle: () => void;
-  setPosition: (position: number) => void;
+  setPosition: (position: number, showVideo: boolean) => void;
   fetchReadme: () => void;
   toggleSidebar: () => void;
   toggleLanguage: () => void;
@@ -111,8 +115,14 @@ const useStore = create<IStore>((set, get) => ({
       
     }
   },
+  videoTutorial: "",
   allowedActions: [],
-  
+
+  showVideoTutorial: true,
+
+  setShowVideoTutorial: (show:boolean) => {
+    set({showVideoTutorial: show});
+  },
   setAllowedActions:(actions)=>{
     set({allowedActions: actions});
   },
@@ -208,7 +218,8 @@ const useStore = create<IStore>((set, get) => ({
     set({ lessonTitle: config.title });
   },
 
-  setPosition: (newPosition) => {
+  setPosition: (newPosition, showVideo) => {
+    const { fetchReadme } = get();
     let params = window.location.hash.substring(1);
     let paramsArray = params.split('&');
     let language = "";
@@ -224,6 +235,7 @@ const useStore = create<IStore>((set, get) => ({
     }
     window.location.hash = hash;
     set({ currentExercisePosition: newPosition });
+
 },
 
   fetchReadme: async () => {
@@ -235,6 +247,14 @@ const useStore = create<IStore>((set, get) => ({
     
     const response = await fetch(`${HOST}/exercise/${slug}/readme?lang=${language}`);
     const exercise = await response.json();
+    if (exercise.attributes.tutorial) {
+      set({videoTutorial: exercise.attributes.tutorial})
+      set({showVideoTutorial: true})
+    }
+    else {
+      set({videoTutorial: ""})
+    }
+    
     set({ currentContent: convertMarkdownToHTML(exercise.body) })
     getConfigObject();
   },
@@ -265,8 +285,6 @@ const useStore = create<IStore>((set, get) => ({
     window.location.hash = hash;
     
     fetchReadme();
-
-    fetchReadme();
   },
 
   toggleLanguage: () => {
@@ -278,7 +296,6 @@ const useStore = create<IStore>((set, get) => ({
     let params = window.location.hash.substring(1);
     let paramsArray = params.split('&');
     let position = "";
-    console.log(paramsArray);
     
     if (paramsArray) {
       // get the index of the item that includes "language"

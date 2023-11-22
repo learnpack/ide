@@ -14,6 +14,8 @@ export const convertMarkdownToHTML = (markdown: any) => {
   // Create a new instance of the Remarkable markdown parser
   const md = new Remarkable();
   // Convert the markdown to HTML using the Remarkable parser
+  // console.log("MARKDOWN", markdown);
+  
   let html = md.render(markdown);
   html = replaceSrc(html);
   // console.log(html);

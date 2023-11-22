@@ -32,7 +32,7 @@ interface IFeedbackDropdown {
 
 function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
     const [showLoginModal, setShowLoginModal] = useState(false);
-    const { storeFeedback, feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token, setFeedbackButtonProps, increaseSolvedExercises, fetchExercises, configObject,allowedActions } = useStore();
+    const { storeFeedback, feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token, setFeedbackButtonProps, increaseSolvedExercises, fetchExercises, configObject,allowedActions, videoTutorial, setShowVideoTutorial } = useStore();
 
 
     const getFeedbackAndHide = () => {
@@ -141,22 +141,26 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
     }
     
     const redirectToVideo = () => {
-        const url = configObject.config.intro
-        if (url) {
-            if (configObject.config.editor.agent == "vscode") {
-                const data = {
-                    url,
-                    exerciseSlug: exercises[currentExercisePosition].slug,
-                }
-                compilerSocket.openWindow(data);
-    
-            }
-    
-            else if (configObject.config.editor.agent == "standalone") {
-                window.location.href = url
-            }
+        // const url = videoTutorial || configObject.config.intro;
 
-        }
+        setShowVideoTutorial(true);
+        toggleFeedbackVisibility();
+        
+        // if (url) {
+        //     if (configObject.config.editor.agent == "vscode") {
+        //         const data = {
+        //             url,
+        //             exerciseSlug: exercises[currentExercisePosition].slug,
+        //         }
+        //         compilerSocket.openWindow(data);
+    
+        //     }
+    
+        //     else if (configObject.config.editor.agent == "standalone") {
+        //         window.location.href = url
+        //     }
+
+        // }
     }
 
     return (
@@ -165,7 +169,7 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
             {allowedActions.includes("test") ? <SimpleButton svg={svgs.testIcon} text="Run tests" action={runTests} /> : null}
             {Boolean(token) ? <SimpleButton svg={svgs.brainIcon} text="Get AI Feedback" action={getFeedbackAndHide} /> : <SimpleButton svg={svgs.fourGeeksIcon} text="Login to use AI feedback" action={openLoginModal} />}
             {feedback ? <SimpleButton action={toggleAndHide} text="Show stored feedback" svg={svgs.reminderSvg}/> : null}
-            <SimpleButton text={`Video tutorial ${configObject.config.intro ? "" : "(not available)"}`}  svg={svgs.videoIcon} action={redirectToVideo} />
+            <SimpleButton text={`Video tutorial ${videoTutorial || configObject.config.intro ? "" : "(not available)"}`}  svg={svgs.videoIcon} action={redirectToVideo} />
 
             <p>Feedback plays an important role when learning technical skills. <a onClick={openWindow} href="https://4geeks.com/docs/learnpack">Learn why.</a></p>
         </div>
