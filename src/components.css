@@ -22,24 +22,22 @@
 
     & .close {
         position: absolute;
-        top: 100%;
-        right: 50%;
-        transform: translate(50%, 50%);
+        top: -15%;
+        right: 5%;
         font-size: 20px;
         cursor: pointer;
         > svg {
-            /* fill: white; */
             width: 50px !important;
             height: auto;
             >path {
-                stroke:#2980b9;
+                stroke:#b92933;
             }
         }
         &:hover {
             > svg {
-                fill: #297fb97c;
+                fill: #b9293371;
                 > path {
-                    stroke: rgba(255, 255, 255, 0.647);
+                    stroke: #b92933;
                 }
             }
         }
