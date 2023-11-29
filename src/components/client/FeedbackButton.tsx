@@ -5,7 +5,7 @@ import useStore from "../../utils/store";
 import { useState, useEffect } from "react";
 import { getStatus } from "../../utils/socket";
 import { toast } from 'react-hot-toast';
-
+import LoginModal from "./LoginModal";
 
 export default function FeedbackButton() {
     const [showFeedback, setShowFeedback] = useState(false);
@@ -33,33 +33,32 @@ interface IFeedbackDropdown {
 
 function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
     const [showLoginModal, setShowLoginModal] = useState(false);
-    const { storeFeedback, feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token, setFeedbackButtonProps, increaseSolvedExercises, fetchExercises, configObject,allowedActions, videoTutorial, setShowVideoTutorial, setShowChatModal, showChatModal } = useStore();
+    const { feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token, setFeedbackButtonProps, increaseSolvedExercises, fetchExercises, configObject,allowedActions, videoTutorial, setShowVideoTutorial, setShowChatModal } = useStore();
 
+    // const getFeedbackAndHide = () => {
 
-    const getFeedbackAndHide = () => {
+    //     toast.success("Thinking...");
+    //     setFeedbackButtonProps("Running...", "palpitate");
+    //     toggleFeedbackVisibility();
 
-        toast.success("Thinking...");
-        setFeedbackButtonProps("Running...", "palpitate");
-        toggleFeedbackVisibility();
+    //     const data = {
+    //         exerciseSlug: exercises[currentExercisePosition].slug,
+    //         entryPoint: exercises[currentExercisePosition].entry.split("/")[1]
+    //       }
 
-        const data = {
-            exerciseSlug: exercises[currentExercisePosition].slug,
-            entryPoint: exercises[currentExercisePosition].entry.split("/")[1]
-          }
+    //     compilerSocket.emit("generate", data);
 
-        compilerSocket.emit("generate", data);
-
-        compilerSocket.onStatus('compiler-success', (data:any) => {
-            toast.success(getStatus("compiler-success"));
+    //     compilerSocket.onStatus('compiler-success', (data:any) => {
+    //         toast.success(getStatus("compiler-success"));
             
-            storeFeedback(data.logs[0]);
-            setFeedbackButtonProps("Feedback", "");
-          })
+    //         storeFeedback(data.logs[0]);
+    //         setFeedbackButtonProps("Feedback", "");
+    //       })
      
-        setTimeout(() => {
-            toast.success("Wait a little more")
-        }, 2432)
-    }
+    //     setTimeout(() => {
+    //         toast.success("Wait a little more")
+    //     }, 2432)
+    // }
 
     const toggleAndHide = () => {
         toggleFeedbackVisibility();
@@ -165,58 +164,4 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
             <p>Feedback plays an important role when learning technical skills. <a onClick={openWindow} href="https://4geeks.com/docs/learnpack">Learn why.</a></p>
         </div>
     )
-}
-
-function LoginModal({ toggleFeedbackVisibility }: IFeedbackDropdown) {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
-
-    const { setToken } = useStore();
-    const login = async (e: any) => {
-        setIsLoading(true);
-        e.preventDefault();
-        const HOST = "http://localhost:3000"
-
-        const data = {
-            email: email,
-            password: password
-        }
-        console.log(data);
-
-        const config = {
-            method: "post",
-            body: JSON.stringify(data),
-            headers: {
-                "Content-Type": "application/json" // Set the content type to JSON
-            }
-        }
-        try {
-            const res = await fetch(HOST + "/login", config);
-            const json = await res.json();
-            const token = json.rigobot.key;
-            setToken(token);
-            toast.success("Successfully logged in");
-        }
-        catch (error) {
-            toast.error(String(error));
-        }
-        toggleFeedbackVisibility();
-
-    }
-
-    return <>
-        <div className="modal">
-            <div className="modal-content">
-                <div><p>To use the AI services you must login with your <a href="https://4geeks.com/">4geeks</a> account</p>
-                    <SimpleButton action={toggleFeedbackVisibility} svg={svgs.closeIcon} /></div>
-                <form action="">
-                    <input placeholder="Email" type="text" name="email" onChange={(e) => { setEmail(e.target.value) }} />
-                    <input placeholder="Password" type="password" name="password" onChange={(e) => { setPassword(e.target.value) }} />
-                    <SimpleButton text={isLoading ? "Loading..." : "Submit"} action={login} extraClass="bg-blue" />
-                    <span>If you don't have an account sign up <a href="https://4geeks.com/pricing">here</a></span>
-                </form>
-            </div>
-        </div>
-    </>
 }

@@ -71,7 +71,7 @@ interface IStore {
   showVideoTutorial: boolean;
   showChatModal: boolean;
   exerciseMessages: IExerciseMessages;
-
+  host: string;
   setExerciseMessages: (messages:IMessage[], position:number) => void;
   setShowChatModal: (show:boolean) => void;
   setShowVideoTutorial: (show:boolean) => void;
@@ -135,6 +135,7 @@ const useStore = create<IStore>((set, get) => ({
   showVideoTutorial: true,
   showChatModal: false,
   exerciseMessages: {},
+  host: HOST,
   // setters
   setExerciseMessages: (messages, position) => {
     set({exerciseMessages: {...get().exerciseMessages, [position]: messages}})
