@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { getStatus } from "../../utils/socket";
 import { toast } from 'react-hot-toast';
 
+
 export default function FeedbackButton() {
     const [showFeedback, setShowFeedback] = useState(false);
 
@@ -32,7 +33,7 @@ interface IFeedbackDropdown {
 
 function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
     const [showLoginModal, setShowLoginModal] = useState(false);
-    const { storeFeedback, feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token, setFeedbackButtonProps, increaseSolvedExercises, fetchExercises, configObject,allowedActions, videoTutorial, setShowVideoTutorial } = useStore();
+    const { storeFeedback, feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token, setFeedbackButtonProps, increaseSolvedExercises, fetchExercises, configObject,allowedActions, videoTutorial, setShowVideoTutorial, setShowChatModal, showChatModal } = useStore();
 
 
     const getFeedbackAndHide = () => {
@@ -50,7 +51,6 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
 
         compilerSocket.onStatus('compiler-success', (data:any) => {
             toast.success(getStatus("compiler-success"));
-            console.log(data);
             
             storeFeedback(data.logs[0]);
             setFeedbackButtonProps("Feedback", "");
@@ -144,30 +144,23 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
         setShowVideoTutorial(true);
         toggleFeedbackVisibility();
         
-        // if (url) {
-        //     if (configObject.config.editor.agent == "vscode") {
-        //         const data = {
-        //             url,
-        //             exerciseSlug: exercises[currentExercisePosition].slug,
-        //         }
-        //         compilerSocket.openWindow(data);
-    
-        //     }
-    
-        //     else if (configObject.config.editor.agent == "standalone") {
-        //         window.location.href = url
-        //     }
-
-        // }
     }
+
+    const showChat = () => {
+        setShowChatModal(true);
+        toggleFeedbackVisibility();
+    }
+
 
     return (
         <div className="feedback-dropdown">
             {showLoginModal && <LoginModal toggleFeedbackVisibility={toggleFeedbackVisibility} />}
             {allowedActions.includes("test") ? <SimpleButton svg={svgs.testIcon} text="Run tests" action={runTests} /> : null}
-            {Boolean(token) ? <SimpleButton svg={svgs.brainIcon} text="Get AI Feedback" action={getFeedbackAndHide} /> : <SimpleButton svg={svgs.fourGeeksIcon} text="Login to use AI feedback" action={openLoginModal} />}
+            {/* {Boolean(token) ? <SimpleButton svg={svgs.brainIcon} text="Get AI Feedback" action={getFeedbackAndHide} /> : <SimpleButton svg={svgs.fourGeeksIcon} text="Login to use AI feedback" action={openLoginModal} />} */}
+            {Boolean(token) ? <SimpleButton text="Open AI chat" svg={svgs.brainIcon} action={showChat} /> : <SimpleButton svg={svgs.fourGeeksIcon} text="Login to use AI feedback" action={openLoginModal} />}
             {feedback ? <SimpleButton action={toggleAndHide} text="Show stored feedback" svg={svgs.reminderSvg}/> : null}
             <SimpleButton text={`Video tutorial ${videoTutorial || configObject.config.intro ? "" : "(not available)"}`}  svg={svgs.videoIcon} action={redirectToVideo} />
+            
 
             <p>Feedback plays an important role when learning technical skills. <a onClick={openWindow} href="https://4geeks.com/docs/learnpack">Learn why.</a></p>
         </div>

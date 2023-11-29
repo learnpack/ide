@@ -15,9 +15,10 @@ export function StatusBar() {
             }
         });
 
-        compilerSocket.on("open_window", (data:any) => {
-            console.log("Trying to pen window...", data);
-        })
+        
+        // compilerSocket.on("open_window", (data:any) => {
+        //     console.log("Trying to pen window...", data);
+        // })
 
 
         compilerSocket.on("reload", (data:any) => {

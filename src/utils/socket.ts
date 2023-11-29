@@ -29,6 +29,7 @@ export const getStatus = function (status = 'initializing') {
         case "internal-error": return " 🔥💻 Woops! There has been an internal error"
         case "prettifying": return "Making code prettier"
         case "prettify-success": return "Look how beautiful your code is now"
+        case "completed": return "Excellent!"
         case "prettify-error": return "Warning! Unable to prettify and save"
         default: throw new Error('Invalid status: ' + status)
     }
@@ -96,7 +97,8 @@ export default {
 
             if (typeof scope.actionCallBacks[data.action] === 'function') scope.actionCallBacks[data.action](data, scope)
             if (typeof scope.statusCallBacks[data.status] === 'function') scope.statusCallBacks[data.status](data, scope)
-            if (scope.updatedCallback) console.log(scopeName + " event: ", data) | scope.updatedCallback(scope, data)
+            // if (scope.updatedCallback) console.log(scopeName + " event: ", data) | scope.updatedCallback(scope, data)
+            if (scope.updatedCallback) scope.updatedCallback(scope, data)
         })
 
         return scope

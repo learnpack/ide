@@ -38,6 +38,16 @@ interface IConfigObject {
   config: IConfig
 }
 
+type IMessage = {
+  type: string;
+  text: string;
+}
+
+interface IExerciseMessages {
+  [key: number]: IMessage[];
+
+}
+
 
 interface IStore {
   exercises: any[];
@@ -59,7 +69,11 @@ interface IStore {
   allowedActions: string[];
   videoTutorial: string;
   showVideoTutorial: boolean;
+  showChatModal: boolean;
+  exerciseMessages: IExerciseMessages;
 
+  setExerciseMessages: (messages:IMessage[], position:number) => void;
+  setShowChatModal: (show:boolean) => void;
   setShowVideoTutorial: (show:boolean) => void;
   setAllowedActions: (actions:string[])=> void;
   getConfigObject: () => void;
@@ -119,7 +133,15 @@ const useStore = create<IStore>((set, get) => ({
   allowedActions: [],
 
   showVideoTutorial: true,
-
+  showChatModal: false,
+  exerciseMessages: {},
+  // setters
+  setExerciseMessages: (messages, position) => {
+    set({exerciseMessages: {...get().exerciseMessages, [position]: messages}})
+  },
+  setShowChatModal: (show:boolean) => {
+    set({showChatModal: show});
+  },
   setShowVideoTutorial: (show:boolean) => {
     console.log("Setting up showVideoTutorial", show);
     

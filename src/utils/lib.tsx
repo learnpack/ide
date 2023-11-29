@@ -53,12 +53,13 @@ export const changeSidebarVisibility = () => {
   * @returns {string} - The modified text with replaced occurrences.
   */
 function replaceSrc(rawText: string) {
-  // Use a regular expression to find all occurrences of src="../.."
+  // Use a regular expression to find all oc currences of src="../.."
   const regex = /src="\.\.\/\.\./g;
   // Replace all occurrences with http://localhost:3000
 
   const host = getHost();
-  const modifiedText = rawText.replace(regex, `src=${host}`);
+  const modifiedText = rawText.replace(regex, `src="${host}`);
+  
   // Return the modified text
   return modifiedText;
 }
