@@ -42,32 +42,32 @@ export default function LoginModal({ toggleFeedbackVisibility }: ILoginModal) {
     }
 
 
-    const getOpenAITokenFromRigobot = async (rigotoken:string) => {
+    // const getOpenAITokenFromRigobot = async (rigotoken:string) => {
 
-        const config = {
-            method: "post",
-            headers: {
-                "Content-Type": "application/json",
-                "Authentication": `Token ${rigotoken}`
-            }
-        }
-        console.log("Sendind data to Rigobot", config);
+    //     const config = {
+    //         method: "post",
+    //         headers: {
+    //             "Content-Type": "application/json",
+    //             "Authentication": `Token ${rigotoken}`
+    //         }
+    //     }
+    //     console.log("Sendind data to Rigobot", config);
         
-        try {
-            const res = await fetch("https://8000-charlytoc-rigobot-6vb6c57nhjo.ws-us106.gitpod.io" + "/v1/prompting/get-openai-token", config);
-            const json = await res.json();
-            const token = json.token;
-            setOpenaiToken(token);
+    //     try {
+    //         const res = await fetch("https://8000-charlytoc-rigobot-6vb6c57nhjo.ws-us106.gitpod.io" + "/v1/prompting/get-openai-token", config);
+    //         const json = await res.json();
+    //         const token = json.token;
+    //         setOpenaiToken(token);
             
-            console.log(token);
+    //         console.log(token);
             
-            toast.success("Successfully retrieved OpenAI token");
-        }
-        catch (error) {
-            toast.error(String(error));
-        }
-        // toggleFeedbackVisibility();
-    }
+    //         toast.success("Successfully retrieved OpenAI token");
+    //     }
+    //     catch (error) {
+    //         toast.error(String(error));
+    //     }
+
+    // }
 
     const login = async (e: any) => {
         setIsLoading(true);
