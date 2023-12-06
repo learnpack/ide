@@ -3,8 +3,7 @@ import { useEffect, useState } from "react";
 import useStore from "../../utils/store";
 
 export default function CheckVideo () {
-    const [link, setLink] = useState("");
-
+    const [link, setLink] = useState(null as string | null);
     const {configObject, currentExercisePosition, videoTutorial, setShowVideoTutorial, showVideoTutorial} = useStore();
 
     useEffect(()=>{
@@ -27,7 +26,8 @@ export default function CheckVideo () {
     const hideModal = () => {
         setShowVideoTutorial(false);
     }
+
     return <>
-    {link && showVideoTutorial ? <VideoModal link={link} hideModal={hideModal} /> : null}
+    {showVideoTutorial && link ? <VideoModal link={link} hideModal={hideModal} /> : null}
     </>
 }

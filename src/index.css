@@ -38,6 +38,7 @@ body {
   background-color: #EFF1F4;
   /* height: fit-content; */
   overflow-x: hidden;
+  overflow-y: scroll;
 }
 
 img {

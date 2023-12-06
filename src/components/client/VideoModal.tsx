@@ -14,7 +14,7 @@ const VideoModal: React.FC<IVideoModalProps> = ({ link, hideModal }) => {
                 <span className="close" onClick={hideModal}>{svgs.closeIcon}</span>
                 <iframe
                     title="Video Modal"
-                    width="560"
+                    width="460"
                     height="315"
                     src={link}
                     allowFullScreen

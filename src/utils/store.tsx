@@ -143,9 +143,7 @@ const useStore = create<IStore>((set, get) => ({
   setShowChatModal: (show:boolean) => {
     set({showChatModal: show});
   },
-  setShowVideoTutorial: (show:boolean) => {
-    console.log("Setting up showVideoTutorial", show);
-    
+  setShowVideoTutorial: (show:boolean) => {    
     set({showVideoTutorial: show});
   },
   setAllowedActions:(actions)=>{
@@ -272,7 +270,6 @@ const useStore = create<IStore>((set, get) => ({
     const response = await fetch(`${HOST}/exercise/${slug}/readme?lang=${language}`);
     const exercise = await response.json();
     if (exercise.attributes.tutorial) {
-      
       set({videoTutorial: exercise.attributes.tutorial})
       
     }
