@@ -1,8 +1,9 @@
 import SimpleButton from "./Button"
 import useStore from "../../utils/store"
 import { svgs } from "../../resources/svgs";
-import {useEffect, useState} from "react";
 
+import { useState} from "react";
+// import {useEffect, useState} from "react";
 
 const svgsLanguageMap:any = {
     "es": svgs.spainFlag,
