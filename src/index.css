@@ -12,6 +12,7 @@
   --color-fail: #EB5757;
   --color-blue-opaque: #EBF8FE;
   --bg-color-code: #2D3748;
+  --backdrop-background: rgba(0, 0, 0, 0.7);
 }
 
 /* @media (prefers-color-scheme: dark) {
@@ -161,7 +162,7 @@ button {
   height: 100vh !important;
   position: absolute;
   z-index: 1000;
-  background-color: rgba(149, 149, 149, 0.432);
+  background-color: var(--backdrop-background);
   display: flex;
   flex-direction: column;
   padding: 10px;

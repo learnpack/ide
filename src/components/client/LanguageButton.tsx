@@ -1,7 +1,7 @@
 import SimpleButton from "./Button"
 import useStore from "../../utils/store"
 import { svgs } from "../../resources/svgs";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
 
 const svgsLanguageMap:any = {
@@ -13,12 +13,12 @@ export default function LanguageButton() {
     const { language } = useStore();
     const [showDrop, setShowDropdown]= useState(false);
 
-
     const toggleDrop = () => {
         setShowDropdown(!showDrop)
     }
     return <>
         <div className="language-component">
+            {/* <p>Hello</p> */}
             <SimpleButton action={toggleDrop} text={language} svg={svgsLanguageMap[language]} />
             {showDrop && <LanguageDropdown toggleDrop={toggleDrop} />}
             
