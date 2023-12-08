@@ -140,13 +140,16 @@ export const getHost = function():string {
   let preConfig = getParams("config");
   if(preConfig && preConfig!=="") preConfig = JSON.parse(atob(preConfig));
 
-  // console.log("PRECONFIG", preConfig);
+  console.log("PRECONFIG", preConfig);
 
-  const HOST = preConfig ? `${preConfig.address}:${preConfig.port}` : getParams('host') || fullURL;
+  let HOST = preConfig ? `${preConfig.address}:${preConfig.port}` : getParams('host') || fullURL;
 
   console.log("HOST", HOST);
+  
   if (DEV_MODE) {
-    return 'http://localhost:3000';
+    HOST='http://localhost:3000';
   }
+  
+  console.log("DEV_MODE", DEV_MODE);
   return HOST;
 };
