@@ -4,6 +4,14 @@ export function StatusBar() {
     const {compilerSocket, setPosition, setLanguage, exercises, currentExercisePosition, getConfigObject, setAllowedActions}  = useStore();
 
     useEffect(()=>{
+        const modal:HTMLElement|null = document.querySelector("#socket-disconnected");
+
+  if (modal) {
+    modal.style.display = "none";
+  }
+    },[])
+
+    useEffect(()=>{
         getConfigObject();
         
         const slug = exercises[currentExercisePosition]?.slug

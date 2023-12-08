@@ -9,7 +9,8 @@ import { getHost } from './lib';
 const HOST = getHost();
 
 Socket.start(HOST, disconnected);
-    
+
+
 function disconnected() {
   const modal:HTMLElement|null = document.querySelector("#socket-disconnected");
 
@@ -187,19 +188,41 @@ const useStore = create<IStore>((set, get) => ({
   },
 
   getConfigObject: async () => {
-    const res = await fetch(`${HOST}/config`)
-    const config= await res.json();
-    set({configObject: config})
+    if (!HOST) {
+      return;
+    }
+    try {
+      const res = await fetch(`${HOST}/config`)
+      const config= await res.json();
+      set({configObject: config})
+    }
+    catch (err) {
+      const modal:HTMLElement|null = document.querySelector("#socket-disconnected");
+ 
+      if (modal && modal.style) {
+        modal.style.display = "block";     
+      }
+    }
   },
 
   fetchExercises: async () => {
     const { fetchReadme, getLessonTitle } = get();
-    const res = await fetch(`${HOST}/config`)
-    const config = await res.json();
-    set({ exercises: config.exercises });
-    set({numberOfExercises: config.exercises.length})
-    fetchReadme();
-    getLessonTitle();
+    
+    try {
+      const res = await fetch(`${HOST}/config`)
+      const config = await res.json();
+      set({ exercises: config.exercises });
+      set({numberOfExercises: config.exercises.length})
+      fetchReadme();
+      getLessonTitle();
+    }
+    catch (err) {
+      const modal:HTMLElement|null = document.querySelector("#socket-disconnected");
+
+      if (modal && modal.style) {
+        modal.style.display = "block";     
+      }
+    }
 
   },
   storeFeedback: (feedback) => {

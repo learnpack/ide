@@ -1,6 +1,7 @@
 import { Remarkable } from 'remarkable';
 
 // const DEV_MODE = process.env.NODE_ENV === 'development';
+const DEV_MODE = false;
 
 
 const fullURL = location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '');
@@ -135,18 +136,17 @@ export function getParams(opts) {
 }
 
 
-export const getHost = function(){
+export const getHost = function():string {
   let preConfig = getParams("config");
   if(preConfig && preConfig!=="") preConfig = JSON.parse(atob(preConfig));
 
-  console.log("PRECONFIG", preConfig);
+  // console.log("PRECONFIG", preConfig);
 
-  // const HOST = preConfig ? `${preConfig.address}:${preConfig.port}` : process.env.HOST || getParams('host') || fullURL;
   const HOST = preConfig ? `${preConfig.address}:${preConfig.port}` : getParams('host') || fullURL;
 
   console.log("HOST", HOST);
-  // if (DEV_MODE) {
-  //   return 'http://localhost:3000';
-  // }
+  if (DEV_MODE) {
+    return 'http://localhost:3000';
+  }
   return HOST;
 };
