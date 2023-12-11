@@ -3,6 +3,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    /* flex-direction: column; */
     position: fixed;
     top: 0;
     left: 0;
@@ -14,6 +15,8 @@
     > .modal-content {
         position: relative;
         background-color: #fff;
+        display: flex;
+        flex-direction: column;
         /* padding: 10px; */
         border-radius: 8px;
         box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
@@ -21,25 +24,17 @@
     }
 
     & .close {
-        position: absolute;
-        top: -15%;
-        right: 5%;
-        font-size: 20px;
+        /* position: absolute; */
+        /* top: -15%;
+        right: 5%; */
+        font-size: 22px;
         cursor: pointer;
-        > svg {
-            width: 50px !important;
-            height: auto;
-            >path {
-                stroke:#b92933;
-            }
-        }
+        text-align: center;
+        padding: 10px;
+        
+        width: 100%;
         &:hover {
-            > svg {
-                fill: #b9293371;
-                > path {
-                    stroke: #b92933;
-                }
-            }
+            background-color: var(--color-active);
         }
     }
 

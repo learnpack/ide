@@ -6,7 +6,7 @@ import { StatusBar } from "../client/StaturBar"
 import LanguageButton from "../client/LanguageButton"
 
 function LessonOptions() {
-    const { currentExercisePosition, setPosition, fetchReadme, exercises, setBuildButtonText, setFeedbackButtonProps, compilerSocket, configObject, allowedActions, setShowVideoTutorial } = useStore();
+    const { currentExercisePosition, setPosition, fetchReadme, exercises, setBuildButtonText, setFeedbackButtonProps, compilerSocket, configObject, allowedActions, setShowVideoTutorial, fetchSingleExercise } = useStore();
 
     const handlePositionChange = (action: string) => {
         if (action === "next" && currentExercisePosition != exercises.length - 1) {
@@ -14,10 +14,8 @@ function LessonOptions() {
                 setShowVideoTutorial(true);
                 const nextPosition = currentExercisePosition +1
                 setPosition(nextPosition);
-              
                 
                 const files = exercises[nextPosition].files.filter((f: any) => f.hidden === false);
-                // console.log(files);
                 
                 const data = {
                     exerciseSlug: exercises[nextPosition].slug,
@@ -25,6 +23,9 @@ function LessonOptions() {
                 }
                 // console.log(data);
                 compilerSocket.emit("open", data);
+
+                // Call app to open exercise
+                fetchSingleExercise(nextPosition)
             }
 
             else {
@@ -33,6 +34,8 @@ function LessonOptions() {
         }
         else if (action === "prev" && currentExercisePosition != 0) {
             setPosition(currentExercisePosition - 1);
+
+            fetchSingleExercise(currentExercisePosition - 1)
         }
         setBuildButtonText("Run", "");
         setFeedbackButtonProps("Feedback", "");
