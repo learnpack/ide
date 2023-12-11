@@ -215,6 +215,10 @@
 .simple-button-svg {
   max-height: 100% !important;
   gap: 10px;
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
   >svg {
     max-height: 100% !important;
   }

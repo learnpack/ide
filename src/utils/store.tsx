@@ -238,9 +238,10 @@ const useStore = create<IStore>((set, get) => ({
       const { exercises } = get();
       const slug = exercises[index]?.slug;
 
-      console.log("SLiug to open", slug);
+      // console.log("SLiug to open", slug);
 
-      const exercise = await getExercise(slug);
+      const respose = await getExercise(slug);
+      const exercise = await respose.json();
       console.log("exercise", exercise);
 
     }
@@ -280,9 +281,15 @@ const useStore = create<IStore>((set, get) => ({
 
     const response = await fetch(`${HOST}/exercise/${slug}/readme?lang=${language}`);
     const exercise = await response.json();
+
+    console.log("exercise.attributes", exercise.attributes);
+    
     if (exercise.attributes.tutorial) {
       set({ videoTutorial: exercise.attributes.tutorial })
-
+    }
+    else if (exercise.attributes.intro) {
+      set({ videoTutorial: exercise.attributes.tutorial })
+      set({showVideoTutorial: true})
     }
     else {
       set({ videoTutorial: "" })
