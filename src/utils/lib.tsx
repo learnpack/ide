@@ -88,9 +88,9 @@ export const getHost = function():string {
   let HOST = preConfig ? `${preConfig.address}:${preConfig.port}` : getParams('host') || fullURL;
 
   
-  if (DEV_MODE) {
-    HOST='http://localhost:3000';
-  }
+  // if (DEV_MODE) {
+  //   HOST='http://localhost:3000';
+  // }
   
   console.log("HOST", HOST, "DEV_MODE", DEV_MODE);
 
