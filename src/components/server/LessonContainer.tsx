@@ -6,7 +6,7 @@ import { StatusBar } from "../client/StaturBar"
 import LanguageButton from "../client/LanguageButton"
 
 function LessonOptions() {
-    const { currentExercisePosition, setPosition, fetchReadme, exercises, setBuildButtonText, setFeedbackButtonProps, compilerSocket, configObject, allowedActions, setShowVideoTutorial, fetchSingleExercise } = useStore();
+    const { currentExercisePosition, setPosition, fetchReadme, exercises, setBuildButtonText, setFeedbackButtonProps, configObject, allowedActions, setShowVideoTutorial, fetchSingleExercise } = useStore();
 
     const handlePositionChange = (action: string) => {
         if (action === "next" && currentExercisePosition != exercises.length - 1) {
@@ -15,17 +15,19 @@ function LessonOptions() {
                 const nextPosition = currentExercisePosition +1
                 setPosition(nextPosition);
                 
-                const files = exercises[nextPosition].files.filter((f: any) => f.hidden === false);
+                // const files = exercises[nextPosition].files.filter((f: any) => f.hidden === false);
                 
-                const data = {
-                    exerciseSlug: exercises[nextPosition].slug,
-                    files: files.map((f: any) => f.path)
-                }
-                // console.log(data);
-                compilerSocket.emit("open", data);
+                // const data = {
+                //     exerciseSlug: exercises[nextPosition].slug,
+                //     files: files.map((f: any) => f.path)
+                // }
+                // // console.log(data);
+                // compilerSocket.emit("open", data);
 
                 // Call app to open exercise
-                fetchSingleExercise(nextPosition)
+                fetchSingleExercise(nextPosition);
+                console.log("NEXT POSITION TO OPEN: ", nextPosition);
+                
             }
 
             else {
@@ -34,7 +36,6 @@ function LessonOptions() {
         }
         else if (action === "prev" && currentExercisePosition != 0) {
             setPosition(currentExercisePosition - 1);
-
             fetchSingleExercise(currentExercisePosition - 1)
         }
         setBuildButtonText("Run", "");
