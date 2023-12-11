@@ -1,7 +1,7 @@
 import { Remarkable } from 'remarkable';
 
 // const DEV_MODE = process.env.NODE_ENV === 'development';
-const DEV_MODE = true;
+const DEV_MODE = false;
 
 
 const fullURL = location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '');
