@@ -3,6 +3,7 @@ import { svgs } from "../../resources/svgs";
 import useStore from "../../utils/store";
 import { useState } from "react";
 import { toast } from 'react-hot-toast';
+import { OpenWindowLink } from "./OpenWindowLink";
 
 interface ILoginModal {
     toggleFeedbackVisibility: () => void;
@@ -40,34 +41,6 @@ export default function LoginModal({ toggleFeedbackVisibility }: ILoginModal) {
         }
         toggleFeedbackVisibility();
     }
-
-
-    // const getOpenAITokenFromRigobot = async (rigotoken:string) => {
-
-    //     const config = {
-    //         method: "post",
-    //         headers: {
-    //             "Content-Type": "application/json",
-    //             "Authentication": `Token ${rigotoken}`
-    //         }
-    //     }
-    //     console.log("Sendind data to Rigobot", config);
-        
-    //     try {
-    //         const res = await fetch("https://8000-charlytoc-rigobot-6vb6c57nhjo.ws-us106.gitpod.io" + "/v1/prompting/get-openai-token", config);
-    //         const json = await res.json();
-    //         const token = json.token;
-    //         setOpenaiToken(token);
-            
-    //         console.log(token);
-            
-    //         toast.success("Successfully retrieved OpenAI token");
-    //     }
-    //     catch (error) {
-    //         toast.error(String(error));
-    //     }
-
-    // }
 
     const login = async (e: any) => {
         setIsLoading(true);
@@ -112,7 +85,7 @@ export default function LoginModal({ toggleFeedbackVisibility }: ILoginModal) {
                     <input placeholder="Email" type="text" name="email" onChange={(e) => { setEmail(e.target.value) }} />
                     <input placeholder="Password" type="password" name="password" onChange={(e) => { setPassword(e.target.value) }} />
                     <SimpleButton text={isLoading ? "Loading..." : "Submit"} action={login} extraClass="bg-blue" />
-                    <span>If you don't have an account sign up <a href="https://4geeks.com/pricing">here</a></span>
+                    <span>If you don't have an account sign up <OpenWindowLink text="here" href="https://4geeks.com/pricing"/> </span>
                     <input placeholder="Set an OpenAI token if you prefer" type="token" name="token" onChange={(e) => { setOpenaiToken(e.target.value) }} />
                 </form>
             </div>
