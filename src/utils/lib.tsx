@@ -97,3 +97,9 @@ export const getHost = function():string {
 
   return HOST;
 };
+
+export const getFileContent = async (slug: string, file:string) =>  {
+  const response = await fetch(`${getHost()}/exercise/${slug}/file/${file}`);
+  const data = await response.text();
+  return data;
+}

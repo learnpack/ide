@@ -21,6 +21,8 @@ export default function Chat() {
     const [userMessage, setUserMessage] = useState("");
 
     useEffect(() => {
+        // getContextFilesContent()
+
         const body = document.querySelector('body');
         if (body) body.style.overflow = "hidden";
 
@@ -77,6 +79,10 @@ export default function Chat() {
             lastMessages: getLastTwoMessages()
         }
         compilerSocket.emit("generate", data);
+
+     
+        
+        
         setUserMessage("");
         setIsGenerating(true);
 

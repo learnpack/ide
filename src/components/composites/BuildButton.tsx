@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast';
 
 
 export default function BuildButton() {
-  const { currentExercisePosition, exercises, compilerSocket, buildbuttonText, setBuildButtonText } = useStore();
+  const { currentExercisePosition, exercises, compilerSocket, buildbuttonText, setBuildButtonText, isBuildable } = useStore();
 
 
   const build = () => {
@@ -47,5 +47,5 @@ export default function BuildButton() {
 
   }
 
-  return <SimpleButton text={buildbuttonText.text} svg={svgs.buildIcon} extraClass={`pill bg-blue ${buildbuttonText.className}`} action={build} />
+  return <SimpleButton text={buildbuttonText.text} svg={svgs.buildIcon} extraClass={`pill bg-blue ${buildbuttonText.className}`} action={build} disabled={!isBuildable} />
 }

@@ -10,15 +10,19 @@ import LoginModal from "./LoginModal";
 export default function FeedbackButton() {
     const [showFeedback, setShowFeedback] = useState(false);
 
-    const { feedbackbuttonProps } = useStore();
+    const { feedbackbuttonProps, allowedActions } = useStore();
     const { checkLoggedStatus } = useStore();
     const toggleFeedback = () => {
         setShowFeedback((prev) => !prev);
     }
 
     useEffect(() => {
-        checkLoggedStatus()
+        checkLoggedStatus();
     }, [])
+
+    useEffect(() => {
+        // console.log(allowedActions, "allowedActions");
+    }, [allowedActions])
 
     return (<div className="pos-relative feedback-dropdown-container">
         <SimpleButton text={feedbackbuttonProps.text} svg={svgs.feedbackIcon} extraClass={`pill border-blue color-blue row-reverse ${feedbackbuttonProps.className}`} action={toggleFeedback} />
@@ -33,7 +37,11 @@ interface IFeedbackDropdown {
 
 function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
     const [showLoginModal, setShowLoginModal] = useState(false);
-    const { feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token, setFeedbackButtonProps, increaseSolvedExercises, fetchExercises, configObject, allowedActions, videoTutorial, setShowVideoTutorial, setShowChatModal } = useStore();
+    const { feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token, setFeedbackButtonProps, increaseSolvedExercises, fetchExercises, configObject, videoTutorial, setShowVideoTutorial, setShowChatModal, getCurrentExercise, isTesteable } = useStore();
+
+
+    console.log(getCurrentExercise().slug);
+    
 
     const toggleAndHide = () => {
         toggleFeedbackVisibility();
@@ -46,7 +54,7 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
         toast.success(getStatus("testing"));
 
         const data = {
-            exerciseSlug: exercises[currentExercisePosition].slug
+            exerciseSlug: getCurrentExercise().slug
         }
 
         compilerSocket.emit('test', data);
@@ -128,8 +136,7 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
     return (
         <div className="feedback-dropdown">
             {showLoginModal && <LoginModal toggleFeedbackVisibility={toggleFeedbackVisibility} />}
-            {allowedActions.includes("test") ? <SimpleButton svg={svgs.testIcon} text="Run tests" action={runTests} /> : null}
-            {/* {Boolean(token) ? <SimpleButton svg={svgs.brainIcon} text="Get AI Feedback" action={getFeedbackAndHide} /> : <SimpleButton svg={svgs.fourGeeksIcon} text="Login to use AI feedback" action={openLoginModal} />} */}
+            {isTesteable ? <SimpleButton svg={svgs.testIcon} text="Run tests" action={runTests} /> : <SimpleButton svg={svgs.testIcon} text="Run tests" disabled={true} />}
             {Boolean(token) ? <SimpleButton text="Open AI chat" svg={svgs.brainIcon} action={showChat} /> : <SimpleButton svg={svgs.fourGeeksIcon} text="Login to use AI feedback" action={openLoginModal} />}
             {feedback ? <SimpleButton action={toggleAndHide} text="Show stored feedback" svg={svgs.reminderSvg} /> : null}
             <SimpleButton text={`Video tutorial ${videoTutorial ? "" : "(not available)"}`} disabled={!videoTutorial} svg={svgs.videoIcon} action={redirectToVideo} />

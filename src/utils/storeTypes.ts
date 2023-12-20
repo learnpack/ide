@@ -2,34 +2,37 @@
 interface IBuildProps {
     text: string;
     className: string;
-  }
-  
-  
-  interface ILanguageMap {
+}
+
+
+interface ILanguageMap {
     [key: string]: string;
-  }
-  
-  interface IConfig {
+}
+
+interface IConfig {
     intro: any;
     editor: any;
     grading: string;
-  }
-  
-  interface IConfigObject {
+}
+
+interface IConfigObject {
     config: IConfig
-  }
-  
-  type IMessage = {
+}
+
+type IMessage = {
     type: string;
     text: string;
-  }
-  
-  interface IExerciseMessages {
+}
+
+interface IExerciseMessages {
     [key: number]: IMessage[];
-  
-  }
-  
-  
+
+}
+
+export type TExercise = {
+    slug: string
+}
+
 
 export interface IStore {
     exercises: any[];
@@ -44,7 +47,7 @@ export interface IStore {
     buildbuttonText: IBuildProps;
     feedbackbuttonProps: IBuildProps;
     compilerSocket: any;
-    rigobotSocket: any;
+    // chatSocket: any;
     token: string;
     solvedExercises: number;
     languageMap: ILanguageMap;
@@ -55,6 +58,11 @@ export interface IStore {
     showChatModal: boolean;
     exerciseMessages: IExerciseMessages;
     host: string;
+    isTesteable: boolean;
+    isBuildable: boolean;
+
+    getContextFilesContent: () => string;
+    getCurrentExercise: () => TExercise;
     setExerciseMessages: (messages: IMessage[], position: number) => void;
     setShowChatModal: (show: boolean) => void;
     setShowVideoTutorial: (show: boolean) => void;
@@ -67,7 +75,7 @@ export interface IStore {
     setToken: (newToken: string) => void;
     setBuildButtonText: (t: string, c: string) => void;
     setFeedbackButtonProps: (t: string, c: string) => void;
-    fetchSingleExercise: (plusOrLess: number) => void;
+    fetchSingleExerciseInfo: (plusOrLess: number) => void;
     toggleFeedback: () => void;
     fetchExercises: () => void;
     setStatus: (newStatus: string) => void;
@@ -77,4 +85,4 @@ export interface IStore {
     toggleSidebar: () => void;
     toggleLanguage: () => void;
     // getAIFeedback: () => void;
-  }
+}

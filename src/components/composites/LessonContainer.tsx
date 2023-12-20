@@ -3,19 +3,16 @@ import { Toaster, toast } from "react-hot-toast"
 import LessonContent from "../client/LessonContent"
 import useStore from "../../utils/store"
 
-import LanguageButton from "../composites/LanguageButton"
+import LanguageButton from "./LanguageButton"
 
 function LessonOptions() {
-    const { currentExercisePosition, setPosition, fetchReadme, exercises, setBuildButtonText, setFeedbackButtonProps, configObject, allowedActions, fetchSingleExercise } = useStore();
+    const { currentExercisePosition, setPosition, fetchReadme, exercises, setBuildButtonText, setFeedbackButtonProps, configObject, allowedActions } = useStore();
 
     const handlePositionChange = (action: string) => {
         if (action === "next" && currentExercisePosition != exercises.length - 1) {
             if (configObject.config.grading == "isolated" || (configObject.config.grading == "incremental" && exercises[currentExercisePosition].done) || (!allowedActions.includes("test"))) {
                 const nextPosition = currentExercisePosition + 1
                 setPosition(nextPosition);
-
-                // Call app to open exercise
-                fetchSingleExercise(nextPosition);
             }
 
             else {
@@ -24,7 +21,7 @@ function LessonOptions() {
         }
         else if (action === "prev" && currentExercisePosition != 0) {
             setPosition(currentExercisePosition - 1);
-            fetchSingleExercise(currentExercisePosition - 1)
+
         }
         setBuildButtonText("Run", "");
         setFeedbackButtonProps("Feedback", "");

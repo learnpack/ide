@@ -1,4 +1,4 @@
-import BugButton from "../composites/BugButton";
+import BugButton from "./BugButton";
 import SimpleButton from "../mockups/Button";
 import ExercisesList from "../client/ExercisesList";
 import useStore from "../../utils/store";

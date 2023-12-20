@@ -1,7 +1,7 @@
 // @ts-nocheck
 import io from 'socket.io-client'
 import { create } from 'zustand';
-import { convertMarkdownToHTML, changeSidebarVisibility, getExercise } from './lib';
+import { convertMarkdownToHTML, changeSidebarVisibility, getExercise, getFileContent } from './lib';
 import Socket from './socket';
 import { getHost } from './lib';
 import { IStore } from './storeTypes';
@@ -10,12 +10,13 @@ const HOST = getHost();
 Socket.start(HOST, disconnected);
 
 const FASTAPI_HOST = "http://localhost:8000";
-const chatSocket = io(`${FASTAPI_HOST}`)
 
-chatSocket.on("connect", () => {
-  // console.log("We are fucking connected to the chatSocket: ", chatSocket.connected, "in: ", FASTAPI_HOST); // true
+// const chatSocket = io(`${FASTAPI_HOST}`)
 
-});
+// chatSocket.on("connect", () => {
+//   console.log("We are fucking connected to the chatSocket: ", chatSocket.connected, "in: ", FASTAPI_HOST); // true
+
+// });
 
 function disconnected() {
   const modal: HTMLElement | null = document.querySelector("#socket-disconnected");
@@ -56,18 +57,23 @@ const useStore = create<IStore>((set, get) => ({
       editor: {
         agent: "",
       }
-      
+
     }
   },
   videoTutorial: "",
   allowedActions: [],
-  rigobotSocket: chatSocket,
+  // chatSocket: chatSocket,
   compilerSocket: Socket.createScope('compiler'),
-  showVideoTutorial: true,
+  showVideoTutorial: false,
   showChatModal: false,
   exerciseMessages: {},
   host: HOST,
   // setters
+  getCurrentExercise: () => {
+    const { exercises, currentExercisePosition } = get();
+    return exercises[currentExercisePosition];
+  },
+
   setExerciseMessages: (messages, position) => {
     set({ exerciseMessages: { ...get().exerciseMessages, [position]: messages } })
   },
@@ -116,6 +122,22 @@ const useStore = create<IStore>((set, get) => ({
       set({ token: "" })
     }
   },
+  getContextFilesContent: async () => {
+    const { exercises, currentExercisePosition } = get();
+    const slug = exercises[currentExercisePosition].slug;
+
+    let notHiddenFiles = exercises[currentExercisePosition].files.filter((file) => !file.hidden);
+
+    let filePromises = notHiddenFiles.map(async (file) => {
+      let fileContent = await getFileContent(slug, file.name);
+      return `File: ${file.name}\nContent: \`${fileContent}\``;
+    });
+
+    Promise.all(filePromises).then((filesContext) => {
+      let context = filesContext.join('\n---\n');
+      console.log(context);
+    });
+  },
 
   getConfigObject: async () => {
     if (!HOST) {
@@ -162,19 +184,37 @@ const useStore = create<IStore>((set, get) => ({
     toggleFeedback();
 
   },
-  fetchSingleExercise: async (index) => {
-    if (index != 0) {
-      const { exercises } = get();
-      const slug = exercises[index]?.slug;
 
-      // console.log("SLiug to open", slug);
+  fetchSingleExerciseInfo: async (index) => {
+    const { exercises } = get();
 
-      const respose = await getExercise(slug);
-      const exercise = await respose.json();
-      // exercise;
-      console.log("I need to see the files of the exercise");
-
+    if (exercises.length <= 0) {
+      return;
     }
+
+    const slug = exercises[index]?.slug;
+
+    if (!slug) {
+      return;
+    }
+
+    const respose = await getExercise(slug);
+    const exercise = await respose.json();
+
+    let isTesteable = false;
+    let isChatable = true;
+    let isBuildable = exercise.language === null ? false : true;
+
+    exercise.files.forEach((file) => {
+      if (file.name.includes("tests") || file.name.includes("test")) {
+        isTesteable = true;
+      }
+      return !file.hidden
+    });
+
+    set({ isTesteable: isTesteable, isBuildable: isBuildable })
+
+
   },
 
   getLessonTitle: async () => {
@@ -184,6 +224,8 @@ const useStore = create<IStore>((set, get) => ({
   },
 
   setPosition: (newPosition) => {
+    const { fetchSingleExerciseInfo: fetchSingleExercise } = get();
+
     let params = window.location.hash.substring(1);
     let paramsArray = params.split('&');
     let language = "";
@@ -198,6 +240,8 @@ const useStore = create<IStore>((set, get) => ({
       hash += `&${language}`
     }
     window.location.hash = hash;
+    fetchSingleExercise(newPosition);
+
     set({ currentExercisePosition: newPosition });
 
   },
@@ -213,13 +257,13 @@ const useStore = create<IStore>((set, get) => ({
     const exercise = await response.json();
 
     // console.log("exercise.attributes", exercise.attributes);
-    
+
     if (exercise.attributes.tutorial) {
       set({ videoTutorial: exercise.attributes.tutorial })
     }
     else if (exercise.attributes.intro) {
       set({ videoTutorial: exercise.attributes.tutorial })
-      set({showVideoTutorial: true})
+      set({ showVideoTutorial: true })
     }
     else {
       set({ videoTutorial: "" })

@@ -13,12 +13,11 @@ export function SocketHandler() {
 
     useEffect(() => {
         getConfigObject();
-
         const slug = exercises[currentExercisePosition]?.slug
+
 
         compilerSocket.whenUpdated((scope: any, data: any) => {
             scope;
-            console.log(data);
             if (data.status && data.status == "ready") {
                 setAllowedActions(data.allowed)
             }
@@ -31,8 +30,6 @@ export function SocketHandler() {
         })
 
         compilerSocket.on("ask", async ({ inputs }: any) => {
-
-
             const inputsResponses = [];
 
             for (let i = 0; i < inputs.length; i++) {
@@ -45,6 +42,9 @@ export function SocketHandler() {
             });
         });
 
+
+
+        // This function should be in another file
         let params = window.location.hash.substring(1);
         if (params) {
             let paramsArray = params.split('&');
