@@ -1,7 +1,7 @@
 // @ts-nocheck
 import io from 'socket.io-client'
 import { create } from 'zustand';
-import { convertMarkdownToHTML, changeSidebarVisibility, getExercise, getFileContent } from './lib';
+import { convertMarkdownToHTML, changeSidebarVisibility, getExercise, getFileContent, startConversation } from './lib';
 import Socket from './socket';
 import { getHost } from './lib';
 import { IStore } from './storeTypes';
@@ -10,13 +10,13 @@ const HOST = getHost();
 Socket.start(HOST, disconnected);
 
 const FASTAPI_HOST = "http://localhost:8000";
+const chatSocket = io(`${FASTAPI_HOST}`);
 
-// const chatSocket = io(`${FASTAPI_HOST}`)
+chatSocket.on("connect", () => {
+  // console.log("We are fucking connected to the chatSocket: ", chatSocket.connected, "in: ", FASTAPI_HOST); 
 
-// chatSocket.on("connect", () => {
-//   console.log("We are fucking connected to the chatSocket: ", chatSocket.connected, "in: ", FASTAPI_HOST); // true
+});
 
-// });
 
 function disconnected() {
   const modal: HTMLElement | null = document.querySelector("#socket-disconnected");
@@ -32,8 +32,10 @@ const useStore = create<IStore>((set, get) => ({
     "us": "ENG",
     "es": "SPA"
   },
+  learnpackPurposeId: 26,
   exercises: [],
   currentContent: "",
+  chatSocket: chatSocket,
   currentExercisePosition: 0,
   lessonTitle: "",
   numberOfExercises: 0,
@@ -62,12 +64,12 @@ const useStore = create<IStore>((set, get) => ({
   },
   videoTutorial: "",
   allowedActions: [],
-  // chatSocket: chatSocket,
   compilerSocket: Socket.createScope('compiler'),
   showVideoTutorial: false,
   showChatModal: false,
   exerciseMessages: {},
   host: HOST,
+
   // setters
   getCurrentExercise: () => {
     const { exercises, currentExercisePosition } = get();
@@ -123,7 +125,8 @@ const useStore = create<IStore>((set, get) => ({
     }
   },
   getContextFilesContent: async () => {
-    const { exercises, currentExercisePosition } = get();
+    const { exercises, currentExercisePosition, currentReadme } = get();
+
     const slug = exercises[currentExercisePosition].slug;
 
     let notHiddenFiles = exercises[currentExercisePosition].files.filter((file) => !file.hidden);
@@ -133,9 +136,15 @@ const useStore = create<IStore>((set, get) => ({
       return `File: ${file.name}\nContent: \`${fileContent}\``;
     });
 
-    Promise.all(filePromises).then((filesContext) => {
-      let context = filesContext.join('\n---\n');
-      console.log(context);
+    return Promise.all(filePromises).then((filesContext) => {
+      let context = "The following is the student code file(s): \n---"
+      context = filesContext.join('\n---\n');
+      context += `This is the current exercise readme that the student needs to make:
+      ---
+      ${currentReadme}
+      ---`;
+
+      return context;
     });
   },
 
@@ -223,8 +232,8 @@ const useStore = create<IStore>((set, get) => ({
     set({ lessonTitle: config.title });
   },
 
-  setPosition: (newPosition) => {
-    const { fetchSingleExerciseInfo: fetchSingleExercise } = get();
+  setPosition: async (newPosition) => {
+    const { fetchSingleExerciseInfo, conversationIdsCache, token } = get();
 
     let params = window.location.hash.substring(1);
     let paramsArray = params.split('&');
@@ -240,9 +249,30 @@ const useStore = create<IStore>((set, get) => ({
       hash += `&${language}`
     }
     window.location.hash = hash;
-    fetchSingleExercise(newPosition);
+
+    fetchSingleExerciseInfo(newPosition);
 
     set({ currentExercisePosition: newPosition });
+
+    if (token) {
+      let conversationId = null;
+
+      try {
+        conversationId = conversationIdsCache[newPosition]
+      }
+      catch (err) {
+        const initialData = await startConversation(26, token);
+        conversationId = initialData.conversation_id;
+      }
+
+      set({ conversationIdsCache: { ...conversationIdsCache, [newPosition]: conversationId } })
+
+      chatSocket.emit("start", {
+        token: token,
+        purpose: 26,
+        conversationId: conversationId
+      })
+    }
 
   },
 
@@ -271,6 +301,7 @@ const useStore = create<IStore>((set, get) => ({
     }
 
     set({ currentContent: convertMarkdownToHTML(exercise.body) })
+    set({ currentReadme: exercise.body })
     getConfigObject();
   },
 

@@ -2,7 +2,7 @@ import { Remarkable } from 'remarkable';
 
 // const DEV_MODE = process.env.NODE_ENV === 'development';
 const DEV_MODE = true;
-
+const RIGOBOT_API_URL = "https://rigobot.herokuapp.com";
 
 const fullURL = location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '');
 /**
@@ -88,7 +88,7 @@ export const getHost = function():string {
 
   let HOST = preConfig ? `${preConfig.address}:${preConfig.port}` : getParams('host') || fullURL;
 
-  
+  // TODO: DO THIS BETTER
   if (DEV_MODE) {
     HOST='http://localhost:3000';
   }
@@ -102,4 +102,20 @@ export const getFileContent = async (slug: string, file:string) =>  {
   const response = await fetch(`${getHost()}/exercise/${slug}/file/${file}`);
   const data = await response.text();
   return data;
+}
+
+export const startConversation = async (purpose_id: string | number, token: string) => {
+  const conversationUrl = RIGOBOT_API_URL + "/v1/conversation/?purpose=" + purpose_id
+
+  const config = {
+    method:  'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Token ' + token
+    }
+  }
+
+  const resp = await fetch(conversationUrl, config);
+  const data = await resp.json();
+  return data
 }

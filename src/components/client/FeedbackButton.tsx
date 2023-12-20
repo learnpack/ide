@@ -40,9 +40,6 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
     const { feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token, setFeedbackButtonProps, increaseSolvedExercises, fetchExercises, configObject, videoTutorial, setShowVideoTutorial, setShowChatModal, getCurrentExercise, isTesteable } = useStore();
 
 
-    console.log(getCurrentExercise().slug);
-    
-
     const toggleAndHide = () => {
         toggleFeedbackVisibility();
         toggleFeedback();

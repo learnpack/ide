@@ -7,26 +7,21 @@ const fakeMessages = [
     { "type": "bot", "text": "It appears that you need some help, ask me anything!" },
 ]
 
-// Establish a socket connection with Rigobot-streaming
-
-
-
 export default function Chat() {
     const backdropRef = useRef<HTMLDivElement>(null);
 
-    const { setShowChatModal, compilerSocket, exercises, currentExercisePosition, exerciseMessages, setExerciseMessages } = useStore();
+    const { setShowChatModal, currentExercisePosition, exerciseMessages, setExerciseMessages, chatSocket, conversationIdsCache, getContextFilesContent, learnpackPurposeId, token } = useStore();
 
     const [isGenerating, setIsGenerating] = useState(false);
     const [messages, setMessages] = useState(exerciseMessages[currentExercisePosition] || fakeMessages);
     const [userMessage, setUserMessage] = useState("");
 
     useEffect(() => {
-        // getContextFilesContent()
-
         const body = document.querySelector('body');
         if (body) body.style.overflow = "hidden";
 
-        document.addEventListener('mousedown', handleClickOutside)
+        document.addEventListener('mousedown', handleClickOutside);
+
         return () => {
             if (body) body.style.overflow = "auto";
             document.removeEventListener('mousedown', handleClickOutside)
@@ -34,7 +29,30 @@ export default function Chat() {
     }, [])
 
     useEffect(() => {
-        compilerSocket.on("generation", (data: any) => {
+        // @ts-ignore
+        chatSocket.on("response", (message) => {
+            let newMessages = [...messages];
+
+            newMessages[newMessages.length - 1].text += message.chunk;
+            setMessages(newMessages);
+        });
+
+        // @ts-ignore
+        chatSocket.on("responseFinished", (data) => {
+            if (data.status == "ok") {
+                console.log("responseFinished", data);
+            }
+
+        });
+
+        return () => {
+            chatSocket.off("response");
+            chatSocket.off("responseFinished");
+        }
+    }, [messages]);
+
+    useEffect(() => {
+        chatSocket.on("generation", (data: any) => {
 
             if (data.status == "completed") {
                 setIsGenerating(false);
@@ -47,7 +65,6 @@ export default function Chat() {
     }, [isGenerating])
 
     const handleClickOutside = (event: any) => {
-
         if (event.target === backdropRef.current) {
             setShowChatModal(false);
         }
@@ -57,32 +74,18 @@ export default function Chat() {
         setUserMessage(e.target.value);
     }
 
-    const getLastTwoMessages = () => {
-        if (messages.length < 2) return "Conversation just started!";
-        const lastMessages = messages.slice(-2).map((message) => `${message.type}: ${message.text}`).join("\n");
-        return lastMessages;
-    }
-
-    const sendUserMessage = () => {
+    const sendUserMessage = async () => {
         if (Boolean(userMessage.trim() == "")) return;
-        if (isGenerating) return;
+        // if (isGenerating) return;
 
         setMessages((prev) => [...prev, { "type": "user", "text": userMessage }]);
-
         setMessages((prev) => [...prev, { "type": "bot", "text": "" }]);
 
-
-        const data = {
-            exerciseSlug: exercises[currentExercisePosition].slug,
-            userMessage: userMessage,
-            entryPoint: exercises[currentExercisePosition].entry.split("/")[1],
-            lastMessages: getLastTwoMessages()
-        }
-        compilerSocket.emit("generate", data);
-
-     
+        const messageData = await getMessageData();
+        console.log(messageData);
         
-        
+        chatSocket.emit("message", messageData)
+
         setUserMessage("");
         setIsGenerating(true);
 
@@ -94,6 +97,41 @@ export default function Chat() {
             sendUserMessage();
         }
     }
+
+    // functions -------------------------
+
+    //   const generateLastBotMessage = (): TChatMessage => {
+    //     return {
+    //       type: "bot",
+    //       text: "",
+    //       purpose: chatData.purpose,
+    //     }
+    //   }
+
+    const getMessageData = async () => {
+        const contextFilesContent = await getContextFilesContent();
+        const data = {
+            "message": {
+                type: 'user',
+                text: userMessage,
+                purpose: learnpackPurposeId,
+                context: contextFilesContent,
+                imageB64: ""
+            },
+            "data": {
+                "conversationID": conversationIdsCache[currentExercisePosition],
+                "purpose": learnpackPurposeId,
+                "token": token
+            }
+        }
+        return data
+    }
+
+    //   const getImageDescription = () => {
+    //     return chatMessage.text
+    //   }
+
+
 
     return <main ref={backdropRef} className="chat-container">
 
@@ -123,6 +161,7 @@ export default function Chat() {
 interface IMessage {
     type: string;
     text: string;
+    context?: string;
 }
 
 const Message = ({ type, text }: IMessage) => {
