@@ -1,7 +1,6 @@
 import { Remarkable } from 'remarkable';
 
-// const DEV_MODE = process.env.NODE_ENV === 'development';
-const DEV_MODE = true;
+const DEV_MODE = false;
 const RIGOBOT_API_URL = "https://rigobot.herokuapp.com";
 
 const fullURL = location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '');
@@ -92,8 +91,6 @@ export const getHost = function():string {
   if (DEV_MODE) {
     HOST='http://localhost:3000';
   }
-  
-  // console.log("HOST", HOST, "DEV_MODE", DEV_MODE);
 
   return HOST;
 };

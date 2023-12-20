@@ -9,7 +9,7 @@ import { IStore } from './storeTypes';
 const HOST = getHost();
 Socket.start(HOST, disconnected);
 
-const FASTAPI_HOST = "http://localhost:8000";
+const FASTAPI_HOST = "https://chat.4geeks.com/";
 const chatSocket = io(`${FASTAPI_HOST}`);
 
 chatSocket.on("connect", () => {

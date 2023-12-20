@@ -40,7 +40,7 @@ export default function Chat() {
         // @ts-ignore
         chatSocket.on("responseFinished", (data) => {
             if (data.status == "ok") {
-                console.log("responseFinished", data);
+                setIsGenerating(false);
             }
 
         });
@@ -76,15 +76,14 @@ export default function Chat() {
 
     const sendUserMessage = async () => {
         if (Boolean(userMessage.trim() == "")) return;
-        // if (isGenerating) return;
+        if (isGenerating) return;
 
         setMessages((prev) => [...prev, { "type": "user", "text": userMessage }]);
         setMessages((prev) => [...prev, { "type": "bot", "text": "" }]);
 
         const messageData = await getMessageData();
-        console.log(messageData);
         
-        chatSocket.emit("message", messageData)
+        chatSocket.emit("message", messageData);
 
         setUserMessage("");
         setIsGenerating(true);
@@ -97,16 +96,6 @@ export default function Chat() {
             sendUserMessage();
         }
     }
-
-    // functions -------------------------
-
-    //   const generateLastBotMessage = (): TChatMessage => {
-    //     return {
-    //       type: "bot",
-    //       text: "",
-    //       purpose: chatData.purpose,
-    //     }
-    //   }
 
     const getMessageData = async () => {
         const contextFilesContent = await getContextFilesContent();
