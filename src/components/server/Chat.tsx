@@ -1,26 +1,33 @@
 import useStore from "../../utils/store";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { convertMarkdownToHTML } from "../../utils/lib";
-import { svgs } from "../../resources/svgs";
+import { svgs } from "../../assets/svgs";
 
 const fakeMessages = [
     { "type": "bot", "text": "It appears that you need some help, ask me anything!" },
 ]
 
+// Establish a socket connection with Rigobot-streaming
+
+
+
 export default function Chat() {
+    const backdropRef = useRef<HTMLDivElement>(null);
+
     const { setShowChatModal, compilerSocket, exercises, currentExercisePosition, exerciseMessages, setExerciseMessages } = useStore();
 
     const [isGenerating, setIsGenerating] = useState(false);
     const [messages, setMessages] = useState(exerciseMessages[currentExercisePosition] || fakeMessages);
     const [userMessage, setUserMessage] = useState("");
 
-
-    useEffect(()=>{
+    useEffect(() => {
         const body = document.querySelector('body');
         if (body) body.style.overflow = "hidden";
 
+        document.addEventListener('mousedown', handleClickOutside)
         return () => {
             if (body) body.style.overflow = "auto";
+            document.removeEventListener('mousedown', handleClickOutside)
         }
     }, [])
 
@@ -37,9 +44,15 @@ export default function Chat() {
         })
     }, [isGenerating])
 
+    const handleClickOutside = (event: any) => {
+
+        if (event.target === backdropRef.current) {
+            setShowChatModal(false);
+        }
+    }
+
     const trackUserMessage = (e: any) => {
         setUserMessage(e.target.value);
-
     }
 
     const getLastTwoMessages = () => {
@@ -50,15 +63,13 @@ export default function Chat() {
 
     const sendUserMessage = () => {
         if (Boolean(userMessage.trim() == "")) return;
-
         if (isGenerating) return;
 
         setMessages((prev) => [...prev, { "type": "user", "text": userMessage }]);
 
         setMessages((prev) => [...prev, { "type": "bot", "text": "" }]);
 
-        console.log(getLastTwoMessages());
-        
+
         const data = {
             exerciseSlug: exercises[currentExercisePosition].slug,
             userMessage: userMessage,
@@ -78,18 +89,17 @@ export default function Chat() {
         }
     }
 
-
-    return <main className="chat-container">
+    return <main ref={backdropRef} className="chat-container">
 
         <div className="chat-modal">
             <section className="chat-header">
-                <h3>Learnpack AI-tutor</h3>
+                <h3>Learnpack AI-Tutor</h3>
 
-            <button onClick={() => {
-                setShowChatModal(false);
-            }}>
-                {svgs.closeIcon}
-            </button>
+                <button onClick={() => {
+                    setShowChatModal(false);
+                }}>
+                    {svgs.closeIcon}
+                </button>
             </section>
             <section className="chat-messages">
                 {messages.map((message, index) => <Message key={index} {...message} />)}

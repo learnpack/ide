@@ -1,7 +1,7 @@
-import SimpleButton from "./Button";
-import { svgs } from "../../resources/svgs";
+import SimpleButton from "../templates/Button";
+import { svgs } from "../../assets/svgs";
 import useStore from "../../utils/store";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from 'react-hot-toast';
 import { OpenWindowLink } from "./OpenWindowLink";
 
@@ -10,6 +10,8 @@ interface ILoginModal {
 }
 
 export default function LoginModal({ toggleFeedbackVisibility }: ILoginModal) {
+    const backdropRef = useRef<HTMLDivElement>(null);
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [openaiToken, setOpenaiToken] = useState("");
@@ -42,10 +44,24 @@ export default function LoginModal({ toggleFeedbackVisibility }: ILoginModal) {
         toggleFeedbackVisibility();
     }
 
+    const handleClickOutside = (event: any) => {
+        if (backdropRef.current == event.target) {
+            toggleFeedbackVisibility();
+        }
+
+    }
+
+    useEffect(() => {
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside)
+        }
+    }, [])
+
     const login = async (e: any) => {
         setIsLoading(true);
         e.preventDefault();
-        
+
 
         const data = {
             email: email,
@@ -77,15 +93,17 @@ export default function LoginModal({ toggleFeedbackVisibility }: ILoginModal) {
     }
 
     return <>
-        <div className="modal">
+
+        <div ref={backdropRef} className="login-modal">
             <div className="modal-content">
+                <h2>Login</h2>
                 <div><p>To use the AI services you must login with your <a href="https://4geeks.com/">4geeks</a> account</p>
                     <SimpleButton action={toggleFeedbackVisibility} svg={svgs.closeIcon} /></div>
                 <form action="">
                     <input placeholder="Email" type="text" name="email" onChange={(e) => { setEmail(e.target.value) }} />
                     <input placeholder="Password" type="password" name="password" onChange={(e) => { setPassword(e.target.value) }} />
                     <SimpleButton text={isLoading ? "Loading..." : "Submit"} action={login} extraClass="bg-blue" />
-                    <span>If you don't have an account sign up <OpenWindowLink text="here" href="https://4geeks.com/pricing"/> </span>
+                    <span>If you don't have an account sign up <OpenWindowLink text="here" href="https://4geeks.com/pricing" /> </span>
                     <input placeholder="Set an OpenAI token if you prefer" type="token" name="token" onChange={(e) => { setOpenaiToken(e.target.value) }} />
                 </form>
             </div>

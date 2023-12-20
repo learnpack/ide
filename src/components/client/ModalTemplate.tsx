@@ -4,7 +4,7 @@ interface IModalTemplate {
     htmlId: string;
     header: ReactNode;
     content: ReactNode;
-    footer: ReactNode;
+    footer?: ReactNode;
 }
 
 export default function ModalTemplate({header, content, footer, htmlId}: IModalTemplate) {

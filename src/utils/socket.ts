@@ -43,19 +43,13 @@ export default {
     socket: null,
     start: function (host, onDisconnect:any = null) {
         this.socket = io.connect(host)
-        // try {
-        // }
-        // catch (e) {
-        //     console.error(e)
-        //     console.error("Scoket error")
-        // }
 
         if (this.socket) {
             
             console.log("Connected to host " + host);
             this.socket.on('disconnect', () => onDisconnect && onDisconnect())
         } else {
-            console.error(`Failed to connect to hosty: ${host}`);
+            console.error(`Failed to connect to host: ${host}`);
         }
     },
     createScope: function (scopeName) {

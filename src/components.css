@@ -10,11 +10,11 @@
     width: 100%;
     height: 100%;
     background-color: var(--backdrop-background);
-    z-index: 999;
+    z-index: 3;
 
     > .modal-content {
         position: relative;
-        background-color: #fff;
+        background-color: transparent;
         display: flex;
         flex-direction: column;
         /* padding: 10px; */
@@ -24,16 +24,19 @@
     }
 
     & .close {
-        /* position: absolute; */
-        /* top: -15%;
-        right: 5%; */
-        font-size: 22px;
+        background-color: var(--color-active);
+        margin-top: 10px;
+        border-radius: 10px;
+        font-size: 21px;
         cursor: pointer;
         text-align: center;
         padding: 10px;
-        
         width: 100%;
+        opacity: 0.8;
+        color: white;
+        font-weight: 600;
         &:hover {
+            opacity: 1;
             background-color: var(--color-active);
         }
     }
@@ -163,3 +166,24 @@
 button:hover {
     background-color: #2980b9;
 } */
+
+
+.self-closing-modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: var(--backdrop-background);
+    width: 100vw !important;
+    height: 100vh !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    > div {
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+    }
+}

@@ -1,4 +1,4 @@
-import SimpleButton from "./Button"
+import SimpleButton from "../templates/Button"
 import ModalTemplate from "./ModalTemplate"
 
 export default function SocketDisconnectionModal() {
@@ -23,26 +23,26 @@ const steps = [
     {
         title: "Step 1",
         instructions: <>
-        <p>Check that Learnpack is running in your terminal.</p>
-        <p>Run: <code>learnpack start</code></p>
+            <p>Check that Learnpack is running in your terminal.</p>
+            <p>Run: <code>learnpack start</code></p>
         </>
     },
     {
         title: "Step 2",
         instructions: <>
-        <p>Is Learnpack is running but you still see this model, reload the window:</p>
-        <WindowReloader />
+            <p>Is Learnpack is running but you still see this model, reload the window:</p>
+            <WindowReloader />
         </>
     },
 ]
 
 const Content = () => {
     return <div>
-    <p>Sorry, this error can happen for certain reasons.</p>
-    <p>The basic steps to troubleshoot this error are the following:</p>
+        <p>Sorry, this error can happen for certain reasons.</p>
+        <p>The basic steps to troubleshoot this error are the following:</p>
 
-    {steps.map((step, index) => <Step key={index} title={step.title} instructions={step.instructions} />)}
-</div>
+        {steps.map((step, index) => <Step key={index} title={step.title} instructions={step.instructions} />)}
+    </div>
 }
 
 type TStep = {

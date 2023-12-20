@@ -1,6 +1,6 @@
 
-import SimpleButton from "./Button";
-import { svgs } from "../../resources/svgs";
+import SimpleButton from "../templates/Button";
+import { svgs } from "../../assets/svgs";
 import useStore from "../../utils/store";
 import { useState, useEffect } from "react";
 import { getStatus } from "../../utils/socket";
@@ -10,15 +10,15 @@ import LoginModal from "./LoginModal";
 export default function FeedbackButton() {
     const [showFeedback, setShowFeedback] = useState(false);
 
-    const { feedbackbuttonProps }= useStore();
-    const {checkLoggedStatus}=useStore();
+    const { feedbackbuttonProps } = useStore();
+    const { checkLoggedStatus } = useStore();
     const toggleFeedback = () => {
         setShowFeedback((prev) => !prev);
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         checkLoggedStatus()
-    },[])
+    }, [])
 
     return (<div className="pos-relative feedback-dropdown-container">
         <SimpleButton text={feedbackbuttonProps.text} svg={svgs.feedbackIcon} extraClass={`pill border-blue color-blue row-reverse ${feedbackbuttonProps.className}`} action={toggleFeedback} />
@@ -33,7 +33,7 @@ interface IFeedbackDropdown {
 
 function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
     const [showLoginModal, setShowLoginModal] = useState(false);
-    const { feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token, setFeedbackButtonProps, increaseSolvedExercises, fetchExercises, configObject,allowedActions, videoTutorial, setShowVideoTutorial, setShowChatModal } = useStore();
+    const { feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token, setFeedbackButtonProps, increaseSolvedExercises, fetchExercises, configObject, allowedActions, videoTutorial, setShowVideoTutorial, setShowChatModal } = useStore();
 
     const toggleAndHide = () => {
         toggleFeedbackVisibility();
@@ -51,7 +51,7 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
 
         compilerSocket.emit('test', data);
 
-        let debounceSuccess = debounce(()=>{
+        let debounceSuccess = debounce(() => {
             toast.success(getStatus("testing-success"));
             setFeedbackButtonProps("Succeded", "bg-success text-white");
             // exercises[currentExercisePosition].done = true;
@@ -59,7 +59,7 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
             increaseSolvedExercises();
         }, 100)
 
-        compilerSocket.onStatus('testing-success',debounceSuccess);
+        compilerSocket.onStatus('testing-success', debounceSuccess);
 
         function debounce(func: any, wait: any) {
             let timeout: any;
@@ -93,8 +93,8 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
         setShowLoginModal(true);
         // toggleFeedbackVisibility();
     }
-    
-    const openWindow = (e:any) => {
+
+    const openWindow = (e: any) => {
         e.preventDefault();
         const url = e.target.href
 
@@ -110,14 +110,14 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
         else if (configObject.config.editor.agent == "standalone") {
             window.location.href = url
         }
-        
+
 
     }
-    
+
     const redirectToVideo = () => {
         setShowVideoTutorial(true);
         toggleFeedbackVisibility();
-        
+
     }
 
     const showChat = () => {
@@ -131,9 +131,9 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
             {allowedActions.includes("test") ? <SimpleButton svg={svgs.testIcon} text="Run tests" action={runTests} /> : null}
             {/* {Boolean(token) ? <SimpleButton svg={svgs.brainIcon} text="Get AI Feedback" action={getFeedbackAndHide} /> : <SimpleButton svg={svgs.fourGeeksIcon} text="Login to use AI feedback" action={openLoginModal} />} */}
             {Boolean(token) ? <SimpleButton text="Open AI chat" svg={svgs.brainIcon} action={showChat} /> : <SimpleButton svg={svgs.fourGeeksIcon} text="Login to use AI feedback" action={openLoginModal} />}
-            {feedback ? <SimpleButton action={toggleAndHide} text="Show stored feedback" svg={svgs.reminderSvg}/> : null}
-            <SimpleButton text={`Video tutorial ${videoTutorial ? "" : "(not available)"}`} disabled={!videoTutorial}  svg={svgs.videoIcon} action={redirectToVideo} />
-            
+            {feedback ? <SimpleButton action={toggleAndHide} text="Show stored feedback" svg={svgs.reminderSvg} /> : null}
+            <SimpleButton text={`Video tutorial ${videoTutorial ? "" : "(not available)"}`} disabled={!videoTutorial} svg={svgs.videoIcon} action={redirectToVideo} />
+
 
             <p>Feedback plays an important role when learning technical skills. <a onClick={openWindow} href="https://4geeks.com/docs/learnpack">Learn why.</a></p>
         </div>

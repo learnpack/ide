@@ -4,8 +4,6 @@ import './components.css'
 
 import Navbar from './components/server/Navbar'
 import LessonContainer from './components/server/LessonContainer'
-// import Sidebar from './components/server/Sidebar'
-import FeedbackContainer from './components/client/FeedbackContainer'
 import SocketDisconnectionModal from './components/client/SocketDisconnectionModal'
 import CheckVideo from './components/client/CheckVideo'
 import Chat from './components/server/Chat'
@@ -18,7 +16,6 @@ export default function Home() {
       {showChatModal && <Chat /> }
       <CheckVideo />
       <SocketDisconnectionModal />
-      <FeedbackContainer />
       <Navbar />
       <LessonContainer />
     </main>

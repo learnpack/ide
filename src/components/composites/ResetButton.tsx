@@ -1,6 +1,6 @@
-import SimpleButton from "./Button";
+import SimpleButton from "../templates/Button";
 import useStore from "../../utils/store";
-import { svgs } from "../../resources/svgs";
+import { svgs } from "../../assets/svgs";
 import { useState } from "react";
 export default function ResetButton() {
 

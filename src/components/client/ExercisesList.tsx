@@ -1,17 +1,17 @@
-import { svgs } from "../../resources/svgs";
+import { svgs } from "../../assets/svgs";
 import useStore from "../../utils/store";
-import SimpleButton from "./Button";
+import SimpleButton from "../templates/Button";
 
 interface IExerciseList {
     closeSidebar: () => void;
 }
 
-export default function ExercisesList({closeSidebar}:IExerciseList) {
+export default function ExercisesList({ closeSidebar }: IExerciseList) {
     const { exercises } = useStore();
 
-    
 
-    
+
+
     return (
         <ul className="exercise-list">
             {exercises.map((item, index) => <ExerciseCard key={index} name={item.title} position={item.position} done={item.done} closeSidebar={closeSidebar} />)}
@@ -30,7 +30,7 @@ interface IExerciseProps {
 function ExerciseCard({ name, position, closeSidebar, done }: IExerciseProps) {
     const { setPosition, fetchReadme } = useStore();
 
-    const getNameWithoutNumber = (str:string) => {
+    const getNameWithoutNumber = (str: string) => {
         let arr = str.split('-');
         arr.shift();
         return arr.join(' ');

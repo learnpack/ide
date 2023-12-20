@@ -1,9 +1,9 @@
-import { svgs } from "../../resources/svgs"
+import { svgs } from "../../assets/svgs"
 import { Toaster, toast } from "react-hot-toast"
 import LessonContent from "../client/LessonContent"
 import useStore from "../../utils/store"
 import { StatusBar } from "../client/StaturBar"
-import LanguageButton from "../client/LanguageButton"
+import LanguageButton from "../composites/LanguageButton"
 
 function LessonOptions() {
     const { currentExercisePosition, setPosition, fetchReadme, exercises, setBuildButtonText, setFeedbackButtonProps, configObject, allowedActions, fetchSingleExercise } = useStore();
@@ -12,11 +12,11 @@ function LessonOptions() {
         if (action === "next" && currentExercisePosition != exercises.length - 1) {
             if (configObject.config.grading == "isolated" || (configObject.config.grading == "incremental" && exercises[currentExercisePosition].done) || (!allowedActions.includes("test"))) {
                 // setShowVideoTutorial(true);
-                const nextPosition = currentExercisePosition +1
+                const nextPosition = currentExercisePosition + 1
                 setPosition(nextPosition);
-                
+
                 // const files = exercises[nextPosition].files.filter((f: any) => f.hidden === false);
-                
+
                 // const data = {
                 //     exerciseSlug: exercises[nextPosition].slug,
                 //     files: files.map((f: any) => f.path)
@@ -27,7 +27,7 @@ function LessonOptions() {
                 // Call app to open exercise
                 fetchSingleExercise(nextPosition);
                 console.log("NEXT POSITION TO OPEN: ", nextPosition);
-                
+
             }
 
             else {

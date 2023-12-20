@@ -1,5 +1,8 @@
 // The store is responsible for managing the state of the application
 // This store was created with Zustand
+// @ts-nocheck
+import io from 'socket.io-client'
+
 
 import { create } from 'zustand';
 import { convertMarkdownToHTML, changeSidebarVisibility, getExercise } from './lib';
@@ -7,10 +10,16 @@ import Socket from './socket';
 import { getHost } from './lib';
 
 const HOST = getHost();
-
 Socket.start(HOST, disconnected);
 
 
+const FASTAPI_HOST = "http://localhost:8000";
+const chatSocket = io(`${FASTAPI_HOST}`)
+
+chatSocket.on("connect", () => {
+  console.log("We are fucking connected to the chatSocket: ", chatSocket.connected, "in: ", FASTAPI_HOST); // true
+
+});
 function disconnected() {
   const modal: HTMLElement | null = document.querySelector("#socket-disconnected");
 
@@ -63,6 +72,7 @@ interface IStore {
   buildbuttonText: IBuildProps;
   feedbackbuttonProps: IBuildProps;
   compilerSocket: any;
+  rigobotSocket: any;
   token: string;
   solvedExercises: number;
   languageMap: ILanguageMap;
@@ -128,12 +138,13 @@ const useStore = create<IStore>((set, get) => ({
       editor: {
         agent: "",
       }
-
+      
     }
   },
   videoTutorial: "",
   allowedActions: [],
-
+  rigobotSocket: chatSocket,
+  compilerSocket: Socket.createScope('compiler'),
   showVideoTutorial: true,
   showChatModal: false,
   exerciseMessages: {},
@@ -282,7 +293,7 @@ const useStore = create<IStore>((set, get) => ({
     const response = await fetch(`${HOST}/exercise/${slug}/readme?lang=${language}`);
     const exercise = await response.json();
 
-    console.log("exercise.attributes", exercise.attributes);
+    // console.log("exercise.attributes", exercise.attributes);
     
     if (exercise.attributes.tutorial) {
       set({ videoTutorial: exercise.attributes.tutorial })
@@ -353,7 +364,6 @@ const useStore = create<IStore>((set, get) => ({
     fetchReadme();
   },
 
-  compilerSocket: Socket.createScope('compiler'),
 
 })
 );

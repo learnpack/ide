@@ -1,7 +1,7 @@
-import BuildButton from '../client/BuildButton'
+import BuildButton from '../composites/BuildButton'
 import FeedbackButton from '../client/FeedbackButton'
 import Sidebar from './Sidebar'
-import ResetButton from '../client/ResetButton'
+import ResetButton from '../composites/ResetButton'
 export default function Navbar () {
     return <nav className="navbar-component">
         <section>

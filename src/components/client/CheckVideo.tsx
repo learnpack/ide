@@ -1,4 +1,4 @@
-import VideoModal from "./VideoModal";
+import VideoModal from "../composites/VideoModal";
 import { useEffect, useState } from "react";
 import useStore from "../../utils/store";
 
