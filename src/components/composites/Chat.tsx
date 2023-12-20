@@ -41,6 +41,7 @@ export default function Chat() {
         chatSocket.on("responseFinished", (data) => {
             if (data.status == "ok") {
                 setIsGenerating(false);
+                setExerciseMessages(messages, currentExercisePosition);
             }
 
         });
@@ -50,19 +51,6 @@ export default function Chat() {
             chatSocket.off("responseFinished");
         }
     }, [messages]);
-
-    useEffect(() => {
-        chatSocket.on("generation", (data: any) => {
-
-            if (data.status == "completed") {
-                setIsGenerating(false);
-                setExerciseMessages(messages, currentExercisePosition);
-            }
-            let newMessages = [...messages];
-            newMessages[newMessages.length - 1].text += data.logs;
-            setMessages(newMessages);
-        })
-    }, [isGenerating])
 
     const handleClickOutside = (event: any) => {
         if (event.target === backdropRef.current) {
