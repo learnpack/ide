@@ -92,8 +92,7 @@ export const getHost = function (): string {
     HOST = 'http://localhost:3000';
   }
 
-  console.log("HOST", HOST);
-  
+  // console.log("HOST", HOST);
   return HOST;
 };
 

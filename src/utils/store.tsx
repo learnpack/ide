@@ -9,9 +9,13 @@ import { IStore } from './storeTypes';
 const HOST = getHost();
 Socket.start(HOST, disconnected);
 
-const FASTAPI_HOST = "https://chat.4geeks.com/";
+const FASTAPI_HOST = "https://chat.4geeks.com";
+// const FASTAPI_HOST = "http://localhost:8000";
 const chatSocket = io(`${FASTAPI_HOST}`);
 
+chatSocket.on('connect', () => {
+  console.log("connected to chat socket in ", FASTAPI_HOST);
+});
 const useStore = create<IStore>((set, get) => ({
   language: 'us',
   languageMap: {
@@ -23,6 +27,7 @@ const useStore = create<IStore>((set, get) => ({
   currentContent: "",
   chatSocket: chatSocket,
   currentExercisePosition: 0,
+  conversationIdsCache: {},
   lessonTitle: "",
   numberOfExercises: 0,
   solvedExercises: 0,
@@ -145,7 +150,7 @@ const useStore = create<IStore>((set, get) => ({
     }
     catch (err) {
       console.log("error in getConfigObject", err);
-      
+
       const modal: HTMLElement | null = document.querySelector("#socket-disconnected");
 
       if (modal && modal.style) {
@@ -163,9 +168,9 @@ const useStore = create<IStore>((set, get) => ({
       set({ exercises: config.exercises });
       set({ numberOfExercises: config.exercises.length })
       fetchReadme();
-      
+
       set({ lessonTitle: config.config.title.us })
-    
+
     }
     catch (err) {
       const modal: HTMLElement | null = document.querySelector("#socket-disconnected");
@@ -216,7 +221,7 @@ const useStore = create<IStore>((set, get) => ({
   },
 
   setPosition: async (newPosition) => {
-    const { fetchSingleExerciseInfo, conversationIdsCache, startConversation, fetchReadme } = get();
+    const { fetchSingleExerciseInfo, startConversation, fetchReadme, token } = get();
 
     let params = window.location.hash.substring(1);
     let paramsArray = params.split('&');
@@ -236,40 +241,44 @@ const useStore = create<IStore>((set, get) => ({
     set({ currentExercisePosition: newPosition });
 
     fetchReadme()
-    
     fetchSingleExerciseInfo(newPosition);
-    startConversation(newPosition);
+
+    if (token) {
+      startConversation(newPosition);
+    }
 
   },
   startConversation: async (exercisePosition) => {
     const { token, learnpackPurposeId, conversationIdsCache } = get();
 
-    if (token) {
-      let conversationId = null;
+    let conversationId = null;
 
-      try {
-        conversationId = conversationIdsCache[exercisePosition]
+    try {
+      conversationId = conversationIdsCache[exercisePosition]
+      if (!conversationId) {
+        throw new Error("ConversationID not found in cache");
       }
-      catch (err) {
-        const initialData = await startChat(learnpackPurposeId, token);
-        conversationId = initialData.conversation_id;
-      }
-
-      set({ conversationIdsCache: { ...conversationIdsCache, [exercisePosition]: conversationId } })
-
-      chatSocket.emit("start", {
-        token: token,
-        purpose: 26,
-        conversationId: conversationId
-      })
     }
+    catch (err) {
+      const initialData = await startChat(learnpackPurposeId, token);
+      conversationId = initialData.conversation_id;
+    }
+
+    set({ conversationIdsCache: { ...conversationIdsCache, [exercisePosition]: conversationId } })
+
+    chatSocket.emit("start", {
+      token: token,
+      purpose: 26,
+      conversationId: conversationId
+    })
+
   },
 
   fetchReadme: async () => {
     const { language, exercises, currentExercisePosition, getConfigObject, setShowVideoTutorial } = get();
 
-    console.log("FETCHING README wit language", language);
-    
+    // console.log("FETCHING README wit language", language);
+
     const slug = await exercises[currentExercisePosition]?.slug;
     if (!slug) {
       return;
