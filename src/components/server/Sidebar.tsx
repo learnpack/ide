@@ -1,5 +1,5 @@
 import BugButton from "../composites/BugButton";
-import SimpleButton from "../templates/Button";
+import SimpleButton from "../mockups/Button";
 import ExercisesList from "../client/ExercisesList";
 import useStore from "../../utils/store";
 import { svgs } from "../../assets/svgs";

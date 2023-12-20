@@ -1,110 +1,28 @@
-// The store is responsible for managing the state of the application
-// This store was created with Zustand
 // @ts-nocheck
 import io from 'socket.io-client'
-
-
 import { create } from 'zustand';
 import { convertMarkdownToHTML, changeSidebarVisibility, getExercise } from './lib';
 import Socket from './socket';
 import { getHost } from './lib';
+import { IStore } from './storeTypes';
 
 const HOST = getHost();
 Socket.start(HOST, disconnected);
-
 
 const FASTAPI_HOST = "http://localhost:8000";
 const chatSocket = io(`${FASTAPI_HOST}`)
 
 chatSocket.on("connect", () => {
-  console.log("We are fucking connected to the chatSocket: ", chatSocket.connected, "in: ", FASTAPI_HOST); // true
+  // console.log("We are fucking connected to the chatSocket: ", chatSocket.connected, "in: ", FASTAPI_HOST); // true
 
 });
+
 function disconnected() {
   const modal: HTMLElement | null = document.querySelector("#socket-disconnected");
 
   if (modal) {
     modal.style.display = "block";
   }
-}
-
-interface IBuildProps {
-  text: string;
-  className: string;
-}
-
-
-interface ILanguageMap {
-  [key: string]: string;
-}
-
-interface IConfig {
-  intro: any;
-  editor: any;
-  grading: string;
-}
-
-interface IConfigObject {
-  config: IConfig
-}
-
-type IMessage = {
-  type: string;
-  text: string;
-}
-
-interface IExerciseMessages {
-  [key: number]: IMessage[];
-
-}
-
-
-interface IStore {
-  exercises: any[];
-  currentContent: string;
-  currentExercisePosition: number;
-  language: string;
-  status: string;
-  lessonTitle: string;
-  numberOfExercises: number;
-  feedback: string;
-  showFeedback: boolean;
-  buildbuttonText: IBuildProps;
-  feedbackbuttonProps: IBuildProps;
-  compilerSocket: any;
-  rigobotSocket: any;
-  token: string;
-  solvedExercises: number;
-  languageMap: ILanguageMap;
-  configObject: IConfigObject;
-  allowedActions: string[];
-  videoTutorial: string;
-  showVideoTutorial: boolean;
-  showChatModal: boolean;
-  exerciseMessages: IExerciseMessages;
-  host: string;
-  setExerciseMessages: (messages: IMessage[], position: number) => void;
-  setShowChatModal: (show: boolean) => void;
-  setShowVideoTutorial: (show: boolean) => void;
-  setAllowedActions: (actions: string[]) => void;
-  getConfigObject: () => void;
-  increaseSolvedExercises: () => void;
-  setLanguage: (language: string) => void;
-  checkLoggedStatus: () => void;
-  storeFeedback: (feedback: string) => void;
-  setToken: (newToken: string) => void;
-  setBuildButtonText: (t: string, c: string) => void;
-  setFeedbackButtonProps: (t: string, c: string) => void;
-  fetchSingleExercise: (plusOrLess: number) => void;
-  toggleFeedback: () => void;
-  fetchExercises: () => void;
-  setStatus: (newStatus: string) => void;
-  getLessonTitle: () => void;
-  setPosition: (position: number) => void;
-  fetchReadme: () => void;
-  toggleSidebar: () => void;
-  toggleLanguage: () => void;
-  // getAIFeedback: () => void;
 }
 
 const useStore = create<IStore>((set, get) => ({
@@ -253,7 +171,8 @@ const useStore = create<IStore>((set, get) => ({
 
       const respose = await getExercise(slug);
       const exercise = await respose.json();
-      console.log("exercise", exercise);
+      // exercise;
+      console.log("I need to see the files of the exercise");
 
     }
   },
@@ -360,7 +279,6 @@ const useStore = create<IStore>((set, get) => ({
       hash += `&${position}`
     }
     window.location.hash = hash;
-
     fetchReadme();
   },
 

@@ -1,6 +1,6 @@
 import { svgs } from "../../assets/svgs";
 import useStore from "../../utils/store";
-import SimpleButton from "../templates/Button";
+import SimpleButton from "../mockups/Button";
 
 interface IExerciseList {
     closeSidebar: () => void;

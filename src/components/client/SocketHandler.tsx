@@ -1,49 +1,44 @@
 import useStore from "../../utils/store"
 import { useEffect } from "react";
-export function StatusBar() {
-    const {compilerSocket, setPosition, setLanguage, exercises, currentExercisePosition, getConfigObject, setAllowedActions}  = useStore();
+export function SocketHandler() {
+    const { compilerSocket, setPosition, setLanguage, exercises, currentExercisePosition, getConfigObject, setAllowedActions } = useStore();
 
-    useEffect(()=>{
-        const modal:HTMLElement|null = document.querySelector("#socket-disconnected");
+    useEffect(() => {
+        const modal: HTMLElement | null = document.querySelector("#socket-disconnected");
 
-  if (modal) {
-    modal.style.display = "none";
-  }
-    },[])
+        if (modal) {
+            modal.style.display = "none";
+        }
+    }, [])
 
-    useEffect(()=>{
+    useEffect(() => {
         getConfigObject();
-        
-        const slug = exercises[currentExercisePosition]?.slug
-      
-        compilerSocket.whenUpdated((scope:any, data:any) => {
-            scope;
-            if (data.status && data.status == "ready") {                        setAllowedActions(data.allowed)
 
+        const slug = exercises[currentExercisePosition]?.slug
+
+        compilerSocket.whenUpdated((scope: any, data: any) => {
+            scope;
+            console.log(data);
+            if (data.status && data.status == "ready") {
+                setAllowedActions(data.allowed)
             }
         });
 
-        
-        // compilerSocket.on("open_window", (data:any) => {
-        //     console.log("Trying to pen window...", data);
-        // })
-
-
-        compilerSocket.on("reload", (data:any) => {
+        compilerSocket.on("reload", (data: any) => {
             data;
             // console.log("Reloading...", data);
             window.location.reload();
         })
 
-        compilerSocket.on("ask", async ({ inputs }:any) => {
-            
-            
+        compilerSocket.on("ask", async ({ inputs }: any) => {
+
+
             const inputsResponses = [];
 
             for (let i = 0; i < inputs.length; i++) {
-                inputsResponses.push(await prompt(inputs[i] || `Please enter the ${i+1} input`));
+                inputsResponses.push(await prompt(inputs[i] || `Please enter the ${i + 1} input`));
             }
-            
+
             compilerSocket.emit('input', {
                 inputs: inputsResponses,
                 exerciseSlug: slug
@@ -67,7 +62,7 @@ export function StatusBar() {
                 }
 
             }
-            
+
 
             setPosition(Number(position));
             setLanguage(language);
@@ -76,7 +71,5 @@ export function StatusBar() {
     }, [currentExercisePosition, exercises])
 
     return <>
-    <span className="status-bar">
-    </span>
     </>
 }

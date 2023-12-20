@@ -1,4 +1,4 @@
-import SimpleButton from "../templates/Button"
+import SimpleButton from "../mockups/Button"
 import ModalTemplate from "./ModalTemplate"
 
 export default function SocketDisconnectionModal() {

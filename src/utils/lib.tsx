@@ -70,14 +70,15 @@ export const  getExercise = async (slug: string) => {
 }
 
 //@ts-ignore
-export function getParams(opts) {
+export function getParams(opts) {  
   if (!Array.isArray(opts)) opts = [opts];
   const urlParams = new URLSearchParams(window.location.search);
   let obj = {};
   //@ts-ignore
   opts.forEach(name => obj[name] = urlParams.get(name));
   //@ts-ignore
-  return opts.length == 1 ? obj[opts[0]] : obj;
+  const result = opts.length == 1 ? obj[opts[0]] : obj;  
+  return result
 }
 
 
@@ -92,7 +93,7 @@ export const getHost = function():string {
     HOST='http://localhost:3000';
   }
   
-  console.log("HOST", HOST, "DEV_MODE", DEV_MODE);
+  // console.log("HOST", HOST, "DEV_MODE", DEV_MODE);
 
   return HOST;
 };

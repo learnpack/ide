@@ -1,6 +1,6 @@
 // UNUSED
 
-import SimpleButton from "../templates/Button";
+import SimpleButton from "../mockups/Button";
 
 import useStore from "../../utils/store";
 interface ISvgProps {

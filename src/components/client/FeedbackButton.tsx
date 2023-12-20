@@ -1,5 +1,5 @@
 
-import SimpleButton from "../templates/Button";
+import SimpleButton from "../mockups/Button";
 import { svgs } from "../../assets/svgs";
 import useStore from "../../utils/store";
 import { useState, useEffect } from "react";

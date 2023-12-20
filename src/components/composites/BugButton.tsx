@@ -1,7 +1,7 @@
 "use client";
 import useStore from "../../utils/store";
 import { svgs } from "../../assets/svgs";
-import SimpleButton from "../templates/Button";
+import SimpleButton from "../mockups/Button";
 
 export default function BugButton() {
     const { currentExercisePosition, exercises, lessonTitle, compilerSocket } = useStore();

@@ -1,4 +1,4 @@
-import SimpleButton from "../templates/Button"
+import SimpleButton from "../mockups/Button"
 import useStore from "../../utils/store"
 import { svgs } from "../../assets/svgs";
 
