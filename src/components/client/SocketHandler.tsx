@@ -13,6 +13,7 @@ export function SocketHandler() {
 
     useEffect(() => {
         getConfigObject();
+
         const slug = exercises[currentExercisePosition]?.slug
 
 
@@ -41,7 +42,7 @@ export function SocketHandler() {
                 exerciseSlug: slug
             });
         });
-
+        
 
 
         // This function should be in another file

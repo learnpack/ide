@@ -68,6 +68,8 @@ export interface IStore {
     isBuildable: boolean
     chatSocket: any
     conversationIdsCache: TNumberCache
+
+    startConversation: (exercisePosition:number)=> void
     getContextFilesContent: () => string
     getCurrentExercise: () => TExercise
     setExerciseMessages: (messages: IMessage[], position: number) => void
@@ -85,10 +87,8 @@ export interface IStore {
     fetchSingleExerciseInfo: (index: number) => void
     toggleFeedback: () => void
     fetchExercises: () => void
-    setStatus: (newStatus: string) => void
     getLessonTitle: () => void
     setPosition: (position: number) => void
     fetchReadme: () => void
     toggleSidebar: () => void
-    toggleLanguage: () => void
 }

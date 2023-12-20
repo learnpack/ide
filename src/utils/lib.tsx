@@ -3,7 +3,7 @@ import { Remarkable } from 'remarkable';
 const DEV_MODE = false;
 const RIGOBOT_API_URL = "https://rigobot.herokuapp.com";
 
-const fullURL = location.protocol+'//'+location.hostname+(location.port ? ':'+location.port: '');
+const fullURL = location.protocol + '//' + location.hostname + (location.port ? ':' + location.port : '');
 /**
   * Converts markdown to HTML and injects it into a div.
   * @param {string} markdown - The markdown string to be converted.
@@ -15,7 +15,7 @@ export const convertMarkdownToHTML = (markdown: any) => {
   const md = new Remarkable();
   // Convert the markdown to HTML using the Remarkable parser
   // console.log("MARKDOWN", markdown);
-  
+
   let html = md.render(markdown);
   html = replaceSrc(html);
   // console.log(html);
@@ -59,53 +59,55 @@ function replaceSrc(rawText: string) {
 
   const host = getHost();
   const modifiedText = rawText.replace(regex, `src="${host}`);
-  
+
   // Return the modified text
   return modifiedText;
 }
 
-export const  getExercise = async (slug: string) => {
+export const getExercise = async (slug: string) => {
   return await fetch(`${getHost()}/exercise/${slug}`)
 }
 
 //@ts-ignore
-export function getParams(opts) {  
+export function getParams(opts) {
   if (!Array.isArray(opts)) opts = [opts];
   const urlParams = new URLSearchParams(window.location.search);
   let obj = {};
   //@ts-ignore
   opts.forEach(name => obj[name] = urlParams.get(name));
   //@ts-ignore
-  const result = opts.length == 1 ? obj[opts[0]] : obj;  
+  const result = opts.length == 1 ? obj[opts[0]] : obj;
   return result
 }
 
 
-export const getHost = function():string {
+export const getHost = function (): string {
   let preConfig = getParams("config");
-  if(preConfig && preConfig!=="") preConfig = JSON.parse(atob(preConfig));
+  if (preConfig && preConfig !== "") preConfig = JSON.parse(atob(preConfig));
 
   let HOST = preConfig ? `${preConfig.address}:${preConfig.port}` : getParams('host') || fullURL;
 
   // TODO: DO THIS BETTER
   if (DEV_MODE) {
-    HOST='http://localhost:3000';
+    HOST = 'http://localhost:3000';
   }
 
+  console.log("HOST", HOST);
+  
   return HOST;
 };
 
-export const getFileContent = async (slug: string, file:string) =>  {
+export const getFileContent = async (slug: string, file: string) => {
   const response = await fetch(`${getHost()}/exercise/${slug}/file/${file}`);
   const data = await response.text();
   return data;
 }
 
-export const startConversation = async (purpose_id: string | number, token: string) => {
+export const startChat = async (purpose_id: string | number, token: string) => {
   const conversationUrl = RIGOBOT_API_URL + "/v1/conversation/?purpose=" + purpose_id
 
   const config = {
-    method:  'POST',
+    method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Token ' + token
@@ -115,4 +117,12 @@ export const startConversation = async (purpose_id: string | number, token: stri
   const resp = await fetch(conversationUrl, config);
   const data = await resp.json();
   return data
+}
+
+export const disconnected = () => {
+  const modal: HTMLElement | null = document.querySelector("#socket-disconnected");
+
+  if (modal) {
+    modal.style.display = "block";
+  }
 }

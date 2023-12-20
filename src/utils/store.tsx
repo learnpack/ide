@@ -1,30 +1,16 @@
 // @ts-nocheck
 import io from 'socket.io-client'
 import { create } from 'zustand';
-import { convertMarkdownToHTML, changeSidebarVisibility, getExercise, getFileContent, startConversation } from './lib';
+import { convertMarkdownToHTML, changeSidebarVisibility, getExercise, getFileContent, startChat, disconnected, getHost } from './lib';
 import Socket from './socket';
-import { getHost } from './lib';
 import { IStore } from './storeTypes';
+
 
 const HOST = getHost();
 Socket.start(HOST, disconnected);
 
 const FASTAPI_HOST = "https://chat.4geeks.com/";
 const chatSocket = io(`${FASTAPI_HOST}`);
-
-chatSocket.on("connect", () => {
-  // console.log("We are fucking connected to the chatSocket: ", chatSocket.connected, "in: ", FASTAPI_HOST); 
-
-});
-
-
-function disconnected() {
-  const modal: HTMLElement | null = document.querySelector("#socket-disconnected");
-
-  if (modal) {
-    modal.style.display = "block";
-  }
-}
 
 const useStore = create<IStore>((set, get) => ({
   language: 'us',
@@ -158,6 +144,8 @@ const useStore = create<IStore>((set, get) => ({
       set({ configObject: config })
     }
     catch (err) {
+      console.log("error in getConfigObject", err);
+      
       const modal: HTMLElement | null = document.querySelector("#socket-disconnected");
 
       if (modal && modal.style) {
@@ -175,7 +163,9 @@ const useStore = create<IStore>((set, get) => ({
       set({ exercises: config.exercises });
       set({ numberOfExercises: config.exercises.length })
       fetchReadme();
-      getLessonTitle();
+      
+      set({ lessonTitle: config.config.title.us })
+    
     }
     catch (err) {
       const modal: HTMLElement | null = document.querySelector("#socket-disconnected");
@@ -191,7 +181,6 @@ const useStore = create<IStore>((set, get) => ({
     const htmlFeedback = convertMarkdownToHTML(feedback);
     set({ feedback: htmlFeedback })
     toggleFeedback();
-
   },
 
   fetchSingleExerciseInfo: async (index) => {
@@ -226,14 +215,8 @@ const useStore = create<IStore>((set, get) => ({
 
   },
 
-  getLessonTitle: async () => {
-    const res = await fetch(`${HOST}/config`);
-    const { config } = await res.json();
-    set({ lessonTitle: config.title });
-  },
-
   setPosition: async (newPosition) => {
-    const { fetchSingleExerciseInfo, conversationIdsCache, token } = get();
+    const { fetchSingleExerciseInfo, conversationIdsCache, startConversation, fetchReadme } = get();
 
     let params = window.location.hash.substring(1);
     let paramsArray = params.split('&');
@@ -250,22 +233,29 @@ const useStore = create<IStore>((set, get) => ({
     }
     window.location.hash = hash;
 
-    fetchSingleExerciseInfo(newPosition);
-
     set({ currentExercisePosition: newPosition });
+
+    fetchReadme()
+    
+    fetchSingleExerciseInfo(newPosition);
+    startConversation(newPosition);
+
+  },
+  startConversation: async (exercisePosition) => {
+    const { token, learnpackPurposeId, conversationIdsCache } = get();
 
     if (token) {
       let conversationId = null;
 
       try {
-        conversationId = conversationIdsCache[newPosition]
+        conversationId = conversationIdsCache[exercisePosition]
       }
       catch (err) {
-        const initialData = await startConversation(26, token);
+        const initialData = await startChat(learnpackPurposeId, token);
         conversationId = initialData.conversation_id;
       }
 
-      set({ conversationIdsCache: { ...conversationIdsCache, [newPosition]: conversationId } })
+      set({ conversationIdsCache: { ...conversationIdsCache, [exercisePosition]: conversationId } })
 
       chatSocket.emit("start", {
         token: token,
@@ -273,11 +263,13 @@ const useStore = create<IStore>((set, get) => ({
         conversationId: conversationId
       })
     }
-
   },
 
   fetchReadme: async () => {
     const { language, exercises, currentExercisePosition, getConfigObject, setShowVideoTutorial } = get();
+
+    console.log("FETCHING README wit language", language);
+    
     const slug = await exercises[currentExercisePosition]?.slug;
     if (!slug) {
       return;

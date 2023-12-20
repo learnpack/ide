@@ -6,12 +6,15 @@ import useStore from "../../utils/store"
 import LanguageButton from "./LanguageButton"
 
 function LessonOptions() {
-    const { currentExercisePosition, setPosition, fetchReadme, exercises, setBuildButtonText, setFeedbackButtonProps, configObject, allowedActions } = useStore();
+    const { currentExercisePosition, setPosition, exercises, setBuildButtonText, setFeedbackButtonProps, configObject, isTesteable } = useStore();
 
     const handlePositionChange = (action: string) => {
         if (action === "next" && currentExercisePosition != exercises.length - 1) {
-            if (configObject.config.grading == "isolated" || (configObject.config.grading == "incremental" && exercises[currentExercisePosition].done) || (!allowedActions.includes("test"))) {
-                const nextPosition = currentExercisePosition + 1
+
+            if (configObject.config.grading == "isolated" 
+            || (configObject.config.grading == "incremental" && !isTesteable)
+            || (configObject.config.grading == "incremental" && isTesteable && exercises[currentExercisePosition].done)) {
+                const nextPosition = currentExercisePosition + 1;
                 setPosition(nextPosition);
             }
 
@@ -25,7 +28,7 @@ function LessonOptions() {
         }
         setBuildButtonText("Run", "");
         setFeedbackButtonProps("Feedback", "");
-        fetchReadme();
+
     }
     return <>
         <div className="lesson-options">
