@@ -1,7 +1,7 @@
 // @ts-nocheck
 import io from 'socket.io-client'
 import { create } from 'zustand';
-import { convertMarkdownToHTML, changeSidebarVisibility, getExercise, getFileContent, startChat, disconnected, getHost } from './lib';
+import { convertMarkdownToHTML, changeSidebarVisibility, getExercise, getFileContent, startChat, disconnected, getHost, getParamsObject } from './lib';
 import Socket from './socket';
 import { IStore } from './storeTypes';
 
@@ -14,19 +14,24 @@ const FASTAPI_HOST = "https://chat.4geeks.com";
 const chatSocket = io(`${FASTAPI_HOST}`);
 
 chatSocket.on('connect', () => {
-  console.log("connected to chat socket in ", FASTAPI_HOST);
+  // console.log("connected to chat socket in ", FASTAPI_HOST);
 });
+
+const defaultParams = getParamsObject()
 const useStore = create<IStore>((set, get) => ({
-  language: 'us',
+  language: defaultParams.language || "us",
   languageMap: {
-    "us": "ENG",
-    "es": "SPA"
+    "us": "en",
+    "es": "sp"
   },
-  learnpackPurposeId: 26,
+  // Could be cool if we can choose the mentor, give each mentor a personality
+
+  learnpackPurposeId: defaultParams.purpose || 26,
   exercises: [],
   currentContent: "",
   chatSocket: chatSocket,
-  currentExercisePosition: 0,
+  currentExercisePosition: defaultParams.currentExercise || 0,
+  chatInitialMessage: "## Hello! How can I help you?",
   conversationIdsCache: {},
   lessonTitle: "",
   numberOfExercises: 0,
@@ -62,6 +67,17 @@ const useStore = create<IStore>((set, get) => ({
   host: HOST,
 
   // setters
+  start: () => {
+    const { fetchExercises, fetchReadme, checkParams } = get();
+    fetchExercises()
+      .then(() => {
+        checkParams({ justReturn: false })
+      })
+      .then(() => {
+        fetchReadme()
+      })
+  },
+
   getCurrentExercise: () => {
     const { exercises, currentExercisePosition } = get();
     return exercises[currentExercisePosition];
@@ -70,9 +86,11 @@ const useStore = create<IStore>((set, get) => ({
   setExerciseMessages: (messages, position) => {
     set({ exerciseMessages: { ...get().exerciseMessages, [position]: messages } })
   },
+
   setShowChatModal: (show: boolean) => {
     set({ showChatModal: show });
   },
+
   setShowVideoTutorial: (show: boolean) => {
     set({ showVideoTutorial: show });
   },
@@ -80,27 +98,14 @@ const useStore = create<IStore>((set, get) => ({
     set({ allowedActions: actions });
   },
   // functions
-  increaseSolvedExercises: () => {
-    const { solvedExercises } = get();
-    set({ solvedExercises: solvedExercises + 1 });
 
-  },
   setBuildButtonText: (t, c = "") => {
     set({ buildbuttonText: { text: t, className: c } })
   },
   setFeedbackButtonProps: (t, c = "") => {
     set({ feedbackbuttonProps: { text: t, className: c } })
   },
-  toggleFeedback: () => {
-    const { showFeedback } = get();
-    set({ showFeedback: !showFeedback })
-  },
-  setStatus: (newStatus) => {
-    set({ status: newStatus });
-    setTimeout(() => {
-      set({ status: "" });
-    }, 5000)
-  },
+
   setToken: (newToken) => {
     set({ token: newToken });
   },
@@ -129,8 +134,9 @@ const useStore = create<IStore>((set, get) => ({
 
     return Promise.all(filePromises).then((filesContext) => {
       let context = "The following is the student code file(s): \n---"
-      context = filesContext.join('\n---\n');
-      context += `This is the current exercise readme that the student needs to make:
+      context += filesContext.join('\n');
+      context += "---";
+      context += `This is the current exercise instructions that the student needs to make:
       ---
       ${currentReadme}
       ---`;
@@ -160,17 +166,15 @@ const useStore = create<IStore>((set, get) => ({
   },
 
   fetchExercises: async () => {
-    const { fetchReadme, getLessonTitle } = get();
+    const { getLessonTitle, fetchReadme } = get();
 
     try {
       const res = await fetch(`${HOST}/config`)
       const config = await res.json();
+
       set({ exercises: config.exercises });
       set({ numberOfExercises: config.exercises.length })
-      fetchReadme();
-
       set({ lessonTitle: config.config.title.us })
-
     }
     catch (err) {
       const modal: HTMLElement | null = document.querySelector("#socket-disconnected");
@@ -181,13 +185,33 @@ const useStore = create<IStore>((set, get) => ({
     }
 
   },
-  storeFeedback: (feedback) => {
-    const { toggleFeedback } = get();
-    const htmlFeedback = convertMarkdownToHTML(feedback);
-    set({ feedback: htmlFeedback })
-    toggleFeedback();
-  },
+  checkParams: ({ justReturn }) => {
+    const { setLanguage, setPosition, currentExercisePosition, language } = get();
 
+    let params = window.location.hash.substring(1);
+    const paramsUrlSeaerch = new URLSearchParams(params);
+
+    let paramsObject = {};
+    for (const [key, value] of paramsUrlSeaerch.entries()) {
+      paramsObject[key] = value;
+    }
+
+    if (justReturn) {
+      return paramsObject;
+    }
+
+    const languageParam = paramsObject.language;
+    const position = paramsObject.currentExercise;
+
+    
+    if (languageParam) {
+      setLanguage(language, false);
+    }
+
+    if (position) {
+      setPosition(Number(position))
+    }
+  },
   fetchSingleExerciseInfo: async (index) => {
     const { exercises } = get();
 
@@ -223,35 +247,27 @@ const useStore = create<IStore>((set, get) => ({
   setPosition: async (newPosition) => {
     const { fetchSingleExerciseInfo, startConversation, fetchReadme, token } = get();
 
-    let params = window.location.hash.substring(1);
-    let paramsArray = params.split('&');
-    let language = "";
-    if (paramsArray.length > 1) {
-      // get the index of the item that includes "language"
-      const langIndex = paramsArray.findIndex(item => item.includes("language"));
-      // retrieve the item and save it in a variable
-      language = paramsArray[langIndex]
-    }
-    let hash = `currentExercise=${newPosition}`
-    if (language) {
-      hash += `&${language}`
-    }
+    let params = get().checkParams({ justReturn: true })
+    
+    let hash = `currentExercise=${newPosition}${params.language ? "&language="+params.language : ""}`
+
     window.location.hash = hash;
 
     set({ currentExercisePosition: newPosition });
 
-    fetchReadme()
-    fetchSingleExerciseInfo(newPosition);
 
     if (token) {
       startConversation(newPosition);
     }
 
+    fetchReadme()
+    fetchSingleExerciseInfo(newPosition);
   },
   startConversation: async (exercisePosition) => {
     const { token, learnpackPurposeId, conversationIdsCache } = get();
 
     let conversationId = null;
+    let initialData = null;
 
     try {
       conversationId = conversationIdsCache[exercisePosition]
@@ -260,26 +276,28 @@ const useStore = create<IStore>((set, get) => ({
       }
     }
     catch (err) {
-      const initialData = await startChat(learnpackPurposeId, token);
+      initialData = await startChat(learnpackPurposeId, token);
       conversationId = initialData.conversation_id;
+    }
+    
+    if (initialData && initialData.salute) {
+      set({ chatInitialMessage: initialData.salute })
     }
 
     set({ conversationIdsCache: { ...conversationIdsCache, [exercisePosition]: conversationId } })
 
     chatSocket.emit("start", {
       token: token,
-      purpose: 26,
+      purpose: learnpackPurposeId,
       conversationId: conversationId
     })
 
   },
 
   fetchReadme: async () => {
-    const { language, exercises, currentExercisePosition, getConfigObject, setShowVideoTutorial } = get();
+    const { language, exercises, currentExercisePosition, getConfigObject, setShowVideoTutorial, fetchSingleExerciseInfo } = get();
 
-    // console.log("FETCHING README wit language", language);
-
-    const slug = await exercises[currentExercisePosition]?.slug;
+    const slug = exercises[currentExercisePosition]?.slug;
     if (!slug) {
       return;
     }
@@ -303,61 +321,27 @@ const useStore = create<IStore>((set, get) => ({
 
     set({ currentContent: convertMarkdownToHTML(exercise.body) })
     set({ currentReadme: exercise.body })
+
     getConfigObject();
+    fetchSingleExerciseInfo()
   },
 
   toggleSidebar: () => {
     changeSidebarVisibility()
   },
 
-  setLanguage: (language) => {
-    const { fetchReadme } = get();
+  setLanguage: (language, fetchExercise = true) => {
+    const { fetchReadme, checkParams } = get();
     set({ language: language });
 
-    let params = window.location.hash.substring(1);
-    let paramsArray = params.split('&');
-    let position = "";
-    // console.log(paramsArray);
-
-    if (paramsArray) {
-      // get the index of the item that includes "language"
-      const posIndex = paramsArray.findIndex(item => item.includes("currentExercise"));
-      // retrieve the item and save it in a variable
-      position = paramsArray[posIndex]
-    }
-    let hash = `language=${language}`
-    if (position) {
-      hash += `&${position}`
-    }
+    let params = checkParams({ justReturn: true })
+    let hash = `language=${language}${params.currentExercise ? "&currentExercise="+params.currentExercise: ""}`
     window.location.hash = hash;
 
-    fetchReadme();
-  },
-
-  toggleLanguage: () => {
-    const { language, fetchReadme } = get();
-    const newLang = language === 'us' ? 'es' : 'us';
-    set({ language: newLang });
-
-
-    let params = window.location.hash.substring(1);
-    let paramsArray = params.split('&');
-    let position = "";
-
-    if (paramsArray) {
-      // get the index of the item that includes "language"
-      const posIndex = paramsArray.findIndex(item => item.includes("currentExercise"));
-      // retrieve the item and save it in a variable
-      position = paramsArray[posIndex]
+    if (fetchExercise) {
+      fetchReadme();
     }
-    let hash = `language=${newLang}`
-    if (position) {
-      hash += `&${position}`
-    }
-    window.location.hash = hash;
-    fetchReadme();
   },
-
 
 })
 );

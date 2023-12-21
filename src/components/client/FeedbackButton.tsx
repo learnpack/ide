@@ -37,7 +37,7 @@ interface IFeedbackDropdown {
 
 function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
     const [showLoginModal, setShowLoginModal] = useState(false);
-    const { feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token, setFeedbackButtonProps, increaseSolvedExercises, fetchExercises, configObject, videoTutorial, setShowVideoTutorial, setShowChatModal, getCurrentExercise, isTesteable } = useStore();
+    const { feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token, setFeedbackButtonProps, fetchExercises, configObject, videoTutorial, setShowVideoTutorial, setShowChatModal, getCurrentExercise, isTesteable } = useStore();
 
 
     const toggleAndHide = () => {
@@ -61,7 +61,6 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
             setFeedbackButtonProps("Succeded", "bg-success text-white");
             // exercises[currentExercisePosition].done = true;
             fetchExercises();
-            increaseSolvedExercises();
         }, 100)
 
         compilerSocket.onStatus('testing-success', debounceSuccess);

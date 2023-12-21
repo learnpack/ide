@@ -9,14 +9,16 @@ import CheckVideo from './components/client/CheckVideo'
 import Chat from './components/composites/Chat'
 import useStore from './utils/store'
 import { SocketHandler } from './components/client/SocketHandler'
+import { Toaster } from 'react-hot-toast'
 export default function Home() {
   const { showChatModal } = useStore();
   return (
     <main className="">
+      <SocketDisconnectionModal />
       <SocketHandler />
+      <Toaster />
       {showChatModal && <Chat />}
       <CheckVideo />
-      <SocketDisconnectionModal />
       <Navbar />
       <LessonContainer />
     </main>

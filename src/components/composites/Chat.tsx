@@ -3,15 +3,16 @@ import { useState, useEffect, useRef } from "react";
 import { convertMarkdownToHTML } from "../../utils/lib";
 import { svgs } from "../../assets/svgs";
 
-const fakeMessages = [
-    { "type": "bot", "text": "It appears that you need some help, ask me anything!" },
-]
-
 export default function Chat() {
     const backdropRef = useRef<HTMLDivElement>(null);
 
-    const { setShowChatModal, currentExercisePosition, exerciseMessages, setExerciseMessages, chatSocket, conversationIdsCache, getContextFilesContent, learnpackPurposeId, token } = useStore();
+    const { setShowChatModal, currentExercisePosition, exerciseMessages, setExerciseMessages, chatSocket, conversationIdsCache, getContextFilesContent, learnpackPurposeId, token, chatInitialMessage } = useStore();
 
+
+    const fakeMessages = [
+        { "type": "bot", "text": chatInitialMessage },
+    ]
+    
     const [isGenerating, setIsGenerating] = useState(false);
     const [messages, setMessages] = useState(exerciseMessages[currentExercisePosition] || fakeMessages);
     const [userMessage, setUserMessage] = useState("");

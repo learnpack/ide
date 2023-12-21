@@ -1,9 +1,7 @@
 import SimpleButton from "../mockups/Button"
 import useStore from "../../utils/store"
 import { svgs } from "../../assets/svgs";
-
 import { useState } from "react";
-// import {useEffect, useState} from "react";
 
 const svgsLanguageMap: any = {
     "es": svgs.spainFlag,
@@ -19,7 +17,6 @@ export default function LanguageButton() {
     }
     return <>
         <div className="language-component">
-            {/* <p>Hello</p> */}
             <SimpleButton action={toggleDrop} text={language} svg={svgsLanguageMap[language]} />
             {showDrop && <LanguageDropdown toggleDrop={toggleDrop} />}
 
@@ -32,9 +29,9 @@ interface ILanguageDropdown {
 }
 
 const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
-    const { exercises, currentExercisePosition, language, setLanguage } = useStore();
+    const { language, setLanguage, getCurrentExercise } = useStore();
 
-    const languages = Object.keys(exercises[currentExercisePosition].translations);
+    const languages = Object.keys(getCurrentExercise().translations);    
 
     const setLang = (lang: string) => {
         setLanguage(lang);
@@ -42,6 +39,6 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
     }
 
     return <div className="language-dropdown">
-        {languages.map((l) => l !== language ? <button onClick={() => setLang(l)} >{svgsLanguageMap[l]}{l}</button> : null)}
+        {languages.map((l, index) => l !== language ? <button key={index} onClick={() => setLang(l)} >{svgsLanguageMap[l]}{l}</button> : null)}
     </div>
 }

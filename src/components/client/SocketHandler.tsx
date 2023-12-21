@@ -1,7 +1,7 @@
 import useStore from "../../utils/store"
 import { useEffect } from "react";
 export function SocketHandler() {
-    const { compilerSocket, setPosition, setLanguage, exercises, currentExercisePosition, getConfigObject, setAllowedActions } = useStore();
+    const { compilerSocket, exercises, currentExercisePosition, setAllowedActions } = useStore();
 
     useEffect(() => {
         const modal: HTMLElement | null = document.querySelector("#socket-disconnected");
@@ -12,7 +12,6 @@ export function SocketHandler() {
     }, [])
 
     useEffect(() => {
-        getConfigObject();
 
         const slug = exercises[currentExercisePosition]?.slug
 
@@ -42,33 +41,8 @@ export function SocketHandler() {
                 exerciseSlug: slug
             });
         });
-        
 
-
-        // This function should be in another file
-        let params = window.location.hash.substring(1);
-        if (params) {
-            let paramsArray = params.split('&');
-            let language = "";
-            let position = "";
-            if (paramsArray.length >= 1) {
-                const langIndex = paramsArray.findIndex(item => item.includes("language"));
-                if (langIndex != -1) {
-                    language = paramsArray[langIndex].split("=")[1]
-                }
-
-                const posIndex = paramsArray.findIndex(item => item.includes("currentExercise"));
-                if (posIndex != -1) {
-                    position = paramsArray[posIndex].split("=")[1]
-                }
-
-            }
-
-
-            setPosition(Number(position));
-            setLanguage(language);
-        }
-
+       
     }, [currentExercisePosition, exercises])
 
     return <>

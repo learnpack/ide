@@ -119,9 +119,22 @@ export const startChat = async (purpose_id: string | number, token: string) => {
 }
 
 export const disconnected = () => {
+
   const modal: HTMLElement | null = document.querySelector("#socket-disconnected");
 
   if (modal) {
     modal.style.display = "block";
   }
+}
+
+
+export const getParamsObject = (): Record<string, string> => {
+  let params = window.location.hash.substring(1);
+  const paramsUrlSearch = new URLSearchParams(params);
+
+  let paramsObject: Record<string, string> = {};
+  for (const [key, value] of paramsUrlSearch.entries()) {
+    paramsObject[key] = value;
+  }
+  return paramsObject;
 }

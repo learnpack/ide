@@ -1,5 +1,5 @@
 import { svgs } from "../../assets/svgs"
-import { Toaster, toast } from "react-hot-toast"
+import { toast } from "react-hot-toast"
 import LessonContent from "../client/LessonContent"
 import useStore from "../../utils/store"
 
@@ -49,7 +49,6 @@ export default function LessonContainer() {
 
     return (
         <div className="lesson-container-component">
-            <Toaster />
             <LessonOptions />
             <LessonContent />
         </div>

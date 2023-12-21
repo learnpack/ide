@@ -31,6 +31,7 @@ interface IExerciseMessages {
 
 export type TExercise = {
     slug: string
+    translations: object
 }
 
 
@@ -39,8 +40,13 @@ export type TNumberCache = {
 }
 
 
+type TCheckParamsOptions = {
+    justReturn: boolean 
+}
+
 export interface IStore {
     exercises: any[]
+    chatInitialMessage: string
     currentContent: string
     currentReadme: string
     currentExercisePosition: number
@@ -69,6 +75,8 @@ export interface IStore {
     chatSocket: any
     conversationIdsCache: TNumberCache
 
+    start: () => void
+    checkParams: (opts: TCheckParamsOptions) => void
     startConversation: (exercisePosition:number)=> void
     getContextFilesContent: () => string
     getCurrentExercise: () => TExercise
@@ -77,10 +85,8 @@ export interface IStore {
     setShowVideoTutorial: (show: boolean) => void
     setAllowedActions: (actions: string[]) => void
     getConfigObject: () => void
-    increaseSolvedExercises: () => void
-    setLanguage: (language: string) => void
+    setLanguage: (language: string, fetchExercise?: boolean) => void
     checkLoggedStatus: () => void
-    storeFeedback: (feedback: string) => void
     setToken: (newToken: string) => void
     setBuildButtonText: (t: string, c: string) => void
     setFeedbackButtonProps: (t: string, c: string) => void

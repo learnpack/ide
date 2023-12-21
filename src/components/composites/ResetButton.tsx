@@ -2,6 +2,9 @@ import SimpleButton from "../mockups/Button";
 import useStore from "../../utils/store";
 import { svgs } from "../../assets/svgs";
 import { useState } from "react";
+import { Modal } from "../mockups/Modal";
+import "./styles.css"
+
 export default function ResetButton() {
 
     const [showModal, setShowModal] = useState(false);
@@ -34,15 +37,13 @@ const ResetModal = ({ toggleModal }: IResetModal) => {
 
         toggleModal();
     }
-    return <div className="modal">
-        <div>
-            <p>Are you sure you want to reset the exercise? You will lose all your progress</p>
+    return <Modal extraClass="reset-modal" outsideClickHandler={toggleModal}>
+        <h2>Reset</h2>
+        <p>Are you sure you want to reset the exercise? You will lose all your progress</p>
+        <section >
+            <SimpleButton text="Reset" extraClass="pill bg-blue" action={handleReset} />
+            <SimpleButton text="Cancel" extraClass="pill border-blue color-blue" action={toggleModal} />
+        </section>
 
-            <section>
-                <SimpleButton text="Reset" extraClass="pill bg-blue" action={handleReset} />
-                <SimpleButton text="Cancel" extraClass="pill border-blue color-blue" action={toggleModal} />
-            </section>
-        </div>
-
-    </div>
+    </Modal>
 }
