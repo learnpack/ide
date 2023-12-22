@@ -1,6 +1,6 @@
 import BugButton from "./BugButton";
 import SimpleButton from "../mockups/Button";
-import ExercisesList from "../client/ExercisesList";
+import ExercisesList from "./ExercisesList";
 import useStore from "../../utils/store";
 import { svgs } from "../../assets/svgs";
 import { useState } from "react"

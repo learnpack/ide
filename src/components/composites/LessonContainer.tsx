@@ -1,6 +1,6 @@
 import { svgs } from "../../assets/svgs"
 import { toast } from "react-hot-toast"
-import LessonContent from "../client/LessonContent"
+import LessonContent from "./LessonContent"
 import useStore from "../../utils/store"
 
 import LanguageButton from "./LanguageButton"

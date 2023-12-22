@@ -1,12 +1,12 @@
-import VideoModal from "../composites/VideoModal";
+import VideoModal from "./VideoModal";
 import { useEffect, useState } from "react";
 import useStore from "../../utils/store";
 
-export default function CheckVideo () {
+export default function CheckVideo() {
     const [link, setLink] = useState(null as string | null);
-    const {configObject, currentExercisePosition, videoTutorial, setShowVideoTutorial, showVideoTutorial} = useStore();
+    const { configObject, currentExercisePosition, videoTutorial, setShowVideoTutorial, showVideoTutorial } = useStore();
 
-    useEffect(()=>{
+    useEffect(() => {
 
         if (configObject.config.intro && currentExercisePosition == 0) {
             let _link = configObject.config.intro
@@ -19,7 +19,7 @@ export default function CheckVideo () {
             const embedLink = _link.replace('watch?v=', 'embed/');
             setLink(embedLink);
         }
-        
+
     }, [currentExercisePosition, configObject, videoTutorial])
 
 
@@ -28,6 +28,6 @@ export default function CheckVideo () {
     }
 
     return <>
-    {showVideoTutorial && link ? <VideoModal link={link} hideModal={hideModal} /> : null}
+        {showVideoTutorial && link ? <VideoModal link={link} hideModal={hideModal} /> : null}
     </>
 }

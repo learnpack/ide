@@ -69,7 +69,7 @@ export default function LoginModal({ toggleFeedbackVisibility }: ILoginModal) {
                     <SimpleButton action={toggleFeedbackVisibility} svg={svgs.closeIcon} /></div>
                 <form action="">
                     <input placeholder="Email" type="text" name="email" onChange={(e) => { setEmail(e.target.value) }} />
-                    <input placeholder="Password" type="password"name="password" onChange={(e) => { setPassword(e.target.value) }} />
+                    <input placeholder="Password" type="password" name="password" onChange={(e) => { setPassword(e.target.value) }} />
 
                     <SimpleButton text={isLoading ? "Loading..." : "Submit"} action={login} extraClass="bg-blue" />
                     <span>If you don't have an account sign up <OpenWindowLink text="here" href="https://4geeks.com/pricing" /> </span>

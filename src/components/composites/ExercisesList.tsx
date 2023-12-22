@@ -8,10 +8,6 @@ interface IExerciseList {
 
 export default function ExercisesList({ closeSidebar }: IExerciseList) {
     const { exercises } = useStore();
-
-
-
-
     return (
         <ul className="exercise-list">
             {exercises.map((item, index) => <ExerciseCard key={index} name={item.title} position={item.position} done={item.done} closeSidebar={closeSidebar} />)}
@@ -28,7 +24,7 @@ interface IExerciseProps {
 }
 
 function ExerciseCard({ name, position, closeSidebar, done }: IExerciseProps) {
-    const { setPosition, fetchReadme } = useStore();
+    const { setPosition } = useStore();
 
     const getNameWithoutNumber = (str: string) => {
         let arr = str.split('-');
@@ -40,7 +36,6 @@ function ExerciseCard({ name, position, closeSidebar, done }: IExerciseProps) {
         <li className="exercise-card" onClick={
             () => {
                 setPosition(position);
-                fetchReadme();
                 closeSidebar();
             }
         }>

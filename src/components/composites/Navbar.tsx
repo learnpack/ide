@@ -1,5 +1,5 @@
 import BuildButton from './BuildButton'
-import FeedbackButton from '../client/FeedbackButton'
+import FeedbackButton from './FeedbackButton'
 import Sidebar from './Sidebar'
 import ResetButton from './ResetButton'
 // import useStore from '../../utils/store'
