@@ -33,7 +33,7 @@ const useStore = create<IStore>((set, get) => ({
   currentContent: "",
   chatSocket: chatSocket,
   currentExercisePosition: defaultParams.currentExercise || 0,
-  chatInitialMessage: "## Hello! How can I help you?",
+  chatInitialMessage: "Hello! I'm the Learnpack tutor, I can help you if you feel stuck, ask me anything about this exercise!",
   conversationIdsCache: {},
   lessonTitle: "",
   numberOfExercises: 0,
@@ -76,7 +76,7 @@ const useStore = create<IStore>((set, get) => ({
 
   // setters
   start: () => {
-    const { fetchExercises, fetchReadme, checkParams } = get();
+    const { fetchExercises, fetchReadme, checkParams, startConversation, token, checkLoggedStatus, currentExercisePosition } = get();
     fetchExercises()
       .then(() => {
         return checkParams({ justReturn: false })
@@ -85,6 +85,9 @@ const useStore = create<IStore>((set, get) => ({
         if (Object.keys(params).length === 0) {
           fetchReadme()
         }
+      })
+      .then(() => {
+        checkLoggedStatus({ startConversation: true });
       })
   },
 
@@ -112,28 +115,34 @@ const useStore = create<IStore>((set, get) => ({
   setBuildButtonText: (t, c = "") => {
     set({ buildbuttonText: { text: t, className: c } })
   },
-  
+
   setFeedbackButtonProps: (t, c = "") => {
     set({ feedbackbuttonProps: { text: t, className: c } })
   },
 
   setOpenedModals: (modals) => {
     const { openedModals } = get();
-    set({ openedModals: {...openedModals, ...modals} })
+    set({ openedModals: { ...openedModals, ...modals } })
   },
 
   setToken: (newToken) => {
     set({ token: newToken });
   },
-  checkLoggedStatus: async () => {
+  checkLoggedStatus: async (opts) => {
+    const { startConversation, currentExercisePosition } = get();
     try {
       const res = await fetch(`${HOST}/check/rigo/status`)
       const json = await res.json();
       set({ token: json.rigoToken })
 
+      if (opts.startConversation) {
+        startConversation(currentExercisePosition);
+      }
     }
     catch (err) {
       set({ token: "" })
+      console.log("error in checkLoggedStatus", err);
+
     }
   },
   getContextFilesContent: async () => {
@@ -263,9 +272,9 @@ const useStore = create<IStore>((set, get) => ({
   },
 
   setPosition: (newPosition) => {
-    const { fetchSingleExerciseInfo, startConversation, fetchReadme, token, setBuildButtonText, setFeedbackButtonProps } = get();
+    const { fetchSingleExerciseInfo, startConversation, fetchReadme, token, setBuildButtonText, setFeedbackButtonProps, checkParams } = get();
 
-    let params = get().checkParams({ justReturn: true })
+    let params = checkParams({ justReturn: true })
 
     let hash = `currentExercise=${newPosition}${params.language ? "&language=" + params.language : ""}`
 
@@ -287,6 +296,11 @@ const useStore = create<IStore>((set, get) => ({
 
     let conversationId = null;
     let initialData = null;
+
+    if (!token) {
+      toast.error("no token, not starting conversation");
+      return;
+    }
 
     try {
       conversationId = conversationIdsCache[exercisePosition]
@@ -313,6 +327,33 @@ const useStore = create<IStore>((set, get) => ({
 
   },
 
+  loginToRigo: async (loginInfo) => {
+    const { host, setToken, startConversation, currentExercisePosition, setOpenedModals } = get();
+
+    const config = {
+      method: "post",
+      body: JSON.stringify(loginInfo),
+      headers: {
+        "Content-Type": "application/json" // Set the content type to JSON
+      }
+    }
+
+    try {
+      const res = await fetch(host + "/login", config);
+      const json = await res.json();
+      const token = json.rigobot.key;
+      setToken(token);
+      toast.success("Successfully logged in");
+    }
+    catch (error) {
+      toast.error(String(error));
+    }
+
+    startConversation(currentExercisePosition)
+
+    setOpenedModals({ login: false, chat: true  })
+
+  },
   fetchReadme: async () => {
     const { language, exercises, currentExercisePosition, getConfigObject, setShowVideoTutorial, fetchSingleExerciseInfo } = get();
 

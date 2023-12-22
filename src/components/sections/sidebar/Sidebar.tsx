@@ -9,7 +9,13 @@ import { createPortal } from "react-dom";
 import "./styles.css"
 
 export default function Sidebar() {
-    const { numberOfExercises, solvedExercises, configObject, language, lessonTitle } = useStore();
+    const { numberOfExercises, solvedExercises, configObject, language, lessonTitle } = useStore(state => ({
+        numberOfExercises: state.numberOfExercises,
+        solvedExercises: state.solvedExercises,
+        configObject: state.configObject,
+        language: state.language,
+        lessonTitle: state.lessonTitle
+    }));
     const [showSidebar, setShowSidebar,] = useState(false);
 
     let title = lessonTitle

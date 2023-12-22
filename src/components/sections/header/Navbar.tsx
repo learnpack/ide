@@ -5,7 +5,8 @@ import ResetButton from './ResetButton'
 import useStore from '../../../utils/store'
 
 export default function Navbar() {
-    const {displayTestButton} = useStore();
+    const {displayTestButton} = useStore(state => ({displayTestButton: state.displayTestButton}));
+
     return <nav className="navbar-component">
         <section>
             <img src="/logo.png" alt='Learnpack' style={{ width: "40px", height: "auto" }} />
@@ -19,7 +20,7 @@ export default function Navbar() {
 }
 
 const TestButton = ({display}: {display: boolean}) => {
-    const { test } = useStore();
+    const { test } = useStore(state => ({ test: state.test }));
     return (
         display &&
         <button onClick={test} className="test-button">

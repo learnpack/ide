@@ -6,7 +6,19 @@ import { svgs } from "../../../assets/svgs";
 export default function Chat() {
     const backdropRef = useRef<HTMLDivElement>(null);
 
-    const { setOpenedModals, currentExercisePosition, exerciseMessages, setExerciseMessages, chatSocket, conversationIdsCache, getContextFilesContent, learnpackPurposeId, token, chatInitialMessage } = useStore();
+    const { setOpenedModals, currentExercisePosition, exerciseMessages, setExerciseMessages, chatSocket, conversationIdsCache, getContextFilesContent, learnpackPurposeId, token, chatInitialMessage, startConversation } = useStore(state => ({
+        setOpenedModals: state.setOpenedModals,
+        currentExercisePosition: state.currentExercisePosition,
+        exerciseMessages: state.exerciseMessages,
+        setExerciseMessages: state.setExerciseMessages,
+        chatSocket: state.chatSocket,
+        conversationIdsCache: state.conversationIdsCache,
+        getContextFilesContent: state.getContextFilesContent,
+        learnpackPurposeId: state.learnpackPurposeId,
+        token: state.token,
+        chatInitialMessage: state.chatInitialMessage,
+        startConversation: state.startConversation
+    }));
 
     const fakeMessages = [
         { "type": "bot", "text": chatInitialMessage },
@@ -21,6 +33,10 @@ export default function Chat() {
         if (body) body.style.overflow = "hidden";
 
         document.addEventListener('mousedown', handleClickOutside);
+
+        if (conversationIdsCache[currentExercisePosition] == undefined) {
+            startConversation(currentExercisePosition)
+        }
 
         return () => {
             if (body) body.style.overflow = "auto";
@@ -86,7 +102,7 @@ export default function Chat() {
     }
 
     const getMessageData = async () => {
-        const contextFilesContent = await getContextFilesContent();
+        const contextFilesContent = getContextFilesContent();
         const data = {
             "message": {
                 type: 'user',
@@ -103,12 +119,6 @@ export default function Chat() {
         }
         return data
     }
-
-    //   const getImageDescription = () => {
-    //     return chatMessage.text
-    //   }
-
-
 
     return <main ref={backdropRef} className="chat-container">
 

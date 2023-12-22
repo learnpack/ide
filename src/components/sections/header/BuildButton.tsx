@@ -6,8 +6,15 @@ import { toast } from 'react-hot-toast';
 
 
 export default function BuildButton() {
-  const { currentExercisePosition, exercises, compilerSocket, buildbuttonText, setBuildButtonText, isBuildable } = useStore();
 
+  const { currentExercisePosition, exercises, compilerSocket, buildbuttonText, setBuildButtonText, isBuildable } = useStore(state => ({
+    currentExercisePosition: state.currentExercisePosition,
+    exercises: state.exercises,
+    compilerSocket: state.compilerSocket,
+    buildbuttonText: state.buildbuttonText,
+    setBuildButtonText: state.setBuildButtonText,
+    isBuildable: state.isBuildable
+  }));
 
   const build = () => {
     setBuildButtonText("Running...", "")

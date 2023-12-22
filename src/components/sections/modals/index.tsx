@@ -5,7 +5,10 @@ import SocketDisconnectionModal from "./SocketDisconnectionModal"
 import useStore from "../../../utils/store"
 
 export const ModalsContainer = () => {
-    const { openedModals } = useStore()
+    const { openedModals, token } = useStore(state => ({
+        openedModals: state.openedModals,
+        token: state.token
+    }))
     return (
         <>
             <SocketDisconnectionModal />
@@ -14,7 +17,7 @@ export const ModalsContainer = () => {
                 openedModals.login && <LoginModal />
             }
             {
-                openedModals.chat && <Chat />
+                openedModals.chat && token && <Chat />
             }
         </>
 

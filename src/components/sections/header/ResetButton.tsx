@@ -26,7 +26,12 @@ interface IResetModal {
 
 
 const ResetModal = ({ toggleModal }: IResetModal) => {
-    const { compilerSocket, exercises, currentExercisePosition } = useStore();
+    const { compilerSocket, exercises, currentExercisePosition } = useStore(state => ({
+        compilerSocket: state.compilerSocket,
+        exercises: state.exercises,
+        currentExercisePosition: state.currentExercisePosition
+    
+    }));
 
     const handleReset = () => {
         const data = {

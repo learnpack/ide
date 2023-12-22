@@ -9,6 +9,8 @@ interface ISvgProps {
 
 
 export default function ToggleSidebarButton({ svg }: ISvgProps) {
-    const { toggleSidebar } = useStore();
+    const { toggleSidebar } = useStore(state => ({
+        toggleSidebar: state.toggleSidebar
+    }));
     return <SimpleButton text="" svg={svg} action={toggleSidebar} />
 }

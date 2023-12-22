@@ -1,7 +1,12 @@
 import useStore from "../../utils/store"
 import { useEffect } from "react";
 export function SocketHandler() {
-    const { compilerSocket, exercises, currentExercisePosition, setAllowedActions } = useStore();
+    const { compilerSocket, exercises, currentExercisePosition, setAllowedActions } = useStore(state => ({
+        compilerSocket: state.compilerSocket,
+        exercises: state.exercises,
+        currentExercisePosition: state.currentExercisePosition,
+        setAllowedActions: state.setAllowedActions
+    }));
 
     useEffect(() => {
         const modal: HTMLElement | null = document.querySelector("#socket-disconnected");
@@ -42,7 +47,7 @@ export function SocketHandler() {
             });
         });
 
-       
+
     }, [currentExercisePosition, exercises])
 
     return <>

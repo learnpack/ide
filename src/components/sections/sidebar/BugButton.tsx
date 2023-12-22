@@ -4,7 +4,12 @@ import { svgs } from "../../../assets/svgs";
 import SimpleButton from "../../mockups/Button";
 
 export default function BugButton() {
-    const { currentExercisePosition, exercises, lessonTitle, compilerSocket } = useStore();
+    const { currentExercisePosition, exercises, lessonTitle, compilerSocket } = useStore(state => ({
+        currentExercisePosition: state.currentExercisePosition,
+        exercises: state.exercises,
+        lessonTitle: state.lessonTitle,
+        compilerSocket: state.compilerSocket
+    }));
     let defaultTitle = "Bug"
 
     if (currentExercisePosition != 0) {

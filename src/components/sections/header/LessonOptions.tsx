@@ -4,7 +4,11 @@ import LanguageButton from "../lesson/LanguageButton"
 
 
 export const LessonOptions = () => {
-    const { currentExercisePosition, handlePositionChange, exercises } = useStore();
+    const { currentExercisePosition, handlePositionChange, exercises } = useStore(state => ({
+        currentExercisePosition: state.currentExercisePosition,
+        handlePositionChange: state.handlePositionChange,
+        exercises: state.exercises
+    }));
 
     return <>
         <div className="lesson-options">

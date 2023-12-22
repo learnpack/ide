@@ -4,7 +4,6 @@
     animation-range: 0 150px;
     position: sticky;
     top: 0;
-
     &:hover {
         opacity: 1 !important;
     }

@@ -1,21 +1,19 @@
-import  { useState, useEffect } from "react";
+import  { useState } from "react";
 import SimpleButton from "../../mockups/Button";
 import { svgs } from "../../../assets/svgs";
 import useStore from "../../../utils/store";
 import { FeedbackDropdown } from "./FeedbackDropdown";
 
 export default function FeedbackButton(): JSX.Element {
+    const feedbackbuttonProps = useStore(state => state.feedbackbuttonProps);
+
+
     const [showFeedback, setShowFeedback] = useState(false);
-    const { feedbackbuttonProps, checkLoggedStatus } = useStore();
     let hideFeedbackTimeout: ReturnType<typeof setTimeout>;
 
     const toggleFeedback = (): void => {
         setShowFeedback((prev) => !prev);
     }
-
-    useEffect(() => {
-        checkLoggedStatus();
-    }, [])
 
     const handleMouseEnter = (): void => {
         clearTimeout(hideFeedbackTimeout);

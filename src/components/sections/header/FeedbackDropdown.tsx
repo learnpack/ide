@@ -10,8 +10,25 @@ interface IFeedbackDropdown {
 }
 
 export const FeedbackDropdown = ({ toggleFeedbackVisibility }: IFeedbackDropdown) => {
-    // const [showLoginModal, setShowLoginModal] = useState(false);
-    const { feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token, setFeedbackButtonProps, fetchExercises, configObject, videoTutorial, setShowVideoTutorial,  getCurrentExercise, isTesteable, setOpenedModals } = useStore();
+
+
+    const { feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token, setFeedbackButtonProps, fetchExercises, configObject, videoTutorial, setShowVideoTutorial, getCurrentExercise, isTesteable, setOpenedModals } = useStore(state => ({
+        feedback: state.feedback,
+        toggleFeedback: state.toggleFeedback,
+        currentExercisePosition: state.currentExercisePosition,
+        exercises: state.exercises,
+        compilerSocket: state.compilerSocket,
+        token: state.token,
+        setFeedbackButtonProps: state.setFeedbackButtonProps,
+        fetchExercises: state.fetchExercises,
+        configObject: state.configObject,
+        videoTutorial: state.videoTutorial,
+        setShowVideoTutorial: state.setShowVideoTutorial,
+        getCurrentExercise: state.getCurrentExercise,
+        isTesteable: state.isTesteable,
+        setOpenedModals: state.setOpenedModals
+    }));
+
 
     const toggleAndHide = () => {
         toggleFeedbackVisibility();
@@ -104,7 +121,7 @@ export const FeedbackDropdown = ({ toggleFeedbackVisibility }: IFeedbackDropdown
     }
 
     return (
-        <div className="feedback-dropdown">  
+        <div className="feedback-dropdown">
             {isTesteable ? <SimpleButton svg={svgs.testIcon} text="Run tests" action={runTests} /> : <SimpleButton svg={svgs.testIcon} text="Run tests" disabled={true} />}
 
             {

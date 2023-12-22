@@ -7,7 +7,9 @@ interface IExerciseList {
 }
 
 export default function ExercisesList({ closeSidebar }: IExerciseList) {
-    const { exercises } = useStore();
+    const { exercises } = useStore(state => ({
+        exercises: state.exercises
+    }));
     
     return (
         <ul className="exercise-list">
@@ -28,7 +30,9 @@ interface IExerciseProps {
 }
 
 function ExerciseCard({ title, position, closeSidebar, graded, done }: IExerciseProps) {
-    const { handlePositionChange } = useStore();
+    const { handlePositionChange } = useStore(state => ({
+        handlePositionChange: state.handlePositionChange
+    }));
 
     const titlefy = (str: string) => {
         let arr = str.split('-');

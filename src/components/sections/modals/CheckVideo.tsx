@@ -4,7 +4,14 @@ import useStore from "../../../utils/store";
 
 export default function CheckVideo() {
     const [link, setLink] = useState(null as string | null);
-    const { configObject, currentExercisePosition, videoTutorial, setShowVideoTutorial, showVideoTutorial } = useStore();
+    const { configObject, currentExercisePosition, videoTutorial, setShowVideoTutorial, showVideoTutorial } = useStore(state => ({
+        configObject: state.configObject,
+        currentExercisePosition: state.currentExercisePosition,
+        videoTutorial: state.videoTutorial,
+        setShowVideoTutorial: state.setShowVideoTutorial,
+        showVideoTutorial: state.showVideoTutorial
+    
+    }));
 
     useEffect(() => {
 

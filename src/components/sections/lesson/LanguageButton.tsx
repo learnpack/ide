@@ -9,7 +9,10 @@ const svgsLanguageMap: any = {
 }
 
 export default function LanguageButton() {
-    const { language } = useStore();
+    const { language } = useStore(state => ({
+        language: state.language
+    
+    }));
     const [showDrop, setShowDropdown] = useState(false);
 
     const toggleDrop = () => {
@@ -29,7 +32,12 @@ interface ILanguageDropdown {
 }
 
 const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
-    const { language, setLanguage, getCurrentExercise } = useStore();
+    const { language, setLanguage, getCurrentExercise } = useStore(state => ({
+        language: state.language,
+        setLanguage: state.setLanguage,
+        getCurrentExercise: state.getCurrentExercise
+    
+    }));
 
     const languages = Object.keys(getCurrentExercise().translations);
 

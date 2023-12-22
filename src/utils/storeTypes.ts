@@ -55,6 +55,16 @@ type TOpenedModals = {
 
 }
 
+type TCheckLoggedStatusOptions = {
+    startConversation: boolean
+}
+
+type TLoginInfo = {
+    email: string
+    password: string
+}
+
+
 export interface IStore {
     exercises: any[]
     chatInitialMessage: string
@@ -93,6 +103,7 @@ export interface IStore {
     setOpenedModals: (modals: Partial<TOpenedModals>) => void
     startConversation: (exercisePosition:number)=> void
     getContextFilesContent: () => string
+    loginToRigo: (loginInfo: TLoginInfo) => void
     getCurrentExercise: () => TExercise
     setExerciseMessages: (messages: IMessage[], position: number) => void
     setShowChatModal: (show: boolean) => void
@@ -100,7 +111,7 @@ export interface IStore {
     setAllowedActions: (actions: string[]) => void
     getConfigObject: () => void
     setLanguage: (language: string, fetchExercise?: boolean) => void
-    checkLoggedStatus: () => void
+    checkLoggedStatus: (opts?: TCheckLoggedStatusOptions) => void
     setToken: (newToken: string) => void
     setBuildButtonText: (t: string, c: string) => void
     setFeedbackButtonProps: (t: string, c: string) => void

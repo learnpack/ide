@@ -2,18 +2,22 @@ import SimpleButton from "../../mockups/Button";
 import { svgs } from "../../../assets/svgs";
 import useStore from "../../../utils/store";
 import { useState, useRef, useEffect } from "react";
-import { toast } from 'react-hot-toast';
 import { OpenWindowLink } from "../../composites/OpenWindowLink";
 
 export default function LoginModal() {
-    const backdropRef = useRef<HTMLDivElement>(null);
+    const { setOpenedModals, loginToRigo } = useStore(state => ({
+        setToken: state.setToken,
+        host: state.host,
+        setOpenedModals: state.setOpenedModals,
+        startConversation: state.startConversation,
+        currentExercisePosition: state.currentExercisePosition,
+        loginToRigo: state.loginToRigo
+    }));
 
+    const backdropRef = useRef<HTMLDivElement>(null);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-
     const [isLoading, setIsLoading] = useState(false);
-
-    const { setToken, host, setOpenedModals } = useStore();
 
     const handleClickOutside = (event: any) => {
         if (backdropRef.current === event.target) {
@@ -29,33 +33,13 @@ export default function LoginModal() {
     }, [])
 
     const login = async (e: any) => {
-        setIsLoading(true);
         e.preventDefault();
+        setIsLoading(true);
 
-
-        const data = {
+        loginToRigo({
             email: email,
             password: password
-        }
-
-        const config = {
-            method: "post",
-            body: JSON.stringify(data),
-            headers: {
-                "Content-Type": "application/json" // Set the content type to JSON
-            }
-        }
-        try {
-            const res = await fetch(host + "/login", config);
-            const json = await res.json();
-            const token = json.rigobot.key;
-            setToken(token);
-            toast.success("Successfully logged in");
-        }
-        catch (error) {
-            toast.error(String(error));
-        }
-        setOpenedModals({ login: false, chat: true })
+        })
     }
 
     return <>
