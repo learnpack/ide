@@ -1,26 +1,23 @@
-import SimpleButton from "../mockups/Button";
-import { svgs } from "../../assets/svgs";
-import useStore from "../../utils/store";
+import SimpleButton from "../../mockups/Button";
+import { svgs } from "../../../assets/svgs";
+import useStore from "../../../utils/store";
 import { useState, useRef, useEffect } from "react";
 import { toast } from 'react-hot-toast';
-import { OpenWindowLink } from "./OpenWindowLink";
+import { OpenWindowLink } from "../../composites/OpenWindowLink";
 
-interface ILoginModal {
-    toggleFeedbackVisibility: () => void;
-}
-
-export default function LoginModal({ toggleFeedbackVisibility }: ILoginModal) {
+export default function LoginModal() {
     const backdropRef = useRef<HTMLDivElement>(null);
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
     const [isLoading, setIsLoading] = useState(false);
-    const { setToken, host } = useStore();
+
+    const { setToken, host, setOpenedModals } = useStore();
 
     const handleClickOutside = (event: any) => {
         if (backdropRef.current === event.target) {
-            toggleFeedbackVisibility();
+            setOpenedModals({ login: false })
         }
     }
 
@@ -58,7 +55,7 @@ export default function LoginModal({ toggleFeedbackVisibility }: ILoginModal) {
         catch (error) {
             toast.error(String(error));
         }
-        toggleFeedbackVisibility();
+        setOpenedModals({ login: false, chat: true })
     }
 
     return <>
@@ -66,7 +63,10 @@ export default function LoginModal({ toggleFeedbackVisibility }: ILoginModal) {
             <div className="modal-content">
                 <h2>Login</h2>
                 <div><p>To use the AI services you must login with your <a href="https://4geeks.com/">4geeks</a> account</p>
-                    <SimpleButton action={toggleFeedbackVisibility} svg={svgs.closeIcon} /></div>
+                    <SimpleButton action={() => {
+                        setOpenedModals({ login: false })
+                    }} svg={svgs.closeIcon} />
+                </div>
                 <form action="">
                     <input placeholder="Email" type="text" name="email" onChange={(e) => { setEmail(e.target.value) }} />
                     <input placeholder="Password" type="password" name="password" onChange={(e) => { setPassword(e.target.value) }} />

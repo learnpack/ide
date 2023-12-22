@@ -8,9 +8,10 @@
   --bg-color-gray: #EFF1F4;
 
   --color-active: #02A9EA;
+  --color-blue-opaque: #EBF8FE;
+  --color-blue: #c1dfed;
   --color-success: #21B761;
   --color-fail: #EB5757;
-  --color-blue-opaque: #EBF8FE;
   --bg-color-code: #2D3748;
   --backdrop-background: rgba(0, 0, 0, 0.7);
 }

@@ -1,44 +1,17 @@
-
-import SimpleButton from "../mockups/Button";
-import { svgs } from "../../assets/svgs";
-import useStore from "../../utils/store";
-import { useState, useEffect } from "react";
-import { getStatus } from "../../utils/socket";
+import { getStatus } from "../../../utils/socket";
 import { toast } from 'react-hot-toast';
-import LoginModal from "./LoginModal";
 
-export default function FeedbackButton() {
-    const [showFeedback, setShowFeedback] = useState(false);
-
-    const { feedbackbuttonProps, allowedActions } = useStore();
-    const { checkLoggedStatus } = useStore();
-    const toggleFeedback = () => {
-        setShowFeedback((prev) => !prev);
-    }
-
-    useEffect(() => {
-        checkLoggedStatus();
-    }, [])
-
-    useEffect(() => {
-        // console.log(allowedActions, "allowedActions");
-    }, [allowedActions])
-
-    return (<div className="pos-relative feedback-dropdown-container">
-        <SimpleButton text={feedbackbuttonProps.text} svg={svgs.feedbackIcon} extraClass={`pill border-blue color-blue row-reverse ${feedbackbuttonProps.className}`} action={toggleFeedback} />
-        {showFeedback && <FeedbackDropdown toggleFeedbackVisibility={toggleFeedback} />}
-    </div>
-    )
-}
+import SimpleButton from "../../mockups/Button";
+import { svgs } from "../../../assets/svgs";
+import useStore from "../../../utils/store";
 
 interface IFeedbackDropdown {
     toggleFeedbackVisibility: () => void;
 }
 
-function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
-    const [showLoginModal, setShowLoginModal] = useState(false);
-    const { feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token, setFeedbackButtonProps, fetchExercises, configObject, videoTutorial, setShowVideoTutorial, setShowChatModal, getCurrentExercise, isTesteable } = useStore();
-
+export const FeedbackDropdown = ({ toggleFeedbackVisibility }: IFeedbackDropdown) => {
+    // const [showLoginModal, setShowLoginModal] = useState(false);
+    const { feedback, toggleFeedback, currentExercisePosition, exercises, compilerSocket, token, setFeedbackButtonProps, fetchExercises, configObject, videoTutorial, setShowVideoTutorial,  getCurrentExercise, isTesteable, setOpenedModals } = useStore();
 
     const toggleAndHide = () => {
         toggleFeedbackVisibility();
@@ -94,7 +67,8 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
     }
 
     const openLoginModal = () => {
-        setShowLoginModal(true);
+        // setShowLoginModal(true);
+        setOpenedModals({ login: true })
         // toggleFeedbackVisibility();
     }
 
@@ -125,15 +99,21 @@ function FeedbackDropdown({ toggleFeedbackVisibility }: IFeedbackDropdown) {
     }
 
     const showChat = () => {
-        setShowChatModal(true);
+        setOpenedModals({ chat: true });
         toggleFeedbackVisibility();
     }
 
     return (
-        <div className="feedback-dropdown">
-            {showLoginModal && <LoginModal toggleFeedbackVisibility={toggleFeedbackVisibility} />}
+        <div className="feedback-dropdown">  
             {isTesteable ? <SimpleButton svg={svgs.testIcon} text="Run tests" action={runTests} /> : <SimpleButton svg={svgs.testIcon} text="Run tests" disabled={true} />}
-            {Boolean(token) ? <SimpleButton text="Open AI chat" svg={svgs.brainIcon} action={showChat} /> : <SimpleButton svg={svgs.fourGeeksIcon} text="Login to use AI feedback" action={openLoginModal} />}
+
+            {
+                Boolean(token) ?
+                    <SimpleButton text="Get help from AI" svg={svgs.brainIcon} action={showChat} />
+                    :
+                    <SimpleButton svg={svgs.fourGeeksIcon} text="Login to use AI feedback" action={openLoginModal} />
+            }
+
             {feedback ? <SimpleButton action={toggleAndHide} text="Show stored feedback" svg={svgs.reminderSvg} /> : null}
             <SimpleButton text={`Video tutorial ${videoTutorial ? "" : "(not available)"}`} disabled={!videoTutorial} svg={svgs.videoIcon} action={redirectToVideo} />
 

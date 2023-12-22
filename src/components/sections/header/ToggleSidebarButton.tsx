@@ -1,8 +1,8 @@
 // UNUSED
 
-import SimpleButton from "../mockups/Button";
+import SimpleButton from "../../mockups/Button";
 
-import useStore from "../../utils/store";
+import useStore from "../../../utils/store";
 interface ISvgProps {
     svg: any;
 }

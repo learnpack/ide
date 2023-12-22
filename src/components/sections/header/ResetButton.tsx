@@ -1,8 +1,8 @@
-import SimpleButton from "../mockups/Button";
-import useStore from "../../utils/store";
-import { svgs } from "../../assets/svgs";
+import SimpleButton from "../../mockups/Button";
+import useStore from "../../../utils/store";
+import { svgs } from "../../../assets/svgs";
 import { useState } from "react";
-import { Modal } from "../mockups/Modal";
+import { Modal } from "../../mockups/Modal";
 import "./styles.css"
 
 export default function ResetButton() {

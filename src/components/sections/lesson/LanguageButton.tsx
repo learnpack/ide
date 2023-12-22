@@ -1,6 +1,6 @@
-import SimpleButton from "../mockups/Button"
-import useStore from "../../utils/store"
-import { svgs } from "../../assets/svgs";
+import SimpleButton from "../../mockups/Button"
+import useStore from "../../../utils/store"
+import { svgs } from "../../../assets/svgs";
 import { useState } from "react";
 
 const svgsLanguageMap: any = {
@@ -31,7 +31,7 @@ interface ILanguageDropdown {
 const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
     const { language, setLanguage, getCurrentExercise } = useStore();
 
-    const languages = Object.keys(getCurrentExercise().translations);    
+    const languages = Object.keys(getCurrentExercise().translations);
 
     const setLang = (lang: string) => {
         setLanguage(lang);

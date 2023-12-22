@@ -9,7 +9,13 @@ interface ILanguageMap {
     [key: string]: string
 }
 
+type TTitle = {
+    [key: string]: string
+
+}
+
 interface IConfig {
+    title: TTitle
     intro: any
     editor: any
     grading: string
@@ -44,6 +50,11 @@ type TCheckParamsOptions = {
     justReturn: boolean 
 }
 
+type TOpenedModals = {
+    [key: string]: boolean
+
+}
+
 export interface IStore {
     exercises: any[]
     chatInitialMessage: string
@@ -74,9 +85,12 @@ export interface IStore {
     isBuildable: boolean
     chatSocket: any
     conversationIdsCache: TNumberCache
+    openedModals: TOpenedModals
 
     start: () => void
     checkParams: (opts: TCheckParamsOptions) => void
+    handlePositionChange: (desiredPosition: number) => void
+    setOpenedModals: (modals: Partial<TOpenedModals>) => void
     startConversation: (exercisePosition:number)=> void
     getContextFilesContent: () => string
     getCurrentExercise: () => TExercise
@@ -97,4 +111,6 @@ export interface IStore {
     setPosition: (position: number) => void
     fetchReadme: () => void
     toggleSidebar: () => void
+    displayTestButton: boolean
+    test: () => void
 }

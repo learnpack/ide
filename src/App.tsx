@@ -2,24 +2,19 @@ import './App.css'
 import './index.css'
 import './components.css'
 
-import Navbar from './components/composites/Navbar'
-import LessonContainer from './components/composites/LessonContainer'
-import SocketDisconnectionModal from './components/composites/SocketDisconnectionModal'
-import CheckVideo from './components/composites/CheckVideo'
-import Chat from './components/composites/Chat'
-import useStore from './utils/store'
+import LessonContainer from './components/sections/lesson/LessonContainer'
 import { SocketHandler } from './components/composites/SocketHandler'
 import { Toaster } from 'react-hot-toast'
+import { Header } from './components/sections/header'
+import { ModalsContainer } from './components/sections/modals'
 export default function Home() {
-  const { showChatModal } = useStore();
+
   return (
     <main className="">
-      <SocketDisconnectionModal />
-      <SocketHandler />
       <Toaster />
-      {showChatModal && <Chat />}
-      <CheckVideo />
-      <Navbar />
+      <ModalsContainer />
+      <SocketHandler />
+      <Header />
       <LessonContainer />
     </main>
   )

@@ -1,6 +1,6 @@
 import VideoModal from "./VideoModal";
 import { useEffect, useState } from "react";
-import useStore from "../../utils/store";
+import useStore from "../../../utils/store";
 
 export default function CheckVideo() {
     const [link, setLink] = useState(null as string | null);

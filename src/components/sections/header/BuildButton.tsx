@@ -1,7 +1,7 @@
-import SimpleButton from "../mockups/Button";
-import { svgs } from "../../assets/svgs";
-import { getStatus } from "../../utils/socket";
-import useStore from "../../utils/store";
+import SimpleButton from "../../mockups/Button";
+import { svgs } from "../../../assets/svgs";
+import { getStatus } from "../../../utils/socket";
+import useStore from "../../../utils/store";
 import { toast } from 'react-hot-toast';
 
 

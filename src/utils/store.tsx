@@ -4,7 +4,9 @@ import { create } from 'zustand';
 import { convertMarkdownToHTML, changeSidebarVisibility, getExercise, getFileContent, startChat, disconnected, getHost, getParamsObject } from './lib';
 import Socket from './socket';
 import { IStore } from './storeTypes';
+import toast from 'react-hot-toast';
 
+import { DEV_MODE } from './lib';
 
 const HOST = getHost();
 Socket.start(HOST, disconnected);
@@ -65,16 +67,24 @@ const useStore = create<IStore>((set, get) => ({
   showChatModal: false,
   exerciseMessages: {},
   host: HOST,
+  openedModals: {
+    chat: false,
+    login: false,
+    video: false,
+    reset: false,
+  },
 
   // setters
   start: () => {
     const { fetchExercises, fetchReadme, checkParams } = get();
     fetchExercises()
       .then(() => {
-        checkParams({ justReturn: false })
+        return checkParams({ justReturn: false })
       })
-      .then(() => {
-        fetchReadme()
+      .then((params) => {
+        if (Object.keys(params).length === 0) {
+          fetchReadme()
+        }
       })
   },
 
@@ -97,13 +107,19 @@ const useStore = create<IStore>((set, get) => ({
   setAllowedActions: (actions) => {
     set({ allowedActions: actions });
   },
-  // functions
 
+  // functions
   setBuildButtonText: (t, c = "") => {
     set({ buildbuttonText: { text: t, className: c } })
   },
+  
   setFeedbackButtonProps: (t, c = "") => {
     set({ feedbackbuttonProps: { text: t, className: c } })
+  },
+
+  setOpenedModals: (modals) => {
+    const { openedModals } = get();
+    set({ openedModals: {...openedModals, ...modals} })
   },
 
   setToken: (newToken) => {
@@ -203,7 +219,7 @@ const useStore = create<IStore>((set, get) => ({
     const languageParam = paramsObject.language;
     const position = paramsObject.currentExercise;
 
-    
+
     if (languageParam) {
       setLanguage(language, false);
     }
@@ -211,6 +227,8 @@ const useStore = create<IStore>((set, get) => ({
     if (position) {
       setPosition(Number(position))
     }
+
+    return paramsObject;
   },
   fetchSingleExerciseInfo: async (index) => {
     const { exercises } = get();
@@ -244,21 +262,22 @@ const useStore = create<IStore>((set, get) => ({
 
   },
 
-  setPosition: async (newPosition) => {
-    const { fetchSingleExerciseInfo, startConversation, fetchReadme, token } = get();
+  setPosition: (newPosition) => {
+    const { fetchSingleExerciseInfo, startConversation, fetchReadme, token, setBuildButtonText, setFeedbackButtonProps } = get();
 
     let params = get().checkParams({ justReturn: true })
-    
-    let hash = `currentExercise=${newPosition}${params.language ? "&language="+params.language : ""}`
+
+    let hash = `currentExercise=${newPosition}${params.language ? "&language=" + params.language : ""}`
 
     window.location.hash = hash;
 
     set({ currentExercisePosition: newPosition });
 
-
     if (token) {
       startConversation(newPosition);
     }
+    setBuildButtonText("Run", "");
+    setFeedbackButtonProps("Feedback", "");
 
     fetchReadme()
     fetchSingleExerciseInfo(newPosition);
@@ -279,7 +298,7 @@ const useStore = create<IStore>((set, get) => ({
       initialData = await startChat(learnpackPurposeId, token);
       conversationId = initialData.conversation_id;
     }
-    
+
     if (initialData && initialData.salute) {
       set({ chatInitialMessage: initialData.salute })
     }
@@ -305,21 +324,18 @@ const useStore = create<IStore>((set, get) => ({
     const response = await fetch(`${HOST}/exercise/${slug}/readme?lang=${language}`);
     const exercise = await response.json();
 
-    // console.log("exercise.attributes", exercise.attributes);
-
     if (exercise.attributes.tutorial) {
       set({ videoTutorial: exercise.attributes.tutorial })
     }
     else if (exercise.attributes.intro) {
-      set({ videoTutorial: exercise.attributes.tutorial })
-      set({ showVideoTutorial: true })
+      set({ videoTutorial: exercise.attributes.intro, showVideoTutorial: true })
     }
     else {
       set({ videoTutorial: "" })
       setShowVideoTutorial(false);
     }
 
-    set({ currentContent: convertMarkdownToHTML(exercise.body) })
+    set({ currentContent: exercise.body })
     set({ currentReadme: exercise.body })
 
     getConfigObject();
@@ -335,13 +351,50 @@ const useStore = create<IStore>((set, get) => ({
     set({ language: language });
 
     let params = checkParams({ justReturn: true })
-    let hash = `language=${language}${params.currentExercise ? "&currentExercise="+params.currentExercise: ""}`
+    let hash = `language=${language}${params.currentExercise ? "&currentExercise=" + params.currentExercise : ""}`
     window.location.hash = hash;
 
     if (fetchExercise) {
       fetchReadme();
     }
   },
+
+  handlePositionChange: async (desiredPosition) => {
+    const { configObject, currentExercisePosition, exercises, setPosition, isTesteable } = get();
+
+    const gradingMode = configObject.config.grading
+    const lastExercise = exercises.length - 1;
+
+    if (desiredPosition > lastExercise || desiredPosition < 0) {
+      toast.error("The exercise you are looking for does not exist!");
+      return
+    }
+
+    if (desiredPosition == currentExercisePosition) {
+      // toast.error("You are already in that exercise!");
+      return
+    }
+
+    let letPass = true;
+
+    if (desiredPosition > currentExercisePosition) {
+      letPass = !isTesteable || gradingMode === "isolated" || (gradingMode === "incremental" && exercises[currentExercisePosition].done);
+    }
+
+    if (!letPass) {
+      toast.error("You are in incremental mode! Pass the tests for this exercise to continue with the next one!")
+      return
+    }
+
+    setPosition(Number(desiredPosition));
+  },
+
+
+  // Turn the following property to true to easily test things using a button in the navbar
+  displayTestButton: DEV_MODE,
+  test: async () => {
+    toast.success("Test button pressed!")
+  }
 
 })
 );

@@ -1,18 +1,17 @@
-import useStore from "../../utils/store";
+import useStore from "../../../utils/store";
 import { useState, useEffect, useRef } from "react";
-import { convertMarkdownToHTML } from "../../utils/lib";
-import { svgs } from "../../assets/svgs";
+import { convertMarkdownToHTML } from "../../../utils/lib";
+import { svgs } from "../../../assets/svgs";
 
 export default function Chat() {
     const backdropRef = useRef<HTMLDivElement>(null);
 
-    const { setShowChatModal, currentExercisePosition, exerciseMessages, setExerciseMessages, chatSocket, conversationIdsCache, getContextFilesContent, learnpackPurposeId, token, chatInitialMessage } = useStore();
-
+    const { setOpenedModals, currentExercisePosition, exerciseMessages, setExerciseMessages, chatSocket, conversationIdsCache, getContextFilesContent, learnpackPurposeId, token, chatInitialMessage } = useStore();
 
     const fakeMessages = [
         { "type": "bot", "text": chatInitialMessage },
     ]
-    
+
     const [isGenerating, setIsGenerating] = useState(false);
     const [messages, setMessages] = useState(exerciseMessages[currentExercisePosition] || fakeMessages);
     const [userMessage, setUserMessage] = useState("");
@@ -55,7 +54,7 @@ export default function Chat() {
 
     const handleClickOutside = (event: any) => {
         if (event.target === backdropRef.current) {
-            setShowChatModal(false);
+            setOpenedModals({ chat: false });
         }
     }
 
@@ -71,7 +70,7 @@ export default function Chat() {
         setMessages((prev) => [...prev, { "type": "bot", "text": "" }]);
 
         const messageData = await getMessageData();
-        
+
         chatSocket.emit("message", messageData);
 
         setUserMessage("");
@@ -118,7 +117,7 @@ export default function Chat() {
                 <h3>Learnpack AI-Tutor</h3>
 
                 <button onClick={() => {
-                    setShowChatModal(false);
+                    setOpenedModals({ chat: false });
                 }}>
                     {svgs.closeIcon}
                 </button>
