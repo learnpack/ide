@@ -298,7 +298,6 @@ const useStore = create<IStore>((set, get) => ({
     let initialData = null;
 
     if (!token) {
-      toast.error("no token, not starting conversation");
       return;
     }
 
@@ -412,7 +411,6 @@ const useStore = create<IStore>((set, get) => ({
     }
 
     if (desiredPosition == currentExercisePosition) {
-      // toast.error("You are already in that exercise!");
       return
     }
 
