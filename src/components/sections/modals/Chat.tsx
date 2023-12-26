@@ -120,13 +120,16 @@ export default function Chat() {
                 addNoActionsMessage();
                 return
             }
-            
+
             sendUserMessage();
         }
     }
 
     const getMessageData = async () => {
-        const contextFilesContent = getContextFilesContent();
+        const contextFilesContent = await getContextFilesContent();
+
+        console.log("contextFilesContent", contextFilesContent);
+        
         const data = {
             "message": {
                 type: 'user',

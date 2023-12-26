@@ -102,7 +102,7 @@ export interface IStore {
     handlePositionChange: (desiredPosition: number) => void
     setOpenedModals: (modals: Partial<TOpenedModals>) => void
     startConversation: (exercisePosition:number)=> void
-    getContextFilesContent: () => string
+    getContextFilesContent: () => Promise<string>
     loginToRigo: (loginInfo: TLoginInfo) => void
     getCurrentExercise: () => TExercise
     setExerciseMessages: (messages: IMessage[], position: number) => void
