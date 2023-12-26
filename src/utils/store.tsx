@@ -146,22 +146,36 @@ const useStore = create<IStore>((set, get) => ({
     }
   },
   getContextFilesContent: async () => {
-    const { exercises, currentExercisePosition, currentReadme, isBuildable, isTesteable } = get();
+    const { exercises, currentExercisePosition, currentReadme, isBuildable, isTesteable, configObject } = get();
 
     const slug = exercises[currentExercisePosition].slug;
+    let mode = configObject.config.grading;
+    let extractor = (file) => !file.hidden
 
-    let notHiddenFiles = exercises[currentExercisePosition].files.filter((file) => !file.hidden);
+    if (mode == "incremental" && isTesteable) {
+      extractor = (file) => file
+    }
+
+    let notHiddenFiles = exercises[currentExercisePosition].files.filter(extractor);
 
     let filePromises = notHiddenFiles.map(async (file) => {
       let fileContent = await getFileContent(slug, file.name);
+
+      if (file.name.includes("test") || file.name.includes("tests")) {
+        return `The following is a test file that includes some tests that the students needs to pass in order to continue with the exercises: \n---\n${fileContent}\n---`
+      }
+
       return `File: ${file.name}\nContent: \`${fileContent}\``;
     });
 
     return Promise.all(filePromises).then((filesContext) => {
-      let context = "The following is the student code file(s): \n---"
+      let context = "The following is the student's code file(s) and t: \n---"
+
+      if (isTesteable) context = "The following is the student's code file(s) and tests files to pass: \n---"
+
       context += filesContext.join('\n');
       context += "---";
-      context += `This is the current exercise instructions that the student needs to make:
+      context += `This is the current exercise instructions, use this to guide the student in the right direction:
       ---
       ${currentReadme}
       ---`;

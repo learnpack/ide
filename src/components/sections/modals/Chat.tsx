@@ -116,10 +116,11 @@ export default function Chat() {
     const handleKeyUp = (event: any) => {
         if (event.key === "Enter" && !event.ctrlKey) {
             event.preventDefault();
-            if (!isBuildable) {
+            if (!isBuildable && !isTesteable) {
                 addNoActionsMessage();
                 return
             }
+            
             sendUserMessage();
         }
     }
