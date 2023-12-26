@@ -1,6 +1,6 @@
 import { Remarkable } from 'remarkable';
 
-export const DEV_MODE = false;
+export const DEV_MODE = true;
 const RIGOBOT_API_URL = "https://rigobot.herokuapp.com";
 
 const fullURL = location.protocol + '//' + location.hostname + (location.port ? ':' + location.port : '');
