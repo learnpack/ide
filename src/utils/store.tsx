@@ -146,7 +146,7 @@ const useStore = create<IStore>((set, get) => ({
     }
   },
   getContextFilesContent: async () => {
-    const { exercises, currentExercisePosition, currentReadme } = get();
+    const { exercises, currentExercisePosition, currentReadme, isBuildable, isTesteable } = get();
 
     const slug = exercises[currentExercisePosition].slug;
 
@@ -256,15 +256,17 @@ const useStore = create<IStore>((set, get) => ({
     const exercise = await respose.json();
 
     let isTesteable = false;
-    let isChatable = true;
-    let isBuildable = exercise.language === null ? false : true;
+    let isBuildable = false;
 
     exercise.files.forEach((file) => {
       if (file.name.includes("tests") || file.name.includes("test")) {
         isTesteable = true;
       }
-      return !file.hidden
+      if (file.name.includes("app")) {
+        isBuildable = true;
+      }
     });
+
 
     set({ isTesteable: isTesteable, isBuildable: isBuildable })
 

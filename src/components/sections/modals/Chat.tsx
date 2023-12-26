@@ -6,7 +6,7 @@ import { svgs } from "../../../assets/svgs";
 export default function Chat() {
     const backdropRef = useRef<HTMLDivElement>(null);
 
-    const { setOpenedModals, currentExercisePosition, exerciseMessages, setExerciseMessages, chatSocket, conversationIdsCache, getContextFilesContent, learnpackPurposeId, token, chatInitialMessage, startConversation } = useStore(state => ({
+    const { setOpenedModals, currentExercisePosition, exerciseMessages, setExerciseMessages, chatSocket, conversationIdsCache, getContextFilesContent, learnpackPurposeId, token, chatInitialMessage, startConversation, isBuildable } = useStore(state => ({
         setOpenedModals: state.setOpenedModals,
         currentExercisePosition: state.currentExercisePosition,
         exerciseMessages: state.exerciseMessages,
@@ -17,7 +17,8 @@ export default function Chat() {
         learnpackPurposeId: state.learnpackPurposeId,
         token: state.token,
         chatInitialMessage: state.chatInitialMessage,
-        startConversation: state.startConversation
+        startConversation: state.startConversation,
+        isBuildable: state.isBuildable
     }));
 
     const fakeMessages = [
@@ -78,6 +79,15 @@ export default function Chat() {
         setUserMessage(e.target.value);
     }
 
+    const addNoActionsMessage = () => {
+        setMessages((prev) => [...prev, { "type": "user", "text": userMessage }]);
+
+        setMessages((prev) => [...prev, { "type": "bot", "text": "This exercise does not require any specific actions or code on your side, move to the next step whenever you are ready by clicking in the **next** button." }]);
+
+        setUserMessage("");
+    }
+
+
     const sendUserMessage = async () => {
         if (Boolean(userMessage.trim() == "")) return;
         if (isGenerating) return;
@@ -94,9 +104,21 @@ export default function Chat() {
 
     }
 
+    const handleSubmit = () => {
+        if (!isBuildable) {
+            addNoActionsMessage();
+            return
+        }
+        sendUserMessage();
+    }
+
     const handleKeyUp = (event: any) => {
         if (event.key === "Enter" && !event.ctrlKey) {
             event.preventDefault();
+            if (!isBuildable) {
+                addNoActionsMessage();
+                return
+            }
             sendUserMessage();
         }
     }
@@ -121,11 +143,9 @@ export default function Chat() {
     }
 
     return <main ref={backdropRef} className="chat-container">
-
         <div className="chat-modal">
             <section className="chat-header">
                 <h3>Learnpack AI-Tutor</h3>
-
                 <button onClick={() => {
                     setOpenedModals({ chat: false });
                 }}>
@@ -139,7 +159,7 @@ export default function Chat() {
                 <textarea value={userMessage} placeholder="Ask me something here"
                     onChange={trackUserMessage}
                     onKeyUp={handleKeyUp} />
-                <button onClick={sendUserMessage}>{svgs.sendSvg}</button>
+                <button onClick={handleSubmit}>{svgs.sendSvg}</button>
             </section>
         </div>
     </main>
