@@ -174,13 +174,12 @@ const useStore = create<IStore>((set, get) => ({
       if (isTesteable) context = "The following is the student's code file(s) and tests files to pass: \n---"
 
       context += filesContext.join('\n');
-      context += "---";
-      context += `This is the current exercise instructions, use this to guide the student in the right direction:
+
+      context += `\nThis is the current exercise instructions, use this to guide the student in the right direction:
       ---
       ${currentReadme}
       ---`;
 
-      console.log("context", context);
       return context;
     });
   },
@@ -271,14 +270,15 @@ const useStore = create<IStore>((set, get) => ({
     const exercise = await respose.json();
 
     let isTesteable = false;
-    let isBuildable = false;
+    let isBuildable = true;
 
+    if (!exercise.language) isBuildable = false;  
+
+    console.log(exercise.entry);
+    
     exercise.files.forEach((file) => {
       if (file.name.includes("tests") || file.name.includes("test")) {
         isTesteable = true;
-      }
-      if (file.name.includes("app")) {
-        isBuildable = true;
       }
     });
 
@@ -289,7 +289,7 @@ const useStore = create<IStore>((set, get) => ({
   },
 
   setPosition: (newPosition) => {
-    const { fetchSingleExerciseInfo, startConversation, fetchReadme, token, setBuildButtonText, setFeedbackButtonProps, checkParams } = get();
+    const { startConversation, fetchReadme, token, setBuildButtonText, setFeedbackButtonProps, checkParams } = get();
 
     let params = checkParams({ justReturn: true })
 
@@ -306,7 +306,6 @@ const useStore = create<IStore>((set, get) => ({
     setFeedbackButtonProps("Feedback", "");
 
     fetchReadme()
-    fetchSingleExerciseInfo(newPosition);
   },
   startConversation: async (exercisePosition) => {
     const { token, learnpackPurposeId, conversationIdsCache } = get();
@@ -396,7 +395,7 @@ const useStore = create<IStore>((set, get) => ({
     set({ currentReadme: exercise.body })
 
     getConfigObject();
-    fetchSingleExerciseInfo()
+    fetchSingleExerciseInfo(currentExercisePosition)
   },
 
   toggleSidebar: () => {
