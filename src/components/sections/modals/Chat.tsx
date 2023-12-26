@@ -6,7 +6,7 @@ import { svgs } from "../../../assets/svgs";
 export default function Chat() {
     const backdropRef = useRef<HTMLDivElement>(null);
 
-    const { setOpenedModals, currentExercisePosition, exerciseMessages, setExerciseMessages, chatSocket, conversationIdsCache, getContextFilesContent, learnpackPurposeId, token, chatInitialMessage, startConversation, isBuildable } = useStore(state => ({
+    const { setOpenedModals, currentExercisePosition, exerciseMessages, setExerciseMessages, chatSocket, conversationIdsCache, getContextFilesContent, learnpackPurposeId, token, chatInitialMessage, startConversation, isBuildable, isTesteable } = useStore(state => ({
         setOpenedModals: state.setOpenedModals,
         currentExercisePosition: state.currentExercisePosition,
         exerciseMessages: state.exerciseMessages,
@@ -18,7 +18,8 @@ export default function Chat() {
         token: state.token,
         chatInitialMessage: state.chatInitialMessage,
         startConversation: state.startConversation,
-        isBuildable: state.isBuildable
+        isBuildable: state.isBuildable,
+        isTesteable: state.isTesteable
     }));
 
     const fakeMessages = [
@@ -105,7 +106,7 @@ export default function Chat() {
     }
 
     const handleSubmit = () => {
-        if (!isBuildable) {
+        if (!isBuildable && !isTesteable) {
             addNoActionsMessage();
             return
         }
