@@ -180,6 +180,8 @@ const useStore = create<IStore>((set, get) => ({
       ${currentReadme}
       ---`;
 
+      console.log("This is the context", context);
+      
       return context;
     });
   },
