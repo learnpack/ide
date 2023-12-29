@@ -99,7 +99,6 @@ export default function Chat() {
         return messages;
       });
 
-      setMessages((prev) => [...prev, { type: "bot", text: "" }]);
       emitUserMessage(
         `The tests passed succefully, tell the user to pass to the next exercise and give him a congrats message: ${removeSpecialCharacters(
           data.logs[0]
@@ -115,7 +114,6 @@ export default function Chat() {
         return messages;
       });
 
-      setMessages((prev) => [...prev, { type: "bot", text: "" }]);
       emitUserMessage(
         `Some tests didn't passed, these are the tests logs: ${removeSpecialCharacters(
           data.logs[0]
@@ -170,6 +168,8 @@ export default function Chat() {
   };
 
   const emitUserMessage = async (testResult?: string) => {
+    setMessages((prev) => [...prev, { type: "bot", text: "" }]);
+
     const messageData = await getMessageData();
 
     if (testResult) {
