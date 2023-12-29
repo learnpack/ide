@@ -117,9 +117,11 @@ export default function Chat() {
 
       setMessages((prev) => [...prev, { type: "bot", text: "" }]);
       emitUserMessage(
-        `The tests didn't passed, these are the tests logs: ${removeSpecialCharacters(
+        `Some tests didn't passed, these are the tests logs: ${removeSpecialCharacters(
           data.logs[0]
-        )}`
+        )}
+        
+        Focus on the failed tests and explain the student what he has bad in his code and how to fix it.`
       );
     });
   }, [waitingTextResult]);
@@ -174,7 +176,7 @@ export default function Chat() {
       messageData.message.context += `\n${testResult}`;
     }
 
-    // console.log("Message context: \n", messageData.message.context);
+    console.log("Message context: \n", messageData.message.context);
 
     chatSocket.emit("message", messageData);
     setUserMessage("");
