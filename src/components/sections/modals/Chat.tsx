@@ -49,6 +49,7 @@ export default function Chat() {
     exerciseMessages[currentExercisePosition] || fakeMessages
   );
   const [userMessage, setUserMessage] = useState("");
+  const [userMessageCache, setUserMessageCache] = useState("");
 
   useEffect(() => {
     const body = document.querySelector("body");
@@ -153,6 +154,9 @@ export default function Chat() {
     if (isGenerating) return;
 
     setMessages((prev) => [...prev, { type: "user", text: userMessage }]);
+    
+    setUserMessageCache(userMessage);
+    setUserMessage("");
 
     if (isTesteable) {
       setWaitingTestResult(true);
@@ -179,7 +183,7 @@ export default function Chat() {
     console.log("Message context: \n", messageData.message.context);
 
     chatSocket.emit("message", messageData);
-    setUserMessage("");
+    // setUserMessage("");
     setIsGenerating(true);
   };
 
@@ -209,7 +213,7 @@ export default function Chat() {
     const data = {
       message: {
         type: "user",
-        text: userMessage,
+        text: userMessage ?? userMessageCache,
         purpose: learnpackPurposeId,
         context: contextFilesContent,
         imageB64: "",
@@ -270,19 +274,24 @@ const Message = ({ type, text, extraClass }: IMessage) => {
     }));
 
   const [showNext, setShowNext] = useState(false);
+  const [messageText, setMessageText] = useState("");
+
   if (text.includes("[//]: # (next)") && !showNext) {
     setShowNext(true);
+    setMessageText(text.replace("[//]: # (next)", ""));
   }
 
   const closeChatAndNext = () => {
     handlePositionChange(currentExercisePosition + 1);
     setOpenedModals({ chat: false });
   };
+
   return (
     <>
       <div className={`message ${type} ${extraClass ? extraClass : ""}`}>
         <div
-          dangerouslySetInnerHTML={{ __html: convertMarkdownToHTML(text) }}
+          dangerouslySetInnerHTML={{ __html: convertMarkdownToHTML(messageText ? messageText : text) }}
+        //   dangerouslySetInnerHTML={{ __html: convertMarkdownToHTML(text) }}
         ></div>
       </div>
       {showNext && (
