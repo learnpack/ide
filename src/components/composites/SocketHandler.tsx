@@ -9,11 +9,16 @@ export function SocketHandler() {
     }));
 
     useEffect(() => {
-        const modal: HTMLElement | null = document.querySelector("#socket-disconnected");
+        // const modal: HTMLElement | null = document.querySelector("#socket-disconnected");
 
-        if (modal) {
-            modal.style.display = "none";
-        }
+        // if (modal) {
+        //     modal.style.display = "none";
+        // }
+        // compilerSocket.whenUpdated((scope: any, data: any) => {
+        //     console.log(data);
+        //     console.log(scope);
+        //   });
+
     }, [])
 
     useEffect(() => {

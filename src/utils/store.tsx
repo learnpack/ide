@@ -1,12 +1,21 @@
 // @ts-nocheck
-import io from 'socket.io-client'
-import { create } from 'zustand';
-import { convertMarkdownToHTML, changeSidebarVisibility, getExercise, getFileContent, startChat, disconnected, getHost, getParamsObject } from './lib';
-import Socket from './socket';
-import { IStore } from './storeTypes';
-import toast from 'react-hot-toast';
-
-import { DEV_MODE } from './lib';
+import io from "socket.io-client";
+import { create } from "zustand";
+import {
+  convertMarkdownToHTML,
+  changeSidebarVisibility,
+  getExercise,
+  getFileContent,
+  startChat,
+  disconnected,
+  getHost,
+  getParamsObject,
+} from "./lib";
+import Socket from "./socket";
+import { IStore } from "./storeTypes";
+import toast from "react-hot-toast";
+import { getStatus } from "./socket";
+import { DEV_MODE } from "./lib";
 
 const HOST = getHost();
 Socket.start(HOST, disconnected);
@@ -15,16 +24,16 @@ const FASTAPI_HOST = "https://chat.4geeks.com";
 // const FASTAPI_HOST = "http://localhost:8000";
 const chatSocket = io(`${FASTAPI_HOST}`);
 
-chatSocket.on('connect', () => {
+chatSocket.on("connect", () => {
   // console.log("connected to chat socket in ", FASTAPI_HOST);
 });
 
-const defaultParams = getParamsObject()
+const defaultParams = getParamsObject();
 const useStore = create<IStore>((set, get) => ({
   language: defaultParams.language || "us",
   languageMap: {
-    "us": "en",
-    "es": "sp"
+    us: "en",
+    es: "sp",
   },
   // Could be cool if we can choose the mentor, give each mentor a personality
 
@@ -33,22 +42,22 @@ const useStore = create<IStore>((set, get) => ({
   currentContent: "",
   chatSocket: chatSocket,
   currentExercisePosition: defaultParams.currentExercise || 0,
-  chatInitialMessage: "Hello! I'm the Learnpack tutor, I can help you if you feel stuck, ask me anything about this exercise!",
+  chatInitialMessage:
+    "Hello! I'm the Learnpack tutor, I can help you if you feel stuck, ask me anything about this exercise!",
   conversationIdsCache: {},
   lessonTitle: "",
   numberOfExercises: 0,
   solvedExercises: 0,
   status: "",
-  feedback: "",
   showFeedback: false,
   token: "",
   buildbuttonText: {
     text: "Run",
-    className: ""
+    className: "",
   },
   feedbackbuttonProps: {
     text: "Feedback",
-    className: ""
+    className: "",
   },
   configObject: {
     config: {
@@ -56,13 +65,12 @@ const useStore = create<IStore>((set, get) => ({
       grading: "",
       editor: {
         agent: "",
-      }
-
-    }
+      },
+    },
   },
   videoTutorial: "",
   allowedActions: [],
-  compilerSocket: Socket.createScope('compiler'),
+  compilerSocket: Socket.createScope("compiler"),
   showVideoTutorial: false,
   showChatModal: false,
   exerciseMessages: {},
@@ -73,22 +81,34 @@ const useStore = create<IStore>((set, get) => ({
     video: false,
     reset: false,
   },
+  lastTestResult: {
+    status: "",
+    logs: "",
+  },
 
   // setters
   start: () => {
-    const { fetchExercises, fetchReadme, checkParams, startConversation, token, checkLoggedStatus, currentExercisePosition } = get();
+    const {
+      fetchExercises,
+      fetchReadme,
+      checkParams,
+      startConversation,
+      token,
+      checkLoggedStatus,
+      currentExercisePosition,
+    } = get();
     fetchExercises()
       .then(() => {
-        return checkParams({ justReturn: false })
+        return checkParams({ justReturn: false });
       })
       .then((params) => {
         if (Object.keys(params).length === 0) {
-          fetchReadme()
+          fetchReadme();
         }
       })
       .then(() => {
         checkLoggedStatus({ startConversation: true });
-      })
+      });
   },
 
   getCurrentExercise: () => {
@@ -97,7 +117,9 @@ const useStore = create<IStore>((set, get) => ({
   },
 
   setExerciseMessages: (messages, position) => {
-    set({ exerciseMessages: { ...get().exerciseMessages, [position]: messages } })
+    set({
+      exerciseMessages: { ...get().exerciseMessages, [position]: messages },
+    });
   },
 
   setShowChatModal: (show: boolean) => {
@@ -113,16 +135,16 @@ const useStore = create<IStore>((set, get) => ({
 
   // functions
   setBuildButtonText: (t, c = "") => {
-    set({ buildbuttonText: { text: t, className: c } })
+    set({ buildbuttonText: { text: t, className: c } });
   },
 
   setFeedbackButtonProps: (t, c = "") => {
-    set({ feedbackbuttonProps: { text: t, className: c } })
+    set({ feedbackbuttonProps: { text: t, className: c } });
   },
 
   setOpenedModals: (modals) => {
     const { openedModals } = get();
-    set({ openedModals: { ...openedModals, ...modals } })
+    set({ openedModals: { ...openedModals, ...modals } });
   },
 
   setToken: (newToken) => {
@@ -131,57 +153,58 @@ const useStore = create<IStore>((set, get) => ({
   checkLoggedStatus: async (opts) => {
     const { startConversation, currentExercisePosition } = get();
     try {
-      const res = await fetch(`${HOST}/check/rigo/status`)
+      const res = await fetch(`${HOST}/check/rigo/status`);
       const json = await res.json();
-      set({ token: json.rigoToken })
+      set({ token: json.rigoToken });
 
       if (opts.startConversation) {
         startConversation(currentExercisePosition);
       }
-    }
-    catch (err) {
-      set({ token: "" })
+    } catch (err) {
+      set({ token: "" });
       console.log("error in checkLoggedStatus", err);
-
     }
   },
   getContextFilesContent: async () => {
-    const { exercises, currentExercisePosition, currentReadme, isBuildable, isTesteable, configObject } = get();
-
-    const slug = exercises[currentExercisePosition].slug;
+    const {
+      getCurrentExercise,
+      currentReadme,
+      isBuildable,
+      isTesteable,
+      configObject,
+    } = get();
+    let currentExercise = getCurrentExercise();
+    const slug = currentExercise.slug;
     let mode = configObject.config.grading;
-    let extractor = (file) => !file.hidden
 
-    if (mode == "incremental" && isTesteable) {
-      extractor = (file) => file
-    }
+    let extractor = (file) => !file.hidden;
+    if (mode == "incremental" && isTesteable) extractor = (file) => file;
 
-    let notHiddenFiles = exercises[currentExercisePosition].files.filter(extractor);
+    let contextFiles = currentExercise.files.filter(extractor);
 
-    let filePromises = notHiddenFiles.map(async (file) => {
+    let filePromises = contextFiles.map(async (file) => {
       let fileContent = await getFileContent(slug, file.name);
 
       if (file.name.includes("test") || file.name.includes("tests")) {
-        return `The following is a test file that includes some tests that the students needs to pass in order to continue with the exercises: \n---\n${fileContent}\n---`
+        return `The following is a test file: \n---EXERCISE TEST FILE: \n${fileContent}\n---`;
       }
 
       return `File: ${file.name}\nContent: \`${fileContent}\``;
     });
 
     return Promise.all(filePromises).then((filesContext) => {
-      let context = "The following is the student's code file(s) and t: \n---"
+      let context = "The following is the student's code file(s) and t: \n---";
 
-      if (isTesteable) context = "The following is the student's code file(s) and tests files to pass: \n---"
+      if (isTesteable)
+        context =
+          "The following is the student's code file(s) and tests files to pass: \n---";
 
-      context += filesContext.join('\n');
+      context += filesContext.join("\n");
 
       context += `\nThis is the current exercise instructions, use this to guide the student in the right direction:
       ---
       ${currentReadme}
       ---`;
-
-      console.log("This is the context", context);
-      
       return context;
     });
   },
@@ -191,14 +214,15 @@ const useStore = create<IStore>((set, get) => ({
       return;
     }
     try {
-      const res = await fetch(`${HOST}/config`)
+      const res = await fetch(`${HOST}/config`);
       const config = await res.json();
-      set({ configObject: config })
-    }
-    catch (err) {
+      set({ configObject: config });
+    } catch (err) {
       console.log("error in getConfigObject", err);
 
-      const modal: HTMLElement | null = document.querySelector("#socket-disconnected");
+      const modal: HTMLElement | null = document.querySelector(
+        "#socket-disconnected"
+      );
 
       if (modal && modal.style) {
         modal.style.display = "block";
@@ -210,24 +234,25 @@ const useStore = create<IStore>((set, get) => ({
     const { getLessonTitle, fetchReadme } = get();
 
     try {
-      const res = await fetch(`${HOST}/config`)
+      const res = await fetch(`${HOST}/config`);
       const config = await res.json();
 
       set({ exercises: config.exercises });
-      set({ numberOfExercises: config.exercises.length })
-      set({ lessonTitle: config.config.title.us })
-    }
-    catch (err) {
-      const modal: HTMLElement | null = document.querySelector("#socket-disconnected");
+      set({ numberOfExercises: config.exercises.length });
+      set({ lessonTitle: config.config.title.us });
+    } catch (err) {
+      const modal: HTMLElement | null = document.querySelector(
+        "#socket-disconnected"
+      );
 
       if (modal && modal.style) {
         modal.style.display = "block";
       }
     }
-
   },
   checkParams: ({ justReturn }) => {
-    const { setLanguage, setPosition, currentExercisePosition, language } = get();
+    const { setLanguage, setPosition, currentExercisePosition, language } =
+      get();
 
     let params = window.location.hash.substring(1);
     const paramsUrlSeaerch = new URLSearchParams(params);
@@ -244,13 +269,12 @@ const useStore = create<IStore>((set, get) => ({
     const languageParam = paramsObject.language;
     const position = paramsObject.currentExercise;
 
-
     if (languageParam) {
       setLanguage(language, false);
     }
 
     if (position) {
-      setPosition(Number(position))
+      setPosition(Number(position));
     }
 
     return paramsObject;
@@ -274,28 +298,34 @@ const useStore = create<IStore>((set, get) => ({
     let isTesteable = false;
     let isBuildable = true;
 
-    if (!exercise.language) isBuildable = false;  
+    if (!exercise.language) isBuildable = false;
+    // TODO: check if the exercise is buildable based in the language and the entry file
+    // console.log(exercise.entry);
 
-    console.log(exercise.entry);
-    
     exercise.files.forEach((file) => {
       if (file.name.includes("tests") || file.name.includes("test")) {
         isTesteable = true;
       }
     });
 
-
-    set({ isTesteable: isTesteable, isBuildable: isBuildable })
-
-
+    set({ isTesteable: isTesteable, isBuildable: isBuildable });
   },
 
   setPosition: (newPosition) => {
-    const { startConversation, fetchReadme, token, setBuildButtonText, setFeedbackButtonProps, checkParams } = get();
+    const {
+      startConversation,
+      fetchReadme,
+      token,
+      setBuildButtonText,
+      setFeedbackButtonProps,
+      checkParams,
+    } = get();
 
-    let params = checkParams({ justReturn: true })
+    let params = checkParams({ justReturn: true });
 
-    let hash = `currentExercise=${newPosition}${params.language ? "&language=" + params.language : ""}`
+    let hash = `currentExercise=${newPosition}${
+      params.language ? "&language=" + params.language : ""
+    }`;
 
     window.location.hash = hash;
 
@@ -307,7 +337,7 @@ const useStore = create<IStore>((set, get) => ({
     setBuildButtonText("Run", "");
     setFeedbackButtonProps("Feedback", "");
 
-    fetchReadme()
+    fetchReadme();
   },
   startConversation: async (exercisePosition) => {
     const { token, learnpackPurposeId, conversationIdsCache } = get();
@@ -320,40 +350,49 @@ const useStore = create<IStore>((set, get) => ({
     }
 
     try {
-      conversationId = conversationIdsCache[exercisePosition]
+      conversationId = conversationIdsCache[exercisePosition];
       if (!conversationId) {
         throw new Error("ConversationID not found in cache");
       }
-    }
-    catch (err) {
+    } catch (err) {
       initialData = await startChat(learnpackPurposeId, token);
       conversationId = initialData.conversation_id;
     }
 
     if (initialData && initialData.salute) {
-      set({ chatInitialMessage: initialData.salute })
+      set({ chatInitialMessage: initialData.salute });
     }
 
-    set({ conversationIdsCache: { ...conversationIdsCache, [exercisePosition]: conversationId } })
+    set({
+      conversationIdsCache: {
+        ...conversationIdsCache,
+        [exercisePosition]: conversationId,
+      },
+    });
 
     chatSocket.emit("start", {
       token: token,
       purpose: learnpackPurposeId,
-      conversationId: conversationId
-    })
-
+      conversationId: conversationId,
+    });
   },
 
   loginToRigo: async (loginInfo) => {
-    const { host, setToken, startConversation, currentExercisePosition, setOpenedModals } = get();
+    const {
+      host,
+      setToken,
+      startConversation,
+      currentExercisePosition,
+      setOpenedModals,
+    } = get();
 
     const config = {
       method: "post",
       body: JSON.stringify(loginInfo),
       headers: {
-        "Content-Type": "application/json" // Set the content type to JSON
-      }
-    }
+        "Content-Type": "application/json", // Set the content type to JSON
+      },
+    };
 
     try {
       const res = await fetch(host + "/login", config);
@@ -361,55 +400,65 @@ const useStore = create<IStore>((set, get) => ({
       const token = json.rigobot.key;
       setToken(token);
       toast.success("Successfully logged in");
-    }
-    catch (error) {
+    } catch (error) {
       toast.error(String(error));
     }
 
-    startConversation(currentExercisePosition)
+    startConversation(currentExercisePosition);
 
-    setOpenedModals({ login: false, chat: true  })
-
+    setOpenedModals({ login: false, chat: true });
   },
   fetchReadme: async () => {
-    const { language, exercises, currentExercisePosition, getConfigObject, setShowVideoTutorial, fetchSingleExerciseInfo } = get();
+    const {
+      language,
+      exercises,
+      currentExercisePosition,
+      getConfigObject,
+      setShowVideoTutorial,
+      fetchSingleExerciseInfo,
+    } = get();
 
     const slug = exercises[currentExercisePosition]?.slug;
     if (!slug) {
       return;
     }
 
-    const response = await fetch(`${HOST}/exercise/${slug}/readme?lang=${language}`);
+    const response = await fetch(
+      `${HOST}/exercise/${slug}/readme?lang=${language}`
+    );
     const exercise = await response.json();
 
     if (exercise.attributes.tutorial) {
-      set({ videoTutorial: exercise.attributes.tutorial })
-    }
-    else if (exercise.attributes.intro) {
-      set({ videoTutorial: exercise.attributes.intro, showVideoTutorial: true })
-    }
-    else {
-      set({ videoTutorial: "" })
+      set({ videoTutorial: exercise.attributes.tutorial });
+    } else if (exercise.attributes.intro) {
+      set({
+        videoTutorial: exercise.attributes.intro,
+        showVideoTutorial: true,
+      });
+    } else {
+      set({ videoTutorial: "" });
       setShowVideoTutorial(false);
     }
 
-    set({ currentContent: exercise.body })
-    set({ currentReadme: exercise.body })
+    set({ currentContent: exercise.body });
+    set({ currentReadme: exercise.body });
 
     getConfigObject();
-    fetchSingleExerciseInfo(currentExercisePosition)
+    fetchSingleExerciseInfo(currentExercisePosition);
   },
 
   toggleSidebar: () => {
-    changeSidebarVisibility()
+    changeSidebarVisibility();
   },
 
   setLanguage: (language, fetchExercise = true) => {
     const { fetchReadme, checkParams } = get();
     set({ language: language });
 
-    let params = checkParams({ justReturn: true })
-    let hash = `language=${language}${params.currentExercise ? "&currentExercise=" + params.currentExercise : ""}`
+    let params = checkParams({ justReturn: true });
+    let hash = `language=${language}${
+      params.currentExercise ? "&currentExercise=" + params.currentExercise : ""
+    }`;
     window.location.hash = hash;
 
     if (fetchExercise) {
@@ -418,42 +467,82 @@ const useStore = create<IStore>((set, get) => ({
   },
 
   handlePositionChange: async (desiredPosition) => {
-    const { configObject, currentExercisePosition, exercises, setPosition, isTesteable } = get();
+    const {
+      configObject,
+      currentExercisePosition,
+      exercises,
+      setPosition,
+      isTesteable,
+    } = get();
 
-    const gradingMode = configObject.config.grading
+    const gradingMode = configObject.config.grading;
     const lastExercise = exercises.length - 1;
 
     if (desiredPosition > lastExercise || desiredPosition < 0) {
       toast.error("The exercise you are looking for does not exist!");
-      return
+      return;
     }
 
     if (desiredPosition == currentExercisePosition) {
-      return
+      return;
     }
 
     let letPass = true;
 
     if (desiredPosition > currentExercisePosition) {
-      letPass = !isTesteable || gradingMode === "isolated" || (gradingMode === "incremental" && exercises[currentExercisePosition].done);
+      letPass =
+        !isTesteable ||
+        gradingMode === "isolated" ||
+        (gradingMode === "incremental" &&
+          exercises[currentExercisePosition].done);
     }
 
     if (!letPass) {
-      toast.error("You are in incremental mode! Pass the tests for this exercise to continue with the next one!")
-      return
+      toast.error(
+        "You are in incremental mode! Pass the tests for this exercise to continue with the next one!"
+      );
+      return;
     }
 
     setPosition(Number(desiredPosition));
   },
 
+  toastFromStatus: (status) => {
+    const [icon, message] = getStatus(status);
+    toast.success(message, { icon: icon });
+  },
+
+  setTestResult: (status, logs) => {
+    set({ lastTestResult: { status: status, logs: logs } });
+  },
+
+  runExerciseTests: (opts) => {
+    // This function will run the exercises tests and store the results in the state
+    const {
+      compilerSocket,
+      getCurrentExercise,
+      setFeedbackButtonProps,
+      isTesteable,
+      toastFromStatus,
+    } = get();
+
+    const data = {
+      exerciseSlug: getCurrentExercise().slug,
+    };
+    compilerSocket.emit("test", data);
+
+    if (opts && opts.setFeedbackButton)
+      setFeedbackButtonProps("Running...", "palpitate");
+
+    if (opts && opts.toast) toastFromStatus("testing");
+  },
 
   // Turn the following property to true to easily test things using a button in the navbar
   displayTestButton: DEV_MODE,
   test: async () => {
-    toast.success("Test button pressed!")
-  }
-
-})
-);
+    const { lastTestResult } = get();
+    toast.success(lastTestResult.logs, { icon: "⏱️" });
+  },
+}));
 
 export default useStore;

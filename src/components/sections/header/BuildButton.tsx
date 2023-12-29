@@ -18,7 +18,8 @@ export default function BuildButton() {
 
   const build = () => {
     setBuildButtonText("Running...", "")
-    toast.success(getStatus("compiling"));
+    const [icon, message] = getStatus("compiling")
+    toast.success(message, {icon: icon});
 
     const data = {
       exerciseSlug: exercises[currentExercisePosition].slug
@@ -27,7 +28,8 @@ export default function BuildButton() {
     compilerSocket.emit('build', data);
 
     compilerSocket.onStatus('compiler-success', () => {
-      toast.success(getStatus("compiler-success"));
+      const [icon, message] = getStatus("compiler-success")
+      toast.success(message, {icon: icon});
       setBuildButtonText("Run", "bg-success");
     })
 
@@ -46,7 +48,8 @@ export default function BuildButton() {
       data
 
       setBuildButtonText("Try again", "bg-fail");
-      toast.error(getStatus("compiler-error"));
+      const [icon, message] = getStatus("compiler-error")
+      toast.error(message, {icon: icon});
     }, 100);
 
     compilerSocket.onStatus('compiler-error', debouncedFunc);

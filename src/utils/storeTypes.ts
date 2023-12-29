@@ -26,6 +26,7 @@ interface IConfigObject {
 }
 
 type IMessage = {
+    extraClass?: string
     type: string
     text: string
 }
@@ -63,7 +64,12 @@ type TLoginInfo = {
     email: string
     password: string
 }
+type TTestStatus = "successful" | "failed" | ""
 
+type TTestResult = {
+    status: TTestStatus
+    logs: string
+}
 
 export interface IStore {
     exercises: any[]
@@ -76,7 +82,6 @@ export interface IStore {
     status: string
     lessonTitle: string
     numberOfExercises: number
-    feedback: string
     showFeedback: boolean
     buildbuttonText: IBuildProps
     feedbackbuttonProps: IBuildProps
@@ -96,8 +101,9 @@ export interface IStore {
     chatSocket: any
     conversationIdsCache: TNumberCache
     openedModals: TOpenedModals
-
+    lastTestResult: TTestResult
     start: () => void
+    setTestResult: (status: TTestStatus, logs: string) => void
     checkParams: (opts: TCheckParamsOptions) => void
     handlePositionChange: (desiredPosition: number) => void
     setOpenedModals: (modals: Partial<TOpenedModals>) => void
@@ -122,6 +128,13 @@ export interface IStore {
     setPosition: (position: number) => void
     fetchReadme: () => void
     toggleSidebar: () => void
+    toastFromStatus: (status:string) => void
+    runExerciseTests: (opts?: TRunExerciseTestsOptions) => void
     displayTestButton: boolean
     test: () => void
+}
+
+type TRunExerciseTestsOptions = {
+    toast: boolean
+    setFeedbackButton: boolean
 }

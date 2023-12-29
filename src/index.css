@@ -146,10 +146,10 @@ button {
 }
 
 .bg-fail {
-  background-color: var(--color-fail);
+  background-color: var(--color-fail) !important;
 }
 .bg-success {
-  background-color: var(--color-success);
+  background-color: var(--color-success) !important;
 }
 
 .dropdown {

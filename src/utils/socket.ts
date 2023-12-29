@@ -2,35 +2,40 @@
 import io from 'socket.io-client'
 
 export const getStatus = function (status = 'initializing') {
+    const goodIcons = ['🤩', '🙂', '😃', '😎', '🤓', '😍', '🤗', '👌🏽', '✅']
+    const badIcons = ['🤮', '🤢', '🤐', '🤬', '😡', '😵', '🤷🏽‍♂️', '🤷🏻‍♀️', '😬', '😭', '😤', '🤭', '🤒', '💩', '🧟‍♂️']
+
+    const getGoodIcon = () => goodIcons[Math.floor(Math.random() * Math.floor(goodIcons.length))]
+
+    const getBadIcon = () => badIcons[Math.floor(Math.random() * Math.floor(badIcons.length))]
+
     const good = () => {
-        const icons = ['🤩', '🙂', '😃', '😎', '🤓', '😍', '🤗', '👌🏽']
         const messages = ['Yeah!', 'Wuju!', 'OMG!', 'YUUUUPPPIII!', 'Congrats!', 'Way to go!', "I'm soooo happy!", "Nice!", "I'm sooo happy for you", "For now...", "Maybe you are smart?", "Coding is your thing", "You are good at this"]
-        return `${icons[Math.floor(Math.random() * Math.floor(icons.length))]} ${messages[Math.floor(Math.random() * Math.floor(messages.length))]}`
+        return `${goodIcons[Math.floor(Math.random() * Math.floor(goodIcons.length))]} ${messages[Math.floor(Math.random() * Math.floor(messages.length))]}`
     };
     const bad = () => {
-        const icons = ['🤮', '🤢', '🤐', '🤬', '😡', '😵', '🤷🏽‍♂️', '🤷🏻‍♀️', '😬', '😭', '😤', '🤭', '🤒', '💩', '🧟‍♂️', '🧟‍♀️']
         const messages = ["Don't panic", "Keep trying!", "You'll get it the next time", "Keep going!", "Never give up", "No pain no gain", "Not correct my friend", "Focus on the force inside you"]
-        return `${icons[Math.floor(Math.random() * Math.floor(icons.length))]} ${messages[Math.floor(Math.random() * Math.floor(messages.length))]}`
+        return `${messages[Math.floor(Math.random() * Math.floor(messages.length))]}`
     };
-    switch (status) {
-        case "initializing": return "Setting up the coding environment"
-        case "compiling": return "💼 Building your code..."
-        case "testing": return "👀 Testing your code..."
-        case "pending": return "👩‍💻 Working..."
-        case "conecting": return "📳 Conecting..."
-        case "saving": return "💾 Saving Files..."
 
-        case "ready": return "🐶 Ready..."
-        case "compiler-error": return `Compiler error.`
-        case "compiler-warning": return "⚠️ Compiled with warnings"
-        case "compiler-success": return `Compiled.`
-        case "testing-error": return `Not as expected ${bad()}`
-        case "testing-success": return `Everything as expected ${good()}`
-        case "internal-error": return " 🔥💻 Woops! There has been an internal error"
-        case "prettifying": return "Making code prettier"
-        case "prettify-success": return "Look how beautiful your code is now"
-        case "completed": return "Excellent!"
-        case "prettify-error": return "Warning! Unable to prettify and save"
+    switch (status) {
+        case "initializing": return ["🚀", "Setting up the coding environment"]
+        case "compiling": return ["💼", "Building your code..."]
+        case "testing": return ["👀", "Testing your code..."]
+        case "pending": return ["👩‍💻", "Working..."]
+        case "conecting": return ["📳", "Connecting..."]
+        case "saving": return ["💾", "Saving Files..."]
+        case "ready": return ["🐶", "Ready..."]
+        case "compiler-error": return [getBadIcon(), "Compiler error."]
+        case "compiler-warning": return ["⚠️", "Compiled with warnings"]
+        case "compiler-success": return [getGoodIcon(), "Compiled successfully!"]
+        case "testing-error": return [getBadIcon(), `Not as expected. ${bad()}`]
+        case "testing-success": return [getGoodIcon(), "Everything as expected."]
+        case "internal-error": return ["🔥💻", "Woops! There has been an internal error"]
+        case "prettifying": return ["✨", "Making code prettier"]
+        case "prettify-success": return ["🌟", "Look how beautiful your code is now"]
+        case "completed": return ["🎉", "Excellent!"]
+        case "prettify-error": return ["⚠️", "Warning! Unable to prettify and save"]
         default: throw new Error('Invalid status: ' + status)
     }
 }
