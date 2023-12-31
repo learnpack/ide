@@ -44,7 +44,7 @@ export default function Chat() {
   const fakeMessages = [{ type: "bot", text: chatInitialMessage }];
 
   const [isGenerating, setIsGenerating] = useState(false);
-  const [waitingTextResult, setWaitingTestResult] = useState(false);
+  const [waitingTestResult, setWaitingTestResult] = useState(false);
   const [messages, setMessages] = useState(
     exerciseMessages[currentExercisePosition] || fakeMessages
   );
@@ -90,7 +90,7 @@ export default function Chat() {
   }, [messages]);
 
   useEffect(() => {
-    if (!waitingTextResult) return;
+    if (!waitingTestResult) return;
 
     compilerSocket.onStatus("testing-success", (data: any) => {
       setMessages((prev) => {
@@ -123,7 +123,7 @@ export default function Chat() {
         Focus on the failed tests and explain the student what he has bad in his code and how to fix it.`
       );
     });
-  }, [waitingTextResult]);
+  }, [waitingTestResult]);
 
   const handleClickOutside = (event: any) => {
     if (event.target === backdropRef.current) {
@@ -143,7 +143,7 @@ export default function Chat() {
       ...prev,
       {
         type: "bot",
-        text: "This exercise does not require any specific actions or code on your side, move to the next step whenever you are ready by clicking in the **next** button.",
+        text: "This exercise does not require any specific actions or code on your side, move to the next step whenever you are ready by clicking in the **next** button. [//]: # (next)",
       },
     ]);
 
@@ -156,15 +156,14 @@ export default function Chat() {
 
     setMessages((prev) => [...prev, { type: "user", text: userMessage }]);
     
-    setUserMessageCache(userMessage);
     setUserMessage("");
 
     if (isTesteable) {
-      setWaitingTestResult(true);
       setMessages((prev) => [
         ...prev,
-        { type: "bot", text: "**Testing your code...**" },
+        { type: "bot", text: "**Let me test your code...**" },
       ]);
+      setWaitingTestResult(true);
       runExerciseTests();
       return;
     }
@@ -176,9 +175,6 @@ export default function Chat() {
     setMessages((prev) => [...prev, { type: "bot", text: "" }]);
 
     const messageData = await getMessageData();
-
-    console.log(messageData, "messageData");
-    
 
     if (testResult) {
       messageData.message.context += `\n${testResult}`;
