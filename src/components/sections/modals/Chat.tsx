@@ -133,6 +133,7 @@ export default function Chat() {
 
   const trackUserMessage = (e: any) => {
     setUserMessage(e.target.value);
+    setUserMessageCache(e.target.value);
   };
 
   const addNoActionsMessage = () => {
@@ -176,6 +177,9 @@ export default function Chat() {
 
     const messageData = await getMessageData();
 
+    console.log(messageData, "messageData");
+    
+
     if (testResult) {
       messageData.message.context += `\n${testResult}`;
     }
@@ -213,7 +217,7 @@ export default function Chat() {
     const data = {
       message: {
         type: "user",
-        text: userMessage ?? userMessageCache,
+        text: userMessageCache,
         purpose: learnpackPurposeId,
         context: contextFilesContent,
         imageB64: "",
