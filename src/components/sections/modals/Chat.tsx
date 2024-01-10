@@ -53,7 +53,7 @@ export default function Chat() {
 
   useEffect(() => {
     const body = document.querySelector("body");
-    if (body) body.style.overflow = "hidden";
+    // if (body) body.style.overflow = "hidden";
     document.addEventListener("mousedown", handleClickOutside);
 
     if (conversationIdsCache[currentExercisePosition] == undefined) {

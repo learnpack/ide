@@ -5,7 +5,7 @@ import useStore from "../../../utils/store";
 import { svgs } from "../../../assets/svgs";
 import { useState } from "react"
 import { createPortal } from "react-dom";
-
+import packageInfo from '../../../../package.json';
 import "./styles.css"
 
 export default function Sidebar() {
@@ -48,7 +48,7 @@ export default function Sidebar() {
 
                     <section className="p-4 footer">
                         <BugButton />
-                        <div>{svgs.userIcon}</div>
+                        <span>Current version: {packageInfo.version}</span>
                     </section>
 
                 </div>
