@@ -7,15 +7,14 @@ type TOpenWindowLinkProps = {
 export const OpenWindowLink = ({href, text}: TOpenWindowLinkProps) => {
 
     const compilerSocket = useStore(state => state.compilerSocket);
-    const exercises = useStore(state => state.exercises);
-    const currentExercisePosition = useStore(state => state.currentExercisePosition);
+    const getCurrentExercise = useStore(state => state.getCurrentExercise);
     
     const handleRedirect = (e:any) => {
         e.preventDefault();
         const url = e.target.href;
         const data = {
             url,
-            exerciseSlug: exercises[currentExercisePosition].slug,
+            exerciseSlug: getCurrentExercise().slug,
         }
         compilerSocket.openWindow(data);  
     }

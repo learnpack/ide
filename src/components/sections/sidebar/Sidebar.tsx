@@ -48,7 +48,7 @@ export default function Sidebar() {
 
                     <section className="p-4 footer">
                         <BugButton />
-                        <span>Current version: {packageInfo.version}</span>
+                        <span><strong>Current version</strong>: {packageInfo.version}</span>
                     </section>
 
                 </div>
