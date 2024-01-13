@@ -12,7 +12,7 @@ export default function LessonContent() {
     }, [])
 
     return <>
-        <div className="lesson-content-component " dangerouslySetInnerHTML={{ __html: convertMarkdownToHTML(currentContent) }}>
+        <div className="lesson-content-component" dangerouslySetInnerHTML={{ __html: convertMarkdownToHTML(currentContent) }}>
         </div>
     </>
 }

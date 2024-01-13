@@ -32,5 +32,6 @@ export default function BugButton() {
 
         compilerSocket.openWindow(data);
     }
-    return <SimpleButton svg={svgs.bugIcon} text="" action={reportBug} />
+    return <SimpleButton svg={svgs.bugIcon} text="Report a bug" action={reportBug} />
+        
 }
