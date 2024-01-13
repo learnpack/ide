@@ -2,7 +2,7 @@
 import useStore from "../../../utils/store";
 import { svgs } from "../../../assets/svgs";
 import SimpleButton from "../../mockups/Button";
-import { OpenWindowLink } from "../../composites/OpenWindowLink";
+// import { OpenWindowLink } from "../../composites/OpenWindowLink";
 
 export default function BugButton() {
     const { currentExercisePosition, exercises, lessonTitle, compilerSocket } = useStore(state => ({
