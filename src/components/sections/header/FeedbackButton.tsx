@@ -29,7 +29,9 @@ export default function FeedbackButton(): JSX.Element {
         <div className="pos-relative feedback-dropdown-container" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
             {showFeedback && <FeedbackDropdown toggleFeedbackVisibility={toggleFeedback} />}
 
-            <SimpleButton text={feedbackbuttonProps.text} svg={svgs.feedbackIcon} extraClass={`pill border-blue color-blue row-reverse ${feedbackbuttonProps.className}`} action={toggleFeedback} />
+            <SimpleButton text={
+                <span>{feedbackbuttonProps.text}</span>
+            } svg={svgs.feedbackIcon} extraClass={`pill border-blue color-blue row-reverse ${feedbackbuttonProps.className}`} action={toggleFeedback} />
         </div>
     )
 }

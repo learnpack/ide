@@ -57,5 +57,7 @@ export default function BuildButton() {
 
   }
 
-  return <SimpleButton text={buildbuttonText.text} svg={svgs.buildIcon} extraClass={`pill bg-blue ${buildbuttonText.className}`} action={build} disabled={!isBuildable} />
+  return <SimpleButton text={
+    <span>{buildbuttonText.text}</span>
+  } svg={svgs.buildIcon} extraClass={`pill bg-blue ${buildbuttonText.className}`} action={build} disabled={!isBuildable} />
 }

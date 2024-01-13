@@ -1,5 +1,5 @@
 interface ButtonProps {
-    text?: string;
+    text?: JSX.Element | string;
     svg?: any;
     extraClass?: string;
     action?: ((e:any) => void) |(() => void);
