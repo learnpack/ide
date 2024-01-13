@@ -2,7 +2,7 @@
 import useStore from "../../../utils/store";
 import { svgs } from "../../../assets/svgs";
 import SimpleButton from "../../mockups/Button";
-// import { OpenWindowLink } from "../../composites/OpenWindowLink";
+import { OpenWindowLink } from "../../composites/OpenWindowLink";
 
 export default function BugButton() {
     const { currentExercisePosition, exercises, lessonTitle, compilerSocket } = useStore(state => ({
@@ -34,8 +34,7 @@ export default function BugButton() {
         compilerSocket.openWindow(data);
     }
     return <SimpleButton svg={svgs.bugIcon} text={
-        // <OpenWindowLink href={url} text="Report a bug" />
-        <span>Report a bug</span>
+        <OpenWindowLink href={url} text="Report a bug" />
     } action={reportBug} />
         
 }
