@@ -7,6 +7,11 @@ import { useState } from "react"
 import { createPortal } from "react-dom";
 import packageInfo from '../../../../package.json';
 import "./styles.css"
+const version = packageInfo.version;
+let versionSections = version.split(".");
+versionSections[2] = String(parseInt(versionSections[2]) + 1);
+
+
 
 export default function Sidebar() {
     const { numberOfExercises, solvedExercises, configObject, language, lessonTitle } = useStore(state => ({
@@ -48,7 +53,7 @@ export default function Sidebar() {
 
                     <section className="p-4 footer">
                         <BugButton />
-                        <span><strong>Current version</strong>: {packageInfo.version}</span>
+                        <span><strong>Current version</strong>: {versionSections.join(".")}</span>
                     </section>
 
                 </div>
