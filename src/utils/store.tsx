@@ -15,7 +15,7 @@ import Socket from "./socket";
 import { IStore } from "./storeTypes";
 import toast from "react-hot-toast";
 import { getStatus } from "./socket";
-import { DEV_MODE } from "./lib";
+import { DEV_MODE, RIGOBOT_API_URL } from "./lib";
 
 class MissingRigobotAccountError extends Error {
   constructor(message) {
@@ -409,7 +409,7 @@ const useStore = create<IStore>((set, get) => ({
       set({ bc_token: json.token })
 
       if (json.rigobot == null) {
-        throw new MissingRigobotAccountError("No rigobot user found, did you already accept Rigobot?");
+        throw new MissingRigobotAccountError("No rigobot user found, did you already accept Rigobot's invitation?");
       }
       
       const token = json.rigobot.key;
@@ -417,17 +417,42 @@ const useStore = create<IStore>((set, get) => ({
       toast.success("Successfully logged in");
     } catch (error) {
       if (error instanceof MissingRigobotAccountError) {
-        toast.error("Missing Rigobot account. Please make sure you have a 4Geeks-Rigobot account.");
+        toast.error(error.message);
       } else {
         const errorMessage = `It appears that something was wrong with your 4Geeks credentials, please try again`;
         toast.error(errorMessage);
       }
     }
-
-
     startConversation(currentExercisePosition);
-
     setOpenedModals({ login: false, chat: true });
+  },
+
+  checkRigobotInvitation: async() => {
+    const {bc_token, setToken} = get();
+    const rigoAcceptedUrl = `${RIGOBOT_API_URL}/v1/auth/me/token?breathecode_token=${bc_token}`
+    const res = await fetch(rigoAcceptedUrl);
+    if (res.status != 200) {
+      toast.error("You have not accepted Rigobot's invitation yet!");
+      return;
+    }
+    const data = await res.json();
+    setToken(data.key);
+
+    const payload = {token: data.key}
+    console.log(payload);
+    
+    const config = {
+      method: "post",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    }
+    const resServer = await fetch(`${HOST}/set-rigobot-token`, config);
+    console.log(resServer.status);
+    // if (resServer.status == 200) {
+    //   toast.success("You have successfully logged in!");
+    // }
   },
 
   openLink: (url) => {
@@ -573,7 +598,8 @@ const useStore = create<IStore>((set, get) => ({
   // Turn the following property to true to easily test things using a button in the navbar
   displayTestButton: DEV_MODE,
   test: async () => {
-    const { lastTestResult } = get();
+    const { lastTestResult, checkRigobotInvitation } = get();
+    // checkRigobotInvitation()
     toast.success(lastTestResult.logs, { icon: "⏱️" });
   },
 }));

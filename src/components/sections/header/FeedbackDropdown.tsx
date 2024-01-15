@@ -28,7 +28,7 @@ export const FeedbackDropdown = ({
     toastFromStatus,
     bc_token,
     openLink,
-    clearBcToken
+    checkRigobotInvitation
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     token: state.token,
@@ -45,7 +45,8 @@ export const FeedbackDropdown = ({
     toastFromStatus: state.toastFromStatus,
     bc_token: state.bc_token,
     openLink: state.openLink,
-    clearBcToken: state.clearBcToken
+    clearBcToken: state.clearBcToken,
+    checkRigobotInvitation: state.checkRigobotInvitation
     
   }));
 
@@ -89,8 +90,11 @@ export const FeedbackDropdown = ({
 
   const acceptRigobot = () => {
     const inviteUrl = "https://rigobot.herokuapp.com/invite?referer=4geeks&token=" + bc_token;
-    clearBcToken();
     openLink(inviteUrl)
+  }
+
+  const rigoAccepted = async() => {
+    checkRigobotInvitation();
   }
 
   return (
@@ -111,11 +115,18 @@ export const FeedbackDropdown = ({
         />
       ) : (
         bc_token ? 
+        <>
         <SimpleButton
           svg={svgs.brainIcon}
           text="Accept Rigobot's invitation!"
           action={acceptRigobot}
         />
+        <SimpleButton
+          svg={svgs.checkIcon}
+          text="Press here is you already accepted the invitation"
+          action={rigoAccepted}
+        />
+        </>
         
         :
         <SimpleButton

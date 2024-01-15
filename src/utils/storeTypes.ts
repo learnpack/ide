@@ -104,6 +104,7 @@ export interface IStore {
     openedModals: TOpenedModals
     lastTestResult: TTestResult
     start: () => void
+    checkRigobotInvitation: () => void
     clearBcToken: () => void
     openLink: (url: string) => void
     setTestResult: (status: TTestStatus, logs: string) => void
