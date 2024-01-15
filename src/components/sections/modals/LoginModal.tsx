@@ -46,7 +46,7 @@ export default function LoginModal() {
         <div ref={backdropRef} className="login-modal">
             <div className="modal-content">
                 <h2>Login</h2>
-                <div><p>To use the AI services you must login with your <a href="https://4geeks.com/">4geeks</a> account</p>
+                <div><p>To use the AI services you must login with your <strong>4geeks</strong> account, and you have been accepted <strong>Rigobot</strong></p>
                     <SimpleButton action={() => {
                         setOpenedModals({ login: false })
                     }} svg={svgs.closeIcon} />

@@ -17,6 +17,13 @@ import toast from "react-hot-toast";
 import { getStatus } from "./socket";
 import { DEV_MODE } from "./lib";
 
+class MissingRigobotAccountError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "MissingRigobotAccountError";
+  }
+}
+
 const HOST = getHost();
 Socket.start(HOST, disconnected);
 
@@ -51,6 +58,7 @@ const useStore = create<IStore>((set, get) => ({
   status: "",
   showFeedback: false,
   token: "",
+  bc_token: "",
   buildbuttonText: {
     text: "Run",
     className: "",
@@ -390,23 +398,48 @@ const useStore = create<IStore>((set, get) => ({
       method: "post",
       body: JSON.stringify(loginInfo),
       headers: {
-        "Content-Type": "application/json", // Set the content type to JSON
+        "Content-Type": "application/json",
       },
     };
 
+    
     try {
       const res = await fetch(host + "/login", config);
       const json = await res.json();
+      set({ bc_token: json.token })
+
+      if (json.rigobot == null) {
+        throw new MissingRigobotAccountError("No rigobot user found, did you already accept Rigobot?");
+      }
+      
       const token = json.rigobot.key;
       setToken(token);
       toast.success("Successfully logged in");
     } catch (error) {
-      toast.error(String(error));
+      if (error instanceof MissingRigobotAccountError) {
+        toast.error("Missing Rigobot account. Please make sure you have a 4Geeks-Rigobot account.");
+      } else {
+        const errorMessage = `It appears that something was wrong with your 4Geeks credentials, please try again`;
+        toast.error(errorMessage);
+      }
     }
+
 
     startConversation(currentExercisePosition);
 
     setOpenedModals({ login: false, chat: true });
+  },
+
+  openLink: (url) => {
+    const { compilerSocket, getCurrentExercise } = get();
+        const data = {
+            url,
+            exerciseSlug: getCurrentExercise().slug,
+        }
+        compilerSocket.openWindow(data); 
+  },
+  clearBcToken: () => {
+    set({ bc_token: "" })
   },
   fetchReadme: async () => {
     const {

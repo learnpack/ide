@@ -87,6 +87,7 @@ export interface IStore {
     feedbackbuttonProps: IBuildProps
     compilerSocket: any
     token: string
+    bc_token: string
     solvedExercises: number
     languageMap: ILanguageMap
     configObject: IConfigObject
@@ -103,6 +104,8 @@ export interface IStore {
     openedModals: TOpenedModals
     lastTestResult: TTestResult
     start: () => void
+    clearBcToken: () => void
+    openLink: (url: string) => void
     setTestResult: (status: TTestStatus, logs: string) => void
     checkParams: (opts: TCheckParamsOptions) => void
     handlePositionChange: (desiredPosition: number) => void

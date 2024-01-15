@@ -25,7 +25,10 @@ export const FeedbackDropdown = ({
     setOpenedModals,
     runExerciseTests,
     setTestResult,
-    toastFromStatus
+    toastFromStatus,
+    bc_token,
+    openLink,
+    clearBcToken
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     token: state.token,
@@ -39,7 +42,10 @@ export const FeedbackDropdown = ({
     setOpenedModals: state.setOpenedModals,
     runExerciseTests: state.runExerciseTests,
     setTestResult: state.setTestResult,
-    toastFromStatus: state.toastFromStatus
+    toastFromStatus: state.toastFromStatus,
+    bc_token: state.bc_token,
+    openLink: state.openLink,
+    clearBcToken: state.clearBcToken
     
   }));
 
@@ -81,6 +87,12 @@ export const FeedbackDropdown = ({
     toggleFeedbackVisibility();
   };
 
+  const acceptRigobot = () => {
+    const inviteUrl = "https://rigobot.herokuapp.com/invite?referer=4geeks&token=" + bc_token;
+    clearBcToken();
+    openLink(inviteUrl)
+  }
+
   return (
     <div className="feedback-dropdown">
       {
@@ -98,6 +110,14 @@ export const FeedbackDropdown = ({
           action={showChat}
         />
       ) : (
+        bc_token ? 
+        <SimpleButton
+          svg={svgs.brainIcon}
+          text="Accept Rigobot's invitation!"
+          action={acceptRigobot}
+        />
+        
+        :
         <SimpleButton
           svg={svgs.fourGeeksIcon}
           text="Login to use AI feedback"
