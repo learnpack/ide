@@ -3,8 +3,7 @@
 @tailwind utilities; */
 
 :root {
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --color-border: #b2b2b2;
   --bg-color-gray: #EFF1F4;
 
   --color-active: #02A9EA;
@@ -16,13 +15,6 @@
   --backdrop-background: rgba(0, 0, 0, 0.7);
 }
 
-/* @media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-} */
 * {
   margin: 0;
   padding: 0;
@@ -108,8 +100,9 @@ button {
 }
 
 .bg-blue {
- background-color: var(--color-active);
+ background-color: var(--color-active) !important;
  color: white;
+
 }
 
 .border-blue {

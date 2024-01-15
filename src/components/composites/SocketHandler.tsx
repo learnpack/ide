@@ -1,60 +1,127 @@
-import useStore from "../../utils/store"
-import { useEffect } from "react";
+import useStore from "../../utils/store";
+import { useEffect, useState } from "react";
+import "./styles.css";
 export function SocketHandler() {
-    const { compilerSocket, exercises, currentExercisePosition, setAllowedActions } = useStore(state => ({
-        compilerSocket: state.compilerSocket,
-        exercises: state.exercises,
-        currentExercisePosition: state.currentExercisePosition,
-        setAllowedActions: state.setAllowedActions
-    }));
+  const {
+    compilerSocket,
+    exercises,
+    currentExercisePosition,
+    setAllowedActions,
+  } = useStore((state) => ({
+    compilerSocket: state.compilerSocket,
+    exercises: state.exercises,
+    currentExercisePosition: state.currentExercisePosition,
+    setAllowedActions: state.setAllowedActions,
+  }));
 
-    useEffect(() => {
-        // const modal: HTMLElement | null = document.querySelector("#socket-disconnected");
+  const [inputsResponses, setInputsResponses] = useState([] as string[]);
+  const [inputs, setInputs] = useState([] as string[]);
+  const [shouldWeSend, setShouldWeSend] = useState(false);
 
-        // if (modal) {
-        //     modal.style.display = "none";
-        // }
-        // compilerSocket.whenUpdated((scope: any, data: any) => {
-        //     console.log(data);
-        //     console.log(scope);
-        //   });
+  useEffect(() => {
+    compilerSocket.whenUpdated((scope: any, data: any) => {
+      scope;
+      if (data.status && data.status == "ready") {
+        setAllowedActions(data.allowed);
+      }
+    });
 
-    }, [])
+    compilerSocket.on("reload", (data: any) => {
+      data;
+      // console.log("Reloading...", data);
+      window.location.reload();
+    });
 
-    useEffect(() => {
+    compilerSocket.on("ask", async ({ inputs }: any) => {
+      setInputs(inputs);
+    });
+  }, [currentExercisePosition, exercises]);
 
-        const slug = exercises[currentExercisePosition]?.slug
+  useEffect(() => {
+    if (inputsResponses.length === 0) return;
 
+    const emitResponses = () => {
+      compilerSocket.emit("input", {
+        inputs: inputsResponses,
+        exerciseSlug: exercises[currentExercisePosition].slug,
+      });
 
-        compilerSocket.whenUpdated((scope: any, data: any) => {
-            scope;
-            if (data.status && data.status == "ready") {
-                setAllowedActions(data.allowed)
-            }
-        });
+      setInputsResponses([]);
+    };
 
-        compilerSocket.on("reload", (data: any) => {
-            data;
-            // console.log("Reloading...", data);
-            window.location.reload();
-        })
+    if (shouldWeSend) {
+      emitResponses();
+      setShouldWeSend(false);
+    }
+  }, [shouldWeSend]);
 
-        compilerSocket.on("ask", async ({ inputs }: any) => {
-            const inputsResponses = [];
+  const handleCancel = () => {
+    setInputsResponses((prev) => [...prev, ""]);
+    const newInputs = inputs.slice(1)
+    setInputs(newInputs);
 
-            for (let i = 0; i < inputs.length; i++) {
-                inputsResponses.push(await prompt(inputs[i] || `Please enter the ${i + 1} input`));
-            }
+    if (newInputs.length === 0) {
+      setShouldWeSend(true);
+    }
+  };
 
-            compilerSocket.emit('input', {
-                inputs: inputsResponses,
-                exerciseSlug: slug
-            });
-        });
+  const handleInputSubmit = (value: string) => {
+    setInputsResponses((prev) => [...prev, value]);
+    const newInputs = inputs.slice(1)
+    setInputs(newInputs);
 
+    if (newInputs.length === 0) {
+      setShouldWeSend(true);
+    }
+    
+  };
 
-    }, [currentExercisePosition, exercises])
-
-    return <>
+  return (
+    <>
+      {inputs.length > 0 && (
+        <InputModal
+          name={inputs[0]}
+          onCancel={handleCancel}
+          onSubmit={handleInputSubmit}
+        />
+      )}
     </>
+  );
 }
+
+type TInputModalProps = {
+  name: string;
+  onSubmit: (value: string) => void;
+  onCancel: () => void;
+};
+
+const InputModal = ({ name, onCancel, onSubmit }: TInputModalProps) => {
+  const [value, setValue] = useState("");
+  const handleSubmit = () => {
+    onSubmit(value);
+    setValue("");
+  };
+
+  return (
+    <div className="input-modal">
+      <h3>{name}</h3>
+      <input
+        onKeyUp={(e) => {
+            if (e.key === "Enter") {
+                handleSubmit();
+            }
+        }}
+        onChange={(e) => setValue(e.target.value)}
+        type="text"
+        value={value}
+        placeholder="Enter your value here"
+      />
+      <div>
+        <button onClick={handleSubmit} className="bg-blue">
+          Submit
+        </button>
+        <button onClick={onCancel}>Cancel</button>
+      </div>
+    </div>
+  );
+};
