@@ -598,9 +598,11 @@ const useStore = create<IStore>((set, get) => ({
   // Turn the following property to true to easily test things using a button in the navbar
   displayTestButton: DEV_MODE,
   test: async () => {
-    const { lastTestResult, checkRigobotInvitation } = get();
+    const { currentContent } = get();
     // checkRigobotInvitation()
-    toast.success(lastTestResult.logs, { icon: "⏱️" });
+    console.log(convertMarkdownToHTML(currentContent));
+    
+
   },
 }));
 

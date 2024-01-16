@@ -16,14 +16,11 @@ const fullURL =
  */
 
 export const convertMarkdownToHTML = (markdown: any) => {
-  // Create a new instance of the Remarkable markdown parser
   const md = new Remarkable();
-  // Convert the markdown to HTML using the Remarkable parser
-  // console.log("MARKDOWN", markdown);
-
-  let html = md.render(markdown);
+  const linkRegex = /(https?:\/\/[^\s]+)/g;
+  const formattedMarkdown = markdown.replace(linkRegex, '[$1]($1)');
+  let html = md.render(formattedMarkdown);
   html = replaceSrc(html);
-  // console.log(html);
   return html;
 };
 
@@ -45,7 +42,7 @@ export const changeSidebarVisibility = () => {
 };
 
 /**
- * Replaces occurrences of src="../.." with http://localhost:3000 in the given HTML-like text.
+ * Replaces occurrences of src="../.." with the currentHost in the given HTML-like text.
  *
  * @param {string} rawText - The input text in HTML-like format.
  * @returns {string} - The modified text with replaced occurrences.

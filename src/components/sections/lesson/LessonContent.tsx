@@ -21,7 +21,7 @@ export default function LessonContent() {
     
         const handleClick = (event:any) => {
             event.preventDefault();
-            openLink(event.target.href)
+            openLink(event.target.href);
         };
     
         for (let anchor of anchors) {
