@@ -17,7 +17,7 @@ const fullURL =
 
 export const convertMarkdownToHTML = (markdown: any) => {
   const md = new Remarkable();
-  const linkRegex = /(https?:\/\/[^\s]+)/g;
+  const linkRegex = /(?<!=")(https?:\/\/[^\s]+)/g;
   const formattedMarkdown = markdown.replace(linkRegex, '[$1]($1)');
   let html = md.render(formattedMarkdown);
   html = replaceSrc(html);
