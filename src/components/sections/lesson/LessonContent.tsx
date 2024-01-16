@@ -34,7 +34,7 @@ export default function LessonContent() {
                 anchor.removeEventListener('click', handleClick);
             }
         };
-    }, [currentContent]); // Re-run effect when currentContent changes
+    }, [currentContent]);
 
     return <>
         <div className="lesson-content-component" dangerouslySetInnerHTML={{ __html: convertMarkdownToHTML(currentContent) }}>

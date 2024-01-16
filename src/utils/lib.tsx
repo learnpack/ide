@@ -153,3 +153,10 @@ export const debounce = (func: any, wait: any) => {
 export const removeSpecialCharacters = (inputString: string) => {
   return inputString.replace(/\x1B[@-_][0-?]*[ -/]*[@-~]/g, "");
 }
+
+
+
+export const  replaceSlot = (string: string, slot: string, value: string): string => {
+  const slotRegex = new RegExp(slot, 'g');
+  return string.replace(slotRegex, value);
+}

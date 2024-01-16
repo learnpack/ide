@@ -10,6 +10,7 @@ import {
   disconnected,
   getHost,
   getParamsObject,
+  replaceSlot,
 } from "./lib";
 import Socket from "./socket";
 import { IStore } from "./storeTypes";
@@ -474,6 +475,7 @@ const useStore = create<IStore>((set, get) => ({
       getConfigObject,
       setShowVideoTutorial,
       fetchSingleExerciseInfo,
+      configObject
     } = get();
 
     const slug = exercises[currentExercisePosition]?.slug;
@@ -498,8 +500,10 @@ const useStore = create<IStore>((set, get) => ({
       setShowVideoTutorial(false);
     }
 
-    set({ currentContent: exercise.body });
-    set({ currentReadme: exercise.body });
+    const readme = replaceSlot(exercise.body, '{{publicUrl}}', HOST)
+
+    set({ currentContent: readme });
+    set({ currentReadme: readme });
 
     getConfigObject();
     fetchSingleExerciseInfo(currentExercisePosition);
