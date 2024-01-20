@@ -56,7 +56,7 @@ const useStore = create<IStore>((set, get) => ({
   lessonTitle: "",
   numberOfExercises: 0,
   solvedExercises: 0,
-  shouldBeTested: true,
+  shouldBeTested: false,
   status: "",
   showFeedback: false,
   token: "",
@@ -345,7 +345,7 @@ const useStore = create<IStore>((set, get) => ({
       startConversation(newPosition);
     }
     setBuildButtonText("Run", "");
-    setFeedbackButtonProps("Feedback", "");
+    setFeedbackButtonProps("Get feedback", "");
 
     fetchReadme();
   },
@@ -566,9 +566,7 @@ const useStore = create<IStore>((set, get) => ({
       );
       return;
     }
-
     setPosition(Number(desiredPosition));
-    set({ shouldBeTested: true });
   },
 
   toastFromStatus: (status) => {
@@ -598,12 +596,11 @@ const useStore = create<IStore>((set, get) => ({
       exerciseSlug: getCurrentExercise().slug,
     };
     compilerSocket.emit("test", data);
+    set({ shouldBeTested: false });
 
     if (opts && opts.setFeedbackButton)
       setFeedbackButtonProps("Running...", "palpitate");
-
     if (opts && opts.toast) toastFromStatus("testing");
-    set({ shouldBeTested: false });
   },
 
   // Turn the following property to true to easily test things using a button in the navbar

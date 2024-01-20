@@ -20,11 +20,11 @@ export default function Navbar() {
 }
 
 const TestButton = ({display}: {display: boolean}) => {
-    const { test } = useStore(state => ({ test: state.test }));
+    const { test, shouldBeTested } = useStore(state => ({ test: state.test, shouldBeTested: state.shouldBeTested }));
     return (
         display &&
         <button onClick={test} className="test-button">
-            <span>Test</span>
+            <span>Test SBT: {shouldBeTested ? "true" : "false"}</span>
         </button>
     )
 }

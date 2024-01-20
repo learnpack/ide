@@ -63,8 +63,13 @@ export default function Chat() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
+    // Prevent scrolling
+    document.body.style.overflow = "hidden";
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      // Re-enable scrolling when the component unmounts
+      document.body.style.overflow = "";
     };
   }, []);
 
@@ -122,7 +127,7 @@ export default function Chat() {
           data.logs[0]
         )}
         
-        Focus on the failed tests and explain the student what he has bad in his code and how to fix it.`
+        Maintain the conversation with the student, explain using simple words the next steps, don't give the answers to copy paste.`
       );
     });
   }, [waitingTestResult]);
@@ -162,9 +167,6 @@ export default function Chat() {
     setUserMessage("");
 
     if (isTesteable && (shouldBeTested || isFirstInteraction)) {
-      console.log("shouldBeTested", "isFirstInteraction");
-      console.log(shouldBeTested, isFirstInteraction);
-      
       setMessages((prev) => [
         ...prev,
         { type: "bot", text: "**Let me test your code...**" },
@@ -185,8 +187,6 @@ export default function Chat() {
     if (testResult) {
       messageData.message.context += `\n${testResult}`;
     }
-
-    // console.log("Message context: \n", messageData.message.context);
 
     chatSocket.emit("message", messageData);
     // setUserMessage("");
