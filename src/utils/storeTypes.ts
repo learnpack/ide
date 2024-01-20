@@ -103,6 +103,7 @@ export interface IStore {
     conversationIdsCache: TNumberCache
     openedModals: TOpenedModals
     lastTestResult: TTestResult
+    shouldBeTested: boolean
     start: () => void
     checkRigobotInvitation: () => void
     clearBcToken: () => void
@@ -133,6 +134,7 @@ export interface IStore {
     fetchReadme: () => void
     toggleSidebar: () => void
     toastFromStatus: (status:string) => void
+    setShouldBeTested: (value: boolean) => void
     runExerciseTests: (opts?: TRunExerciseTestsOptions) => void
     displayTestButton: boolean
     test: () => void

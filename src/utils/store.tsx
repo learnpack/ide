@@ -56,6 +56,7 @@ const useStore = create<IStore>((set, get) => ({
   lessonTitle: "",
   numberOfExercises: 0,
   solvedExercises: 0,
+  shouldBeTested: true,
   status: "",
   showFeedback: false,
   token: "",
@@ -65,7 +66,7 @@ const useStore = create<IStore>((set, get) => ({
     className: "",
   },
   feedbackbuttonProps: {
-    text: "Feedback",
+    text: "Get feedback",
     className: "",
   },
   configObject: {
@@ -567,6 +568,7 @@ const useStore = create<IStore>((set, get) => ({
     }
 
     setPosition(Number(desiredPosition));
+    set({ shouldBeTested: true });
   },
 
   toastFromStatus: (status) => {
@@ -576,6 +578,10 @@ const useStore = create<IStore>((set, get) => ({
 
   setTestResult: (status, logs) => {
     set({ lastTestResult: { status: status, logs: logs } });
+  },
+
+  setShouldBeTested: (value) => {
+    set({ shouldBeTested: value });
   },
 
   runExerciseTests: (opts) => {
@@ -597,6 +603,7 @@ const useStore = create<IStore>((set, get) => ({
       setFeedbackButtonProps("Running...", "palpitate");
 
     if (opts && opts.toast) toastFromStatus("testing");
+    set({ shouldBeTested: false });
   },
 
   // Turn the following property to true to easily test things using a button in the navbar

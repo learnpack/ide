@@ -1,5 +1,7 @@
 import useStore from "../../utils/store";
 import { useEffect, useState } from "react";
+import { InputModal } from "../sections/modals/InputModal";
+
 import "./styles.css";
 export function SocketHandler() {
   const {
@@ -7,16 +9,30 @@ export function SocketHandler() {
     exercises,
     currentExercisePosition,
     setAllowedActions,
+    setShouldBeTested
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     exercises: state.exercises,
     currentExercisePosition: state.currentExercisePosition,
     setAllowedActions: state.setAllowedActions,
+    setShouldBeTested: state.setShouldBeTested
   }));
 
   const [inputsResponses, setInputsResponses] = useState([] as string[]);
   const [inputs, setInputs] = useState([] as string[]);
   const [shouldWeSend, setShouldWeSend] = useState(false);
+
+
+  useEffect(() => {
+    compilerSocket.on("file_change", (data: any) => {
+      const fullpath = data.logs
+      const currentExercisePath = exercises[currentExercisePosition].path
+      const doesCurrentStepChange = fullpath.includes(currentExercisePath)
+      
+      if (!doesCurrentStepChange) return;
+      setShouldBeTested(true)
+    })
+  })
 
   useEffect(() => {
     compilerSocket.whenUpdated((scope: any, data: any) => {
@@ -89,39 +105,3 @@ export function SocketHandler() {
   );
 }
 
-type TInputModalProps = {
-  name: string;
-  onSubmit: (value: string) => void;
-  onCancel: () => void;
-};
-
-const InputModal = ({ name, onCancel, onSubmit }: TInputModalProps) => {
-  const [value, setValue] = useState("");
-  const handleSubmit = () => {
-    onSubmit(value);
-    setValue("");
-  };
-
-  return (
-    <div className="input-modal">
-      <h3>{name}</h3>
-      <input
-        onKeyUp={(e) => {
-            if (e.key === "Enter") {
-                handleSubmit();
-            }
-        }}
-        onChange={(e) => setValue(e.target.value)}
-        type="text"
-        value={value}
-        placeholder="Enter your value here"
-      />
-      <div>
-        <button onClick={handleSubmit} className="bg-blue">
-          Submit
-        </button>
-        <button onClick={onCancel}>Cancel</button>
-      </div>
-    </div>
-  );
-};

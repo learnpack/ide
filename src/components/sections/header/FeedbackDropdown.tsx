@@ -46,7 +46,8 @@ export const FeedbackDropdown = ({
     bc_token: state.bc_token,
     openLink: state.openLink,
     clearBcToken: state.clearBcToken,
-    checkRigobotInvitation: state.checkRigobotInvitation
+    checkRigobotInvitation: state.checkRigobotInvitation,
+  
     
   }));
 
@@ -80,6 +81,11 @@ export const FeedbackDropdown = ({
 
   const redirectToVideo = () => {
     setShowVideoTutorial(true);
+    toggleFeedbackVisibility();
+  };
+  const openLearnpackDocs = () => {
+    const docsUrl = "https://4geeks.com/docs/learnpack";
+    openLink(docsUrl);
     toggleFeedbackVisibility();
   };
 
@@ -140,6 +146,12 @@ export const FeedbackDropdown = ({
         disabled={!videoTutorial}
         svg={svgs.videoIcon}
         action={redirectToVideo}
+      />
+      <SimpleButton
+        text={`About LearnPack`}
+        disabled={!videoTutorial}
+        svg={svgs.fourGeeksIcon}
+        action={openLearnpackDocs}
       />
 
       <p>

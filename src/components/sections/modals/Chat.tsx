@@ -23,6 +23,7 @@ export default function Chat() {
     isTesteable,
     runExerciseTests,
     compilerSocket,
+    shouldBeTested,
   } = useStore((state) => ({
     setOpenedModals: state.setOpenedModals,
     currentExercisePosition: state.currentExercisePosition,
@@ -39,6 +40,7 @@ export default function Chat() {
     isBuildable: state.isBuildable,
     isTesteable: state.isTesteable,
     runExerciseTests: state.runExerciseTests,
+    shouldBeTested: state.shouldBeTested,
   }));
 
   const fakeMessages = [{ type: "bot", text: chatInitialMessage }];
@@ -52,16 +54,16 @@ export default function Chat() {
   const [userMessageCache, setUserMessageCache] = useState("");
 
   useEffect(() => {
-    const body = document.querySelector("body");
-    // if (body) body.style.overflow = "hidden";
     document.addEventListener("mousedown", handleClickOutside);
 
     if (conversationIdsCache[currentExercisePosition] == undefined) {
       startConversation(currentExercisePosition);
     }
+    if (window.scrollY > 0) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
 
     return () => {
-      if (body) body.style.overflow = "auto";
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
@@ -154,11 +156,15 @@ export default function Chat() {
     if (Boolean(userMessage.trim() == "")) return;
     if (isGenerating) return;
 
+    const isFirstInteraction = messages.length === 1;
+
     setMessages((prev) => [...prev, { type: "user", text: userMessage }]);
-    
     setUserMessage("");
 
-    if (isTesteable) {
+    if (isTesteable && (shouldBeTested || isFirstInteraction)) {
+      console.log("shouldBeTested", "isFirstInteraction");
+      console.log(shouldBeTested, isFirstInteraction);
+      
       setMessages((prev) => [
         ...prev,
         { type: "bot", text: "**Let me test your code...**" },
@@ -180,7 +186,7 @@ export default function Chat() {
       messageData.message.context += `\n${testResult}`;
     }
 
-    console.log("Message context: \n", messageData.message.context);
+    // console.log("Message context: \n", messageData.message.context);
 
     chatSocket.emit("message", messageData);
     // setUserMessage("");
@@ -231,7 +237,7 @@ export default function Chat() {
     <main ref={backdropRef} className="chat-container">
       <div className="chat-modal">
         <section className="chat-header">
-          <h3>Learnpack AI-Tutor</h3>
+          <h3>Learnpack AI-Tutor !</h3>
           <button
             onClick={() => {
               setOpenedModals({ chat: false });
@@ -290,8 +296,10 @@ const Message = ({ type, text, extraClass }: IMessage) => {
     <>
       <div className={`message ${type} ${extraClass ? extraClass : ""}`}>
         <div
-          dangerouslySetInnerHTML={{ __html: convertMarkdownToHTML(messageText ? messageText : text) }}
-        //   dangerouslySetInnerHTML={{ __html: convertMarkdownToHTML(text) }}
+          dangerouslySetInnerHTML={{
+            __html: convertMarkdownToHTML(messageText ? messageText : text),
+          }}
+          //   dangerouslySetInnerHTML={{ __html: convertMarkdownToHTML(text) }}
         ></div>
       </div>
       {showNext && (
