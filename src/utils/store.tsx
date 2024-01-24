@@ -404,16 +404,17 @@ const useStore = create<IStore>((set, get) => ({
       },
     };
 
-    
     try {
       const res = await fetch(host + "/login", config);
       const json = await res.json();
-      set({ bc_token: json.token })
+      set({ bc_token: json.token });
 
       if (json.rigobot == null) {
-        throw new MissingRigobotAccountError("No rigobot user found, did you already accept Rigobot's invitation?");
+        throw new MissingRigobotAccountError(
+          "No rigobot user found, did you already accept Rigobot's invitation?"
+        );
       }
-      
+
       const token = json.rigobot.key;
       setToken(token);
       toast.success("Successfully logged in");
@@ -429,9 +430,9 @@ const useStore = create<IStore>((set, get) => ({
     setOpenedModals({ login: false, chat: true });
   },
 
-  checkRigobotInvitation: async() => {
-    const {bc_token, setToken} = get();
-    const rigoAcceptedUrl = `${RIGOBOT_API_URL}/v1/auth/me/token?breathecode_token=${bc_token}`
+  checkRigobotInvitation: async () => {
+    const { bc_token, setToken } = get();
+    const rigoAcceptedUrl = `${RIGOBOT_API_URL}/v1/auth/me/token?breathecode_token=${bc_token}`;
     const res = await fetch(rigoAcceptedUrl);
     if (res.status != 200) {
       toast.error("You have not accepted Rigobot's invitation yet!");
@@ -440,16 +441,16 @@ const useStore = create<IStore>((set, get) => ({
     const data = await res.json();
     setToken(data.key);
 
-    const payload = {token: data.key}
+    const payload = { token: data.key };
     console.log(payload);
-    
+
     const config = {
       method: "post",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
-    }
+    };
     const resServer = await fetch(`${HOST}/set-rigobot-token`, config);
     console.log(resServer.status);
     // if (resServer.status == 200) {
@@ -459,14 +460,14 @@ const useStore = create<IStore>((set, get) => ({
 
   openLink: (url) => {
     const { compilerSocket, getCurrentExercise } = get();
-        const data = {
-            url,
-            exerciseSlug: getCurrentExercise().slug,
-        }
-        compilerSocket.openWindow(data); 
+    const data = {
+      url,
+      exerciseSlug: getCurrentExercise().slug,
+    };
+    compilerSocket.openWindow(data);
   },
   clearBcToken: () => {
-    set({ bc_token: "" })
+    set({ bc_token: "" });
   },
   fetchReadme: async () => {
     const {
@@ -476,7 +477,7 @@ const useStore = create<IStore>((set, get) => ({
       getConfigObject,
       setShowVideoTutorial,
       fetchSingleExerciseInfo,
-      configObject
+      configObject,
     } = get();
 
     const slug = exercises[currentExercisePosition]?.slug;
@@ -501,7 +502,7 @@ const useStore = create<IStore>((set, get) => ({
       setShowVideoTutorial(false);
     }
 
-    const readme = replaceSlot(exercise.body, '{{publicUrl}}', HOST)
+    const readme = replaceSlot(exercise.body, "{{publicUrl}}", HOST);
 
     set({ currentContent: readme });
     set({ currentReadme: readme });
@@ -527,6 +528,26 @@ const useStore = create<IStore>((set, get) => ({
     if (fetchExercise) {
       fetchReadme();
     }
+  },
+
+  registerTelemetryEvent: (event, data) => {
+    const { compilerSocket, getCurrentExercise } = get();
+    const currentExercise = getCurrentExercise();
+
+    const _event = {
+      exerciseSlug: currentExercise.slug,
+      type: event,
+      data: data,
+      step: {
+        position: currentExercise.position,
+        name: currentExercise.name,
+        files: currentExercise.files,
+      },
+    };
+
+    console.log(_event);
+  
+    compilerSocket.emit("telemetry", { ..._event });
   },
 
   handlePositionChange: async (desiredPosition) => {
@@ -609,8 +630,6 @@ const useStore = create<IStore>((set, get) => ({
     const { currentContent } = get();
     // checkRigobotInvitation()
     console.log(convertMarkdownToHTML(currentContent));
-    
-
   },
 }));
 

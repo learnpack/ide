@@ -8,7 +8,6 @@ export function SocketHandler() {
     compilerSocket,
     exercises,
     currentExercisePosition,
-    setAllowedActions,
     setShouldBeTested
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
@@ -36,12 +35,12 @@ export function SocketHandler() {
   })
 
   useEffect(() => {
-    compilerSocket.whenUpdated((scope: any, data: any) => {
-      scope;
-      if (data.status && data.status == "ready") {
-        setAllowedActions(data.allowed);
-      }
-    });
+    // compilerSocket.whenUpdated((scope: any, data: any) => {
+    //   scope;
+    //   if (data.status && data.status == "ready") {
+    //     setAllowedActions(data.allowed);
+    //   }
+    // });
 
     compilerSocket.on("reload", (data: any) => {
       data;

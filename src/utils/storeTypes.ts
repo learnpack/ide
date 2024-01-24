@@ -136,6 +136,7 @@ export interface IStore {
     toastFromStatus: (status:string) => void
     setShouldBeTested: (value: boolean) => void
     runExerciseTests: (opts?: TRunExerciseTestsOptions) => void
+    registerTelemetryEvent: (event: string, data: any) => void
     displayTestButton: boolean
     test: () => void
 }
