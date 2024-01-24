@@ -192,29 +192,19 @@ const useStore = create<IStore>((set, get) => ({
 
     let contextFiles = currentExercise.files.filter(extractor);
 
-    let filePromises = contextFiles.map(async (file) => {
+    let filePromises = contextFiles.map(async (file, index) => {
       let fileContent = await getFileContent(slug, file.name);
-
-      if (file.name.includes("test") || file.name.includes("tests")) {
-        return `The following is a test file: \n---EXERCISE TEST FILE: \n${fileContent}\n---`;
-      }
-
       return `File: ${file.name}\nContent: \`${fileContent}\``;
     });
 
     return Promise.all(filePromises).then((filesContext) => {
-      let context = "The following is the student's code file(s) and t: \n---";
-
-      if (isTesteable)
-        context =
-          "The following is the student's code file(s) and tests files to pass: \n---";
-
+      let context = "";
       context += filesContext.join("\n");
-
-      context += `\nThis is the current exercise instructions, use this to guide the student in the right direction:
+      context += `\nThis is the current exercise instructions:
       ---
       ${currentReadme}
       ---`;
+
       return context;
     });
   },

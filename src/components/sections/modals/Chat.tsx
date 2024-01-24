@@ -125,9 +125,7 @@ export default function Chat() {
       emitUserMessage(
         `Some tests didn't passed, these are the tests logs: ${removeSpecialCharacters(
           data.logs[0]
-        )}
-        
-        Maintain the conversation with the student, explain using simple words the next steps, don't give the answers to copy paste.`
+        )}`
       );
     });
   }, [waitingTestResult]);

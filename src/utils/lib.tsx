@@ -17,9 +17,13 @@ const fullURL =
 
 export const convertMarkdownToHTML = (markdown: any) => {
   const md = new Remarkable();
-  const linkRegex = /(?<!=")(https?:\/\/[^\s]+)/g;
-  const formattedMarkdown = markdown.replace(linkRegex, '[$1]($1)');
-  let html = md.render(formattedMarkdown);
+  console.log("markdown", markdown);
+
+  // const linkRegex = /(?<!=")(https?:\/\/[^\s]+)/g;
+  // const linkRegex = /(?<!=[(])(https?:\/\/[^\s]+)/g;
+  // const formattedMarkdown = markdown.replace(linkRegex, "[$1]($1)");
+
+  let html = md.render(markdown);
   html = replaceSrc(html);
   return html;
 };
@@ -136,7 +140,6 @@ export const getParamsObject = (): Record<string, string> => {
   return paramsObject;
 };
 
-
 export const debounce = (func: any, wait: any) => {
   let timeout: any;
   return function executedFunction(...args: any[]) {
@@ -147,16 +150,17 @@ export const debounce = (func: any, wait: any) => {
     clearTimeout(timeout);
     timeout = setTimeout(later, wait);
   };
-}
-
+};
 
 export const removeSpecialCharacters = (inputString: string) => {
   return inputString.replace(/\x1B[@-_][0-?]*[ -/]*[@-~]/g, "");
-}
+};
 
-
-
-export const  replaceSlot = (string: string, slot: string, value: string): string => {
-  const slotRegex = new RegExp(slot, 'g');
+export const replaceSlot = (
+  string: string,
+  slot: string,
+  value: string
+): string => {
+  const slotRegex = new RegExp(slot, "g");
   return string.replace(slotRegex, value);
-}
+};
