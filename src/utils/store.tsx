@@ -397,6 +397,7 @@ const useStore = create<IStore>((set, get) => ({
     try {
       const res = await fetch(host + "/login", config);
       const json = await res.json();
+      
       set({ bc_token: json.token });
 
       if (json.rigobot == null) {
@@ -404,35 +405,38 @@ const useStore = create<IStore>((set, get) => ({
           "No rigobot user found, did you already accept Rigobot's invitation?"
         );
       }
+      setToken(json.rigobot.key);
 
-      const token = json.rigobot.key;
-      setToken(token);
       toast.success("Successfully logged in");
     } catch (error) {
       if (error instanceof MissingRigobotAccountError) {
-        toast.error(error.message);
+        setOpenedModals({ login: false, rigobotInvite: true });
+        return false;
       } else {
         const errorMessage = `It appears that something was wrong with your 4Geeks credentials, please try again`;
         toast.error(errorMessage);
+        return false;
       }
     }
     startConversation(currentExercisePosition);
     setOpenedModals({ login: false, chat: true });
+    return true;
   },
 
   checkRigobotInvitation: async () => {
-    const { bc_token, setToken } = get();
+    const { bc_token, setToken, openLink, setOpenedModals } = get();
     const rigoAcceptedUrl = `${RIGOBOT_API_URL}/v1/auth/me/token?breathecode_token=${bc_token}`;
     const res = await fetch(rigoAcceptedUrl);
     if (res.status != 200) {
       toast.error("You have not accepted Rigobot's invitation yet!");
+      openLink("https://rigobot.herokuapp.com/invite?referer=4geeks&token=" + bc_token);
       return;
     }
     const data = await res.json();
     setToken(data.key);
 
     const payload = { token: data.key };
-    console.log(payload);
+
 
     const config = {
       method: "post",
@@ -442,10 +446,8 @@ const useStore = create<IStore>((set, get) => ({
       body: JSON.stringify(payload),
     };
     const resServer = await fetch(`${HOST}/set-rigobot-token`, config);
-    console.log(resServer.status);
-    // if (resServer.status == 200) {
-    //   toast.success("You have successfully logged in!");
-    // }
+    setOpenedModals({ chat: true });
+    
   },
 
   openLink: (url) => {
@@ -536,7 +538,7 @@ const useStore = create<IStore>((set, get) => ({
     };
 
     console.log(_event);
-  
+
     compilerSocket.emit("telemetry", { ..._event });
   },
 

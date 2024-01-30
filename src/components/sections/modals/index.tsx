@@ -3,6 +3,7 @@ import CheckVideo from "./CheckVideo"
 import LoginModal from "./LoginModal"
 import SocketDisconnectionModal from "./SocketDisconnectionModal"
 import useStore from "../../../utils/store"
+import { RigobotInviteModal } from "./RigobotInvite"
 
 export const ModalsContainer = () => {
     const { openedModals, token } = useStore(state => ({
@@ -18,6 +19,9 @@ export const ModalsContainer = () => {
             }
             {
                 openedModals.chat && token && <Chat />
+            }
+            {
+                openedModals.rigobotInvite && <RigobotInviteModal />
             }
         </>
 

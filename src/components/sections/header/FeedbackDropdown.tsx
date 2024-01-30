@@ -9,8 +9,6 @@ interface IFeedbackDropdown {
   toggleFeedbackVisibility: () => void;
 }
 
-
-
 export const FeedbackDropdown = ({
   toggleFeedbackVisibility,
 }: IFeedbackDropdown) => {
@@ -28,7 +26,7 @@ export const FeedbackDropdown = ({
     toastFromStatus,
     bc_token,
     openLink,
-    checkRigobotInvitation
+    checkRigobotInvitation,
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     token: state.token,
@@ -47,28 +45,26 @@ export const FeedbackDropdown = ({
     openLink: state.openLink,
     clearBcToken: state.clearBcToken,
     checkRigobotInvitation: state.checkRigobotInvitation,
-  
-    
   }));
 
   let debounceSuccess = debounce((data: any) => {
-    setTestResult("successful", removeSpecialCharacters(data.logs[0]))
-    toastFromStatus("testing-success")
+    setTestResult("successful", removeSpecialCharacters(data.logs[0]));
+    toastFromStatus("testing-success");
     setFeedbackButtonProps("Succeded", "bg-success text-white");
     fetchExercises();
   }, 100);
 
   let debouncedError = debounce((data: any) => {
-    setTestResult("failed", removeSpecialCharacters(data.logs[0]))
-    toastFromStatus("testing-error")
+    setTestResult("failed", removeSpecialCharacters(data.logs[0]));
+    toastFromStatus("testing-error");
     setFeedbackButtonProps("Try again", "bg-fail text-white");
   }, 100);
 
   const runTests = () => {
     toggleFeedbackVisibility();
     runExerciseTests({
-        toast: true,
-        setFeedbackButton: true
+      toast: true,
+      setFeedbackButton: true,
     });
     compilerSocket.onStatus("testing-success", debounceSuccess);
     compilerSocket.onStatus("testing-error", debouncedError);
@@ -94,14 +90,9 @@ export const FeedbackDropdown = ({
     toggleFeedbackVisibility();
   };
 
-  const acceptRigobot = () => {
-    const inviteUrl = "https://rigobot.herokuapp.com/invite?referer=4geeks&token=" + bc_token;
-    openLink(inviteUrl)
-  }
-
-  const rigoAccepted = async() => {
+  const rigoAccepted = async () => {
     checkRigobotInvitation();
-  }
+  };
 
   return (
     <div className="feedback-dropdown">
@@ -119,22 +110,15 @@ export const FeedbackDropdown = ({
           svg={svgs.brainIcon}
           action={showChat}
         />
-      ) : (
-        bc_token ? 
+      ) : bc_token ? (
         <>
-        <SimpleButton
-          svg={svgs.brainIcon}
-          text="Accept Rigobot's invitation!"
-          action={acceptRigobot}
-        />
-        <SimpleButton
-          svg={svgs.checkIcon}
-          text="Press here is you already accepted the invitation"
-          action={rigoAccepted}
-        />
+          <SimpleButton
+            svg={svgs.brainIcon}
+            text="Get help from AI"
+            action={rigoAccepted}
+          />
         </>
-        
-        :
+      ) : (
         <SimpleButton
           svg={svgs.fourGeeksIcon}
           text="Login to use AI feedback"

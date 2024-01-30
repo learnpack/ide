@@ -114,7 +114,7 @@ export interface IStore {
     setOpenedModals: (modals: Partial<TOpenedModals>) => void
     startConversation: (exercisePosition:number)=> void
     getContextFilesContent: () => Promise<string>
-    loginToRigo: (loginInfo: TLoginInfo) => void
+    loginToRigo: (loginInfo: TLoginInfo) => Promise<void | false>
     getCurrentExercise: () => TExercise
     setExerciseMessages: (messages: IMessage[], position: number) => void
     setShowChatModal: (show: boolean) => void

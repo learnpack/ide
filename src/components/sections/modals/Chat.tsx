@@ -4,6 +4,17 @@ import { convertMarkdownToHTML } from "../../../utils/lib";
 import { svgs } from "../../../assets/svgs";
 import { removeSpecialCharacters } from "../../../utils/lib";
 
+
+const chat_static_text= {
+  "en-US": {
+    disclaimer: "This AI, currently in beta, serves as an educational tutor. It is not a substitute for professional instruction. Use at your own risk and confirm details with authoritative educational resources."
+  
+  },
+  "sp-ES": {
+    disclaimer: "Esta AI, actualmente en beta, sirve como tutor educativo. No es un sustituto de la instrucción profesional. Úselo bajo su propio riesgo y confirme los detalles con recursos educativos autorizados."
+  }
+}
+
 export default function Chat() {
   const backdropRef = useRef<HTMLDivElement>(null);
 
@@ -235,7 +246,7 @@ export default function Chat() {
     <main ref={backdropRef} className="chat-container">
       <div className="chat-modal">
         <section className="chat-header">
-          <h3>Learnpack AI-Tutor !</h3>
+          <h3>Learnpack AI-Tutor</h3>
           <button
             onClick={() => {
               setOpenedModals({ chat: false });
@@ -257,6 +268,9 @@ export default function Chat() {
             onKeyUp={handleKeyUp}
           />
           <button onClick={handleSubmit}>{svgs.sendSvg}</button>
+        </section>
+        <section className="chat-footer">
+          <p>{chat_static_text["en-US"].disclaimer}</p>
         </section>
       </div>
     </main>

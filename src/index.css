@@ -5,6 +5,7 @@
 :root {
   --color-border: #b2b2b2;
   --bg-color-gray: #EFF1F4;
+  --bg-color-dark-gray: #a1a1a1;
 
   --color-active: #02A9EA;
   --color-blue-opaque: #EBF8FE;
@@ -13,6 +14,8 @@
   --color-fail: #EB5757;
   --bg-color-code: #2D3748;
   --backdrop-background: rgba(0, 0, 0, 0.7);
+
+  --font-color-secondary: #9c9c9c;
 }
 
 * {

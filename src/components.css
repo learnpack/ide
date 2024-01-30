@@ -128,6 +128,12 @@
         }
       }
     }
+
+    > .chat-footer {
+      font-size: smaller;
+      color: var(--font-color-secondary);
+      
+    }
   }
   & .next-button {
     background-color: #9f9f9f;
