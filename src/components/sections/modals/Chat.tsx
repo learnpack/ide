@@ -192,6 +192,7 @@ export default function Chat() {
     setMessages((prev) => [...prev, { type: "bot", text: "" }]);
 
     const messageData = await getMessageData();
+    
 
     if (testResult) {
       messageData.message.context += `\n${testResult}`;

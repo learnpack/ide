@@ -133,6 +133,8 @@ export interface IStore {
     setPosition: (position: number) => void
     fetchReadme: () => void
     toggleSidebar: () => void
+    buildCompileEvent: (startingAt:number, stdout:string, exitcode: number ) => void
+    buildTestEvent: (startingAt:number, stdout:string, exitcode: number ) => void
     toastFromStatus: (status:string) => void
     setShouldBeTested: (value: boolean) => void
     runExerciseTests: (opts?: TRunExerciseTestsOptions) => void

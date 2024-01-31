@@ -280,7 +280,7 @@ const useStore = create<IStore>((set, get) => ({
     return paramsObject;
   },
   fetchSingleExerciseInfo: async (index) => {
-    const { exercises } = get();
+    const { exercises, registerTelemetryEvent } = get();
 
     if (exercises.length <= 0) {
       return;
@@ -308,7 +308,48 @@ const useStore = create<IStore>((set, get) => ({
       }
     });
 
+    registerTelemetryEvent("open_step", index, {});
+
     set({ isTesteable: isTesteable, isBuildable: isBuildable });
+  },
+
+  buildCompileEvent: async (startingAt, stdout, exitcode) => {
+    const { registerTelemetryEvent, getCurrentExercise } = get();
+
+    const step = getCurrentExercise();
+    // console.log(step);
+    const fileToFetch = step.files.find((file) =>
+      step.entry.includes(file.name)
+    );
+
+    const sourceCode = await getFileContent(step.slug, fileToFetch.name);
+    const _data = {
+      stdout: stdout,
+      starting_at: startingAt,
+      ending_at: Date.now(),
+      source_code: sourceCode,
+      stdin: "hello",
+      exit_code: exitcode
+    };
+    registerTelemetryEvent("compile", step.position, _data);
+  },
+  buildTestEvent: async (startingAt, stdout, exitcode) => {
+    const { registerTelemetryEvent, getCurrentExercise } = get();
+    const step = getCurrentExercise();
+
+    const fileToFetch = step.files.find((file) =>
+      step.entry.includes(file.name)
+    );
+
+    const sourceCode = await getFileContent(step.slug, fileToFetch.name);
+    const _data = {
+      stdout: stdout,
+      starting_at: startingAt,
+      ending_at: Date.now(),
+      source_code: sourceCode,
+      exit_code: exitcode
+    };
+    registerTelemetryEvent("test", step.position, _data);
   },
 
   setPosition: (newPosition) => {
@@ -397,7 +438,7 @@ const useStore = create<IStore>((set, get) => ({
     try {
       const res = await fetch(host + "/login", config);
       const json = await res.json();
-      
+
       set({ bc_token: json.token });
 
       if (json.rigobot == null) {
@@ -429,14 +470,15 @@ const useStore = create<IStore>((set, get) => ({
     const res = await fetch(rigoAcceptedUrl);
     if (res.status != 200) {
       toast.error("You have not accepted Rigobot's invitation yet!");
-      openLink("https://rigobot.herokuapp.com/invite?referer=4geeks&token=" + bc_token);
+      openLink(
+        "https://rigobot.herokuapp.com/invite?referer=4geeks&token=" + bc_token
+      );
       return;
     }
     const data = await res.json();
     setToken(data.key);
 
     const payload = { token: data.key };
-
 
     const config = {
       method: "post",
@@ -447,7 +489,6 @@ const useStore = create<IStore>((set, get) => ({
     };
     const resServer = await fetch(`${HOST}/set-rigobot-token`, config);
     setOpenedModals({ chat: true });
-    
   },
 
   openLink: (url) => {
@@ -522,24 +563,17 @@ const useStore = create<IStore>((set, get) => ({
     }
   },
 
-  registerTelemetryEvent: (event, data) => {
+  registerTelemetryEvent: (event, position, data) => {
     const { compilerSocket, getCurrentExercise } = get();
-    const currentExercise = getCurrentExercise();
 
     const _event = {
-      exerciseSlug: currentExercise.slug,
-      type: event,
-      data: data,
-      step: {
-        position: currentExercise.position,
-        name: currentExercise.name,
-        files: currentExercise.files,
-      },
+      exerciseSlug: getCurrentExercise().slug,
+      stepPosition: position,
+      event: event,
+      eventData: data,
     };
 
-    console.log(_event);
-
-    compilerSocket.emit("telemetry", { ..._event });
+    compilerSocket.emit("telemetry", _event);
   },
 
   handlePositionChange: async (desiredPosition) => {
