@@ -328,7 +328,6 @@ const useStore = create<IStore>((set, get) => ({
       starting_at: startingAt,
       ending_at: Date.now(),
       source_code: sourceCode,
-      stdin: "hello",
       exit_code: exitcode
     };
     registerTelemetryEvent("compile", step.position, _data);
