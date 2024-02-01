@@ -572,7 +572,8 @@ const useStore = create<IStore>((set, get) => ({
       eventData: data,
     };
 
-    compilerSocket.emit("telemetry", _event);
+    console.log("registerTelemetryEvent skipped", _event);
+    // compilerSocket.emit("telemetry", _event);
   },
 
   handlePositionChange: async (desiredPosition) => {
