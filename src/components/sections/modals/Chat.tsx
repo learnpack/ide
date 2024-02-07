@@ -70,17 +70,12 @@ export default function Chat() {
     if (conversationIdsCache[currentExercisePosition] == undefined) {
       startConversation(currentExercisePosition);
     }
-    if (window.scrollY > 0) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    // Prevent scrolling
-    document.body.style.overflow = "hidden";
+    
+    window.scrollTo({ top: 0, behavior: "smooth" });
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       // Re-enable scrolling when the component unmounts
-      document.body.style.overflow = "";
     };
   }, []);
 

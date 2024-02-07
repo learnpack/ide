@@ -310,25 +310,6 @@ const useStore = create<IStore>((set, get) => ({
     set({ isTesteable: isTesteable, isBuildable: isBuildable });
   },
 
-  buildCompileEvent: async (startingAt, stdout, exitcode) => {
-    const { registerTelemetryEvent, getCurrentExercise } = get();
-
-    const step = getCurrentExercise();
-    // console.log(step);
-    const fileToFetch = step.files.find((file) =>
-      step.entry.includes(file.name)
-    );
-
-    const sourceCode = await getFileContent(step.slug, fileToFetch.name);
-    const _data = {
-      stdout: stdout,
-      starting_at: startingAt,
-      ending_at: Date.now(),
-      source_code: sourceCode,
-      exit_code: exitcode
-    };
-  },
-
   setPosition: (newPosition) => {
     const {
       startConversation,
@@ -538,20 +519,6 @@ const useStore = create<IStore>((set, get) => ({
     if (fetchExercise) {
       fetchReadme();
     }
-  },
-
-  registerTelemetryEvent: (event, position, data) => {
-    const { compilerSocket, getCurrentExercise } = get();
-
-    const _event = {
-      exerciseSlug: getCurrentExercise().slug,
-      stepPosition: position,
-      event: event,
-      eventData: data,
-    };
-
-    console.log("registerTelemetryEvent skipped", _event);
-    // compilerSocket.emit("telemetry", _event);
   },
 
   handlePositionChange: async (desiredPosition) => {

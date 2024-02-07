@@ -16,7 +16,7 @@ export const FeedbackDropdown = ({
     compilerSocket,
     token,
     setFeedbackButtonProps,
-    fetchExercises,
+    // fetchExercises,
     videoTutorial,
     setShowVideoTutorial,
     isTesteable,
@@ -27,7 +27,6 @@ export const FeedbackDropdown = ({
     bc_token,
     openLink,
     checkRigobotInvitation,
-    buildTestEvent
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     token: state.token,
@@ -46,17 +45,13 @@ export const FeedbackDropdown = ({
     openLink: state.openLink,
     clearBcToken: state.clearBcToken,
     checkRigobotInvitation: state.checkRigobotInvitation,
-    buildTestEvent: state.buildTestEvent,
   }));
-  let testStartedAt = 0;
 
   let debounceSuccess = debounce((data: any) => {
     const stdout = removeSpecialCharacters(data.logs[0]);
     setTestResult("successful", stdout);
     toastFromStatus("testing-success");
     setFeedbackButtonProps("Succeded", "bg-success text-white");
-    buildTestEvent(testStartedAt, stdout, 0);
-    fetchExercises();
   }, 100);
   
   let debouncedError = debounce((data: any) => {
@@ -64,11 +59,9 @@ export const FeedbackDropdown = ({
     setTestResult("failed", stdout);
     toastFromStatus("testing-error");
     setFeedbackButtonProps("Try again", "bg-fail text-white");
-    buildTestEvent(testStartedAt, stdout, 1);
   }, 100);
 
   const runTests = () => {
-    testStartedAt = Date.now();
     toggleFeedbackVisibility();
     runExerciseTests({
       toast: true,
