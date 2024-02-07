@@ -280,7 +280,7 @@ const useStore = create<IStore>((set, get) => ({
     return paramsObject;
   },
   fetchSingleExerciseInfo: async (index) => {
-    const { exercises, registerTelemetryEvent } = get();
+    const { exercises } = get();
 
     if (exercises.length <= 0) {
       return;
@@ -300,15 +300,12 @@ const useStore = create<IStore>((set, get) => ({
 
     if (!exercise.language) isBuildable = false;
     // TODO: check if the exercise is buildable based in the language and the entry file
-    // console.log(exercise.entry);
 
     exercise.files.forEach((file) => {
       if (file.name.includes("tests") || file.name.includes("test")) {
         isTesteable = true;
       }
     });
-
-    registerTelemetryEvent("open_step", index, {});
 
     set({ isTesteable: isTesteable, isBuildable: isBuildable });
   },
@@ -330,25 +327,6 @@ const useStore = create<IStore>((set, get) => ({
       source_code: sourceCode,
       exit_code: exitcode
     };
-    registerTelemetryEvent("compile", step.position, _data);
-  },
-  buildTestEvent: async (startingAt, stdout, exitcode) => {
-    const { registerTelemetryEvent, getCurrentExercise } = get();
-    const step = getCurrentExercise();
-
-    const fileToFetch = step.files.find((file) =>
-      step.entry.includes(file.name)
-    );
-
-    const sourceCode = await getFileContent(step.slug, fileToFetch.name);
-    const _data = {
-      stdout: stdout,
-      starting_at: startingAt,
-      ending_at: Date.now(),
-      source_code: sourceCode,
-      exit_code: exitcode
-    };
-    registerTelemetryEvent("test", step.position, _data);
   },
 
   setPosition: (newPosition) => {

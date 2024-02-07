@@ -24,7 +24,6 @@ export default function BuildButton() {
     buildbuttonText,
     setBuildButtonText,
     isBuildable,
-    buildCompileEvent,
   } = useStore((state) => ({
     currentExercisePosition: state.currentExercisePosition,
     exercises: state.exercises,
@@ -32,13 +31,10 @@ export default function BuildButton() {
     buildbuttonText: state.buildbuttonText,
     setBuildButtonText: state.setBuildButtonText,
     isBuildable: state.isBuildable,
-    buildCompileEvent: state.buildCompileEvent,
   }));
 
-  let buildFiredAt = 0;
-
   const build = () => {
-    buildFiredAt = Date.now();
+    // buildFiredAt = Date.now();
     setBuildButtonText("Running...", "");
     const [icon, message] = getStatus("compiling");
     toast.success(message, { icon: icon });
@@ -49,20 +45,19 @@ export default function BuildButton() {
 
     compilerSocket.emit("build", data);
     let compilerErrorHandler = debounce((data: any) => {
-      const stdout = data.logs[0];
+      data;
+      // const stdout = data.logs[0];
       setBuildButtonText("Try again", "bg-fail");
       const [icon, message] = getStatus("compiler-error");
       toast.error(message, { icon: icon });
-      buildCompileEvent(buildFiredAt, stdout, 1);
+
     }, 100);
 
     let compilerSuccessHandler = debounce((data: any) => {
+      data;
       const [icon, message] = getStatus("compiler-success");
       toast.success(message, { icon: icon });
       setBuildButtonText("Run", "bg-success");
-
-      const stdout = data.logs[0];
-      buildCompileEvent(buildFiredAt, stdout, 0);
     }, 100);
 
     compilerSocket.onStatus("compiler-error", compilerErrorHandler);
