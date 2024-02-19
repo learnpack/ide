@@ -11,6 +11,7 @@ import {
   getHost,
   getParamsObject,
   replaceSlot,
+  startRecording
 } from "./lib";
 import Socket from "./socket";
 import { IStore } from "./storeTypes";
@@ -597,10 +598,22 @@ const useStore = create<IStore>((set, get) => ({
 
   // Turn the following property to true to easily test things using a button in the navbar
   displayTestButton: DEV_MODE,
+  registerAIInteraction: (stepPosition, interaction) => {
+    const { compilerSocket, getCurrentExercise } = get();
+
+    const telemetryData = {
+      exerciseSlug: getCurrentExercise().slug,
+      stepPosition,
+      event: "ai_interaction",
+      eventData: interaction,
+    }
+    console.log("telemetryData", telemetryData);
+    compilerSocket.emit("ai_interaction", telemetryData);
+  },
   test: async () => {
-    const { currentContent } = get();
-    // checkRigobotInvitation()
-    console.log(convertMarkdownToHTML(currentContent));
+    
+
+    startRecording();
   },
 }));
 

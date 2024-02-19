@@ -164,3 +164,87 @@ export const replaceSlot = (
   const slotRegex = new RegExp(slot, "g");
   return string.replace(slotRegex, value);
 };
+
+export const startRecording = async () => {
+  try {
+    // @ts-ignore
+    function showModal(devices) {
+      // Create the modal container
+      const modalContainer = document.createElement('div');
+      modalContainer.classList.add('self-closing-modal');
+      const modalContent = document.createElement('div');
+      modalContent.classList.add('modal-content'); 
+      // Create the list of audioinput devices
+      const deviceList = document.createElement('ul');
+      // @ts-ignore
+      devices.forEach(device => {
+        if (device.kind === 'audioinput') {
+          const listItem = document.createElement('li');
+          listItem.textContent = `${device.kind}: ${device.label} (ID: ${device.deviceId})`;
+          deviceList.appendChild(listItem);
+        }
+      });
+      
+      // Append the list to the modal
+      modalContent.appendChild(deviceList);
+
+      modalContainer.appendChild(modalContent);
+    
+      // Add a close button
+      const closeButton = document.createElement('button');
+      closeButton.textContent = 'Close';
+      closeButton.onclick = () => document.body.removeChild(modalContainer);
+      modalContent.appendChild(closeButton);
+    
+      // Append the modal to the body
+      document.body.appendChild(modalContainer);
+    }
+    
+    // Get the available devices and show the modal
+    navigator.mediaDevices.enumerateDevices()
+      .then(devices => {
+        showModal(devices);
+      })
+      .catch(err => {
+        console.error("Error listing devices:", err);
+      });
+    // Get the video stream for screen sharing with audio
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: true,
+      audio: true,
+    });
+
+    // Create a new MediaRecorder with the stream
+    const recorder = new MediaRecorder(stream);
+
+    // Set up the ondataavailable event handler
+    recorder.ondataavailable = (e) => {
+      const chunks = [];
+      chunks.push(e.data);
+      const blob = new Blob(chunks, { type: "video/webm" });
+      const url = URL.createObjectURL(blob);
+
+      // Create an anchor element and trigger a download
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "recording.webm";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+
+    // Start the recording
+    console.log("Starting recording");
+
+    recorder.start();
+
+    // Return control functions for the recording
+    return {
+      stop: () => recorder.stop(),
+      pause: () => recorder.pause(),
+      resume: () => recorder.resume(),
+    };
+  } catch (err) {
+    console.error("Error starting recording:", err);
+  }
+};

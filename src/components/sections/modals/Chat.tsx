@@ -14,6 +14,15 @@ const chat_static_text= {
     disclaimer: "Esta AI, actualmente en beta, sirve como tutor educativo. No es un sustituto de la instrucción profesional. Úselo bajo su propio riesgo y confirme los detalles con recursos educativos autorizados."
   }
 }
+type TAIInteraction = {
+  student_message?: string;
+  starting_at?: number;
+  context?: string;
+  ai_response?: string;
+  ending_at?: number;
+};
+
+let aiInteraction:TAIInteraction = {}
 
 export default function Chat() {
   const backdropRef = useRef<HTMLDivElement>(null);
@@ -35,6 +44,7 @@ export default function Chat() {
     runExerciseTests,
     compilerSocket,
     shouldBeTested,
+    registerAIInteraction
   } = useStore((state) => ({
     setOpenedModals: state.setOpenedModals,
     currentExercisePosition: state.currentExercisePosition,
@@ -52,6 +62,7 @@ export default function Chat() {
     isTesteable: state.isTesteable,
     runExerciseTests: state.runExerciseTests,
     shouldBeTested: state.shouldBeTested,
+    registerAIInteraction: state.registerAIInteraction,
   }));
 
   const fakeMessages = [{ type: "bot", text: chatInitialMessage }];
@@ -63,6 +74,7 @@ export default function Chat() {
   );
   const [userMessage, setUserMessage] = useState("");
   const [userMessageCache, setUserMessageCache] = useState("");
+
 
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
@@ -92,6 +104,10 @@ export default function Chat() {
     chatSocket.on("responseFinished", (data) => {
       if (data.status == "ok") {
         setIsGenerating(false);
+        aiInteraction.ending_at = Date.now();
+        aiInteraction.ai_response = messages[messages.length - 1].text;
+        registerAIInteraction(currentExercisePosition, aiInteraction);
+        aiInteraction = {};
         setExerciseMessages(messages, currentExercisePosition);
       }
     });
@@ -192,6 +208,10 @@ export default function Chat() {
     if (testResult) {
       messageData.message.context += `\n${testResult}`;
     }
+
+    aiInteraction.starting_at = Date.now();
+    aiInteraction.student_message = messageData.message.text;
+    aiInteraction.context = messageData.message.context;
 
     chatSocket.emit("message", messageData);
     // setUserMessage("");
