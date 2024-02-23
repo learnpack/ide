@@ -46,11 +46,11 @@ const actions = ['build', 'prettify', 'test', 'run', 'input', 'open', 'preview',
 
 export default {
     socket: null,
-    start: function (host, onDisconnect:any = null) {
+    start: function (host, onDisconnect:any = null, onConnect:any = null) {
         this.socket = io.connect(host)
 
         if (this.socket) {
-            
+            this.socket.on('connect', () => onConnect && onConnect())
             // console.log("Connected to host " + host);
             this.socket.on('disconnect', () => onDisconnect && onDisconnect())
         } else {

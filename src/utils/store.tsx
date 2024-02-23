@@ -8,6 +8,7 @@ import {
   getFileContent,
   startChat,
   disconnected,
+  onConnectCli,
   getHost,
   getParamsObject,
   replaceSlot,
@@ -27,7 +28,7 @@ class MissingRigobotAccountError extends Error {
 }
 
 const HOST = getHost();
-Socket.start(HOST, disconnected);
+Socket.start(HOST, disconnected, onConnectCli) 
 
 const FASTAPI_HOST = "https://chat.4geeks.com";
 // const FASTAPI_HOST = "http://localhost:8000";

@@ -129,6 +129,16 @@ export const disconnected = () => {
   }
 };
 
+export const onConnectCli = () => {
+  const modal: HTMLElement | null = document.querySelector(
+    "#socket-disconnected"
+  );
+
+  if (modal) {
+    modal.style.display = "none";
+  }
+}
+
 export const getParamsObject = (): Record<string, string> => {
   let params = window.location.hash.substring(1);
   const paramsUrlSearch = new URLSearchParams(params);
