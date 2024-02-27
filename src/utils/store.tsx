@@ -297,17 +297,20 @@ const useStore = create<IStore>((set, get) => ({
     const respose = await getExercise(slug);
     const exercise = await respose.json();
 
-    let isTesteable = false;
+    console.log(exercise);
+    
+    let isTesteable = exercise.graded;
     let isBuildable = true;
 
     if (!exercise.language) isBuildable = false;
     // TODO: check if the exercise is buildable based in the language and the entry file
+    
 
-    exercise.files.forEach((file) => {
-      if (file.name.includes("tests") || file.name.includes("test")) {
-        isTesteable = true;
-      }
-    });
+    // exercise.files.forEach((file) => {
+    //   if ((file.name.includes("tests") || file.name.includes("test")) && !file.name("conftest")) {
+    //     isTesteable = true;
+    //   }
+    // });
 
     set({ isTesteable: isTesteable, isBuildable: isBuildable });
   },
