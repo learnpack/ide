@@ -297,7 +297,7 @@ const useStore = create<IStore>((set, get) => ({
     const respose = await getExercise(slug);
     const exercise = await respose.json();
 
-    console.log(exercise);
+    // console.log(exercise);
     
     let isTesteable = exercise.graded;
     let isBuildable = true;
@@ -313,6 +313,7 @@ const useStore = create<IStore>((set, get) => ({
     // });
 
     set({ isTesteable: isTesteable, isBuildable: isBuildable });
+    return exercise;
   },
 
   setPosition: (newPosition) => {
@@ -572,7 +573,10 @@ const useStore = create<IStore>((set, get) => ({
   },
 
   setTestResult: (status, logs) => {
-    set({ lastTestResult: { status: status, logs: logs } });
+    const {exercises}=get();
+    const copy = [...exercises];
+    copy[get().currentExercisePosition].done = status === "successful";
+    set({ exercises: copy });
   },
 
   setShouldBeTested: (value) => {
@@ -594,6 +598,7 @@ const useStore = create<IStore>((set, get) => ({
     };
     compilerSocket.emit("test", data);
     set({ shouldBeTested: false });
+    
 
     if (opts && opts.setFeedbackButton)
       setFeedbackButtonProps("Running...", "palpitate");

@@ -39,6 +39,7 @@ interface IExerciseMessages {
 export type TExercise = {
     slug: string
     translations: object
+    done: boolean
 }
 
 
@@ -126,7 +127,7 @@ export interface IStore {
     setToken: (newToken: string) => void
     setBuildButtonText: (t: string, c: string) => void
     setFeedbackButtonProps: (t: string, c: string) => void
-    fetchSingleExerciseInfo: (index: number) => void
+    fetchSingleExerciseInfo: (index: number) => TExercise
     toggleFeedback: () => void
     fetchExercises: () => void
     getLessonTitle: () => void
