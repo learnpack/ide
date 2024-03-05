@@ -1,7 +1,7 @@
 import SimpleButton from "../../mockups/Button";
 import useStore from "../../../utils/store";
 import { svgs } from "../../../assets/svgs";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Modal } from "../../mockups/Modal";
 import "./styles.css"
 
@@ -32,6 +32,10 @@ const ResetModal = ({ toggleModal }: IResetModal) => {
         currentExercisePosition: state.currentExercisePosition
     
     }));
+
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    })
 
     const handleReset = () => {
         const data = {

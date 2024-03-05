@@ -1,3 +1,11 @@
+.iframe-zoomeable {
+  overflow: scroll;
+  resize: both;
+  width: 460px;
+  height: 315px;
+  position: relative;
+}
+
 /* Modal styles */
 .video-modal {
   display: flex;
@@ -132,7 +140,6 @@
     > .chat-footer {
       font-size: smaller;
       color: var(--font-color-secondary);
-      
     }
   }
   & .next-button {

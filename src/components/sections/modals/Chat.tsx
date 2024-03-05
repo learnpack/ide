@@ -4,16 +4,16 @@ import { convertMarkdownToHTML } from "../../../utils/lib";
 import { svgs } from "../../../assets/svgs";
 import { removeSpecialCharacters } from "../../../utils/lib";
 
-
-const chat_static_text= {
+const chat_static_text = {
   "en-US": {
-    disclaimer: "This AI, currently in beta, serves as an educational tutor. It is not a substitute for professional instruction. Use at your own risk and confirm details with authoritative educational resources."
-  
+    disclaimer:
+      "This AI, currently in beta, serves as an educational tutor. It is not a substitute for professional instruction. Use at your own risk and confirm details with authoritative educational resources.",
   },
   "sp-ES": {
-    disclaimer: "Esta AI, actualmente en beta, sirve como tutor educativo. No es un sustituto de la instrucción profesional. Úselo bajo su propio riesgo y confirme los detalles con recursos educativos autorizados."
-  }
-}
+    disclaimer:
+      "Esta AI, actualmente en beta, sirve como tutor educativo. No es un sustituto de la instrucción profesional. Úselo bajo su propio riesgo y confirme los detalles con recursos educativos autorizados.",
+  },
+};
 type TAIInteraction = {
   student_message?: string;
   starting_at?: number;
@@ -22,7 +22,7 @@ type TAIInteraction = {
   ending_at?: number;
 };
 
-let aiInteraction:TAIInteraction = {}
+let aiInteraction: TAIInteraction = {};
 
 export default function Chat() {
   const backdropRef = useRef<HTMLDivElement>(null);
@@ -44,7 +44,7 @@ export default function Chat() {
     runExerciseTests,
     compilerSocket,
     shouldBeTested,
-    registerAIInteraction
+    registerAIInteraction,
   } = useStore((state) => ({
     setOpenedModals: state.setOpenedModals,
     currentExercisePosition: state.currentExercisePosition,
@@ -75,14 +75,13 @@ export default function Chat() {
   const [userMessage, setUserMessage] = useState("");
   const [userMessageCache, setUserMessageCache] = useState("");
 
-
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
 
     if (conversationIdsCache[currentExercisePosition] == undefined) {
       startConversation(currentExercisePosition);
     }
-    
+
     window.scrollTo({ top: 0, behavior: "smooth" });
 
     return () => {
@@ -112,6 +111,11 @@ export default function Chat() {
       }
     });
 
+    const chatMessagesContainer = document.querySelector(".chat-messages");
+    if (chatMessagesContainer) {
+      chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+    }
+    
     return () => {
       chatSocket.off("response");
       chatSocket.off("responseFinished");
@@ -203,7 +207,6 @@ export default function Chat() {
     setMessages((prev) => [...prev, { type: "bot", text: "" }]);
 
     const messageData = await getMessageData();
-    
 
     if (testResult) {
       messageData.message.context += `\n${testResult}`;

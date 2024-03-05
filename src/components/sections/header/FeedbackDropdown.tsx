@@ -143,7 +143,7 @@ export const FeedbackDropdown = ({
         Feedback plays an important role when learning technical skills.
         <OpenWindowLink
           text="Learn why"
-          href="https://4geeks.com/docs/learnpack"
+          href="https://4geeks.com/mastering-technical-knowledge#feedback-quality-and-frequency"
         />
       </p>
     </div>
