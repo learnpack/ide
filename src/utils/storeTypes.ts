@@ -54,7 +54,6 @@ type TCheckParamsOptions = {
 
 type TOpenedModals = {
     [key: string]: boolean
-
 }
 
 type TCheckLoggedStatusOptions = {
@@ -100,6 +99,8 @@ export interface IStore {
     host: string
     isTesteable: boolean
     isBuildable: boolean
+    hasSolution: boolean
+    currentSolution: string
     chatSocket: any
     conversationIdsCache: TNumberCache
     openedModals: TOpenedModals
@@ -129,6 +130,7 @@ export interface IStore {
     setFeedbackButtonProps: (t: string, c: string) => void
     fetchSingleExerciseInfo: (index: number) => TExercise
     toggleFeedback: () => void
+
     fetchExercises: () => void
     getLessonTitle: () => void
     setPosition: (position: number) => void

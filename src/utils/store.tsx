@@ -12,7 +12,7 @@ import {
   getHost,
   getParamsObject,
   replaceSlot,
-  startRecording
+  startRecording,
 } from "./lib";
 import Socket from "./socket";
 import { IStore } from "./storeTypes";
@@ -28,7 +28,7 @@ class MissingRigobotAccountError extends Error {
 }
 
 const HOST = getHost();
-Socket.start(HOST, disconnected, onConnectCli) 
+Socket.start(HOST, disconnected, onConnectCli);
 
 const FASTAPI_HOST = "https://chat.4geeks.com";
 // const FASTAPI_HOST = "http://localhost:8000";
@@ -58,6 +58,7 @@ const useStore = create<IStore>((set, get) => ({
   lessonTitle: "",
   numberOfExercises: 0,
   solvedExercises: 0,
+  hasSolution: false,
   shouldBeTested: false,
   status: "",
   showFeedback: false,
@@ -297,22 +298,26 @@ const useStore = create<IStore>((set, get) => ({
     const respose = await getExercise(slug);
     const exercise = await respose.json();
 
-    // console.log(exercise);
-    
     let isTesteable = exercise.graded;
     let isBuildable = true;
+    let hasSolution = false;
 
     if (!exercise.language) isBuildable = false;
     // TODO: check if the exercise is buildable based in the language and the entry file
-    
+    const solutionFile = exercise.files.find((file) =>
+      file.name.includes("solution.hide")
+    );
 
-    // exercise.files.forEach((file) => {
-    //   if ((file.name.includes("tests") || file.name.includes("test")) && !file.name("conftest")) {
-    //     isTesteable = true;
-    //   }
-    // });
-
-    set({ isTesteable: isTesteable, isBuildable: isBuildable });
+    if (solutionFile) {
+      hasSolution = true;
+      let solution = await getFileContent(slug, solutionFile.name);
+      set({ currentSolution: solution });
+    }
+    set({
+      isTesteable: isTesteable,
+      isBuildable: isBuildable,
+      hasSolution: hasSolution,
+    });
     return exercise;
   },
 
@@ -573,7 +578,7 @@ const useStore = create<IStore>((set, get) => ({
   },
 
   setTestResult: (status, logs) => {
-    const {exercises}=get();
+    const { exercises } = get();
     const copy = [...exercises];
     copy[get().currentExercisePosition].done = status === "successful";
     set({ exercises: copy });
@@ -598,7 +603,6 @@ const useStore = create<IStore>((set, get) => ({
     };
     compilerSocket.emit("test", data);
     set({ shouldBeTested: false });
-    
 
     if (opts && opts.setFeedbackButton)
       setFeedbackButtonProps("Running...", "palpitate");
@@ -615,13 +619,11 @@ const useStore = create<IStore>((set, get) => ({
       stepPosition,
       event: "ai_interaction",
       eventData: interaction,
-    }
+    };
     console.log("telemetryData", telemetryData);
     compilerSocket.emit("ai_interaction", telemetryData);
   },
   test: async () => {
-    
-
     startRecording();
   },
 }));

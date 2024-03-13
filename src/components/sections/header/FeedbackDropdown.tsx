@@ -16,7 +16,6 @@ export const FeedbackDropdown = ({
     compilerSocket,
     token,
     setFeedbackButtonProps,
-    // fetchExercises,
     videoTutorial,
     setShowVideoTutorial,
     isTesteable,
@@ -27,6 +26,7 @@ export const FeedbackDropdown = ({
     bc_token,
     openLink,
     checkRigobotInvitation,
+    hasSolution,
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     token: state.token,
@@ -35,7 +35,6 @@ export const FeedbackDropdown = ({
     configObject: state.configObject,
     videoTutorial: state.videoTutorial,
     setShowVideoTutorial: state.setShowVideoTutorial,
-    getCurrentExercise: state.getCurrentExercise,
     isTesteable: state.isTesteable,
     setOpenedModals: state.setOpenedModals,
     runExerciseTests: state.runExerciseTests,
@@ -45,6 +44,8 @@ export const FeedbackDropdown = ({
     openLink: state.openLink,
     clearBcToken: state.clearBcToken,
     checkRigobotInvitation: state.checkRigobotInvitation,
+    hasSolution: state.hasSolution,
+    currentSolution: state.currentSolution,
   }));
 
   let debounceSuccess = debounce((data: any) => {
@@ -53,7 +54,7 @@ export const FeedbackDropdown = ({
     toastFromStatus("testing-success");
     setFeedbackButtonProps("Succeded", "bg-success text-white");
   }, 100);
-  
+
   let debouncedError = debounce((data: any) => {
     const stdout = removeSpecialCharacters(data.logs[0]);
     setTestResult("failed", stdout);
@@ -95,6 +96,16 @@ export const FeedbackDropdown = ({
     checkRigobotInvitation();
   };
 
+  const openSolutionFile = () => {
+    setOpenedModals({ solution: true });
+
+    // const data = {
+    //   exerciseSlug: getCurrentExercise().slug,
+    //   files: ["solution.hide.py"],
+    // };
+    // compilerSocket.emit("open", data);
+  };
+
   return (
     <div className="feedback-dropdown">
       {
@@ -126,6 +137,13 @@ export const FeedbackDropdown = ({
           action={openLoginModal}
         />
       )}
+      <SimpleButton
+        text={
+          hasSolution ? "Review model solution" : "Model solution not available"
+        }
+        svg={svgs.solutionIcon}
+        action={hasSolution ? openSolutionFile : ()=>{}}
+      />
       <SimpleButton
         text={`Video tutorial ${videoTutorial ? "" : "(not available)"}`}
         disabled={!videoTutorial}

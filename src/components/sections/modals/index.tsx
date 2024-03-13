@@ -4,6 +4,7 @@ import LoginModal from "./LoginModal"
 import SocketDisconnectionModal from "./SocketDisconnectionModal"
 import useStore from "../../../utils/store"
 import { RigobotInviteModal } from "./RigobotInvite"
+import { SolutionModal } from "./Solution"
 
 export const ModalsContainer = () => {
     const { openedModals, token } = useStore(state => ({
@@ -22,6 +23,9 @@ export const ModalsContainer = () => {
             }
             {
                 openedModals.rigobotInvite && <RigobotInviteModal />
+            }
+            {
+                openedModals.solution && <SolutionModal />
             }
         </>
 

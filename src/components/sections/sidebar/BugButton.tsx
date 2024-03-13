@@ -1,9 +1,6 @@
 "use client";
 import useStore from "../../../utils/store";
-// import { svgs } from "../../../assets/svgs";
-// import SimpleButton from "../../mockups/Button";
 import { OpenWindowLink } from "../../composites/OpenWindowLink";
-
 
 export default function BugButton() {
     const { currentExercisePosition, exercises, lessonTitle } = useStore(state => ({
@@ -24,20 +21,5 @@ export default function BugButton() {
 
     `
     const url = `https://github.com/learnpack/learnpack/issues/new?assignees=&labels=&projects=&template=bug_report.md&title=${defaultTitle}&body=${body}`
-
-    // const reportBug = () => {
-    //     console.log("Report link here", url);
-        
-    //     const data = {
-    //         url,
-    //         exerciseSlug: exercises[currentExercisePosition].slug
-    //     }
-
-    //     compilerSocket.openWindow(data);
-    // }
-    // return <SimpleButton svg={svgs.bugIcon} text={
-    //     "Report a bug"
-    // } action={reportBug} />
-
     return <OpenWindowLink href={url} text="Report a bug 🪰" />
 }

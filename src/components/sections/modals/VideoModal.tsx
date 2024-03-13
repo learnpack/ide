@@ -10,10 +10,6 @@ const VideoModal: React.FC<IVideoModalProps> = ({ link, hideModal }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
   const handleClickOutside = (event: any) => {
-    console.log("Clicked outside");
-    // console.log(event.target);
-    console.log(modalRef.current == event.target);
-
     if (modalRef.current == event.target) {
       console.log("Clicked outsid");
       hideModal();
