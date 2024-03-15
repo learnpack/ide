@@ -3,6 +3,7 @@ import { svgs } from "../../../assets/svgs";
 import useStore from "../../../utils/store";
 import { useState, useRef, useEffect } from "react";
 import { OpenWindowLink } from "../../composites/OpenWindowLink";
+import { useTranslation } from "react-i18next";
 
 export default function LoginModal() {
   const { setOpenedModals, loginToRigo } = useStore((state) => ({
@@ -14,6 +15,7 @@ export default function LoginModal() {
     loginToRigo: state.loginToRigo,
   }));
 
+  const { t } = useTranslation();
   const backdropRef = useRef<HTMLDivElement>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -55,9 +57,7 @@ export default function LoginModal() {
           <h2>Login</h2>
           <div>
             <p>
-              To use the AI services you must login with your{" "}
-              <strong>4geeks</strong> account, and you have been accepted{" "}
-              <strong>Rigobot</strong>
+              {t("To use the AI services you must login with your 4geeks account, and you have been accepted Rigobot")}
             </p>
             <SimpleButton
               action={() => {
@@ -77,7 +77,7 @@ export default function LoginModal() {
             />
             <div>
               <input
-                placeholder="Password"
+                placeholder={t("Password")}
                 // type={passwordInputType}
                 type={"password"}
                 name="password"
@@ -88,13 +88,13 @@ export default function LoginModal() {
             </div>
 
             <SimpleButton
-              text={isLoading ? "Loading..." : "Submit"}
+              text={isLoading ? t("Loading...") : t("Submit")}
               action={login}
               extraClass="bg-blue"
             />
             <span>
-              If you don't have an account sign up{" "}
-              <OpenWindowLink text="here" href="https://4geeks.com/pricing" />{" "}
+              {t("Don't have an account? ")}
+              <OpenWindowLink text={t("Sign up here!")} href="https://4geeks.com/pricing" />{" "}
             </span>
           </form>
         </div>

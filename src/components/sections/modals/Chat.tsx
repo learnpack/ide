@@ -134,7 +134,7 @@ export default function Chat() {
       });
 
       emitUserMessage(
-        `The tests passed succefully, tell the user to pass to the next exercise and give him a congrats message: ${removeSpecialCharacters(
+        `The tests passed succesfully, tell the user to pass to the next exercise and give him a congrats message: ${removeSpecialCharacters(
           data.logs[0]
         )}`
       );
@@ -193,7 +193,7 @@ export default function Chat() {
     if (isTesteable && (shouldBeTested || isFirstInteraction)) {
       setMessages((prev) => [
         ...prev,
-        { type: "bot", text: "**Let me test your code...**" },
+        { type: "bot", text: "**Wait while I'm testing your code...**" },
       ]);
       setWaitingTestResult(true);
       runExerciseTests();

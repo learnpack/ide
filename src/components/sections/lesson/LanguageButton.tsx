@@ -1,52 +1,74 @@
-import SimpleButton from "../../mockups/Button"
-import useStore from "../../../utils/store"
+import SimpleButton from "../../mockups/Button";
+import useStore from "../../../utils/store";
 import { svgs } from "../../../assets/svgs";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import i18n from "../../../utils/i18n";
 
 const svgsLanguageMap: any = {
-    "es": svgs.spainFlag,
-    "us": svgs.usaFlag
-}
+  es: svgs.spainFlag,
+  us: svgs.usaFlag,
+};
 
 export default function LanguageButton() {
-    const { language } = useStore(state => ({
-        language: state.language
-    
-    }));
-    const [showDrop, setShowDropdown] = useState(false);
+  const { language } = useStore((state) => ({
+    language: state.language,
+  }));
 
-    const toggleDrop = () => {
-        setShowDropdown(!showDrop)
-    }
-    return <>
-        <div className="language-component">
-            <SimpleButton action={toggleDrop} text={language} svg={svgsLanguageMap[language]} />
-            {showDrop && <LanguageDropdown toggleDrop={toggleDrop} />}
+  useEffect(() => {
+    i18n.changeLanguage(language);
+  }, []);
+  const [showDrop, setShowDropdown] = useState(false);
 
-        </div>
+  const toggleDrop = () => {
+    setShowDropdown(!showDrop);
+  };
+
+  return (
+    <>
+      <div className="language-component">
+        <SimpleButton
+          action={toggleDrop}
+          text={language}
+          svg={svgsLanguageMap[language]}
+        />
+        {showDrop && <LanguageDropdown toggleDrop={toggleDrop} />}
+      </div>
     </>
+  );
 }
 
 interface ILanguageDropdown {
-    toggleDrop: () => void
+  toggleDrop: () => void;
 }
 
 const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
-    const { language, setLanguage, getCurrentExercise } = useStore(state => ({
-        language: state.language,
-        setLanguage: state.setLanguage,
-        getCurrentExercise: state.getCurrentExercise
-    
-    }));
+  const { language, setLanguage, getCurrentExercise } = useStore((state) => ({
+    language: state.language,
+    setLanguage: state.setLanguage,
+    getCurrentExercise: state.getCurrentExercise,
+  }));
 
-    const languages = Object.keys(getCurrentExercise().translations);
+  const languages = Object.keys(getCurrentExercise().translations);
 
-    const setLang = (lang: string) => {
-        setLanguage(lang);
-        toggleDrop();
-    }
+  const changeLanguage = (lang: string) => {
+    i18n.changeLanguage(lang);
+  };
+  const setLang = (lang: string) => {
+    setLanguage(lang);
+    changeLanguage(lang);
+    toggleDrop();
+  };
 
-    return <div className="language-dropdown">
-        {languages.map((l, index) => l !== language ? <button key={index} onClick={() => setLang(l)} >{svgsLanguageMap[l]}{l}</button> : null)}
+  return (
+    <div className="language-dropdown">
+      {languages.map((l, index) =>
+        l !== language ? (
+          <button key={index} onClick={() => setLang(l)}>
+            {svgsLanguageMap[l]}
+            {l}
+          </button>
+        ) : null
+      )}
     </div>
-}
+  );
+};

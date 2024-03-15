@@ -4,6 +4,7 @@ import { svgs } from "../../../assets/svgs";
 
 import SimpleButton from "../../mockups/Button";
 import { OpenWindowLink } from "../../composites/OpenWindowLink";
+import { useTranslation } from "react-i18next";
 
 interface IFeedbackDropdown {
   toggleFeedbackVisibility: () => void;
@@ -27,6 +28,7 @@ export const FeedbackDropdown = ({
     openLink,
     checkRigobotInvitation,
     hasSolution,
+    getCurrentExercise
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     token: state.token,
@@ -46,7 +48,10 @@ export const FeedbackDropdown = ({
     checkRigobotInvitation: state.checkRigobotInvitation,
     hasSolution: state.hasSolution,
     currentSolution: state.currentSolution,
+    getCurrentExercise: state.getCurrentExercise,
   }));
+
+  const { t } = useTranslation();
 
   let debounceSuccess = debounce((data: any) => {
     const stdout = removeSpecialCharacters(data.logs[0]);
@@ -59,7 +64,7 @@ export const FeedbackDropdown = ({
     const stdout = removeSpecialCharacters(data.logs[0]);
     setTestResult("failed", stdout);
     toastFromStatus("testing-error");
-    setFeedbackButtonProps("Try again", "bg-fail text-white");
+    setFeedbackButtonProps(t("Try again"), "bg-fail text-white");
   }, 100);
 
   const runTests = () => {
@@ -97,13 +102,13 @@ export const FeedbackDropdown = ({
   };
 
   const openSolutionFile = () => {
-    setOpenedModals({ solution: true });
+    // setOpenedModals({ solution: true });
 
-    // const data = {
-    //   exerciseSlug: getCurrentExercise().slug,
-    //   files: ["solution.hide.py"],
-    // };
-    // compilerSocket.emit("open", data);
+    const data = {
+      exerciseSlug: getCurrentExercise().slug,
+      files: ["README.md"],
+    };
+    compilerSocket.emit("open", data);
   };
 
   return (
@@ -111,14 +116,14 @@ export const FeedbackDropdown = ({
       {
         <SimpleButton
           svg={svgs.testIcon}
-          text="Run tests"
+          text={t("Run tests")}
           action={runTests}
           disabled={!isTesteable}
         />
       }
       {Boolean(token) ? (
         <SimpleButton
-          text="Get help from AI"
+        text={t("Get help from AI")}
           svg={svgs.brainIcon}
           action={showChat}
         />
@@ -126,41 +131,41 @@ export const FeedbackDropdown = ({
         <>
           <SimpleButton
             svg={svgs.brainIcon}
-            text="Get help from AI"
+            text={t("Get help from AI")}
             action={rigoAccepted}
           />
         </>
       ) : (
         <SimpleButton
           svg={svgs.fourGeeksIcon}
-          text="Login to use AI feedback"
+          text={t("Login to use AI feedback")}
           action={openLoginModal}
         />
       )}
       <SimpleButton
         text={
-          hasSolution ? "Review model solution" : "Model solution not available"
+          hasSolution ? t("Review model solution") : t("Model solution not available")
         }
         svg={svgs.solutionIcon}
+        disabled={!hasSolution}
         action={hasSolution ? openSolutionFile : ()=>{}}
       />
       <SimpleButton
-        text={`Video tutorial ${videoTutorial ? "" : "(not available)"}`}
+        text={`Video tutorial ${videoTutorial ? "" : t("not available")}`}
         disabled={!videoTutorial}
         svg={svgs.videoIcon}
         action={redirectToVideo}
       />
       <SimpleButton
-        text={`About LearnPack`}
-        disabled={!videoTutorial}
+        text={t("About LearnPack")}
         svg={svgs.fourGeeksIcon}
         action={openLearnpackDocs}
       />
 
       <p>
-        Feedback plays an important role when learning technical skills.
+        {t("Feedback plays an important role when learning technical skills. ")}
         <OpenWindowLink
-          text="Learn why"
+          text={t("Learn why")}
           href="https://4geeks.com/mastering-technical-knowledge#feedback-quality-and-frequency"
         />
       </p>

@@ -80,6 +80,8 @@
 
 .simple-button-svg {
   max-height: 100% !important;
+  display: flex;
+  align-items: center;
   gap: 10px;
   &:disabled {
     opacity: 0.5;

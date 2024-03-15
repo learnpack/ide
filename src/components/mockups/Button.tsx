@@ -9,6 +9,6 @@ interface ButtonProps {
 export default function SimpleButton({text, action, svg, extraClass, disabled}: ButtonProps) {
     return <button disabled={Boolean(disabled)} className={`simple-button-svg ${extraClass}`} onClick={action}>
         {svg}
-        {text}
+        <span>{text}</span>
     </button>
 }

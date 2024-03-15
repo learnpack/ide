@@ -6,6 +6,7 @@ import { svgs } from "../../../assets/svgs";
 import { useState } from "react"
 import { createPortal } from "react-dom";
 import packageInfo from '../../../../package.json';
+import { useTranslation } from "react-i18next";
 import "./styles.css"
 const version = packageInfo.version;
 let versionSections = version.split(".");
@@ -14,6 +15,7 @@ versionSections[2] = String(parseInt(versionSections[2]) + 1);
 
 
 export default function Sidebar() {
+    const { t } = useTranslation();
     const { numberOfExercises, solvedExercises, configObject, language, lessonTitle } = useStore(state => ({
         numberOfExercises: state.numberOfExercises,
         solvedExercises: state.solvedExercises,
@@ -46,14 +48,14 @@ export default function Sidebar() {
                         <h2>{title}</h2>
                     </section>
                     <section className="">
-                        <p>{solvedExercises}/{numberOfExercises} Solved exercises</p>
+                        <p>{solvedExercises}/{numberOfExercises} {t("Solved exercises")}</p>
                         <SimpleButton action={closeSidebar} svg={svgs.closeIcon} />
                     </section>
                     <ExercisesList closeSidebar={closeSidebar} />
 
                     <section className="p-4 footer">
                         <BugButton />
-                        <span><strong>Current version</strong>: {versionSections.join(".")}</span>
+                        <span><strong>{t("Current version")}</strong>: {versionSections.join(".")}</span>
                     </section>
 
                 </div>

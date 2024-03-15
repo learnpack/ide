@@ -3,10 +3,10 @@ import SimpleButton from "../../mockups/Button";
 import { svgs } from "../../../assets/svgs";
 import useStore from "../../../utils/store";
 import { FeedbackDropdown } from "./FeedbackDropdown";
-
+import { useTranslation } from "react-i18next";
 export default function FeedbackButton(): JSX.Element {
     const feedbackbuttonProps = useStore(state => state.feedbackbuttonProps);
-
+    const { t } = useTranslation();
 
     const [showFeedback, setShowFeedback] = useState(false);
     let hideFeedbackTimeout: ReturnType<typeof setTimeout>;
@@ -30,7 +30,7 @@ export default function FeedbackButton(): JSX.Element {
             {showFeedback && <FeedbackDropdown toggleFeedbackVisibility={toggleFeedback} />}
 
             <SimpleButton text={
-                <span>{feedbackbuttonProps.text}</span>
+                <span>{t(feedbackbuttonProps.text)}</span>
             } svg={svgs.feedbackIcon} extraClass={`pill border-blue color-blue row-reverse ${feedbackbuttonProps.className}`} action={toggleFeedback} />
         </div>
     )
