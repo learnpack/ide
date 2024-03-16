@@ -3,7 +3,7 @@ import { svgs } from "../../../assets/svgs";
 import { getStatus } from "../../../utils/socket";
 import useStore from "../../../utils/store";
 import { toast } from "react-hot-toast";
-
+import { useTranslation } from "react-i18next";
 function debounce(func: any, wait: any) {
   let timeout: any;
   return function executedFunction(...args: any[]) {
@@ -17,6 +17,7 @@ function debounce(func: any, wait: any) {
 }
 
 export default function BuildButton() {
+  const { t } = useTranslation();
   const {
     currentExercisePosition,
     exercises,
@@ -35,7 +36,7 @@ export default function BuildButton() {
 
   const build = () => {
     // buildFiredAt = Date.now();
-    setBuildButtonText("Running...", "");
+    setBuildButtonText(t("Running..."), "");
     const [icon, message] = getStatus("compiling");
     toast.success(message, { icon: icon });
 
@@ -47,7 +48,7 @@ export default function BuildButton() {
     let compilerErrorHandler = debounce((data: any) => {
       data;
       // const stdout = data.logs[0];
-      setBuildButtonText("Try again", "bg-fail");
+      setBuildButtonText(t("Try again"), "bg-fail");
       const [icon, message] = getStatus("compiler-error");
       toast.error(message, { icon: icon });
 
@@ -57,7 +58,7 @@ export default function BuildButton() {
       data;
       const [icon, message] = getStatus("compiler-success");
       toast.success(message, { icon: icon });
-      setBuildButtonText("Run", "bg-success");
+      setBuildButtonText(t("Run"), "bg-success");
     }, 100);
 
     compilerSocket.onStatus("compiler-error", compilerErrorHandler);
@@ -66,7 +67,7 @@ export default function BuildButton() {
 
   return (
     <SimpleButton
-      text={<span>{buildbuttonText.text}</span>}
+      text={t(buildbuttonText.text)}
       svg={svgs.buildIcon}
       extraClass={`pill bg-blue ${buildbuttonText.className}`}
       action={build}

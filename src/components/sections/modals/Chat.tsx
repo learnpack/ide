@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { convertMarkdownToHTML } from "../../../utils/lib";
 import { svgs } from "../../../assets/svgs";
 import { removeSpecialCharacters } from "../../../utils/lib";
-
+// import { useTranslation } from "react-i18next";
 const chat_static_text = {
   "en-US": {
     disclaimer:

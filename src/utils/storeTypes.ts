@@ -37,6 +37,7 @@ interface IExerciseMessages {
 }
 
 export type TExercise = {
+    files: any
     slug: string
     translations: object
     done: boolean

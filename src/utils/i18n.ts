@@ -8,7 +8,9 @@ i18n
     resources: {
       en: {
         translation: {
+          "Run": "Run",
           "Run tests": "Run tests",
+          "Running...": "Running...",
           "Login to use AI feedback": "Login to use AI feedback",
           "Get help from AI": "Get help from AI",
           "To use the AI services you must login with your 4geeks account, and you have been accepted Rigobot": "To use the AI services you must login with your 4geeks account, and you have been accepted Rigobot",
@@ -35,7 +37,9 @@ i18n
       },
       es: {
         translation: {
-          "Run tests": "Run tests",
+          "Run": "Ejecutar",
+          "Running...": "Ejecutando...",
+          "Run tests": "Ejecutar tests",
           "Login to use AI feedback": "Inicia sesión para obtener ayuda de la IA",
           "Get help from AI": "Obtener ayuda de la IA",
           "To use the AI services you must login with your 4geeks account, and you have been accepted Rigobot": "Para usar los servicios de IA, debes iniciar sesión con tu cuenta de 4geeks y haber aceptado los servicios de Rigobot",
