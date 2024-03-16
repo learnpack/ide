@@ -106,7 +106,7 @@ export const FeedbackDropdown = ({
     const solutionFile = getCurrentExercise().files.find((file: any) => file.name.includes("solution.hide"));
     const data = {
       exerciseSlug: getCurrentExercise().slug,
-      files: [solutionFile.path, "README.md"],
+      files: [solutionFile.path],
     };
     compilerSocket.emit("open", data);
   };
