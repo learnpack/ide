@@ -18,7 +18,7 @@ export const FeedbackDropdown = ({
     token,
     setFeedbackButtonProps,
     videoTutorial,
-    setShowVideoTutorial,
+
     isTesteable,
     setOpenedModals,
     runExerciseTests,
@@ -36,7 +36,7 @@ export const FeedbackDropdown = ({
     fetchExercises: state.fetchExercises,
     configObject: state.configObject,
     videoTutorial: state.videoTutorial,
-    setShowVideoTutorial: state.setShowVideoTutorial,
+    // setShowVideoTutorial: state.setShowVideoTutorial,
     isTesteable: state.isTesteable,
     setOpenedModals: state.setOpenedModals,
     runExerciseTests: state.runExerciseTests,
@@ -83,9 +83,10 @@ export const FeedbackDropdown = ({
   };
 
   const redirectToVideo = () => {
-    setShowVideoTutorial(true);
+    openLink(videoTutorial);    
     toggleFeedbackVisibility();
   };
+  
   const openLearnpackDocs = () => {
     const docsUrl = "https://4geeks.com/docs/learnpack";
     openLink(docsUrl);

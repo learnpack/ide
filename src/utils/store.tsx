@@ -85,7 +85,6 @@ const useStore = create<IStore>((set, get) => ({
   allowedActions: [],
   compilerSocket: Socket.createScope("compiler"),
   showVideoTutorial: false,
-  showChatModal: false,
   exerciseMessages: {},
   host: HOST,
   openedModals: {
@@ -135,9 +134,6 @@ const useStore = create<IStore>((set, get) => ({
     });
   },
 
-  setShowChatModal: (show: boolean) => {
-    set({ showChatModal: show });
-  },
 
   setShowVideoTutorial: (show: boolean) => {
     set({ showVideoTutorial: show });
@@ -480,6 +476,7 @@ const useStore = create<IStore>((set, get) => ({
       setShowVideoTutorial,
       fetchSingleExerciseInfo,
       configObject,
+      openLink
     } = get();
 
     const slug = exercises[currentExercisePosition]?.slug;
@@ -495,13 +492,13 @@ const useStore = create<IStore>((set, get) => ({
     if (exercise.attributes.tutorial) {
       set({ videoTutorial: exercise.attributes.tutorial });
     } else if (exercise.attributes.intro) {
-      set({
-        videoTutorial: exercise.attributes.intro,
-        showVideoTutorial: true,
-      });
+      openLink(exercise.attributes.intro)
+      // set({
+      //   videoTutorial: exercise.attributes.intro,
+      //   showVideoTutorial: true,
+      // });
     } else {
-      set({ videoTutorial: "" });
-      setShowVideoTutorial(false);
+      set({ videoTutorial: "", showVideoTutorial: false});
     }
 
     const readme = replaceSlot(exercise.body, "{{publicUrl}}", HOST);

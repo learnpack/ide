@@ -95,7 +95,6 @@ export interface IStore {
     allowedActions: string[]
     videoTutorial: string
     showVideoTutorial: boolean
-    showChatModal: boolean
     exerciseMessages: IExerciseMessages
     host: string
     isTesteable: boolean
@@ -120,7 +119,6 @@ export interface IStore {
     loginToRigo: (loginInfo: TLoginInfo) => Promise<void | false>
     getCurrentExercise: () => TExercise
     setExerciseMessages: (messages: IMessage[], position: number) => void
-    setShowChatModal: (show: boolean) => void
     setShowVideoTutorial: (show: boolean) => void
     setAllowedActions: (actions: string[]) => void
     getConfigObject: () => void
@@ -131,7 +129,6 @@ export interface IStore {
     setFeedbackButtonProps: (t: string, c: string) => void
     fetchSingleExerciseInfo: (index: number) => TExercise
     toggleFeedback: () => void
-
     fetchExercises: () => void
     getLessonTitle: () => void
     setPosition: (position: number) => void
