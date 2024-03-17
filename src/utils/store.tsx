@@ -369,9 +369,9 @@ const useStore = create<IStore>((set, get) => ({
       conversationId = initialData.conversation_id;
     }
 
-    if (initialData && initialData.salute) {
-      set({ chatInitialMessage: initialData.salute });
-    }
+    // if (initialData && initialData.salute) {
+    //   set({ chatInitialMessage: initialData.salute });
+    // }
 
     set({
       conversationIdsCache: {
