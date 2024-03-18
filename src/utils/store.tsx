@@ -495,10 +495,10 @@ const useStore = create<IStore>((set, get) => ({
       set({ videoTutorial: exercise.attributes.tutorial });
     } else if (exercise.attributes.intro) {
       openLink(exercise.attributes.intro)
-      // set({
-      //   videoTutorial: exercise.attributes.intro,
-      //   showVideoTutorial: true,
-      // });
+      set({
+        videoTutorial: exercise.attributes.intro
+        // showVideoTutorial: true,
+      });
     } else {
       set({ videoTutorial: "", showVideoTutorial: false});
     }
