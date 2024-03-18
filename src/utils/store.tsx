@@ -237,6 +237,8 @@ const useStore = create<IStore>((set, get) => ({
       const config = await res.json();
 
       set({ exercises: config.exercises });
+      console.log("config", config.exercises);
+      
       set({ numberOfExercises: config.exercises.length });
       set({ lessonTitle: config.config.title.us });
     } catch (err) {
