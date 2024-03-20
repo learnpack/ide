@@ -27,8 +27,8 @@ export const FeedbackDropdown = ({
     bc_token,
     openLink,
     checkRigobotInvitation,
-    // hasSolution,
-    // getCurrentExercise
+    hasSolution,
+    getCurrentExercise
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     token: state.token,
@@ -102,15 +102,15 @@ export const FeedbackDropdown = ({
     checkRigobotInvitation();
   };
 
-  // const openSolutionFile = () => {
-  //   // setOpenedModals({ solution: true });
-  //   const solutionFile = getCurrentExercise().files.find((file: any) => file.name.includes("solution.hide"));
-  //   const data = {
-  //     exerciseSlug: getCurrentExercise().slug,
-  //     files: [solutionFile.path],
-  //   };
-  //   compilerSocket.emit("open", data);
-  // };
+  const openSolutionFile = () => {
+    // setOpenedModals({ solution: true });
+    const solutionFile = getCurrentExercise().files.find((file: any) => file.name.includes("solution.hide"));
+    const data = {
+      exerciseSlug: getCurrentExercise().slug,
+      files: [solutionFile.path],
+    };
+    compilerSocket.emit("open", data);
+  };
 
   return (
     <div className="feedback-dropdown">
@@ -143,14 +143,14 @@ export const FeedbackDropdown = ({
           action={openLoginModal}
         />
       )}
-      {/* <SimpleButton
+      <SimpleButton
         text={
           hasSolution ? t("Review model solution") : t("Model solution not available")
         }
         svg={svgs.solutionIcon}
         disabled={!hasSolution}
         action={hasSolution ? openSolutionFile : ()=>{}}
-      /> */}
+      />
       <SimpleButton
         text={`Video tutorial ${videoTutorial ? "" : t("not available")}`}
         disabled={!videoTutorial}
