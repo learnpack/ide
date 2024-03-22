@@ -1,5 +1,5 @@
 import { Remarkable } from "remarkable";
-
+import {linkify} from 'remarkable/linkify';
 export const DEV_MODE =false;
 
 export const RIGOBOT_API_URL = "https://rigobot.herokuapp.com";
@@ -16,13 +16,8 @@ const fullURL =
  */
 
 export const convertMarkdownToHTML = (markdown: any) => {
-  const md = new Remarkable();
-  // console.log("markdown", markdown);
-
-  // const linkRegex = /(?<!=")(https?:\/\/[^\s]+)/g;
-  // const linkRegex = /(?<!=[(])(https?:\/\/[^\s]+)/g;
-  // const formattedMarkdown = markdown.replace(linkRegex, "[$1]($1)");
-
+  // const md = new Remarkable({linkify: true});
+  const md = new Remarkable().use(linkify)
   let html = md.render(markdown);
   html = replaceSrc(html);
   return html;
