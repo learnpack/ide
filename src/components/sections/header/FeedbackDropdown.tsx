@@ -109,6 +109,8 @@ export const FeedbackDropdown = ({
       exerciseSlug: getCurrentExercise().slug,
       files: [solutionFile.path],
     };
+    console.log("Opening solution file", data);
+  
     compilerSocket.emit("open", data);
   };
 
