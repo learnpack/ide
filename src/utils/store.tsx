@@ -1,5 +1,6 @@
 // @ts-nocheck
 import io from "socket.io-client";
+import TagManager from "react-gtm-module";
 import { create } from "zustand";
 import {
   convertMarkdownToHTML,
@@ -134,7 +135,6 @@ const useStore = create<IStore>((set, get) => ({
     });
   },
 
-
   setShowVideoTutorial: (show: boolean) => {
     set({ showVideoTutorial: show });
   },
@@ -236,9 +236,15 @@ const useStore = create<IStore>((set, get) => ({
       const res = await fetch(`${HOST}/config`);
       const config = await res.json();
 
+      const slug = config.config.slug;
+      TagManager.dataLayer({
+        dataLayer: {
+          event: "start_exercise",
+          slug: slug,
+        },
+      });
+
       set({ exercises: config.exercises });
-      console.log("config", config.exercises);
-      
       set({ numberOfExercises: config.exercises.length });
       set({ lessonTitle: config.config.title.us });
     } catch (err) {
@@ -478,7 +484,7 @@ const useStore = create<IStore>((set, get) => ({
       setShowVideoTutorial,
       fetchSingleExerciseInfo,
       configObject,
-      openLink
+      openLink,
     } = get();
 
     const slug = exercises[currentExercisePosition]?.slug;
@@ -494,13 +500,13 @@ const useStore = create<IStore>((set, get) => ({
     if (exercise.attributes.tutorial) {
       set({ videoTutorial: exercise.attributes.tutorial });
     } else if (exercise.attributes.intro) {
-      openLink(exercise.attributes.intro)
+      openLink(exercise.attributes.intro);
       set({
-        videoTutorial: exercise.attributes.intro
+        videoTutorial: exercise.attributes.intro,
         // showVideoTutorial: true,
       });
     } else {
-      set({ videoTutorial: "", showVideoTutorial: false});
+      set({ videoTutorial: "", showVideoTutorial: false });
     }
 
     const readme = replaceSlot(exercise.body, "{{publicUrl}}", HOST);
@@ -619,7 +625,7 @@ const useStore = create<IStore>((set, get) => ({
       event: "ai_interaction",
       eventData: interaction,
     };
-    console.log("telemetryData", telemetryData);
+
     compilerSocket.emit("ai_interaction", telemetryData);
   },
   test: async () => {

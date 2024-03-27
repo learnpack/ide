@@ -4,6 +4,8 @@ import useStore from "../../../utils/store";
 import { useState, useRef, useEffect } from "react";
 import { OpenWindowLink } from "../../composites/OpenWindowLink";
 import { useTranslation } from "react-i18next";
+import TagManager from "react-gtm-module";
+
 
 export default function LoginModal() {
   const { setOpenedModals, loginToRigo } = useStore((state) => ({
@@ -50,6 +52,14 @@ export default function LoginModal() {
     }
   };
 
+  const sendAnalytics = () => {
+    TagManager.dataLayer({
+      dataLayer: {
+        event: "sign_up_attempt",
+      },
+    });
+  }
+
   return (
     <>
       <div ref={backdropRef} className="login-modal">
@@ -94,7 +104,7 @@ export default function LoginModal() {
             />
             <span>
               {t("Don't have an account? ")}
-              <OpenWindowLink text={t("Sign up here!")} href="https://4geeks.com/pricing" />{" "}
+              <OpenWindowLink callback={sendAnalytics} text={t("Sign up here!")} href="https://4geeks.com/pricing" />{" "}
             </span>
           </form>
         </div>
