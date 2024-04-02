@@ -71,7 +71,11 @@ type TTestResult = {
     status: TTestStatus
     logs: string
 }
-
+type TTranslations = {
+    testButtonSuccess: string
+    testButtonFailed: string
+    testButtonRunning: string
+}
 export interface IStore {
     exercises: any[]
     chatInitialMessage: string
@@ -105,8 +109,10 @@ export interface IStore {
     conversationIdsCache: TNumberCache
     openedModals: TOpenedModals
     lastTestResult: TTestResult
+    translations: TTranslations
     shouldBeTested: boolean
     start: () => void
+    setListeners: ()=>void
     checkRigobotInvitation: () => void
     clearBcToken: () => void
     openLink: (url: string) => void
@@ -131,6 +137,7 @@ export interface IStore {
     toggleFeedback: () => void
     fetchExercises: () => void
     getLessonTitle: () => void
+    build: (buildText: string) => void
     setPosition: (position: number) => void
     fetchReadme: () => void
     toggleSidebar: () => void
@@ -145,4 +152,5 @@ export interface IStore {
 type TRunExerciseTestsOptions = {
     toast: boolean
     setFeedbackButton: boolean
+    feedbackButtonText: string
 }

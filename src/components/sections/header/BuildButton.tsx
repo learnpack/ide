@@ -4,6 +4,8 @@ import { getStatus } from "../../../utils/socket";
 import useStore from "../../../utils/store";
 import { toast } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import { useEffect } from "react";
+
 function debounce(func: any, wait: any) {
   let timeout: any;
   return function executedFunction(...args: any[]) {
@@ -20,11 +22,11 @@ export default function BuildButton() {
   const { t } = useTranslation();
   const {
     currentExercisePosition,
-    exercises,
     compilerSocket,
     buildbuttonText,
     setBuildButtonText,
     isBuildable,
+    build
   } = useStore((state) => ({
     currentExercisePosition: state.currentExercisePosition,
     exercises: state.exercises,
@@ -32,45 +34,37 @@ export default function BuildButton() {
     buildbuttonText: state.buildbuttonText,
     setBuildButtonText: state.setBuildButtonText,
     isBuildable: state.isBuildable,
+    build: state.build,
   }));
 
-  const build = () => {
-    // buildFiredAt = Date.now();
-    setBuildButtonText(t("Running..."), "");
-    const [icon, message] = getStatus("compiling");
+ 
+
+  let compilerErrorHandler = debounce((data: any) => {
+    data;
+    // const stdout = data.logs[0];
+    setBuildButtonText(t("Try again"), "bg-fail");
+    const [icon, message] = getStatus("compiler-error");
+    toast.error(message, { icon: icon });
+  }, 100);
+
+  let compilerSuccessHandler = debounce((data: any) => {
+    data;
+    const [icon, message] = getStatus("compiler-success");
     toast.success(message, { icon: icon });
+    setBuildButtonText(t("Run"), "bg-success");
+  }, 100);
 
-    const data = {
-      exerciseSlug: exercises[currentExercisePosition].slug,
-    };
-
-    compilerSocket.emit("build", data);
-    let compilerErrorHandler = debounce((data: any) => {
-      data;
-      // const stdout = data.logs[0];
-      setBuildButtonText(t("Try again"), "bg-fail");
-      const [icon, message] = getStatus("compiler-error");
-      toast.error(message, { icon: icon });
-
-    }, 100);
-
-    let compilerSuccessHandler = debounce((data: any) => {
-      data;
-      const [icon, message] = getStatus("compiler-success");
-      toast.success(message, { icon: icon });
-      setBuildButtonText(t("Run"), "bg-success");
-    }, 100);
-
+  useEffect(() => {
     compilerSocket.onStatus("compiler-error", compilerErrorHandler);
     compilerSocket.onStatus("compiler-success", compilerSuccessHandler);
-  };
+  }, [currentExercisePosition]);
 
   return (
     <SimpleButton
       text={t(buildbuttonText.text)}
       svg={svgs.buildIcon}
       extraClass={`pill bg-blue ${buildbuttonText.className}`}
-      action={build}
+      action={()=>{build(t("Running..."))}}
       disabled={!isBuildable}
     />
   );

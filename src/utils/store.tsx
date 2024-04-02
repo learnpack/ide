@@ -14,6 +14,8 @@ import {
   getParamsObject,
   replaceSlot,
   startRecording,
+  debounce,
+  removeSpecialCharacters
 } from "./lib";
 import Socket from "./socket";
 import { IStore } from "./storeTypes";
@@ -65,6 +67,11 @@ const useStore = create<IStore>((set, get) => ({
   showFeedback: false,
   token: "",
   bc_token: "",
+  translations: {
+    testButtonSuccess: "Succeded",
+    testButtonFailed: "Try again",
+    testButtonRunning: "Running...",
+  },
   buildbuttonText: {
     text: "Run",
     className: "",
@@ -109,6 +116,7 @@ const useStore = create<IStore>((set, get) => ({
       token,
       checkLoggedStatus,
       currentExercisePosition,
+      setListeners
     } = get();
     fetchExercises()
       .then(() => {
@@ -121,7 +129,30 @@ const useStore = create<IStore>((set, get) => ({
       })
       .then(() => {
         checkLoggedStatus({ startConversation: true });
+      }).then(() => {
+        setListeners()
       });
+  },
+  setListeners: () => {
+    const { compilerSocket, setTestResult, toastFromStatus, setFeedbackButtonProps, translations } = get();
+
+    let debounceSuccess = debounce((data: any) => {
+      const stdout = removeSpecialCharacters(data.logs[0]);
+      setTestResult("successful", stdout);
+      toastFromStatus("testing-success");;
+      
+      setFeedbackButtonProps(translations.testButtonSuccess, "bg-success text-white");
+    }, 100);
+
+    let debouncedError = debounce((data: any) => {
+      const stdout = removeSpecialCharacters(data.logs[0]);
+      setTestResult("failed", stdout);
+      toastFromStatus("testing-error");
+      setFeedbackButtonProps(translations.testButtonFailed, "bg-fail text-white");
+    }, 100);
+
+    compilerSocket.onStatus("testing-success", debounceSuccess);
+    compilerSocket.onStatus("testing-error", debouncedError);
   },
 
   getCurrentExercise: () => {
@@ -592,7 +623,17 @@ const useStore = create<IStore>((set, get) => ({
   setShouldBeTested: (value) => {
     set({ shouldBeTested: value });
   },
+  build: (buildText) => {
+    const { setBuildButtonText, compilerSocket, getCurrentExercise } = get();
+    setBuildButtonText(buildText, "");
+    const [icon, message] = getStatus("compiling");
+    toast.success(message, { icon: icon });
 
+    const data = {
+      exerciseSlug: getCurrentExercise().slug,
+    };
+    compilerSocket.emit("build", data);
+  },
   runExerciseTests: (opts) => {
     // This function will run the exercises tests and store the results in the state
     const {
@@ -607,10 +648,12 @@ const useStore = create<IStore>((set, get) => ({
       exerciseSlug: getCurrentExercise().slug,
     };
     compilerSocket.emit("test", data);
+    console.log("Test attempting to run succesfully");
+
     set({ shouldBeTested: false });
 
     if (opts && opts.setFeedbackButton)
-      setFeedbackButtonProps("Running...", "palpitate");
+      setFeedbackButtonProps(opts.feedbackButtonText, "palpitate");
     if (opts && opts.toast) toastFromStatus("testing");
   },
 

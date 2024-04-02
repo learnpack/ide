@@ -10,7 +10,6 @@ export default function LessonContent() {
 
     useEffect(() => {
         start();
-
     }, [])
 
     useEffect(() => {

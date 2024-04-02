@@ -1,7 +1,7 @@
-import { debounce, removeSpecialCharacters } from "../../../utils/lib";
+// import { debounce, removeSpecialCharacters } from "../../../utils/lib";
+// import { useEffect } from "react";
 import useStore from "../../../utils/store";
 import { svgs } from "../../../assets/svgs";
-
 import SimpleButton from "../../mockups/Button";
 import { OpenWindowLink } from "../../composites/OpenWindowLink";
 import { useTranslation } from "react-i18next";
@@ -16,19 +16,19 @@ export const FeedbackDropdown = ({
   const {
     compilerSocket,
     token,
-    setFeedbackButtonProps,
+    // setFeedbackButtonProps,
     videoTutorial,
-
     isTesteable,
     setOpenedModals,
     runExerciseTests,
-    setTestResult,
-    toastFromStatus,
+    // setTestResult,
+    // toastFromStatus,
     bc_token,
     openLink,
     checkRigobotInvitation,
     hasSolution,
-    getCurrentExercise
+    getCurrentExercise,
+    // currentExercisePosition,
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     token: state.token,
@@ -36,7 +36,6 @@ export const FeedbackDropdown = ({
     fetchExercises: state.fetchExercises,
     configObject: state.configObject,
     videoTutorial: state.videoTutorial,
-    // setShowVideoTutorial: state.setShowVideoTutorial,
     isTesteable: state.isTesteable,
     setOpenedModals: state.setOpenedModals,
     runExerciseTests: state.runExerciseTests,
@@ -49,32 +48,18 @@ export const FeedbackDropdown = ({
     hasSolution: state.hasSolution,
     currentSolution: state.currentSolution,
     getCurrentExercise: state.getCurrentExercise,
+    currentExercisePosition: state.currentExercisePosition,
   }));
 
   const { t } = useTranslation();
-
-  let debounceSuccess = debounce((data: any) => {
-    const stdout = removeSpecialCharacters(data.logs[0]);
-    setTestResult("successful", stdout);
-    toastFromStatus("testing-success");
-    setFeedbackButtonProps("Succeded", "bg-success text-white");
-  }, 100);
-
-  let debouncedError = debounce((data: any) => {
-    const stdout = removeSpecialCharacters(data.logs[0]);
-    setTestResult("failed", stdout);
-    toastFromStatus("testing-error");
-    setFeedbackButtonProps(t("Try again"), "bg-fail text-white");
-  }, 100);
 
   const runTests = () => {
     toggleFeedbackVisibility();
     runExerciseTests({
       toast: true,
       setFeedbackButton: true,
+      feedbackButtonText: t("Running..."),
     });
-    compilerSocket.onStatus("testing-success", debounceSuccess);
-    compilerSocket.onStatus("testing-error", debouncedError);
   };
 
   const openLoginModal = () => {
@@ -83,10 +68,10 @@ export const FeedbackDropdown = ({
   };
 
   const redirectToVideo = () => {
-    openLink(videoTutorial);    
+    openLink(videoTutorial);
     toggleFeedbackVisibility();
   };
-  
+
   const openLearnpackDocs = () => {
     const docsUrl = "https://4geeks.com/docs/learnpack";
     openLink(docsUrl);
@@ -104,13 +89,13 @@ export const FeedbackDropdown = ({
 
   const openSolutionFile = () => {
     // setOpenedModals({ solution: true });
-    const solutionFile = getCurrentExercise().files.find((file: any) => file.name.includes("solution.hide"));
+    const solutionFile = getCurrentExercise().files.find((file: any) =>
+      file.name.includes("solution.hide")
+    );
     const data = {
       exerciseSlug: getCurrentExercise().slug,
       files: [solutionFile.path],
     };
-    console.log("Opening solution file", data);
-  
     compilerSocket.emit("open", data);
   };
 
@@ -119,14 +104,14 @@ export const FeedbackDropdown = ({
       {
         <SimpleButton
           svg={svgs.testIcon}
-          text={t("Run tests")}
+          text={isTesteable ? t("Run tests") : t("No tests available")}
           action={runTests}
           disabled={!isTesteable}
         />
       }
       {Boolean(token) ? (
         <SimpleButton
-        text={t("Get help from AI")}
+          text={t("Get help from AI")}
           svg={svgs.brainIcon}
           action={showChat}
         />
@@ -147,11 +132,13 @@ export const FeedbackDropdown = ({
       )}
       <SimpleButton
         text={
-          hasSolution ? t("Review model solution") : t("Model solution not available")
+          hasSolution
+            ? t("Review model solution")
+            : t("Model solution not available")
         }
         svg={svgs.solutionIcon}
         disabled={!hasSolution}
-        action={hasSolution ? openSolutionFile : ()=>{}}
+        action={hasSolution ? openSolutionFile : () => {}}
       />
       <SimpleButton
         text={`Video tutorial ${videoTutorial ? "" : t("not available")}`}
