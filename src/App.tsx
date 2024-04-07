@@ -33,7 +33,9 @@ export default function Home() {
   }));
 
   const handleMessageFromExtension = (event: MessageEvent) => {
-    const message = event.data; // The JSON data our extension sent
+    const message = event.data; 
+    console.log("Received message from extension", message);
+    
     switch (message.command) {
       case "focusContent":
         if (!mainContainerRef.current) return;
@@ -73,6 +75,8 @@ export default function Home() {
 
     window.addEventListener("keydown", handleKeyDown);
 
+    console.log("Adding event listener for messages");
+    
     window.addEventListener("message", handleMessageFromExtension);
     // Cleanup the event listener on component unmount
     return () => {
