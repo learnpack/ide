@@ -48,8 +48,6 @@ const useStore = create<IStore>((set, get) => ({
     us: "en",
     es: "sp",
   },
-  // Could be cool if we can choose the mentor, give each mentor a personality
-
   learnpackPurposeId: defaultParams.purpose || 26,
   exercises: [],
   currentContent: "",
@@ -153,6 +151,9 @@ const useStore = create<IStore>((set, get) => ({
 
     compilerSocket.onStatus("testing-success", debounceSuccess);
     compilerSocket.onStatus("testing-error", debouncedError);
+    compilerSocket.onStatus("open_window", (data) => {
+      toastFromStatus("open_window");
+    })
   },
 
   getCurrentExercise: () => {
@@ -332,11 +333,13 @@ const useStore = create<IStore>((set, get) => ({
 
     const respose = await getExercise(slug);
     const exercise = await respose.json();
+    
 
     let isTesteable = exercise.graded;
-    let isBuildable = true;
+    let isBuildable;
     let hasSolution = false;
 
+    if (exercise.entry) isBuildable = true;
     if (!exercise.language) isBuildable = false;
     // TODO: check if the exercise is buildable based in the language and the entry file
     const solutionFile = exercise.files.find((file) =>
@@ -503,6 +506,7 @@ const useStore = create<IStore>((set, get) => ({
     };
     compilerSocket.openWindow(data);
   },
+
   clearBcToken: () => {
     set({ bc_token: "" });
   },
@@ -528,6 +532,7 @@ const useStore = create<IStore>((set, get) => ({
     );
     const exercise = await response.json();
 
+    
     if (exercise.attributes.tutorial) {
       set({ videoTutorial: exercise.attributes.tutorial });
     } else if (exercise.attributes.intro) {
@@ -658,21 +663,25 @@ const useStore = create<IStore>((set, get) => ({
   },
 
   // Turn the following property to true to easily test things using a button in the navbar
-  displayTestButton: DEV_MODE,
   registerAIInteraction: (stepPosition, interaction) => {
     const { compilerSocket, getCurrentExercise } = get();
-
+    
     const telemetryData = {
       exerciseSlug: getCurrentExercise().slug,
       stepPosition,
       event: "ai_interaction",
       eventData: interaction,
     };
-
+    
     compilerSocket.emit("ai_interaction", telemetryData);
   },
+  // Leave this empty for development purposes
+  displayTestButton: false,
   test: async () => {
-    startRecording();
+    const { openLink } = get();
+    const url = "https://www.youtube.com/watch?v=-ewDD9VJE80"
+    // openLink(url);
+    window.open(url, "_blank");
   },
 }));
 

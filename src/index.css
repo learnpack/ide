@@ -4,18 +4,21 @@
 
 :root {
   --color-border: #b2b2b2;
-  --bg-color-gray: #EFF1F4;
+  --bg-color-gray: #eff1f4;
   --bg-color-dark-gray: #a1a1a1;
 
-  --color-active: #02A9EA;
-  --color-blue-opaque: #EBF8FE;
+  --color-active: #1986da;
+  --color-blue-opaque: #ebf8fe;
   --color-blue: #c1dfed;
-  --color-success: #21B761;
-  --color-fail: #EB5757;
-  --bg-color-code: #2D3748;
+  --color-success: #21b761;
+  --color-fail: #eb5757;
+  --bg-color-code: #2d3748;
   --backdrop-background: rgba(0, 0, 0, 0.7);
 
   --font-color-secondary: #9c9c9c;
+  --font-size-small: 16px;
+  --font-size-medium: 18px;
+  font-size: 16px;
 }
 
 * {
@@ -26,13 +29,13 @@
 
 html {
   font-size: 12px;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 }
 * {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 }
 body {
-  background-color: #EFF1F4;
+  background-color: #eff1f4;
   /* height: fit-content; */
   overflow-x: hidden;
   overflow-y: scroll;
@@ -57,7 +60,7 @@ hr {
 pre {
   background-color: var(--bg-color-code);
   padding: 10px;
-  border-left: 2px solid var(--color-active) ;
+  border-left: 2px solid var(--color-active);
   border-radius: 5px;
   overflow: auto;
 }
@@ -67,7 +70,7 @@ code {
   /* word-break: break-all; */
 }
 code:not(pre code) {
-  border-left: 2px solid var(--color-active) ;
+  border-left: 2px solid var(--color-active);
   padding: 2px 6px;
   border-radius: 5px;
 }
@@ -87,25 +90,28 @@ button {
 }
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.433); /* Change the color and transparency as needed */
+  background: rgba(
+    0,
+    0,
+    0,
+    0.433
+  ); /* Change the color and transparency as needed */
 }
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
 }
 
-
 .pill {
   border-radius: 7px;
-  padding: 5px 9px;
+  padding: 14px 9px;
   display: flex;
   align-items: center;
 }
 
 .bg-blue {
- background-color: var(--color-active) !important;
- color: white;
-
+  background-color: var(--color-active) !important;
+  color: white;
 }
 
 .border-blue {
@@ -115,19 +121,19 @@ button {
   color: var(--color-active);
 }
 
-
 .scrolleable {
   overflow-y: auto !important;
 }
 
 .blue-circle {
-  background-color: #008CC8;
+  background-color: var(--color-active);
   border-radius: 50%;
   padding: 10px;
+  margin-left: 10px;
   width: 40px;
   height: 40px;
   position: relative;
-  >* {
+  > * {
     position: absolute;
     left: 50%;
     font-size: 10px;
@@ -151,7 +157,6 @@ button {
 .dropdown {
   display: flex;
   flex-direction: column;
-  
 }
 
 .modal-container {
@@ -163,7 +168,7 @@ button {
   display: flex;
   flex-direction: column;
   padding: 10px;
-  >div {
+  > div {
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -175,22 +180,21 @@ button {
     left: 50%;
     transform: translate(-50%, -50%);
     border-radius: 10px;
-    >.modal-header {
+    > .modal-header {
       font-weight: bolder;
       font-size: 16px;
     }
-    >.modal-content {
+    > .modal-content {
       background-color: rgb(236, 232, 232);
       padding: inherit;
       border-radius: inherit;
     }
   }
 }
- 
-.text-white {
-  >svg {
-    stroke: white;
 
+.text-white {
+  > svg {
+    stroke: white;
   }
   border: white;
   color: white !important;
@@ -210,15 +214,13 @@ button {
 }
 
 @keyframes palpitate {
-  0%{
+  0% {
     opacity: 1;
   }
-  0%{
+  0% {
     opacity: 0.5;
   }
-  100%{
+  100% {
     opacity: 1;
   }
 }
-
-

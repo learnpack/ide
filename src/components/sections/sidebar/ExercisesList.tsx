@@ -54,7 +54,7 @@ function ExerciseCard({ title, position, closeSidebar, graded, done }: IExercise
             }
         }>
             <div>
-                <button className="blue-circle ">
+                <button className="blue-circle">
                     <span>{title.split("-")[0]}</span>
                 </button>
                 <span>

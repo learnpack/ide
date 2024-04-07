@@ -36,6 +36,7 @@ export const getStatus = function (status = 'initializing') {
         case "prettify-success": return ["🌟", "Look how beautiful your code is now"]
         case "completed": return ["🎉", "Excellent!"]
         case "prettify-error": return ["⚠️", "Warning! Unable to prettify and save"]
+        case "open_window": return ["👀", "Opening window..."]
         default: throw new Error('Invalid status: ' + status)
     }
 }

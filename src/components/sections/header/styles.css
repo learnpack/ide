@@ -92,6 +92,7 @@
     background-color: white;
     border-radius: 7px;
     max-width: 300px;
+    font-size: var(--font-size-small);
     display: flex;
     gap: 5px;
     align-items: baseline;

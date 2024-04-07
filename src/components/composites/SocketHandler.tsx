@@ -30,9 +30,8 @@ export function SocketHandler() {
       
       if (!doesCurrentStepChange) return;
       setShouldBeTested(true)
-      console.log(`This file: ${fullpath} changed, we need to test again!`);
     })
-  })
+  }, [])
 
   useEffect(() => {
     // compilerSocket.whenUpdated((scope: any, data: any) => {

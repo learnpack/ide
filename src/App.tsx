@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import "./App.css";
 import "./index.css";
@@ -14,17 +14,35 @@ import { useTranslation } from "react-i18next";
 
 export default function Home() {
   const { t } = useTranslation();
-  const { currentExercisePosition, handlePositionChange, build, runExerciseTests, setOpenedModals,openedModals  } = useStore(
-    (state) => ({
-      currentExercisePosition: state.currentExercisePosition,
-      handlePositionChange: state.handlePositionChange,
-      exercises: state.exercises,
-      build: state.build,
-      runExerciseTests: state.runExerciseTests,
-      setOpenedModals: state.setOpenedModals,
-      openedModals: state.openedModals,
-    })
-  );
+  const mainContainerRef = useRef<HTMLDivElement>(null);
+  const {
+    currentExercisePosition,
+    handlePositionChange,
+    build,
+    runExerciseTests,
+    setOpenedModals,
+    openedModals,
+  } = useStore((state) => ({
+    currentExercisePosition: state.currentExercisePosition,
+    handlePositionChange: state.handlePositionChange,
+    exercises: state.exercises,
+    build: state.build,
+    runExerciseTests: state.runExerciseTests,
+    setOpenedModals: state.setOpenedModals,
+    openedModals: state.openedModals,
+  }));
+
+  const handleMessageFromExtension = (event: MessageEvent) => {
+    const message = event.data; // The JSON data our extension sent
+    switch (message.command) {
+      case "focusContent":
+        if (!mainContainerRef.current) return;
+        // Focus the desired element, e.g., the first input field
+        mainContainerRef.current.click();
+        break;
+    }
+  };
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey && event.key === "ArrowRight") {
@@ -33,7 +51,12 @@ export default function Home() {
       if (event.ctrlKey && event.key === "ArrowLeft") {
         handlePositionChange(currentExercisePosition - 1);
       }
-      if (event.ctrlKey && !event.shiftKey && !event.altKey && event.key === "Enter") {
+      if (
+        event.ctrlKey &&
+        !event.shiftKey &&
+        !event.altKey &&
+        event.key === "Enter"
+      ) {
         build(t("Running..."));
       }
       if (event.ctrlKey && event.shiftKey && event.key === "Enter") {
@@ -41,22 +64,25 @@ export default function Home() {
           toast: true,
           setFeedbackButton: true,
           feedbackButtonText: t("Running..."),
-        })
+        });
       }
       if (event.ctrlKey && event.altKey && event.key === "Enter") {
-        setOpenedModals({chat: !openedModals.chat})
+        setOpenedModals({ chat: !openedModals.chat });
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
+
+    window.addEventListener("message", handleMessageFromExtension);
     // Cleanup the event listener on component unmount
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("message", () => {});
     };
   }, [currentExercisePosition, openedModals.chat]);
 
   return (
-    <main className="">
+    <main ref={mainContainerRef} id="main-container" className="">
       <Toaster />
       <ModalsContainer />
       <SocketHandler />

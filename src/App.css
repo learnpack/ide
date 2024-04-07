@@ -10,13 +10,7 @@
 .lesson-content-component {
   /* background-color: red; */
   padding-bottom: 70px;
-  > p {
-    display: flex;
-    flex-direction: column;
-  }
-  & strong {
-    display: block;
-  }
+  
   & img {
     margin: 5px auto;
     max-width: 650px;
@@ -107,16 +101,19 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  font-size: var(--font-size-medium);
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
   > svg {
-    max-height: 100% !important;
+    max-height: 30px !important;
+    max-width: 30px !important;
   }
   > img {
     max-height: 18px !important;
     max-width: 18px !important;
+    filter: saturate(90%);
   }
 }
 

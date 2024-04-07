@@ -1,13 +1,14 @@
 {
   "name": "learnpack-ai",
   "private": true,
-  "version": "3.1.24",
+  "version": "3.1.25",
   "scripts": {
     "dev": "node src/utils/development.js --turn on && vite",
     "build": "node src/utils/development.js --turn off && tsc && vite build && node bin/publish.js",
+    "dev-build": "node src/utils/development.js --turn on && tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "compile-dev": "tsc src/utils/development.ts && node src/utils/development.js --turn on"
+    "compile-command": "tsc src/utils/development.ts && node src/utils/development.js --turn on"
   },
   "dependencies": {
     "i18next": "^23.10.1",
