@@ -14,7 +14,7 @@ export const getStatus = function (status = 'initializing') {
         return `${goodIcons[Math.floor(Math.random() * Math.floor(goodIcons.length))]} ${messages[Math.floor(Math.random() * Math.floor(messages.length))]}`
     };
     const bad = () => {
-        const messages = ["Don't panic", "Keep trying!", "You'll get it the next time", "Keep going!", "Never give up", "No pain no gain", "Not correct my friend", "Focus on the force inside you"]
+        const messages = ["Not as expected, don't panic!", "Not as expected, keep trying!", "You'll get it the next time!", "Never give up!", "No pain no gain.", "Not correct my friend.", "Focus on the force inside you."]
         return `${messages[Math.floor(Math.random() * Math.floor(messages.length))]}`
     };
 
@@ -29,7 +29,7 @@ export const getStatus = function (status = 'initializing') {
         case "compiler-error": return [getBadIcon(), "Compiler error."]
         case "compiler-warning": return ["⚠️", "Compiled with warnings"]
         case "compiler-success": return [getGoodIcon(), "Compiled successfully!"]
-        case "testing-error": return [getBadIcon(), `Not as expected. ${bad()}`]
+        case "testing-error": return [getBadIcon(), `${bad()} Check the terminal for more detailed info.`]
         case "testing-success": return [getGoodIcon(), "Everything as expected."]
         case "internal-error": return ["🔥💻", "Woops! There has been an internal error"]
         case "prettifying": return ["✨", "Making code prettier"]
@@ -43,7 +43,7 @@ export const getStatus = function (status = 'initializing') {
 
 export const isPending = (status:any) => (status) ? (['initializing', 'compiling', 'testing', 'pending', 'conecting', 'internal-error'].indexOf(status.code || status) > 0) : true
 
-const actions = ['build', 'prettify', 'test', 'run', 'input', 'open', 'preview', 'reset', 'reload', 'open_window', 'generate', 'ai_interaction']
+const actions = ['build', 'prettify', 'test', 'run', 'input', 'open', 'preview', 'reset', 'reload', 'open_window', 'generate', 'ai_interaction', 'open_terminal']
 
 export default {
     socket: null,

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 import "./App.css";
 import "./index.css";
@@ -14,7 +14,6 @@ import { useTranslation } from "react-i18next";
 
 export default function Home() {
   const { t } = useTranslation();
-  const mainContainerRef = useRef<HTMLDivElement>(null);
   const {
     currentExercisePosition,
     handlePositionChange,
@@ -31,19 +30,6 @@ export default function Home() {
     setOpenedModals: state.setOpenedModals,
     openedModals: state.openedModals,
   }));
-
-  const handleMessageFromExtension = (event: MessageEvent) => {
-    const message = event.data; 
-    console.log("Received message from extension", message);
-    
-    switch (message.command) {
-      case "focusContent":
-        if (!mainContainerRef.current) return;
-        // Focus the desired element, e.g., the first input field
-        mainContainerRef.current.click();
-        break;
-    }
-  };
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -74,19 +60,13 @@ export default function Home() {
     };
 
     window.addEventListener("keydown", handleKeyDown);
-
-    console.log("Adding event listener for messages");
-    
-    window.addEventListener("message", handleMessageFromExtension);
-    // Cleanup the event listener on component unmount
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("message", () => {});
     };
   }, [currentExercisePosition, openedModals.chat]);
 
   return (
-    <main ref={mainContainerRef} id="main-container" className="">
+    <main id="main-container" className="">
       <Toaster />
       <ModalsContainer />
       <SocketHandler />

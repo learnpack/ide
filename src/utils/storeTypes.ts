@@ -143,6 +143,7 @@ export interface IStore {
     toggleSidebar: () => void
     toastFromStatus: (status:string) => void
     setShouldBeTested: (value: boolean) => void
+    openTerminal: () => void
     runExerciseTests: (opts?: TRunExerciseTestsOptions) => void
     registerAIInteraction: (setPosition: number, interaction: object) => void
     displayTestButton: boolean

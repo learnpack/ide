@@ -65,11 +65,6 @@ const useStore = create<IStore>((set, get) => ({
   showFeedback: false,
   token: "",
   bc_token: "",
-  translations: {
-    testButtonSuccess: "Succeded",
-    testButtonFailed: "Try again",
-    testButtonRunning: "Running...",
-  },
   buildbuttonText: {
     text: "Run",
     className: "",
@@ -132,25 +127,25 @@ const useStore = create<IStore>((set, get) => ({
       });
   },
   setListeners: () => {
-    const { compilerSocket, setTestResult, toastFromStatus, setFeedbackButtonProps, translations } = get();
+    const { compilerSocket, setTestResult, toastFromStatus, setFeedbackButtonProps, openTerminal  } = get();
 
     let debounceSuccess = debounce((data: any) => {
       const stdout = removeSpecialCharacters(data.logs[0]);
       setTestResult("successful", stdout);
       toastFromStatus("testing-success");;
-      
-      setFeedbackButtonProps(translations.testButtonSuccess, "bg-success text-white");
+      setFeedbackButtonProps("Succeded", "bg-success text-white");
     }, 100);
 
-    let debouncedError = debounce((data: any) => {
+    let debounceError = debounce((data: any) => {
       const stdout = removeSpecialCharacters(data.logs[0]);
       setTestResult("failed", stdout);
       toastFromStatus("testing-error");
-      setFeedbackButtonProps(translations.testButtonFailed, "bg-fail text-white");
+      setFeedbackButtonProps("Try again", "bg-fail text-white");
+      openTerminal();
     }, 100);
 
     compilerSocket.onStatus("testing-success", debounceSuccess);
-    compilerSocket.onStatus("testing-error", debouncedError);
+    compilerSocket.onStatus("testing-error", debounceError);
     compilerSocket.onStatus("open_window", (data) => {
       toastFromStatus("open_window");
     })
@@ -573,6 +568,14 @@ const useStore = create<IStore>((set, get) => ({
     }
   },
 
+  openTerminal: () => {
+    const { compilerSocket, getCurrentExercise } = get();
+    const data = {
+      exerciseSlug: getCurrentExercise().slug,
+    };
+    compilerSocket.emit("open_terminal",data);
+  },
+
   handlePositionChange: async (desiredPosition) => {
     const {
       configObject,
@@ -615,7 +618,11 @@ const useStore = create<IStore>((set, get) => ({
 
   toastFromStatus: (status) => {
     const [icon, message] = getStatus(status);
-    toast.success(message, { icon: icon });
+    let duration = 1500;
+    if (status === "testing-error") {
+      duration = 3000
+    }
+    toast.success(message, { icon: icon, duration: duration });
   },
 
   setTestResult: (status, logs) => {
@@ -653,7 +660,6 @@ const useStore = create<IStore>((set, get) => ({
       exerciseSlug: getCurrentExercise().slug,
     };
     compilerSocket.emit("test", data);
-    console.log("Test attempting to run succesfully");
 
     set({ shouldBeTested: false });
 

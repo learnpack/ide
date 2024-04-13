@@ -16,13 +16,10 @@ export const FeedbackDropdown = ({
   const {
     compilerSocket,
     token,
-    // setFeedbackButtonProps,
     videoTutorial,
     isTesteable,
     setOpenedModals,
     runExerciseTests,
-    // setTestResult,
-    // toastFromStatus,
     bc_token,
     openLink,
     checkRigobotInvitation,
