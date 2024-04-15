@@ -43,7 +43,6 @@ export function SocketHandler() {
 
     compilerSocket.on("reload", (data: any) => {
       data;
-      // console.log("Reloading...", data);
       window.location.reload();
     });
 

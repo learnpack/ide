@@ -1,4 +1,4 @@
-import SimpleButton from "../../mockups/Button";
+import SimpleButton from "../../mockups/SimpleButton";
 import { svgs } from "../../../assets/svgs";
 import { getStatus } from "../../../utils/socket";
 import useStore from "../../../utils/store";
@@ -26,7 +26,7 @@ export default function BuildButton() {
     buildbuttonText,
     setBuildButtonText,
     isBuildable,
-    build
+    build,
   } = useStore((state) => ({
     currentExercisePosition: state.currentExercisePosition,
     exercises: state.exercises,
@@ -36,8 +36,6 @@ export default function BuildButton() {
     isBuildable: state.isBuildable,
     build: state.build,
   }));
-
- 
 
   let compilerErrorHandler = debounce((data: any) => {
     data;
@@ -64,7 +62,9 @@ export default function BuildButton() {
       text={t(buildbuttonText.text)}
       svg={svgs.buildIcon}
       extraClass={`pill bg-blue ${buildbuttonText.className}`}
-      action={()=>{build(t("Running..."))}}
+      action={() => {
+        build(t("Running..."));
+      }}
       disabled={!isBuildable}
     />
   );

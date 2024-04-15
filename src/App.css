@@ -197,5 +197,11 @@
 }
 
 .bg-gray {
-  background-color: var(--bg-color-dark-gray);
+  background-color: var(--bg-color-dark-gray) !important;
+}
+.text-center {
+  text-align: center;
+}
+.centered {
+  margin-inline: auto;
 }

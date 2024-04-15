@@ -2,7 +2,7 @@
 // import { useEffect } from "react";
 import useStore from "../../../utils/store";
 import { svgs } from "../../../assets/svgs";
-import SimpleButton from "../../mockups/Button";
+import SimpleButton from "../../mockups/SimpleButton";
 import { OpenWindowLink } from "../../composites/OpenWindowLink";
 import { useTranslation } from "react-i18next";
 
@@ -148,7 +148,6 @@ export const FeedbackDropdown = ({
         svg={svgs.fourGeeksIcon}
         action={openLearnpackDocs}
       />
-
       <p>
         {t("Feedback plays an important role when learning technical skills. ")}
         <OpenWindowLink

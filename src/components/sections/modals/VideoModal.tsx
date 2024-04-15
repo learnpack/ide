@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 // import { svgs } from '../../resources/svgs';
-
+import useStore from "../../../utils/store";
 interface IVideoModalProps {
   link: string;
   hideModal: () => void;
@@ -8,10 +8,12 @@ interface IVideoModalProps {
 
 const VideoModal: React.FC<IVideoModalProps> = ({ link, hideModal }) => {
   const modalRef = useRef<HTMLDivElement>(null);
+  const { openLink } = useStore(store => ({
+    openLink: store.openLink,
+  }));
 
   const handleClickOutside = (event: any) => {
     if (modalRef.current == event.target) {
-      console.log("Clicked outsid");
       hideModal();
     }
   };
@@ -23,11 +25,17 @@ const VideoModal: React.FC<IVideoModalProps> = ({ link, hideModal }) => {
     };
   }, []);
 
+  const handleOpenLink = () => {
+    openLink(link);
+    hideModal();
+  }
+
+
   return (
-    <section className="pos-absolute" onClick={handleClickOutside}>
+    <section  onClick={handleClickOutside}>
       <div ref={modalRef} className="video-modal">
         <div className="modal-content">
-          <div className="iframe-zoomeable">
+          <div  className="iframe-zoomeable">
             <iframe
               title="Video Modal"
               width="100%"
@@ -35,8 +43,10 @@ const VideoModal: React.FC<IVideoModalProps> = ({ link, hideModal }) => {
               src={link}
               allowFullScreen
             ></iframe>
-            {/* <div className="resizer"></div> */}
           </div>
+          <span className="close bg-gray"  onClick={handleOpenLink}>
+            Open in Youtube
+          </span>
           <span className="close" onClick={hideModal}>
             Close the video and start exercise
           </span>

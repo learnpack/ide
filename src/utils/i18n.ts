@@ -38,7 +38,16 @@ i18n
           "This AI, currently in beta, serves as an educational tutor. It is not a substitute for professional instruction. Use at your own risk and confirm details with authoritative educational resources.": "This AI, currently in beta, serves as an educational tutor. It is not a substitute for professional instruction. Use at your own risk and confirm details with authoritative educational resources.",
           "Hello! I'm the Learnpack tutor, I can help you if you feel stuck, ask me anything about this exercise!": "Hello! I'm the Learnpack tutor, I can help you if you feel stuck, ask me anything about this exercise!",
           "No tests available": "No tests available",
-          "Succeded": "Succeded"
+          "Succeded": "Succeded",
+          "Socket disconnected!": "Socket disconnected!",
+          "Reload": "Reload",
+          "Sorry, this error can happen for certain reasons.": "Sorry, this error can happen for certain reasons.",
+          "The basic steps to troubleshoot this error are the following:": "The basic steps to troubleshoot this error are the following:",
+          "Step 1": "Step 1",
+          "Check that Learnpack is running in your terminal.": "Check that Learnpack is running in your terminal.",
+          "Run: ": "Run: ",
+          "Step 2": "Step 2",
+          "If Learnpack is running but you still see this modal, reload the window:": "If Learnpack is running but you still see this modal, reload the window:",
         }
       },
       es: {
@@ -73,7 +82,17 @@ i18n
           "This AI, currently in beta, serves as an educational tutor. It is not a substitute for professional instruction. Use at your own risk and confirm details with authoritative educational resources.": "Esta IA, actualmente en beta, sirve como tutor educativo. No es un sustituto de la instrucción profesional. Úsalo bajo tu propio riesgo y confirma los detalles con recursos educativos autorizados.",
           "Hello! I'm the Learnpack tutor, I can help you if you feel stuck, ask me anything about this exercise!": "¡Hola! Soy el tutor de Learnpack, puedo ayudarte si te sientes atascado, ¡pregúntame cualquier cosa sobre este ejercicio!",
           "No tests available": "No hay tests disponibles",
-          "Succeded": "¡Perfecto!"
+          "Succeded": "¡Perfecto!",
+          "Socket disconnected!": "¡Conexión perdida!",
+          "Reload": "Recargar",
+          "Sorry, this error can happen for certain reasons.": "Lo siento, este error puede ocurrir por ciertas razones.",
+          "The basic steps to troubleshoot this error are the following:": "Los pasos básicos para solucionar este error son los siguientes:",
+          "Step 1": "Paso 1",
+          "Check that Learnpack is running in your terminal.": "Verifica que Learnpack esté corriendo en tu terminal.",
+          "Run: ": "Ejecuta: ",
+          "Step 2": "Paso 2",
+          "If Learnpack is running but you still see this modal, reload the window:": "Si Learnpack está corriendo pero aún ves este modal, recarga la ventana:",
+
         }
       },
     },

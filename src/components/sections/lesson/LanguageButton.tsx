@@ -1,4 +1,4 @@
-import SimpleButton from "../../mockups/Button";
+import SimpleButton from "../../mockups/SimpleButton";
 import useStore from "../../../utils/store";
 import { svgs } from "../../../assets/svgs";
 import { useState, useEffect } from "react";

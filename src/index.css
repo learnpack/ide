@@ -25,18 +25,16 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: "Inter", sans-serif;
 }
 
 html {
-  font-size: 12px;
+  font-size: 14px;
   font-family: "Inter", sans-serif;
 }
-* {
-  font-family: "Inter", sans-serif;
-}
+
 body {
   background-color: #eff1f4;
-  /* height: fit-content; */
   overflow-x: hidden;
   overflow-y: scroll;
 }
@@ -56,7 +54,6 @@ h1 {
 hr {
   margin-top: 15px;
 }
-
 pre {
   background-color: var(--bg-color-code);
   padding: 10px;
@@ -67,7 +64,6 @@ pre {
 code {
   color: white;
   background-color: var(--bg-color-code);
-  /* word-break: break-all; */
 }
 code:not(pre code) {
   border-left: 2px solid var(--color-active);

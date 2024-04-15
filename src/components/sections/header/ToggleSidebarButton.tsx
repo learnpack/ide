@@ -1,16 +1,15 @@
 // UNUSED
 
-import SimpleButton from "../../mockups/Button";
+import SimpleButton from "../../mockups/SimpleButton";
 
 import useStore from "../../../utils/store";
 interface ISvgProps {
-    svg: any;
+  svg: any;
 }
 
-
 export default function ToggleSidebarButton({ svg }: ISvgProps) {
-    const { toggleSidebar } = useStore(state => ({
-        toggleSidebar: state.toggleSidebar
-    }));
-    return <SimpleButton text="" svg={svg} action={toggleSidebar} />
+  const { toggleSidebar } = useStore((state) => ({
+    toggleSidebar: state.toggleSidebar,
+  }));
+  return <SimpleButton text="" svg={svg} action={toggleSidebar} />;
 }

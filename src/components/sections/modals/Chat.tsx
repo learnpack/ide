@@ -37,6 +37,7 @@ export default function Chat() {
     compilerSocket,
     shouldBeTested,
     registerAIInteraction,
+    setListeners
   } = useStore((state) => ({
     setOpenedModals: state.setOpenedModals,
     currentExercisePosition: state.currentExercisePosition,
@@ -55,6 +56,7 @@ export default function Chat() {
     runExerciseTests: state.runExerciseTests,
     shouldBeTested: state.shouldBeTested,
     registerAIInteraction: state.registerAIInteraction,
+    setListeners: state.setListeners,
   }));
 
   const fakeMessages = [{ type: "bot", text: t(chatInitialMessage) }];
@@ -130,6 +132,8 @@ export default function Chat() {
           data.logs[0]
         )}`
       );
+
+      setListeners();
     });
 
     compilerSocket.onStatus("testing-error", (data: any) => {
@@ -145,6 +149,8 @@ export default function Chat() {
           data.logs[0]
         )}`
       );
+
+      setListeners();
     });
   }, [waitingTestResult]);
 

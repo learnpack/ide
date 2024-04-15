@@ -15,7 +15,7 @@ import {
   replaceSlot,
   startRecording,
   debounce,
-  removeSpecialCharacters
+  removeSpecialCharacters,
 } from "./lib";
 import Socket from "./socket";
 import { IStore } from "./storeTypes";
@@ -109,7 +109,7 @@ const useStore = create<IStore>((set, get) => ({
       token,
       checkLoggedStatus,
       currentExercisePosition,
-      setListeners
+      setListeners,
     } = get();
     fetchExercises()
       .then(() => {
@@ -122,17 +122,24 @@ const useStore = create<IStore>((set, get) => ({
       })
       .then(() => {
         checkLoggedStatus({ startConversation: true });
-      }).then(() => {
-        setListeners()
+      })
+      .then(() => {
+        setListeners();
       });
   },
   setListeners: () => {
-    const { compilerSocket, setTestResult, toastFromStatus, setFeedbackButtonProps, openTerminal  } = get();
+    const {
+      compilerSocket,
+      setTestResult,
+      toastFromStatus,
+      setFeedbackButtonProps,
+      openTerminal,
+    } = get();
 
     let debounceSuccess = debounce((data: any) => {
       const stdout = removeSpecialCharacters(data.logs[0]);
       setTestResult("successful", stdout);
-      toastFromStatus("testing-success");;
+      toastFromStatus("testing-success");
       setFeedbackButtonProps("Succeded", "bg-success text-white");
     }, 100);
 
@@ -148,7 +155,7 @@ const useStore = create<IStore>((set, get) => ({
     compilerSocket.onStatus("testing-error", debounceError);
     compilerSocket.onStatus("open_window", (data) => {
       toastFromStatus("open_window");
-    })
+    });
   },
 
   getCurrentExercise: () => {
@@ -244,15 +251,7 @@ const useStore = create<IStore>((set, get) => ({
       const config = await res.json();
       set({ configObject: config });
     } catch (err) {
-      console.log("error in getConfigObject", err);
-
-      const modal: HTMLElement | null = document.querySelector(
-        "#socket-disconnected"
-      );
-
-      if (modal && modal.style) {
-        modal.style.display = "block";
-      }
+      disconnected();
     }
   },
 
@@ -275,13 +274,7 @@ const useStore = create<IStore>((set, get) => ({
       set({ numberOfExercises: config.exercises.length });
       set({ lessonTitle: config.config.title.us });
     } catch (err) {
-      const modal: HTMLElement | null = document.querySelector(
-        "#socket-disconnected"
-      );
-
-      if (modal && modal.style) {
-        modal.style.display = "block";
-      }
+      disconnected();
     }
   },
   checkParams: ({ justReturn }) => {
@@ -328,7 +321,6 @@ const useStore = create<IStore>((set, get) => ({
 
     const respose = await getExercise(slug);
     const exercise = await respose.json();
-    
 
     let isTesteable = exercise.graded;
     let isBuildable;
@@ -527,14 +519,13 @@ const useStore = create<IStore>((set, get) => ({
     );
     const exercise = await response.json();
 
-    
     if (exercise.attributes.tutorial) {
       set({ videoTutorial: exercise.attributes.tutorial });
     } else if (exercise.attributes.intro) {
-      openLink(exercise.attributes.intro);
+      // openLink(exercise.attributes.intro);
       set({
         videoTutorial: exercise.attributes.intro,
-        // showVideoTutorial: true,
+        showVideoTutorial: true,
       });
     } else {
       set({ videoTutorial: "", showVideoTutorial: false });
@@ -573,7 +564,7 @@ const useStore = create<IStore>((set, get) => ({
     const data = {
       exerciseSlug: getCurrentExercise().slug,
     };
-    compilerSocket.emit("open_terminal",data);
+    compilerSocket.emit("open_terminal", data);
   },
 
   handlePositionChange: async (desiredPosition) => {
@@ -620,7 +611,7 @@ const useStore = create<IStore>((set, get) => ({
     const [icon, message] = getStatus(status);
     let duration = 1500;
     if (status === "testing-error") {
-      duration = 3000
+      duration = 3000;
     }
     toast.success(message, { icon: icon, duration: duration });
   },
@@ -671,23 +662,20 @@ const useStore = create<IStore>((set, get) => ({
   // Turn the following property to true to easily test things using a button in the navbar
   registerAIInteraction: (stepPosition, interaction) => {
     const { compilerSocket, getCurrentExercise } = get();
-    
+
     const telemetryData = {
       exerciseSlug: getCurrentExercise().slug,
       stepPosition,
       event: "ai_interaction",
       eventData: interaction,
     };
-    
+
     compilerSocket.emit("ai_interaction", telemetryData);
   },
   // Leave this empty for development purposes
-  displayTestButton: false,
+  displayTestButton: DEV_MODE,
   test: async () => {
-    const { openLink } = get();
-    const url = "https://www.youtube.com/watch?v=-ewDD9VJE80"
-    // openLink(url);
-    window.open(url, "_blank");
+    disconnected();
   },
 }));
 

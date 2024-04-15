@@ -1,11 +1,10 @@
-import SimpleButton from "../../mockups/Button";
+import SimpleButton from "../../mockups/SimpleButton";
 import { svgs } from "../../../assets/svgs";
 import useStore from "../../../utils/store";
 import { useState, useRef, useEffect } from "react";
 import { OpenWindowLink } from "../../composites/OpenWindowLink";
 import { useTranslation } from "react-i18next";
 import TagManager from "react-gtm-module";
-
 
 export default function LoginModal() {
   const { setOpenedModals, loginToRigo } = useStore((state) => ({
@@ -22,7 +21,7 @@ export default function LoginModal() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-//   const [passwordInputType, setPasswordInputType] = useState("password");
+  //   const [passwordInputType, setPasswordInputType] = useState("password");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleClickOutside = (event: any) => {
@@ -58,7 +57,7 @@ export default function LoginModal() {
         event: "sign_up_attempt",
       },
     });
-  }
+  };
 
   return (
     <>
@@ -67,7 +66,9 @@ export default function LoginModal() {
           <h2>Login</h2>
           <div>
             <p>
-              {t("To use the AI services you must login with your 4geeks account, and you have been accepted Rigobot")}
+              {t(
+                "To use the AI services you must login with your 4geeks account, and you have been accepted Rigobot"
+              )}
             </p>
             <SimpleButton
               action={() => {
@@ -104,7 +105,11 @@ export default function LoginModal() {
             />
             <span>
               {t("Don't have an account? ")}
-              <OpenWindowLink callback={sendAnalytics} text={t("Sign up here!")} href="https://4geeks.com/pricing" />{" "}
+              <OpenWindowLink
+                callback={sendAnalytics}
+                text={t("Sign up here!")}
+                href="https://4geeks.com/pricing"
+              />{" "}
             </span>
           </form>
         </div>

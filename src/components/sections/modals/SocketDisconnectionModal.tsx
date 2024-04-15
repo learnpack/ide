@@ -1,58 +1,101 @@
-import SimpleButton from "../../mockups/Button"
-import ModalTemplate from "./ModalTemplate"
+import SimpleButton from "../../mockups/SimpleButton";
+
+import { Modal } from "../../mockups/Modal";
+import { useTranslation } from "react-i18next";
 
 export default function SocketDisconnectionModal() {
-
-    return <ModalTemplate htmlId="socket-disconnected" header={<Header />} footer="" content={<Content />} />
+  return (
+    <Modal outsideClickHandler={() => {}} htmlId="socket-disconnected">
+      <Header />
+      <Content />
+    </Modal>
+  );
 }
 
-const Header = () => <div>
-    Socket disconnected!
-</div>
-
+const Header = () => {
+  const { t } = useTranslation();
+  return (
+    <div>
+      <h1 className="text-center">{t("Socket disconnected!")}</h1>
+    </div>
+  );
+};
 
 const WindowReloader = () => {
-    const reload = () => {
-        window.location.reload();
-    }
-
-    return <SimpleButton extraClass="bg-blue pill" action={reload} text="Reload" />
-}
-
-const steps = [
-    {
-        title: "Step 1",
-        instructions: <>
-            <p>Check that Learnpack is running in your terminal.</p>
-            <p>Run: <code>learnpack start</code></p>
-        </>
-    },
-    {
-        title: "Step 2",
-        instructions: <>
-            <p>Is Learnpack is running but you still see this model, reload the window:</p>
-            <WindowReloader />
-        </>
-    },
-]
-
-const Content = () => {
-    return <div>
-        <p>Sorry, this error can happen for certain reasons.</p>
-        <p>The basic steps to troubleshoot this error are the following:</p>
-
-        {steps.map((step, index) => <Step key={index} title={step.title} instructions={step.instructions} />)}
-    </div>
-}
+  const { t } = useTranslation();
+  const reload = () => {
+    window.location.reload();
+  };
+  return (
+    <SimpleButton
+      extraClass="bg-blue pill centered"
+      action={reload}
+      text={t("Reload")}
+    />
+  );
+};
 
 type TStep = {
-    title: string
-    instructions: React.ReactNode
-}
+  title: string;
+  instructions: React.ReactNode;
+};
 
 const Step = (props: TStep) => {
-    return <div>
-        <h3>{props.title}</h3>
-        {props.instructions}
+  return (
+    <div>
+      <h3>{props.title}</h3>
+      {props.instructions}
     </div>
-}
+  );
+};
+
+const Steps = () => {
+  const { t } = useTranslation();
+  const steps = [
+    {
+      title: t("Step 1"),
+      instructions: (
+        <>
+          <p>{t("Check that Learnpack is running in your terminal.")}</p>
+          <p>
+            {t("Run: ")} <code>learnpack start</code>
+          </p>
+        </>
+      ),
+    },
+    {
+      title: t("Step 2"),
+      instructions: (
+        <>
+          <p>
+            {t(
+              "If Learnpack is running but you still see this modal, reload the window:"
+            )}
+          </p>
+          <WindowReloader />
+        </>
+      ),
+    },
+  ];
+
+  return (
+    <div>
+      {steps.map((step, index) => (
+        <Step key={index} title={step.title} instructions={step.instructions} />
+      ))}
+    </div>
+  );
+};
+
+const Content = () => {
+  const { t } = useTranslation();
+  return (
+    <div>
+      <p>{t("Sorry, this error can happen for certain reasons.")}</p>
+      <p>
+        {t("The basic steps to troubleshoot this error are the following:")}
+      </p>
+      <Steps />
+    </div>
+  );
+};
