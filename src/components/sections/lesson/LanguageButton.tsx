@@ -25,7 +25,7 @@ export default function LanguageButton() {
 
   return (
     <>
-      <div className="language-component">
+      <div id="language-component"  className="language-component">
         <SimpleButton
           action={toggleDrop}
           text={language}

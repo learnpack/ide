@@ -48,6 +48,7 @@ const useStore = create<IStore>((set, get) => ({
     us: "en",
     es: "sp",
   },
+  showTutorial: true,
   learnpackPurposeId: defaultParams.purpose || 26,
   exercises: [],
   currentContent: "",
@@ -132,8 +133,7 @@ const useStore = create<IStore>((set, get) => ({
       compilerSocket,
       setTestResult,
       toastFromStatus,
-      setFeedbackButtonProps,
-      openTerminal,
+      setFeedbackButtonProps
     } = get();
 
     let debounceSuccess = debounce((data: any) => {
@@ -148,7 +148,6 @@ const useStore = create<IStore>((set, get) => ({
       setTestResult("failed", stdout);
       toastFromStatus("testing-error");
       setFeedbackButtonProps("Try again", "bg-fail text-white");
-      openTerminal();
     }, 100);
 
     compilerSocket.onStatus("testing-success", debounceSuccess);
@@ -673,9 +672,11 @@ const useStore = create<IStore>((set, get) => ({
     compilerSocket.emit("ai_interaction", telemetryData);
   },
   // Leave this empty for development purposes
-  displayTestButton: DEV_MODE,
+  displayTestButton: false,
   test: async () => {
-    disconnected();
+    const { openTerminal } = get();
+    // disconnected();
+    openTerminal()
   },
 }));
 

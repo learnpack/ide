@@ -1,0 +1,47 @@
+.presentator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(141, 141, 141, 0.402);
+  z-index: 0;
+  cursor: initial;
+}
+
+._badge {
+  position: fixed;
+  width: 300px; /* Ajustado de 50vw a un valor fijo para mejor control */
+  /* max-height: fit-content; */
+  border-radius: 5px; /* Suavizado de las esquinas */
+  text-align: left;
+  background-color: rgb(255, 255, 255);
+  border: 1px solid rgba(127, 127, 127, 0.3);
+  padding: 15px;
+  top: 25%;
+  left: 60%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra más sutil */
+
+  > h2 {
+    color: rgb(0, 0, 0);
+    margin-bottom: 10px;
+    font-size: 25px;
+  }
+  > div._content > * {
+    margin-top: 5px;
+    line-height: 1.5rem;
+  }
+  > ._footer {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+  }
+  > p {
+    color: black;
+    font-size: 1rem; /* Tamaño de fuente reducido para mejor legibilidad */
+    font-weight: 400;
+    margin-top: 0;
+  }
+}

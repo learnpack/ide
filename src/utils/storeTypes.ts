@@ -77,6 +77,7 @@ type TTranslations = {
     testButtonRunning: string
 }
 export interface IStore {
+    showTutorial: any
     exercises: any[]
     chatInitialMessage: string
     currentContent: string

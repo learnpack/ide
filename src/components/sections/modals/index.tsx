@@ -6,6 +6,7 @@ import useStore from "../../../utils/store"
 import { RigobotInviteModal } from "./RigobotInvite"
 import { SolutionModal } from "./Solution"
 import { ResetModal } from "./Reset"
+import { Presentator } from "../../composites/Presentator/Presentator"
 
 export const ModalsContainer = () => {
     const { openedModals, token } = useStore(state => ({
@@ -30,6 +31,9 @@ export const ModalsContainer = () => {
             }
             {
                 openedModals.reset && <ResetModal />
+            }
+            {
+                openedModals.tutorial && <Presentator />
             }
         </>
 

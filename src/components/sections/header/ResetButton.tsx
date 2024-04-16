@@ -15,6 +15,7 @@ export default function ResetButton() {
       extraClass="pill border-blue color-blue"
       svg={svgs.resetIcon}
       text={t("Reset")}
+      id="reset-button"
       action={() => setOpenedModals({ reset: true })}
     />
   );

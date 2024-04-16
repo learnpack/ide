@@ -74,6 +74,7 @@ export default function Sidebar() {
   ) : (
     <SimpleButton
       svg={svgs.dropdownButton}
+      id="sidebar-toggle"
       action={() => {
         setShowSidebar(true);
       }}

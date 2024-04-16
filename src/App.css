@@ -205,3 +205,10 @@
 .centered {
   margin-inline: auto;
 }
+
+.on-hover-active {
+  &:hover {
+    background-color: var(--color-active);
+    color: white;
+  }
+}

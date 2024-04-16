@@ -17,6 +17,7 @@ let aiInteraction: TAIInteraction = {};
 
 export default function Chat() {
   const backdropRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const { t } = useTranslation();
 
   const {
@@ -37,7 +38,7 @@ export default function Chat() {
     compilerSocket,
     shouldBeTested,
     registerAIInteraction,
-    setListeners
+    setListeners,
   } = useStore((state) => ({
     setOpenedModals: state.setOpenedModals,
     currentExercisePosition: state.currentExercisePosition,
@@ -78,9 +79,11 @@ export default function Chat() {
 
     window.scrollTo({ top: 0, behavior: "smooth" });
 
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
-      // Re-enable scrolling when the component unmounts
     };
   }, []);
 
@@ -109,7 +112,7 @@ export default function Chat() {
     if (chatMessagesContainer) {
       chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
     }
-    
+
     return () => {
       chatSocket.off("response");
       chatSocket.off("responseFinished");
@@ -279,6 +282,7 @@ export default function Chat() {
         </section>
         <section className="chat-input">
           <textarea
+            ref={inputRef}
             value={userMessage}
             placeholder={t("Ask me something here")}
             onChange={trackUserMessage}
@@ -287,7 +291,11 @@ export default function Chat() {
           <button onClick={handleSubmit}>{svgs.sendSvg}</button>
         </section>
         <section className="chat-footer">
-          <p>{t("This AI, currently in beta, serves as an educational tutor. It is not a substitute for professional instruction. Use at your own risk and confirm details with authoritative educational resources.")}</p>
+          <p>
+            {t(
+              "This AI, currently in beta, serves as an educational tutor. It is not a substitute for professional instruction. Use at your own risk and confirm details with authoritative educational resources."
+            )}
+          </p>
         </section>
       </div>
     </main>
