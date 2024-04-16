@@ -11,15 +11,18 @@
 
 ._badge {
   position: fixed;
-  width: 300px; /* Ajustado de 50vw a un valor fijo para mejor control */
+  width: min(
+    90%,
+    400px
+  ); /* Ajustado de 50vw a un valor fijo para mejor control */
   /* max-height: fit-content; */
   border-radius: 5px; /* Suavizado de las esquinas */
   text-align: left;
   background-color: rgb(255, 255, 255);
   border: 1px solid rgba(127, 127, 127, 0.3);
   padding: 15px;
-  top: 25%;
-  left: 60%;
+  top: 70vh;
+  left: 50%;
   transform: translate(-50%, -50%);
   z-index: 2;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra más sutil */
