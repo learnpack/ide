@@ -155,10 +155,15 @@ const Badge = ({
     setOpenedModals({ tutorial: false });
   };
 
+  // Get the bounding rectangle
+const rect = element.getBoundingClientRect();
+
+// Calculate the distance from the top of the screen to the bottom of the element
+const distance = rect.bottom + window.scrollY;
   return (
     <>
       <div className="presentator"></div>
-      <div className="_badge">
+      <div style={{top: distance + 200}} className="_badge">
         <h2>{t(title)}</h2>
         <div className="_content"
           dangerouslySetInnerHTML={{ __html: convertMarkdownToHTML(t(text)) }}
