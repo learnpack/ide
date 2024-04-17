@@ -673,16 +673,11 @@ const useStore = create<IStore>((set, get) => ({
     compilerSocket.emit("ai_interaction", telemetryData);
   },
   // Leave this empty for development purposes
-  displayTestButton: true,
+  displayTestButton: DEV_MODE,
   test: async () => {
     const { openTerminal } = get();
     // disconnected();
-    TagManager.dataLayer({
-      dataLayer: {
-        event: "ai_interaction",
-        messages: {"hello": "world"},
-      },
-    });
+    
     openTerminal()
   },
 }));

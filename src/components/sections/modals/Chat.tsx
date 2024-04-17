@@ -4,6 +4,7 @@ import { convertMarkdownToHTML } from "../../../utils/lib";
 import { svgs } from "../../../assets/svgs";
 import { removeSpecialCharacters } from "../../../utils/lib";
 import { useTranslation } from "react-i18next";
+import TagManager from "react-gtm-module";
 
 
 type TAIInteraction = {
@@ -104,6 +105,14 @@ export default function Chat() {
         aiInteraction.ending_at = Date.now();
         aiInteraction.ai_response = messages[messages.length - 1].text;
         registerAIInteraction(currentExercisePosition, aiInteraction);
+        TagManager.dataLayer({
+          dataLayer: {
+            event: "ai_interaction",
+            interaction: aiInteraction,
+            ai_message: aiInteraction.ai_response,
+            student_message: aiInteraction.student_message,
+          },
+        });
         
         aiInteraction = {};
         setExerciseMessages(messages, currentExercisePosition);
