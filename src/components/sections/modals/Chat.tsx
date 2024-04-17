@@ -5,6 +5,7 @@ import { svgs } from "../../../assets/svgs";
 import { removeSpecialCharacters } from "../../../utils/lib";
 import { useTranslation } from "react-i18next";
 import TagManager from "react-gtm-module";
+import toast from "react-hot-toast";
 
 
 type TAIInteraction = {
@@ -108,11 +109,12 @@ export default function Chat() {
         TagManager.dataLayer({
           dataLayer: {
             event: "ai_interaction",
-            interaction: aiInteraction,
+            // interaction: aiInteraction,
             ai_message: aiInteraction.ai_response,
             student_message: aiInteraction.student_message,
           },
         });
+        toast.success("AI response generated successfully");
         
         aiInteraction = {};
         setExerciseMessages(messages, currentExercisePosition);
