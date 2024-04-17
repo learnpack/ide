@@ -23,6 +23,7 @@ import toast from "react-hot-toast";
 import { getStatus } from "./socket";
 import { DEV_MODE, RIGOBOT_API_URL } from "./lib";
 
+
 class MissingRigobotAccountError extends Error {
   constructor(message) {
     super(message);
@@ -672,10 +673,16 @@ const useStore = create<IStore>((set, get) => ({
     compilerSocket.emit("ai_interaction", telemetryData);
   },
   // Leave this empty for development purposes
-  displayTestButton: false,
+  displayTestButton: true,
   test: async () => {
     const { openTerminal } = get();
     // disconnected();
+    TagManager.dataLayer({
+      dataLayer: {
+        event: "ai_interaction",
+        messages: {"hello": "world"},
+      },
+    });
     openTerminal()
   },
 }));

@@ -5,6 +5,7 @@ import { svgs } from "../../../assets/svgs";
 import { removeSpecialCharacters } from "../../../utils/lib";
 import { useTranslation } from "react-i18next";
 
+
 type TAIInteraction = {
   student_message?: string;
   starting_at?: number;
@@ -103,6 +104,7 @@ export default function Chat() {
         aiInteraction.ending_at = Date.now();
         aiInteraction.ai_response = messages[messages.length - 1].text;
         registerAIInteraction(currentExercisePosition, aiInteraction);
+        
         aiInteraction = {};
         setExerciseMessages(messages, currentExercisePosition);
       }
