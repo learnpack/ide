@@ -5,7 +5,6 @@ import { svgs } from "../../../assets/svgs";
 import { removeSpecialCharacters } from "../../../utils/lib";
 import { useTranslation } from "react-i18next";
 import TagManager from "react-gtm-module";
-import toast from "react-hot-toast";
 
 
 type TAIInteraction = {
@@ -42,6 +41,7 @@ export default function Chat() {
     shouldBeTested,
     registerAIInteraction,
     setListeners,
+    getCurrentExercise
   } = useStore((state) => ({
     setOpenedModals: state.setOpenedModals,
     currentExercisePosition: state.currentExercisePosition,
@@ -61,6 +61,7 @@ export default function Chat() {
     shouldBeTested: state.shouldBeTested,
     registerAIInteraction: state.registerAIInteraction,
     setListeners: state.setListeners,
+    getCurrentExercise: state.getCurrentExercise,
   }));
 
   const fakeMessages = [{ type: "bot", text: t(chatInitialMessage) }];
@@ -109,12 +110,11 @@ export default function Chat() {
         TagManager.dataLayer({
           dataLayer: {
             event: "ai_interaction",
-            // interaction: aiInteraction,
-            ai_message: aiInteraction.ai_response,
-            student_message: aiInteraction.student_message,
+            interaction: aiInteraction,
+            slug: getCurrentExercise().slug
           },
         });
-        toast.success("AI response generated successfully");
+        
         
         aiInteraction = {};
         setExerciseMessages(messages, currentExercisePosition);
