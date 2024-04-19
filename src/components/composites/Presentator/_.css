@@ -13,7 +13,7 @@
   position: fixed;
   width: min(
     90%,
-    400px
+    330px
   ); /* Ajustado de 50vw a un valor fijo para mejor control */
   /* max-height: fit-content; */
   border-radius: 5px; /* Suavizado de las esquinas */
@@ -23,7 +23,7 @@
   padding: 15px;
   top: 50vh;
   left: 50%;
-  transform: translateX(-50%);
+  /* transform: translateX(-50%); */
   z-index: 2;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra más sutil */
 

@@ -7,47 +7,16 @@ import { useTranslation } from "react-i18next";
 import { svgs } from "../../../assets/svgs";
 import useStore from "../../../utils/store";
 import { convertMarkdownToHTML } from "../../../utils/lib";
+import { defaultSteps } from "../../../utils/presentation";
 
 type PresentatorProps = {};
 
-const defaultSteps = [
-  {
-    title: "Welcome to LearnPack!",
-    text: `This is a quick tutorial to help you get started. Click next to continue.`,
-    id: null,
-  },
-  {
-    title: "If you prefer, you can change the language!",
-    text: `Click on the flag to change the language.`,
-    id: "language-component",
-  },
-  {
-    title: "The run button",
-    text: `Use this button to compile or run your code. The behavior depends of the files in the exercise directory. You can also use the shortcut \`Ctrl\` + \`Enter\` to run the code.`,
-    id: "build-button",
-  },
-  {
-    title: "Options to get feedback",
-    text: "Within this dropdown you can get feedback on your code. Let's try the available ones! You can use the following shortcuts:\n\n`Ctrl` + `Shift` + `Enter`: Run the tests if available. \n\n`Ctrl` + `Alt` + `Enter`: Open the chat with Rigobot",
-    id: "feedback-button",
-  },
-  {
-    title: "Reset button",
-    text: "Sometimes you want to start over, use this button to `reset` the code to its original state.",
-    id: "reset-button",
-  },
-  {
-    title: "Open the sidebar",
-    text: "Inside the sidebar you can go through the exercises and see your progress. Also you can report a bug.",
-    id: "sidebar-toggle",
-  },
-];
+
 export const Presentator = ({}: PresentatorProps) => {
   const [element, setElement] = useState<HTMLElement | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
 
   const steps = defaultSteps;
-  //   const [steps, setSteps] = useState(defaultSteps);
 
   useEffect(() => {
     // Ensure all content is loaded
@@ -80,6 +49,7 @@ export const Presentator = ({}: PresentatorProps) => {
             element={element}
             title={steps[currentStep].title}
             text={steps[currentStep].text}
+            position={steps[currentStep].position}
             handlePositionChange={handlePositionChange}
             numberOfSteps={steps.length}
           />,
@@ -97,6 +67,7 @@ type BadgeProps = {
   color?: string;
   currentStep: number;
   numberOfSteps: number;
+  position: any
   handlePositionChange: (action: string) => void;
 };
 
@@ -107,6 +78,7 @@ const Badge = ({
   element,
   numberOfSteps,
   currentStep,
+  position
 }: BadgeProps) => {
   const { t } = useTranslation();
   const { setOpenedModals } = useStore((state) => ({
@@ -155,15 +127,17 @@ const Badge = ({
     setOpenedModals({ tutorial: false });
   };
 
-  // Get the bounding rectangle
-const rect = element.getBoundingClientRect();
+  const handleClickBackdrop = (e: any) => {
+    if (e.target.classList.contains("presentator")) {
+      closeTutorial();
+    }
+  }
 
-// Calculate the distance from the top of the screen to the bottom of the element
-const distance = rect.bottom + window.scrollY;
   return (
     <>
-      <div className="presentator"></div>
-      <div style={{top: distance + 200}} className="_badge">
+      <div onClick={handleClickBackdrop} className="presentator">
+      </div>
+      <div style={{top: position[0], left: position[1]}} className="_badge">
         <h2>{t(title)}</h2>
         <div className="_content"
           dangerouslySetInnerHTML={{ __html: convertMarkdownToHTML(t(text)) }}
@@ -179,7 +153,7 @@ const distance = rect.bottom + window.scrollY;
           )}
           {!(currentStep === numberOfSteps - 1) && (
             <SimpleButton
-              extraClass="pill"
+              extraClass="pill" 
               svg={svgs.nextArrowButton}
               action={next}
             />

@@ -92,6 +92,7 @@ export interface IStore {
     buildbuttonText: IBuildProps
     feedbackbuttonProps: IBuildProps
     compilerSocket: any
+    user_id: number | null
     token: string
     bc_token: string
     solvedExercises: number

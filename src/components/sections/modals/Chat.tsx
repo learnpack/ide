@@ -41,7 +41,8 @@ export default function Chat() {
     shouldBeTested,
     registerAIInteraction,
     setListeners,
-    getCurrentExercise
+    getCurrentExercise,
+    user_id
   } = useStore((state) => ({
     setOpenedModals: state.setOpenedModals,
     currentExercisePosition: state.currentExercisePosition,
@@ -62,6 +63,7 @@ export default function Chat() {
     registerAIInteraction: state.registerAIInteraction,
     setListeners: state.setListeners,
     getCurrentExercise: state.getCurrentExercise,
+    user_id: state.user_id
   }));
 
   const fakeMessages = [{ type: "bot", text: t(chatInitialMessage) }];
@@ -107,11 +109,13 @@ export default function Chat() {
         aiInteraction.ending_at = Date.now();
         aiInteraction.ai_response = messages[messages.length - 1].text;
         registerAIInteraction(currentExercisePosition, aiInteraction);
+
         TagManager.dataLayer({
           dataLayer: {
             event: "ai_interaction",
             interaction: aiInteraction,
-            slug: getCurrentExercise().slug
+            slug: getCurrentExercise().slug,
+            user_id: user_id,
           },
         });
         

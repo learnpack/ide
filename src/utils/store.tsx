@@ -60,6 +60,7 @@ const useStore = create<IStore>((set, get) => ({
   conversationIdsCache: {},
   lessonTitle: "",
   numberOfExercises: 0,
+  user_id: null,
   solvedExercises: 0,
   hasSolution: false,
   shouldBeTested: false,
@@ -256,7 +257,7 @@ const useStore = create<IStore>((set, get) => ({
   },
 
   fetchExercises: async () => {
-    const { getLessonTitle, fetchReadme } = get();
+    const { getLessonTitle, fetchReadme, user_id } = get();
 
     try {
       const res = await fetch(`${HOST}/config`);
@@ -267,6 +268,7 @@ const useStore = create<IStore>((set, get) => ({
         dataLayer: {
           event: "start_exercise",
           slug: slug,
+          user_id: user_id,
         },
       });
 
@@ -433,7 +435,9 @@ const useStore = create<IStore>((set, get) => ({
       const res = await fetch(host + "/login", config);
       const json = await res.json();
 
-      set({ bc_token: json.token });
+      console.log(json, "json response");
+      
+      set({ bc_token: json.token, user_id: json.user_id });
 
       if (json.rigobot == null) {
         throw new MissingRigobotAccountError(

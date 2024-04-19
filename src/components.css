@@ -1,19 +1,43 @@
-.iframe-zoomeable {
-  width: 460px;
-  height: 315px;
+.preview-card {
+  max-width: 560px;
   position: relative;
-  z-index: 40;
-  > iframe {
-    width: 100%;
+  
+  > .click {
+    margin-inline: auto;
+    display: block;
+    background-color: transparent !important;
+    display: flex;
+    justify-content: center;
+    height: 100%;
     position: absolute;
     top: 0;
     left: 0;
-    height: 100%;
+    width: 100%;
+    align-items: center;
+    cursor: pointer;
+    font-size: 100px;
+    animation-fill-mode: backwards;
+    > span {
+      background-color: red;
+    }
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.5);
+      /* scale: 2; */
+      /* transition: all 0.5s; */
+      animation: scaleOnHover 0.5s ease 1 both;
+    }
   }
-  > .closer {
-    background-color: red;
-    z-index: 20 !important;
+}
+
+@keyframes scaleOnHover {
+  from {
+    font-size: 100px;
   }
+  
+  to {
+   font-size: 200px;
+  }
+  
 }
 
 .video-modal {
