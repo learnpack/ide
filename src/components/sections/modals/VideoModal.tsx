@@ -14,7 +14,8 @@ const VideoModal: React.FC<IVideoModalProps> = ({ link, hideModal }) => {
 
   const fetchPreview = (link: string) => {
     let videoId: string | null;
-    if (link.includes("/embed/")) {
+    let includesEmbed = link.includes("/embed/");
+    if (includesEmbed) {
       videoId = link.split("/embed/")[1].split("?")[0];
     } else {
       const params = new URLSearchParams(link.split("?")[1]);
@@ -26,8 +27,7 @@ const VideoModal: React.FC<IVideoModalProps> = ({ link, hideModal }) => {
       return;
     }
 
-    const previewSrc = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-
+    const previewSrc = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
     return previewSrc;
   };
 
