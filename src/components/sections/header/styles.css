@@ -10,10 +10,9 @@
 }
 
 .navbar-component {
-  padding: 10px 20px;
+  padding: 10px 10px;
   background-color: var(--bg-color-gray);
   display: flex;
-  gap: 5px;
   width: 100%;
   transition: all 2s;
   margin: 0 auto;
@@ -22,7 +21,7 @@
 
   > section {
     display: flex;
-    gap: 5px;
+    gap: 3px;
     align-items: center;
   }
 }
