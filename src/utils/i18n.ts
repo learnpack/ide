@@ -33,7 +33,7 @@ i18n.use(initReactI18next).init({
         "Get feedback": "Get feedback",
         "Try again": "Try again",
         "Current version": "Current version",
-        "Learnpack AI-Tutor": "Learnpack AI-Tutor",
+        "Rigobot AI-Tutor": "Rigobot AI-Tutor",
         "Ask me something here": "Ask me something here",
         "This AI, currently in beta, serves as an educational tutor. It is not a substitute for professional instruction. Use at your own risk and confirm details with authoritative educational resources.":
           "This AI, currently in beta, serves as an educational tutor. It is not a substitute for professional instruction. Use at your own risk and confirm details with authoritative educational resources.",
@@ -95,7 +95,7 @@ i18n.use(initReactI18next).init({
         "Get feedback": "Obtener ayuda",
         "Try again": "Intenta de nuevo",
         "Current version": "Versión actual",
-        "Learnpack AI-Tutor": "Tutor AI",
+        "Rigobot AI-Tutor": "Rigobot AI",
         "Ask me something here": "Escribe acá tus preguntas",
         "This AI, currently in beta, serves as an educational tutor. It is not a substitute for professional instruction. Use at your own risk and confirm details with authoritative educational resources.":
           "Esta IA, actualmente en beta, sirve como tutor educativo. No es un sustituto de la instrucción profesional. Úsalo bajo tu propio riesgo y confirma los detalles con recursos educativos autorizados.",

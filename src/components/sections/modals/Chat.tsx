@@ -283,7 +283,7 @@ export default function Chat() {
     <main ref={backdropRef} className="chat-container">
       <div className="chat-modal">
         <section className="chat-header">
-          <h3>{t("Learnpack AI-Tutor")}</h3>
+          <h3>{t("Rigobot AI-Tutor")}</h3>
           <button
             onClick={() => {
               setOpenedModals({ chat: false });
