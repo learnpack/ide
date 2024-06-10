@@ -23,7 +23,6 @@ import toast from "react-hot-toast";
 import { getStatus } from "./socket";
 import { DEV_MODE, RIGOBOT_API_URL } from "./lib";
 
-
 class MissingRigobotAccountError extends Error {
   constructor(message) {
     super(message);
@@ -53,10 +52,11 @@ const useStore = create<IStore>((set, get) => ({
   learnpackPurposeId: defaultParams.purpose || 26,
   exercises: [],
   currentContent: "",
+  dialogData: {},
   chatSocket: chatSocket,
   currentExercisePosition: defaultParams.currentExercise || 0,
   chatInitialMessage:
-    "Hello! I'm the Learnpack tutor, I can help you if you feel stuck, ask me anything about this exercise!",
+    "Hello! I'm **Rigobot**, your friendly **AI Mentor**! \n\n I can help you if you feel stuck, ask me anything about this exercise!",
   conversationIdsCache: {},
   lessonTitle: "",
   numberOfExercises: 0,
@@ -66,6 +66,8 @@ const useStore = create<IStore>((set, get) => ({
   shouldBeTested: false,
   status: "",
   showFeedback: false,
+  promptMode: false,
+  promptInstructions: "",
   token: "",
   bc_token: "",
   buildbuttonText: {
@@ -135,7 +137,8 @@ const useStore = create<IStore>((set, get) => ({
       compilerSocket,
       setTestResult,
       toastFromStatus,
-      setFeedbackButtonProps
+      setFeedbackButtonProps,
+      setOpenedModals
     } = get();
 
     let debounceSuccess = debounce((data: any) => {
@@ -156,6 +159,10 @@ const useStore = create<IStore>((set, get) => ({
     compilerSocket.onStatus("testing-error", debounceError);
     compilerSocket.onStatus("open_window", (data) => {
       toastFromStatus("open_window");
+    });
+    compilerSocket.on("dialog", (data) => {
+      set({ dialogData: data.data });
+      setOpenedModals({ dialog: true });
     });
   },
 
@@ -216,7 +223,20 @@ const useStore = create<IStore>((set, get) => ({
       isBuildable,
       isTesteable,
       configObject,
+      promptMode,
+      promptInstructions,
     } = get();
+    let context = "";
+
+    if (promptMode) {
+      context += `prompt requirements (use this to evaluate user's prompt): """${promptInstructions}"""
+      
+      README (extra information to make your task): """${currentReadme}"""
+      `;
+
+      return context;
+    }
+
     let currentExercise = getCurrentExercise();
     const slug = currentExercise.slug;
     let mode = configObject.config.grading;
@@ -232,7 +252,6 @@ const useStore = create<IStore>((set, get) => ({
     });
 
     return Promise.all(filePromises).then((filesContext) => {
-      let context = "";
       context += filesContext.join("\n");
       context += `\nThis is the current exercise instructions:
       ---
@@ -436,7 +455,7 @@ const useStore = create<IStore>((set, get) => ({
       const json = await res.json();
 
       console.log(json, "json response");
-      
+
       set({ bc_token: json.token, user_id: json.user_id });
 
       if (json.rigobot == null) {
@@ -522,6 +541,15 @@ const useStore = create<IStore>((set, get) => ({
       `${HOST}/exercise/${slug}/readme?lang=${language}`
     );
     const exercise = await response.json();
+
+    if (exercise.attributes.prompt_requirements) {
+      console.log(
+        "The read contains prompt instructions, turning into prompt mode"
+      );
+      set({ promptMode: true });
+      set({ promptInstructions: exercise.attributes.prompt_requirements });
+      set({ learnpackPurposeId: 38 });
+    }
 
     if (exercise.attributes.tutorial) {
       set({ videoTutorial: exercise.attributes.tutorial });
@@ -681,8 +709,8 @@ const useStore = create<IStore>((set, get) => ({
   test: async () => {
     const { openTerminal } = get();
     // disconnected();
-    
-    openTerminal()
+
+    openTerminal();
   },
 }));
 

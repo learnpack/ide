@@ -37,8 +37,8 @@ i18n.use(initReactI18next).init({
         "Ask me something here": "Ask me something here",
         "This AI, currently in beta, serves as an educational tutor. It is not a substitute for professional instruction. Use at your own risk and confirm details with authoritative educational resources.":
           "This AI, currently in beta, serves as an educational tutor. It is not a substitute for professional instruction. Use at your own risk and confirm details with authoritative educational resources.",
-        "Hello! I'm the Learnpack tutor, I can help you if you feel stuck, ask me anything about this exercise!":
-          "Hello! I'm the Learnpack tutor, I can help you if you feel stuck, ask me anything about this exercise!",
+        "Hello! I'm **Rigobot**, your friendly **AI Mentor**! \n\n I can help you if you feel stuck, ask me anything about this exercise!":
+          "Hello! I'm **Rigobot**, your friendly **AI Mentor**! \n\n I can help you if you feel stuck, ask me anything about this exercise!",
 
         "The run button": "The run button",
         "No tests available": "No tests available",
@@ -99,8 +99,8 @@ i18n.use(initReactI18next).init({
         "Ask me something here": "Escribe acá tus preguntas",
         "This AI, currently in beta, serves as an educational tutor. It is not a substitute for professional instruction. Use at your own risk and confirm details with authoritative educational resources.":
           "Esta IA, actualmente en beta, sirve como tutor educativo. No es un sustituto de la instrucción profesional. Úsalo bajo tu propio riesgo y confirma los detalles con recursos educativos autorizados.",
-        "Hello! I'm the Learnpack tutor, I can help you if you feel stuck, ask me anything about this exercise!":
-          "¡Hola! Soy el tutor de Learnpack, puedo ayudarte si te sientes atascado, ¡pregúntame cualquier cosa sobre este ejercicio!",
+        "Hello! I'm **Rigobot**, your friendly **AI Mentor**! \n\n I can help you if you feel stuck, ask me anything about this exercise!":
+          "¡Hola! Soy Rigobot, tu amigable Mentor AI, puedo ayudarte si te sientes atascado, ¡pregúntame cualquier cosa sobre este ejercicio!",
         "No tests available": "No hay tests disponibles",
         Succeded: "¡Perfecto!",
         "Socket disconnected!": "¡Conexión perdida!",

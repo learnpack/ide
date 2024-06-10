@@ -42,7 +42,8 @@ export default function Chat() {
     registerAIInteraction,
     setListeners,
     getCurrentExercise,
-    user_id
+    user_id,
+    promptMode
   } = useStore((state) => ({
     setOpenedModals: state.setOpenedModals,
     currentExercisePosition: state.currentExercisePosition,
@@ -63,7 +64,8 @@ export default function Chat() {
     registerAIInteraction: state.registerAIInteraction,
     setListeners: state.setListeners,
     getCurrentExercise: state.getCurrentExercise,
-    user_id: state.user_id
+    user_id: state.user_id,
+    promptMode: state.promptMode
   }));
 
   const fakeMessages = [{ type: "bot", text: t(chatInitialMessage) }];
@@ -240,7 +242,7 @@ export default function Chat() {
   };
 
   const handleSubmit = () => {
-    if (!isBuildable && !isTesteable) {
+    if (!isBuildable && !isTesteable && !promptMode) {
       addNoActionsMessage();
       return;
     }

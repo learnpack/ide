@@ -1,6 +1,6 @@
 // @ts-nocheck
 import io from 'socket.io-client'
-
+// TODOs: add dialog event ,
 export const getStatus = function (status = 'initializing') {
     const goodIcons = ['🤩', '🙂', '😃', '😎', '🤓', '😍', '🤗', '👌🏽', '✅']
     const badIcons = ['🤮', '🤢', '🤐', '🤬', '😡', '😵', '🤷🏽‍♂️', '🤷🏻‍♀️', '😬', '😭', '😤', '🤭', '🤒', '💩', '🧟‍♂️']
@@ -38,6 +38,7 @@ export const getStatus = function (status = 'initializing') {
         case "prettify-error": return ["⚠️", "Warning! Unable to prettify and save"]
         case "open_window": return ["👀", "Opening window..."]
         default: throw new Error('Invalid status: ' + status)
+        case "dialog": return ["💬", "Dialog Received"]
     }
 }
 

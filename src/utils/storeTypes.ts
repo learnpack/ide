@@ -86,6 +86,7 @@ export interface IStore {
     language: string
     learnpackPurposeId: number
     status: string
+    dialogData: any //TODO: add type
     lessonTitle: string
     numberOfExercises: number
     showFeedback: boolean
@@ -113,6 +114,8 @@ export interface IStore {
     lastTestResult: TTestResult
     translations: TTranslations
     shouldBeTested: boolean
+    promptMode: boolean
+    promptInstructions: string
     start: () => void
     setListeners: ()=>void
     checkRigobotInvitation: () => void
