@@ -75,7 +75,13 @@ li {
   list-style-type: disc;
   margin-left: 20px !important;
 }
-
+blockquote {
+  border-left: 2px solid var(--color-active);
+  padding: 2px 6px;
+  border-radius: 5px;
+  margin-top: 10px;
+  background-color: #e6e6e6;
+}
 button {
   cursor: pointer;
 }
