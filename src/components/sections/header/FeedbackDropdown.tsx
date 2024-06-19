@@ -56,6 +56,7 @@ export const FeedbackDropdown = ({
       toast: true,
       setFeedbackButton: true,
       feedbackButtonText: t("Running..."),
+      targetButton: "feedback"
     });
   };
 

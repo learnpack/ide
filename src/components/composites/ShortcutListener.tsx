@@ -15,6 +15,8 @@ export const ShortcutsListener = ({ children }: ShortcutListenerProps) => {
     runExerciseTests,
     setOpenedModals,
     openedModals,
+    isBuildable,
+    isTesteable,
   } = useStore((state) => ({
     currentExercisePosition: state.currentExercisePosition,
     handlePositionChange: state.handlePositionChange,
@@ -23,6 +25,8 @@ export const ShortcutsListener = ({ children }: ShortcutListenerProps) => {
     runExerciseTests: state.runExerciseTests,
     setOpenedModals: state.setOpenedModals,
     openedModals: state.openedModals,
+    isBuildable: state.isBuildable,
+    isTesteable: state.isTesteable,
   }));
 
   useEffect(() => {
@@ -37,15 +41,17 @@ export const ShortcutsListener = ({ children }: ShortcutListenerProps) => {
         event.ctrlKey &&
         !event.shiftKey &&
         !event.altKey &&
-        event.key === "Enter"
+        event.key === "Enter" &&
+        isBuildable
       ) {
         build(t("Running..."));
       }
-      if (event.ctrlKey && event.shiftKey && event.key === "Enter") {
+      if (event.ctrlKey && event.shiftKey && event.key === "Enter" && isTesteable) {
         runExerciseTests({
           toast: true,
           setFeedbackButton: true,
           feedbackButtonText: t("Running..."),
+          targetButton: "feedback",
         });
       }
       if (event.ctrlKey && event.altKey && event.key === "Enter") {

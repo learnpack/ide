@@ -10,12 +10,13 @@
 .lesson-content-component {
   /* background-color: red; */
   padding-bottom: 70px;
+  font-size: 16px;
+  line-height: 24px;
   
   & img {
     margin: 5px auto;
     max-width: 650px;
   }
-  font-size: 16px;
   & h1 {
     font-size: 26px;
   }
@@ -25,7 +26,6 @@
   & h3 {
     font-size: 18px;
   }
-  line-height: 24px;
   > h1,
   h2,
   h3,

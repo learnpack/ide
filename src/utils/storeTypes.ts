@@ -116,6 +116,7 @@ export interface IStore {
     shouldBeTested: boolean
     promptMode: boolean
     promptInstructions: string
+    targetButtonForFeedback: "build" | "feedback"
     start: () => void
     setListeners: ()=>void
     checkRigobotInvitation: () => void
@@ -159,4 +160,5 @@ type TRunExerciseTestsOptions = {
     toast: boolean
     setFeedbackButton: boolean
     feedbackButtonText: string
+    targetButton: "build" | "feedback"
 }

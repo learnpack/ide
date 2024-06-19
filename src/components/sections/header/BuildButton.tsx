@@ -27,6 +27,8 @@ export default function BuildButton() {
     setBuildButtonText,
     isBuildable,
     build,
+    isTesteable,
+    runExerciseTests
   } = useStore((state) => ({
     currentExercisePosition: state.currentExercisePosition,
     exercises: state.exercises,
@@ -35,6 +37,9 @@ export default function BuildButton() {
     setBuildButtonText: state.setBuildButtonText,
     isBuildable: state.isBuildable,
     build: state.build,
+    isTesteable: state.isTesteable,
+    feedbackButtonProps: state.feedbackbuttonProps,
+    runExerciseTests: state.runExerciseTests,
   }));
 
   let compilerErrorHandler = debounce((data: any) => {
@@ -57,17 +62,28 @@ export default function BuildButton() {
     compilerSocket.onStatus("compiler-success", compilerSuccessHandler);
   }, [currentExercisePosition]);
 
+  const runTests = () => {
+    setBuildButtonText(t("Running..."), "bg-blue");
+    runExerciseTests({
+      toast: true,
+      setFeedbackButton: false,
+      feedbackButtonText: t("Running..."),
+      targetButton: "build"
+    });
+  };
+
+  const changeToTest = !isBuildable && isTesteable;
+  
   return (
     <SimpleButton
-    id="build-button"
+      id="build-button"
       text={t(buildbuttonText.text)}
       svg={svgs.buildIcon}
-      extraClass={`pill bg-blue ${buildbuttonText.className}`}
+      extraClass={`pill bg-blue ${buildbuttonText.className }`}
       action={() => {
-        build(t("Running..."));
+        changeToTest ? runTests() : build(t("Running..."));
       }}
-      
-      disabled={!isBuildable}
+      disabled={!isBuildable && !isTesteable}
     />
   );
 }

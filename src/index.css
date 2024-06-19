@@ -49,6 +49,7 @@ button {
 }
 h1 {
   font-size: 18px;
+
   font-weight: 700;
 }
 hr {
@@ -85,6 +86,34 @@ blockquote {
 button {
   cursor: pointer;
 }
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+th {
+  background-color: var(--bg-color-code);
+  padding: 6px;
+  color: white;
+  border: 1px solid rgb(130, 130, 130);
+}
+td {
+  border: 1px solid rgb(130, 130, 130);
+  text-align: center;
+  padding: 4px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 5px;
+  line-height: 1.5;
+}
+
 /* This will affect the entire webpage */
 ::-webkit-scrollbar {
   width: 5px;
@@ -114,6 +143,10 @@ button {
 .bg-blue {
   background-color: var(--color-active) !important;
   color: white;
+
+  > svg {
+    stroke: white;
+  }
 }
 
 .border-blue {

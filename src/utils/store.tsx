@@ -52,6 +52,7 @@ const useStore = create<IStore>((set, get) => ({
   learnpackPurposeId: defaultParams.purpose || 26,
   exercises: [],
   currentContent: "",
+  targetButtonForFeedback: "feedback",
   dialogData: {},
   chatSocket: chatSocket,
   currentExercisePosition: defaultParams.currentExercise || 0,
@@ -138,21 +139,35 @@ const useStore = create<IStore>((set, get) => ({
       setTestResult,
       toastFromStatus,
       setFeedbackButtonProps,
-      setOpenedModals
+      setOpenedModals,
+      setBuildButtonText
+      
     } = get();
 
     let debounceSuccess = debounce((data: any) => {
       const stdout = removeSpecialCharacters(data.logs[0]);
       setTestResult("successful", stdout);
       toastFromStatus("testing-success");
-      setFeedbackButtonProps("Succeded", "bg-success text-white");
+      
+      if (get().targetButtonForFeedback === "feedback") {
+        setFeedbackButtonProps("Succeded", "bg-success text-white");
+      }
+      else {
+        setBuildButtonText("Succeded", "bg-success text-white");
+      }
     }, 100);
-
+    
     let debounceError = debounce((data: any) => {
       const stdout = removeSpecialCharacters(data.logs[0]);
       setTestResult("failed", stdout);
       toastFromStatus("testing-error");
-      setFeedbackButtonProps("Try again", "bg-fail text-white");
+
+      if (get().targetButtonForFeedback === "feedback") {
+        setFeedbackButtonProps("Try again", "bg-fail text-white");
+      }
+      else {
+        setBuildButtonText("Try again", "bg-fail text-white");
+      }
     }, 100);
 
     compilerSocket.onStatus("testing-success", debounceSuccess);
@@ -686,7 +701,11 @@ const useStore = create<IStore>((set, get) => ({
 
     set({ shouldBeTested: false });
 
-    if (opts && opts.setFeedbackButton)
+    if (opts?.targetButton) {
+      set({ targetButtonForFeedback: opts.targetButton });
+    }
+
+    if (opts && opts.setFeedbackButton && opts.targetButton === "feedback")
       setFeedbackButtonProps(opts.feedbackButtonText, "palpitate");
     if (opts && opts.toast) toastFromStatus("testing");
   },
