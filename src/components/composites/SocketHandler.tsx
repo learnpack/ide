@@ -7,31 +7,36 @@ export function SocketHandler() {
   const {
     compilerSocket,
     exercises,
+
+    setShouldBeTested,
+    getCurrentExercise,
     currentExercisePosition,
-    setShouldBeTested
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     exercises: state.exercises,
-    currentExercisePosition: state.currentExercisePosition,
     setAllowedActions: state.setAllowedActions,
-    setShouldBeTested: state.setShouldBeTested
+    setShouldBeTested: state.setShouldBeTested,
+    getCurrentExercise: state.getCurrentExercise,
+    currentExercisePosition: state.currentExercisePosition,
   }));
 
   const [inputsResponses, setInputsResponses] = useState([] as string[]);
   const [inputs, setInputs] = useState([] as string[]);
   const [shouldWeSend, setShouldWeSend] = useState(false);
 
-
   useEffect(() => {
     compilerSocket.on("file_change", (data: any) => {
-      const fullpath = data.logs
-      const currentExercisePath = exercises[currentExercisePosition].path
-      const doesCurrentStepChange = fullpath.includes(currentExercisePath)
-      
+
+      const current = getCurrentExercise();
+      const fullpath = data.logs;
+
+      const doesCurrentStepChange = fullpath.includes(current.path);
+
       if (!doesCurrentStepChange) return;
-      setShouldBeTested(true)
-    })
-  }, [])
+      
+      setShouldBeTested(true);
+    });
+  }, []);
 
   useEffect(() => {
     // compilerSocket.whenUpdated((scope: any, data: any) => {
@@ -71,7 +76,7 @@ export function SocketHandler() {
 
   const handleCancel = () => {
     setInputsResponses((prev) => [...prev, ""]);
-    const newInputs = inputs.slice(1)
+    const newInputs = inputs.slice(1);
     setInputs(newInputs);
 
     if (newInputs.length === 0) {
@@ -81,13 +86,12 @@ export function SocketHandler() {
 
   const handleInputSubmit = (value: string) => {
     setInputsResponses((prev) => [...prev, value]);
-    const newInputs = inputs.slice(1)
+    const newInputs = inputs.slice(1);
     setInputs(newInputs);
 
     if (newInputs.length === 0) {
       setShouldWeSend(true);
     }
-    
   };
 
   return (
@@ -102,4 +106,3 @@ export function SocketHandler() {
     </>
   );
 }
-

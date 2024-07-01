@@ -1,6 +1,6 @@
 import { svgs } from "../../../assets/svgs"
 import useStore from "../../../utils/store"
-import LanguageButton from "../lesson/LanguageButton"
+import LanguageButton from "./LanguageButton"
 
 
 export const LessonOptions = () => {

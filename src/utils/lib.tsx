@@ -1,5 +1,8 @@
 import { Remarkable } from "remarkable";
 import {linkify} from 'remarkable/linkify';
+// @ts-ignore
+// import katex from 'remarkable-katex'
+
 export const DEV_MODE =false;
 
 export const RIGOBOT_API_URL = "https://rigobot.herokuapp.com";
@@ -18,6 +21,7 @@ const fullURL =
 export const convertMarkdownToHTML = (markdown: any) => {
   // const md = new Remarkable({linkify: true});
   const md = new Remarkable().use(linkify)
+  // .use(katex)
   let html = md.render(markdown);
   html = replaceSrc(html);
   return html;

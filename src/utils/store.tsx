@@ -23,6 +23,9 @@ import toast from "react-hot-toast";
 import { getStatus } from "./socket";
 import { DEV_MODE, RIGOBOT_API_URL } from "./lib";
 
+
+
+
 class MissingRigobotAccountError extends Error {
   constructor(message) {
     super(message);
@@ -238,41 +241,42 @@ const useStore = create<IStore>((set, get) => ({
       isBuildable,
       isTesteable,
       configObject,
-      promptMode,
-      promptInstructions,
+      language
     } = get();
     let context = "";
 
-    if (promptMode) {
-      context += `prompt requirements (use this to evaluate user's prompt): """${promptInstructions}"""
-      
-      README (extra information to make your task): """${currentReadme}"""
-      `;
-
-      return context;
-    }
-
+    
     let currentExercise = getCurrentExercise();
     const slug = currentExercise.slug;
     let mode = configObject.config.grading;
 
-    let extractor = (file) => !file.hidden;
-    if (mode == "incremental" && isTesteable) extractor = (file) => file;
+    let extractor = (file) => !file.hidden && !file.name.toLowerCase().includes("readme") && !file.name.toLowerCase().includes("pycache");
+
+    if (mode == "incremental" && isTesteable) extractor = (file) => file && !file.toLowerCase().includes("readme") || !file.name.toLowerCase().includes("pycache");
+
 
     let contextFiles = currentExercise.files.filter(extractor);
 
     let filePromises = contextFiles.map(async (file, index) => {
       let fileContent = await getFileContent(slug, file.name);
-      return `File: ${file.name}\nContent: \`${fileContent}\``;
+      return `---
+      # File name: ${file.name}. Content: 
+      \`${fileContent}\`
+      ---
+      `;
     });
 
     return Promise.all(filePromises).then((filesContext) => {
       context += filesContext.join("\n");
-      context += `\nThis is the current exercise instructions:
-      ---
+      context += `
+      ---This is the current exercise instructions:
       ${currentReadme}
-      ---`;
+      ---
+      
+      <MANDATORY FOR AI: The user's set up the application in "${language}" language, give your feedback in "${language}" language, please.>
 
+      `;
+            
       return context;
     });
   },
