@@ -22,6 +22,10 @@ import { IStore } from "./storeTypes";
 import toast from "react-hot-toast";
 import { getStatus } from "./socket";
 import { DEV_MODE, RIGOBOT_API_URL } from "./lib";
+type TFile = {
+  name: string
+  hidden: boolean
+}
 
 
 
@@ -245,15 +249,28 @@ const useStore = create<IStore>((set, get) => ({
     } = get();
     let context = "";
 
+    const getExtractor = (mode="isolated") => {
+
+      // Must return a boolean
+      const modeToExtractor = {
+        isolated: (file: TFile) => {
+          return !file.hidden && !file.name.toLowerCase().includes("readme") && !file.name.toLowerCase().includes("pycache");
+        },
+        incremental: (file: TFile) => {
+          return file && !file.name.toLowerCase().includes("readme") || !file.name.toLowerCase().includes("pycache");
+        }
+      }
+
+      return modeToExtractor[mode]
+    }
     
     let currentExercise = getCurrentExercise();
     const slug = currentExercise.slug;
     let mode = configObject.config.grading;
 
-    let extractor = (file) => !file.hidden && !file.name.toLowerCase().includes("readme") && !file.name.toLowerCase().includes("pycache");
+    if (!["incremental", "isolated"].includes(mode)) mode = "incremental"
 
-    if (mode == "incremental" && isTesteable) extractor = (file) => file && !file.toLowerCase().includes("readme") || !file.name.toLowerCase().includes("pycache");
-
+    let extractor = getExtractor(mode) 
 
     let contextFiles = currentExercise.files.filter(extractor);
 
