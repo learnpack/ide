@@ -23,12 +23,9 @@ import toast from "react-hot-toast";
 import { getStatus } from "./socket";
 import { DEV_MODE, RIGOBOT_API_URL } from "./lib";
 type TFile = {
-  name: string
-  hidden: boolean
-}
-
-
-
+  name: string;
+  hidden: boolean;
+};
 
 class MissingRigobotAccountError extends Error {
   constructor(message) {
@@ -123,6 +120,7 @@ const useStore = create<IStore>((set, get) => ({
       checkLoggedStatus,
       currentExercisePosition,
       setListeners,
+      getConfigObject
     } = get();
     fetchExercises()
       .then(() => {
@@ -147,23 +145,21 @@ const useStore = create<IStore>((set, get) => ({
       toastFromStatus,
       setFeedbackButtonProps,
       setOpenedModals,
-      setBuildButtonText
-      
+      setBuildButtonText,
     } = get();
 
     let debounceSuccess = debounce((data: any) => {
       const stdout = removeSpecialCharacters(data.logs[0]);
       setTestResult("successful", stdout);
       toastFromStatus("testing-success");
-      
+
       if (get().targetButtonForFeedback === "feedback") {
         setFeedbackButtonProps("Succeded", "bg-success text-white");
-      }
-      else {
+      } else {
         setBuildButtonText("Succeded", "bg-success text-white");
       }
     }, 100);
-    
+
     let debounceError = debounce((data: any) => {
       const stdout = removeSpecialCharacters(data.logs[0]);
       setTestResult("failed", stdout);
@@ -171,8 +167,7 @@ const useStore = create<IStore>((set, get) => ({
 
       if (get().targetButtonForFeedback === "feedback") {
         setFeedbackButtonProps("Try again", "bg-fail text-white");
-      }
-      else {
+      } else {
         setBuildButtonText("Try again", "bg-fail text-white");
       }
     }, 100);
@@ -245,32 +240,38 @@ const useStore = create<IStore>((set, get) => ({
       isBuildable,
       isTesteable,
       configObject,
-      language
+      language,
     } = get();
     let context = "";
 
-    const getExtractor = (mode="isolated") => {
-
+    const getExtractor = (mode = "isolated") => {
       // Must return a boolean
       const modeToExtractor = {
         isolated: (file: TFile) => {
-          return !file.hidden && !file.name.toLowerCase().includes("readme") && !file.name.toLowerCase().includes("pycache");
+          return (
+            !file.hidden &&
+            !file.name.toLowerCase().includes("readme") &&
+            !file.name.toLowerCase().includes("pycache")
+          );
         },
         incremental: (file: TFile) => {
-          return file && !file.name.toLowerCase().includes("readme") || !file.name.toLowerCase().includes("pycache");
-        }
-      }
+          return (
+            (file && !file.name.toLowerCase().includes("readme")) ||
+            !file.name.toLowerCase().includes("pycache")
+          );
+        },
+      };
 
-      return modeToExtractor[mode]
-    }
-    
+      return modeToExtractor[mode];
+    };
+
     let currentExercise = getCurrentExercise();
     const slug = currentExercise.slug;
     let mode = configObject.config.grading;
 
-    if (!["incremental", "isolated"].includes(mode)) mode = "incremental"
+    if (!["incremental", "isolated"].includes(mode)) mode = "incremental";
 
-    let extractor = getExtractor(mode) 
+    let extractor = getExtractor(mode);
 
     let contextFiles = currentExercise.files.filter(extractor);
 
@@ -293,7 +294,7 @@ const useStore = create<IStore>((set, get) => ({
       <MANDATORY FOR AI: The user's set up the application in "${language}" language, give your feedback in "${language}" language, please.>
 
       `;
-            
+
       return context;
     });
   },
@@ -306,6 +307,7 @@ const useStore = create<IStore>((set, get) => ({
       const res = await fetch(`${HOST}/config`);
       const config = await res.json();
       set({ configObject: config });
+      return config
     } catch (err) {
       disconnected();
     }
@@ -330,6 +332,7 @@ const useStore = create<IStore>((set, get) => ({
       set({ exercises: config.exercises });
       set({ numberOfExercises: config.exercises.length });
       set({ lessonTitle: config.config.title.us });
+      set({ configObject: config });
     } catch (err) {
       disconnected();
     }
@@ -568,25 +571,24 @@ const useStore = create<IStore>((set, get) => ({
       openLink,
     } = get();
 
+    
     const slug = exercises[currentExercisePosition]?.slug;
     if (!slug) {
       return;
     }
-
+    
     const response = await fetch(
       `${HOST}/exercise/${slug}/readme?lang=${language}`
     );
     const exercise = await response.json();
-
+    
     if (exercise.attributes.prompt_requirements) {
-      console.log(
-        "The read contains prompt instructions, turning into prompt mode"
-      );
+      // TODO: DEPRECATE AND DELETE THIS
       set({ promptMode: true });
       set({ promptInstructions: exercise.attributes.prompt_requirements });
       set({ learnpackPurposeId: 38 });
     }
-
+    
     if (exercise.attributes.tutorial) {
       set({ videoTutorial: exercise.attributes.tutorial });
     } else if (exercise.attributes.intro) {
@@ -598,14 +600,20 @@ const useStore = create<IStore>((set, get) => ({
     } else {
       set({ videoTutorial: "", showVideoTutorial: false });
     }
-
-    const readme = replaceSlot(exercise.body, "{{publicUrl}}", HOST);
-
+    
+    let readme = replaceSlot(exercise.body, "{{publicUrl}}", HOST);
+    
+    if (typeof configObject.config.variables === "object") {
+      for (let v in configObject.config.variables) {
+        readme = replaceSlot(readme, `{{${v}}}`, configObject.config.variables[v])
+      }
+    }
+    
     set({ currentContent: readme });
     set({ currentReadme: readme });
-
-    getConfigObject();
+    
     fetchSingleExerciseInfo(currentExercisePosition);
+    getConfigObject();
   },
 
   toggleSidebar: () => {
@@ -642,7 +650,7 @@ const useStore = create<IStore>((set, get) => ({
       exercises,
       setPosition,
       isTesteable,
-      runExerciseTests
+      runExerciseTests,
     } = get();
 
     const gradingMode = configObject.config.grading;
@@ -668,14 +676,12 @@ const useStore = create<IStore>((set, get) => ({
     }
 
     if (!letPass) {
-      runExerciseTests(
-        {
-          toast: true,
-          setFeedbackButton: true,
-          feedbackButtonText: "Running...",
-          targetButton: "feedback"
-        }
-      )
+      runExerciseTests({
+        toast: true,
+        setFeedbackButton: true,
+        feedbackButtonText: "Running...",
+        targetButton: "feedback",
+      });
       // toast.error(
       //   "You are in incremental mode! Pass the tests for this exercise to continue with the next one!"
       // );
