@@ -642,6 +642,7 @@ const useStore = create<IStore>((set, get) => ({
       exercises,
       setPosition,
       isTesteable,
+      runExerciseTests
     } = get();
 
     const gradingMode = configObject.config.grading;
@@ -667,9 +668,17 @@ const useStore = create<IStore>((set, get) => ({
     }
 
     if (!letPass) {
-      toast.error(
-        "You are in incremental mode! Pass the tests for this exercise to continue with the next one!"
-      );
+      runExerciseTests(
+        {
+          toast: true,
+          setFeedbackButton: true,
+          feedbackButtonText: "Running...",
+          targetButton: "feedback"
+        }
+      )
+      // toast.error(
+      //   "You are in incremental mode! Pass the tests for this exercise to continue with the next one!"
+      // );
       return;
     }
     setPosition(Number(desiredPosition));
