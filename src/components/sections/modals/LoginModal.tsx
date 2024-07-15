@@ -63,14 +63,15 @@ export default function LoginModal() {
     <>
       <div ref={backdropRef} className="login-modal">
         <div className="modal-content">
-            <h2>Login </h2>
-            <SimpleButton
+          <h2>Login </h2>
+          <SimpleButton
             extraClass="float-right"
-              action={() => {
-                setOpenedModals({ login: false });
-              }}
-              svg={svgs.closeIcon}
-            />
+            action={() => {
+              setOpenedModals({ login: false });
+            }}
+            svg={svgs.closeIcon}
+          />
+
           <div>
             <p>{t("loginMessage")}</p>
           </div>
