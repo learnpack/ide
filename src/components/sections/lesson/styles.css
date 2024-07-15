@@ -1,31 +1,31 @@
 .language-dropdown {
-    display: flex;
-    position: absolute;
-    top: 101%;
-    left: 50%;
-    transform: translate(-50%, 0);
-    border: 1px solid #d1d0d0cc;
-    padding: 6px;
-    border-radius: 9px;
-    flex-direction: column;
-    >button {
-      display: flex;
-      gap: 7px;
-      align-items: center;
-    }
-  }
+  display: flex;
+  position: absolute;
+  top: 101%;
+  left: 50%;
+  transform: translate(-50%, 0);
+  border: 1px solid #d1d0d0cc;
+  padding: 6px;
+  border-radius: 9px;
+  flex-direction: column;
+}
+
+.language-dropdown > button {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
 
 .language-component {
-    width: fit-content !important;
-    border: 1px solid var(--bg-color-gray);
-    padding: 7px;
-    position: relative;
-    border-radius: 10px;
-    >button {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      
-    }
-  }
+  width: fit-content !important;
+  border: 1px solid var(--bg-color-gray);
+  padding: 7px;
+  position: relative;
+  border-radius: 10px;
+}
 
+.language-component > button {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}

@@ -8,7 +8,31 @@
   display: grid;
   place-content: center;
   z-index: 2;
-  > div.modal-content {
+}
+
+.self-closing-modal > div.modal-content {
+  display: flex;
+  border-radius: 20px;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  background-color: white;
+  padding: 20px;
+  width: min(99%, 450px);
+  gap: 10px;
+  margin-inline: auto;.self-closing-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: var(--backdrop-background);
+    width: 100vw !important;
+    height: 100% !important;
+    display: grid;
+    place-content: center;
+    z-index: 2;
+  }
+  
+  .self-closing-modal > div.modal-content {
     display: flex;
     border-radius: 20px;
     justify-content: center;
@@ -20,6 +44,11 @@
     gap: 10px;
     margin-inline: auto;
   }
+  
+  .icon-component {
+    background-color: red;
+  }
+  
 }
 
 .icon-component {

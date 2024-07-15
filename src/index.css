@@ -144,9 +144,10 @@ p {
   background-color: var(--color-active) !important;
   color: white;
 
-  > svg {
-    stroke: white;
-  }
+  
+}
+.bg-blue > svg {
+  stroke: white;
 }
 
 .border-blue {
@@ -168,14 +169,16 @@ p {
   width: 40px;
   height: 40px;
   position: relative;
-  > * {
-    position: absolute;
-    left: 50%;
-    font-size: 10px;
-    color: white;
-    top: 50%;
-    transform: translate(-50%, -50%);
-  }
+  
+  
+}
+.blue-circle > * {
+  position: absolute;
+  left: 50%;
+  font-size: 10px;
+  color: white;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .pos-relative {
@@ -203,36 +206,50 @@ p {
   display: flex;
   flex-direction: column;
   padding: 10px;
-  > div {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    background-color: white;
-    padding: 10px;
-    position: absolute;
-    top: 50%;
-    width: min(99%, 750px);
-    left: 50%;
-    transform: translate(-50%, -50%);
-    border-radius: 10px;
-    > .modal-header {
-      font-weight: bolder;
-      font-size: 16px;
-    }
-    > .modal-content {
-      background-color: rgb(236, 232, 232);
-      padding: inherit;
-      border-radius: inherit;
-    }
-  }
 }
 
-.text-white {
-  > svg {
-    stroke: white;
-  }
+.modal-container > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: white;
+  padding: 10px;
+  position: absolute;
+  top: 50%;
+  width: min(99%, 750px);
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 10px;
+}
+
+.modal-container > div .modal-header {
+  font-weight: bolder;
+  font-size: 16px;
+}
+
+.modal-container > div .modal-content {
+  background-color: rgb(236, 232, 232);
+  padding: inherit;
+  border-radius: inherit;
+  position: relative;
+}
+
+
+.float-right {
+  position: absolute;
+  background-color: red !important;
+  top: 0;
+  right: 0;
+}
+
+
+.text-white {  
   border: white;
   color: white !important;
+}
+
+.text-white > svg {
+  stroke: white;
 }
 
 .d-block {
@@ -259,3 +276,4 @@ p {
     opacity: 1;
   }
 }
+

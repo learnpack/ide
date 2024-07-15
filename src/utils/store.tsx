@@ -71,8 +71,6 @@ const useStore = create<IStore>((set, get) => ({
   shouldBeTested: false,
   status: "",
   showFeedback: false,
-  promptMode: false,
-  promptInstructions: "",
   token: "",
   bc_token: "",
   buildbuttonText: {
@@ -219,18 +217,23 @@ const useStore = create<IStore>((set, get) => ({
     set({ token: newToken });
   },
   checkLoggedStatus: async (opts) => {
-    const { startConversation, currentExercisePosition } = get();
+    const { startConversation, currentExercisePosition, setOpenedModals } = get();
+
+
     try {
       const res = await fetch(`${HOST}/check/rigo/status`);
       const json = await res.json();
+      
+      if (res.status === 400) {
+        throw Error("The user is not logged in")
+      }      
       set({ token: json.rigoToken });
-
       if (opts.startConversation) {
         startConversation(currentExercisePosition);
       }
     } catch (err) {
       set({ token: "" });
-      console.log("error in checkLoggedStatus", err);
+      setOpenedModals({login: true})
     }
   },
   getContextFilesContent: async () => {
@@ -580,14 +583,7 @@ const useStore = create<IStore>((set, get) => ({
     const response = await fetch(
       `${HOST}/exercise/${slug}/readme?lang=${language}`
     );
-    const exercise = await response.json();
-    
-    if (exercise.attributes.prompt_requirements) {
-      // TODO: DEPRECATE AND DELETE THIS
-      set({ promptMode: true });
-      set({ promptInstructions: exercise.attributes.prompt_requirements });
-      set({ learnpackPurposeId: 38 });
-    }
+    const exercise = await response.json();    
     
     if (exercise.attributes.tutorial) {
       set({ videoTutorial: exercise.attributes.tutorial });

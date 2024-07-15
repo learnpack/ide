@@ -63,19 +63,16 @@ export default function LoginModal() {
     <>
       <div ref={backdropRef} className="login-modal">
         <div className="modal-content">
-          <h2>Login</h2>
-          <div>
-            <p>
-              {t(
-                "To use the AI services you must login with your 4geeks account, and you have been accepted Rigobot"
-              )}
-            </p>
+            <h2>Login </h2>
             <SimpleButton
+            extraClass="float-right"
               action={() => {
                 setOpenedModals({ login: false });
               }}
               svg={svgs.closeIcon}
             />
+          <div>
+            <p>{t("loginMessage")}</p>
           </div>
           <form action="">
             <input

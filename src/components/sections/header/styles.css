@@ -4,9 +4,10 @@
   animation-range: 10px 150px;
   position: sticky;
   top: 0;
-  &:hover {
-    opacity: 1 !important;
-  }
+}
+
+.app-header:hover {
+  opacity: 1 !important;
 }
 
 .navbar-component {
@@ -18,12 +19,12 @@
   margin: 0 auto;
   max-width: 1145px;
   justify-content: space-between;
+}
 
-  > section {
-    display: flex;
-    gap: 3px;
-    align-items: center;
-  }
+.navbar-component > section {
+  display: flex;
+  gap: 3px;
+  align-items: center;
 }
 
 .lesson-options {
@@ -34,25 +35,24 @@
   max-width: 1145px;
   padding: 8px;
   justify-content: space-between;
-
-  > div {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-  }
-  & button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
 }
 
-.reset-modal {
-  > section {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    gap: 20px;
-  }
+.lesson-options > div {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.lesson-options button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.reset-modal > section {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  gap: 20px;
 }
 
 @keyframes scale-navbar {
@@ -80,31 +80,33 @@
   align-items: baseline;
   z-index: 1;
   flex-direction: column;
+}
 
-  > * {
-    width: fit-content;
-  }
+.feedback-dropdown > * {
+  width: fit-content;
+}
 
-  > button {
-    color: var(--color-active);
-    width: 100%;
-    padding: 7px;
-    text-align: left;
-    display: flex;
-    justify-content: left;
-    align-items: center;
-  }
+.feedback-dropdown > button {
+  color: var(--color-active);
+  width: 100%;
+  padding: 7px;
+  text-align: left;
+  display: flex;
+  justify-content: left;
+  align-items: center;
+}
 
-  > button:hover {
-    background-color: var(--color-blue-opaque);
-  }
-  > p {
-    padding: 3px;
-    background-color: #f6f6f6;
-    > a {
-      font-weight: 600;
-      color: var(--color-active);
-      cursor: pointer;
-    }
-  }
+.feedback-dropdown > button:hover {
+  background-color: var(--color-blue-opaque);
+}
+
+.feedback-dropdown > p {
+  padding: 3px;
+  background-color: #f6f6f6;
+}
+
+.feedback-dropdown > p > a {
+  font-weight: 600;
+  color: var(--color-active);
+  cursor: pointer;
 }

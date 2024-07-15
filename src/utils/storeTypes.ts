@@ -115,8 +115,6 @@ export interface IStore {
     lastTestResult: TTestResult
     translations: TTranslations
     shouldBeTested: boolean
-    promptMode: boolean
-    promptInstructions: string
     targetButtonForFeedback: "build" | "feedback"
     start: () => void
     setListeners: ()=>void

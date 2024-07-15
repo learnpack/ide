@@ -1,5 +1,3 @@
-// import { debounce, removeSpecialCharacters } from "../../../utils/lib";
-// import { useEffect } from "react";
 import useStore from "../../../utils/store";
 import { svgs } from "../../../assets/svgs";
 import SimpleButton from "../../mockups/SimpleButton";

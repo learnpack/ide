@@ -13,22 +13,25 @@
   flex-direction: column;
   gap: 10px;
   width: min(400px, 90%);
-  > input {
-    border: 1px solid gray;
-    border-radius: 8px;
-    padding: 10px;
-  }
-  > div {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-  }
-  & button {
-    width: fit-content;
-    padding: 7px;
-    cursor: pointer;
-    border-radius: 6px;
-    background-color: var(--color-border);
-    color: white;
-  }
+}
+
+.input-modal > input {
+  border: 1px solid gray;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.input-modal > div {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.input-modal button {
+  width: fit-content;
+  padding: 7px;
+  cursor: pointer;
+  border-radius: 6px;
+  background-color: var(--color-border);
+  color: white;
 }

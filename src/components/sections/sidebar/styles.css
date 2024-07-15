@@ -8,94 +8,95 @@
     z-index: 2;
     background-color: #FAFAFB;
     animation: appear-4-right 0.5s ease 1 forwards;
-
-    & section h2 {
-        text-align: center;
-        padding: 15px;
-        width: 100%;
-    }
-
-    >section:not(:last-child) {
-        display: flex;
-        justify-content: space-between;
-        padding: 2px 14px;
-    }
-
-    & .footer {
-        background-color: var(--bg-color-gray);
-        position: fixed;
-        bottom: 0;
-        width: 100%;
-        padding: 15px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        > a {
-            padding: 10px;
-            color: black;
-            text-decoration: none;
-            display: block;
-            border-radius: 8px;
-            &:hover {
-                background-color: var(--color-blue-opaque);
-            }
-        }
-    }
-
-    & .exercise-list {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        margin-bottom: 70px;
-        padding: 10px;
-
-        & li.exercise-card {
-            background-color: var(--color-blue-opaque);
-            margin-left: 0 !important;
-            display: flex;
-            padding: 10px 11px ;
-            cursor: pointer;
-            justify-content: space-between;
-            font-size: 18px;
-            border-radius: 15px;
-            align-items: center;
-            opacity: 1;
-            &:hover {
-                background-color: var(--color-blue);
-            }
-
-            >div {
-                display: flex;
-                gap: 10px;
-                align-items: center;
-            }
-        }
-    }
-
-}
-
-
-
-.sidebar-disappear {
+  }
+  
+  .sidebar-component section h2 {
+    text-align: center;
+    padding: 15px;
+    width: 100%;
+  }
+  
+  .sidebar-component > section:not(:last-child) {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 14px;
+  }
+  
+  .sidebar-component .footer {
+    background-color: var(--bg-color-gray);
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .sidebar-component .footer > a {
+    padding: 10px;
+    color: black;
+    text-decoration: none;
+    display: block;
+    border-radius: 8px;
+  }
+  
+  .sidebar-component .footer > a:hover {
+    background-color: var(--color-blue-opaque);
+  }
+  
+  .sidebar-component .exercise-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 70px;
+    padding: 10px;
+  }
+  
+  .sidebar-component .exercise-list li.exercise-card {
+    background-color: var(--color-blue-opaque);
+    margin-left: 0 !important;
+    display: flex;
+    padding: 10px 11px;
+    cursor: pointer;
+    justify-content: space-between;
+    font-size: 18px;
+    border-radius: 15px;
+    align-items: center;
+    opacity: 1;
+  }
+  
+  .sidebar-component .exercise-list li.exercise-card:hover {
+    background-color: var(--color-blue);
+  }
+  
+  .sidebar-component .exercise-list li.exercise-card > div {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  
+  .sidebar-disappear {
     animation: disappear-4-right 0.4s ease 1 forwards;
-}
-
-@keyframes appear-4-right {
+  }
+  
+  @keyframes appear-4-right {
     0% {
-        left: 101%;
+      left: 101%;
     }
-
+  
     100% {
-        left: 0px;
+      left: 0px;
     }
-}
-
-@keyframes disappear-4-right {
+  }
+  
+  @keyframes disappear-4-right {
     0% {
-        left: 0px;
+      left: 0px;
     }
-
+  
     100% {
-        left: 101%;
+      left: 101%;
     }
-}
+  }
+  
