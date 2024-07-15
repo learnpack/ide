@@ -118,7 +118,7 @@ const useStore = create<IStore>((set, get) => ({
       checkLoggedStatus,
       currentExercisePosition,
       setListeners,
-      getConfigObject
+      getConfigObject,
     } = get();
     fetchExercises()
       .then(() => {
@@ -217,23 +217,23 @@ const useStore = create<IStore>((set, get) => ({
     set({ token: newToken });
   },
   checkLoggedStatus: async (opts) => {
-    const { startConversation, currentExercisePosition, setOpenedModals } = get();
-
+    const { startConversation, currentExercisePosition, setOpenedModals } =
+      get();
 
     try {
       const res = await fetch(`${HOST}/check/rigo/status`);
       const json = await res.json();
-      
+
       if (res.status === 400) {
-        throw Error("The user is not logged in")
-      }      
+        throw Error("The user is not logged in");
+      }
       set({ token: json.rigoToken });
       if (opts.startConversation) {
         startConversation(currentExercisePosition);
       }
     } catch (err) {
       set({ token: "" });
-      setOpenedModals({login: true})
+      setOpenedModals({ login: true });
     }
   },
   getContextFilesContent: async () => {
@@ -310,7 +310,7 @@ const useStore = create<IStore>((set, get) => ({
       const res = await fetch(`${HOST}/config`);
       const config = await res.json();
       set({ configObject: config });
-      return config
+      return config;
     } catch (err) {
       disconnected();
     }
@@ -574,17 +574,16 @@ const useStore = create<IStore>((set, get) => ({
       openLink,
     } = get();
 
-    
     const slug = exercises[currentExercisePosition]?.slug;
     if (!slug) {
       return;
     }
-    
+
     const response = await fetch(
       `${HOST}/exercise/${slug}/readme?lang=${language}`
     );
-    const exercise = await response.json();    
-    
+    const exercise = await response.json();
+
     if (exercise.attributes.tutorial) {
       set({ videoTutorial: exercise.attributes.tutorial });
     } else if (exercise.attributes.intro) {
@@ -596,18 +595,22 @@ const useStore = create<IStore>((set, get) => ({
     } else {
       set({ videoTutorial: "", showVideoTutorial: false });
     }
-    
+
     let readme = replaceSlot(exercise.body, "{{publicUrl}}", HOST);
-    
+
     if (typeof configObject.config.variables === "object") {
       for (let v in configObject.config.variables) {
-        readme = replaceSlot(readme, `{{${v}}}`, configObject.config.variables[v])
+        readme = replaceSlot(
+          readme,
+          `{{${v}}}`,
+          configObject.config.variables[v]
+        );
       }
     }
-    
+
     set({ currentContent: readme });
     set({ currentReadme: readme });
-    
+
     fetchSingleExerciseInfo(currentExercisePosition);
     getConfigObject();
   },

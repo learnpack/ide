@@ -24,7 +24,7 @@ export default function LessonContainer() {
         setShowAlert(false)
     }
     
-  }, [exercises]);
+  }, [exercises, configObject]);
 
   return (
     <div className="lesson-container-component">
