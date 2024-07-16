@@ -157,6 +157,9 @@ p {
   color: var(--color-active);
 }
 
+.bg-secondary {
+ background-color: rgba(231, 231, 231, 0.761);
+}
 .scrolleable {
   overflow-y: auto !important;
 }

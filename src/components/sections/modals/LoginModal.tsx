@@ -1,5 +1,4 @@
 import SimpleButton from "../../mockups/SimpleButton";
-import { svgs } from "../../../assets/svgs";
 import useStore from "../../../utils/store";
 import { useState, useRef, useEffect } from "react";
 import { OpenWindowLink } from "../../composites/OpenWindowLink";
@@ -64,17 +63,11 @@ export default function LoginModal() {
       <div ref={backdropRef} className="login-modal">
         <div className="modal-content">
           <h2>Login </h2>
-          <SimpleButton
-            extraClass="float-right"
-            action={() => {
-              setOpenedModals({ login: false });
-            }}
-            svg={svgs.closeIcon}
-          />
 
           <div>
             <p>{t("loginMessage")}</p>
           </div>
+
           <form action="">
             <input
               placeholder="Email"
@@ -96,11 +89,20 @@ export default function LoginModal() {
               />
             </div>
 
-            <SimpleButton
-              text={isLoading ? t("Loading...") : t("Submit")}
-              action={login}
-              extraClass="bg-blue"
-            />
+            <div >
+              <SimpleButton
+                text={isLoading ? t("Loading...") : t("submit")}
+                action={login}
+                extraClass="bg-blue"
+              />
+              <SimpleButton
+                extraClass="bg-secondary"
+                action={() => {
+                  setOpenedModals({ login: false });
+                }}
+                text={t("continue-no-login")}
+              />
+            </div>
             <span>
               {t("Don't have an account? ")}
               <OpenWindowLink

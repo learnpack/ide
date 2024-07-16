@@ -17,7 +17,7 @@ i18n.use(initReactI18next).init({
         "Don't have an account? ": "Don't have an account? ",
         "Sign up here!": "Sign up here!",
         "Loading...": "Loading...",
-        Submit: "Submit",
+        "submit": "Sign in",
         "Review model solution": "Review model solution",
         "Model solution not available": "Model solution not available",
         Reset: "Reset",
@@ -64,6 +64,7 @@ i18n.use(initReactI18next).init({
         "Options to get feedback": "Options to get feedback",
         "Whithin this dropdown you can get feedback on your code.":
           "Whithin this dropdown you can get feedback on your code.",
+          "continue-no-login": "Continue without login"
       },
     },
     es: {
@@ -79,8 +80,8 @@ i18n.use(initReactI18next).init({
         "Don't have an account? ": "¿No tienes una cuenta? ",
         "Sign up here!": "¡Regístrate aquí!",
         "Loading...": "Cargando...",
-        Submit: "Enviar",
         "Review model solution": "Revisar solución modelo",
+        "submit": "Iniciar sesión",
         "Model solution not available": "Solución modelo no disponible",
         Reset: "Reiniciar",
         "not available": "no disponible",
@@ -136,7 +137,9 @@ i18n.use(initReactI18next).init({
           "¡Si prefieres, puedes cambiar el idioma!",
         "This is a quick tutorial to help you get started. Click next to continue.":
           "Este es un tutorial rápido para ayudarte a comenzar. Haz clic en siguiente para continuar.",
-        "loginMessage": "Inicia session en 4Geeks para obtener estadisticas de tu desempeño, acceso al nuestro mentor AI y muchos otros beneficios."
+        "loginMessage": "Inicia session en 4Geeks para obtener estadisticas de tu desempeño, acceso al nuestro mentor AI y muchos otros beneficios.",
+        "continue-no-login": "Continuar sin iniciar",
+        
       },
     },
   },

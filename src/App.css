@@ -66,15 +66,10 @@
   gap: 10px;
 }
 
-.login-modal > div > h2 {
+.login-modal h2 {
   text-align: center;
 }
 
-.login-modal > div > div {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
 
 .login-modal > div > form {
   display: flex;
@@ -82,12 +77,17 @@
   flex-direction: column;
 }
 
-.login-modal > div > form > button {
+.login-modal > div > form button {
   width: fit-content;
-  margin: 0 auto;
   padding: 7px;
   cursor: pointer;
   border-radius: 6px;
+}
+.login-modal > div div:has(button) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
 }
 
 .login-modal > div > form input {
@@ -97,15 +97,6 @@
   width: 100%;
 }
 
-.login-modal > div > section {
-  display: flex;
-  justify-content: space-around;
-}
-
-.login-modal > div > p {
-  font-weight: 700;
-  font-size: 14px;
-}
 
 .simple-button-svg {
   max-height: 100% !important;
