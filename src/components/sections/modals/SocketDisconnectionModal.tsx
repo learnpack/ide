@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 export default function SocketDisconnectionModal() {
   return (
-    <Modal outsideClickHandler={() => {}} htmlId="socket-disconnected">
+    <Modal blockScroll={false} outsideClickHandler={() => {}} htmlId="socket-disconnected">
       <Header />
       <Content />
     </Modal>

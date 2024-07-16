@@ -81,7 +81,7 @@ blockquote {
   padding: 2px 6px;
   border-radius: 5px;
   margin-top: 10px;
-  background-color: #e6e6e6;
+  background-color: #f3f3f3f1;
 }
 button {
   cursor: pointer;
@@ -114,6 +114,24 @@ p {
   line-height: 1.5;
 }
 
+form {
+  display: flex;
+  gap: 5px;
+  flex-direction: column;
+}
+form button {
+  width: fit-content;
+  padding: 7px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+form input {
+  border: 1px solid gray;
+  border-radius: 8px;
+  padding: 10px;
+  width: 100%;
+}
+
 /* This will affect the entire webpage */
 ::-webkit-scrollbar {
   width: 5px;
@@ -143,8 +161,6 @@ p {
 .bg-blue {
   background-color: var(--color-active) !important;
   color: white;
-
-  
 }
 .bg-blue > svg {
   stroke: white;
@@ -158,7 +174,7 @@ p {
 }
 
 .bg-secondary {
- background-color: rgba(231, 231, 231, 0.761);
+  background-color: rgba(231, 231, 231, 0.761);
 }
 .scrolleable {
   overflow-y: auto !important;
@@ -172,8 +188,6 @@ p {
   width: 40px;
   height: 40px;
   position: relative;
-  
-  
 }
 .blue-circle > * {
   position: absolute;
@@ -237,15 +251,13 @@ p {
   position: relative;
 }
 
-
 .float-right {
   position: absolute;
   top: 10px;
   right: 10px;
 }
 
-
-.text-white {  
+.text-white {
   border: white;
   color: white !important;
 }
@@ -278,4 +290,3 @@ p {
     opacity: 1;
   }
 }
-

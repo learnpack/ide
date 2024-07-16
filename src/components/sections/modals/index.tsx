@@ -8,6 +8,7 @@ import { SolutionModal } from "./Solution"
 import { ResetModal } from "./Reset"
 import { Presentator } from "../../composites/Presentator/Presentator"
 import { DialogModal } from "./DialogModal"
+import "./modals.css"
 
 export const ModalsContainer = () => {
     const { openedModals, token } = useStore(state => ({

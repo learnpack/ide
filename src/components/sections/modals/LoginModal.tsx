@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { OpenWindowLink } from "../../composites/OpenWindowLink";
 import { useTranslation } from "react-i18next";
 import TagManager from "react-gtm-module";
+import { Modal } from "../../mockups/Modal";
 
 export default function LoginModal() {
   const { setOpenedModals, loginToRigo } = useStore((state) => ({
@@ -60,7 +61,12 @@ export default function LoginModal() {
 
   return (
     <>
-      <div ref={backdropRef} className="login-modal">
+      <Modal
+        extraClass="login-modal"
+        outsideClickHandler={() => {
+          setOpenedModals({ login: false });
+        }}
+      >
         <div className="modal-content">
           <h2>Login </h2>
 
@@ -89,7 +95,7 @@ export default function LoginModal() {
               />
             </div>
 
-            <div >
+            <div>
               <SimpleButton
                 text={isLoading ? t("Loading...") : t("submit")}
                 action={login}
@@ -113,7 +119,7 @@ export default function LoginModal() {
             </span>
           </form>
         </div>
-      </div>
+      </Modal>
     </>
   );
 }
