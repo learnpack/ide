@@ -106,7 +106,7 @@ export default function LoginModal() {
                 action={() => {
                   setOpenedModals({ login: false });
                 }}
-                text={t("continue-no-login")}
+                text={t("skip")}
               />
             </div>
             <span>

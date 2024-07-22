@@ -690,7 +690,8 @@ const useStore = create<IStore>((set, get) => ({
   },
 
   toastFromStatus: (status) => {
-    const [icon, message] = getStatus(status);
+    const {language} = get()
+    const [icon, message] = getStatus(status, language);
     let duration = 1500;
     if (status === "testing-error") {
       duration = 3000;
@@ -726,7 +727,7 @@ const useStore = create<IStore>((set, get) => ({
       getCurrentExercise,
       setFeedbackButtonProps,
       isTesteable,
-      toastFromStatus,
+      toastFromStatus
     } = get();
 
     const data = {

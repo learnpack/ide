@@ -5,7 +5,8 @@ i18n.use(initReactI18next).init({
   resources: {
     en: {
       translation: {
-        loginMessage:"Log in to 4Geeks to get performance statistics, access to our AI mentor, and many other benefits.",
+        loginMessage:
+          "Log in to 4Geeks to get performance statistics, access to our AI mentor, and many other benefits.",
         Run: "Run",
         "Run tests": "Run tests",
         "Running...": "Running...",
@@ -17,7 +18,7 @@ i18n.use(initReactI18next).init({
         "Don't have an account? ": "Don't have an account? ",
         "Sign up here!": "Sign up here!",
         "Loading...": "Loading...",
-        "submit": "Sign in",
+        submit: "Sign in",
         "Review model solution": "Review model solution",
         "Model solution not available": "Model solution not available",
         Reset: "Reset",
@@ -64,7 +65,9 @@ i18n.use(initReactI18next).init({
         "Options to get feedback": "Options to get feedback",
         "Whithin this dropdown you can get feedback on your code.":
           "Whithin this dropdown you can get feedback on your code.",
-          "continue-no-login": "Continue without login"
+        skip: "Skip",
+        "incremental-test-alert":
+          "You must successfully complete and test this step before continuing to the next one. Carefully read the instructions and ask for feedback if you need any help.",
       },
     },
     es: {
@@ -81,7 +84,7 @@ i18n.use(initReactI18next).init({
         "Sign up here!": "¡Regístrate aquí!",
         "Loading...": "Cargando...",
         "Review model solution": "Revisar solución modelo",
-        "submit": "Iniciar sesión",
+        submit: "Iniciar sesión",
         "Model solution not available": "Solución modelo no disponible",
         Reset: "Reiniciar",
         "not available": "no disponible",
@@ -137,9 +140,11 @@ i18n.use(initReactI18next).init({
           "¡Si prefieres, puedes cambiar el idioma!",
         "This is a quick tutorial to help you get started. Click next to continue.":
           "Este es un tutorial rápido para ayudarte a comenzar. Haz clic en siguiente para continuar.",
-        "loginMessage": "Inicia session en 4Geeks para obtener estadisticas de tu desempeño, acceso al nuestro mentor AI y muchos otros beneficios.",
-        "continue-no-login": "Continuar sin iniciar",
-        
+        loginMessage:
+          "Inicia session en 4Geeks para obtener estadisticas de tu desempeño, acceso al nuestro mentor AI y muchos otros beneficios.",
+        skip: "Saltar",
+        "incremental-test-alert":
+          "Debes completar y probar con éxito este paso antes de continuar con el siguiente. Lee cuidadosamente las instrucciones y pide retroalimentación si necesitas ayuda.",
       },
     },
   },
