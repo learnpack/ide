@@ -37,12 +37,12 @@ class MissingRigobotAccountError extends Error {
 const HOST = getHost();
 Socket.start(HOST, disconnected, onConnectCli);
 
-const FASTAPI_HOST = "https://chat.4geeks.com";
+const FASTAPI_HOST = "https://ai.4geeks.com";
 // const FASTAPI_HOST = "http://localhost:8000";
 const chatSocket = io(`${FASTAPI_HOST}`);
 
 chatSocket.on("connect", () => {
-  // console.log("connected to chat socket in ", FASTAPI_HOST);
+  console.log("connected to chat socket in ", FASTAPI_HOST);
 });
 
 const defaultParams = getParamsObject();
@@ -457,9 +457,9 @@ const useStore = create<IStore>((set, get) => ({
       conversationId = initialData.conversation_id;
     }
 
-    // if (initialData && initialData.salute) {
-    //   set({ chatInitialMessage: initialData.salute });
-    // }
+    if (initialData && initialData.salute) {
+      set({ chatInitialMessage: initialData.salute });
+    }
 
     set({
       conversationIdsCache: {
