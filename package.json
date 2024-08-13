@@ -1,10 +1,10 @@
 {
   "name": "learnpack-ai",
   "private": true,
-  "version": "4.0.3",
+  "version": "4.0.4",
   "scripts": {
     "dev": "node src/utils/development.js --turn on && vite",
-    "build": "node src/utils/development.js --turn off && tsc && vite build && node bin/publish.js",
+    "build": "node src/utils/development.js --turn off && tsc && vite build && node bin/publish.js && node src/utils/createVersionsFile.js",
     "dev-build": "node src/utils/development.js --turn on && tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
