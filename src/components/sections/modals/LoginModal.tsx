@@ -78,6 +78,7 @@ export default function LoginModal() {
             <input
               placeholder="Email"
               type="text"
+              autoComplete="email"
               name="email"
               onChange={(e) => {
                 setEmail(e.target.value);
@@ -86,7 +87,7 @@ export default function LoginModal() {
             <div>
               <input
                 placeholder={t("Password")}
-                // type={passwordInputType}
+                autoComplete="current-password"
                 type={"password"}
                 name="password"
                 onChange={(e) => {
