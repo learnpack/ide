@@ -8,6 +8,8 @@
   padding: 6px;
   border-radius: 9px;
   flex-direction: column;
+  z-index: 2;
+  background-color: white;
 }
 
 .language-dropdown > button {
@@ -22,10 +24,13 @@
   padding: 7px;
   position: relative;
   border-radius: 10px;
+  background-color: rgb(255, 255, 255);
 }
 
 .language-component > button {
+  
   display: flex;
   gap: 6px;
   align-items: center;
+  
 }

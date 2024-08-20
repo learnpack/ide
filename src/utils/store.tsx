@@ -18,7 +18,7 @@ import {
   removeSpecialCharacters,
 } from "./lib";
 import Socket from "./socket";
-import { IStore } from "./storeTypes";
+import { IStore, TDialog } from "./storeTypes";
 import toast from "react-hot-toast";
 import { getStatus } from "./socket";
 import { DEV_MODE, RIGOBOT_API_URL } from "./lib";
@@ -175,7 +175,7 @@ const useStore = create<IStore>((set, get) => ({
     compilerSocket.onStatus("open_window", (data) => {
       toastFromStatus("open_window");
     });
-    compilerSocket.on("dialog", (data) => {
+    compilerSocket.on("dialog", (data: TDialog) => {
       set({ dialogData: data.data });
       setOpenedModals({ dialog: true });
     });
@@ -317,11 +317,25 @@ const useStore = create<IStore>((set, get) => ({
   },
 
   fetchExercises: async () => {
-    const { getLessonTitle, fetchReadme, user_id } = get();
+    const { getLessonTitle, fetchReadme, user_id, setOpenedModals } = get();
 
     try {
       const res = await fetch(`${HOST}/config`);
       const config = await res.json();
+
+      if (config.config.warnings.agent) {
+        set({
+          dialogData: { message: config.config.warnings.agent, format: "md" },
+        });
+        setOpenedModals({dialog: true})
+      }
+      
+      if (config.config.warnings.extension) {
+        set({
+          dialogData: { message: config.config.warnings.extension, format: "md" },
+        });
+        setOpenedModals({dialog: true})
+      }
 
       const slug = config.config.slug;
       TagManager.dataLayer({
@@ -690,7 +704,7 @@ const useStore = create<IStore>((set, get) => ({
   },
 
   toastFromStatus: (status) => {
-    const {language} = get()
+    const { language } = get();
     const [icon, message] = getStatus(status, language);
     let duration = 1500;
     if (status === "testing-error") {
@@ -727,7 +741,7 @@ const useStore = create<IStore>((set, get) => ({
       getCurrentExercise,
       setFeedbackButtonProps,
       isTesteable,
-      toastFromStatus
+      toastFromStatus,
     } = get();
 
     const data = {

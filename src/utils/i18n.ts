@@ -68,6 +68,7 @@ i18n.use(initReactI18next).init({
         skip: "Skip",
         "incremental-test-alert":
           "You must successfully complete and test this step before continuing to the next one. Carefully read the instructions and ask for feedback if you need any help.",
+          "agent-mismatch-error": "These exercises were designed to run in a different agent",
       },
     },
     es: {
@@ -145,6 +146,7 @@ i18n.use(initReactI18next).init({
         skip: "Saltar",
         "incremental-test-alert":
           "Debes completar y probar con éxito este paso antes de continuar con el siguiente. Lee cuidadosamente las instrucciones y pide retroalimentación si necesitas ayuda.",
+          "agent-mismatch-error": "Estos ejercicios fueron diseñados para ejecutarse en un agente diferente",
       },
     },
   },

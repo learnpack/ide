@@ -19,6 +19,12 @@ interface IConfig {
     intro: any
     editor: any
     grading: string
+    warnings: TWarnings
+}
+
+type TWarnings= {
+    agent?: string | null
+    extension?: string | null
 }
 
 interface IConfigObject {
@@ -87,7 +93,7 @@ export interface IStore {
     language: string
     learnpackPurposeId: number
     status: string
-    dialogData: any //TODO: add type
+    dialogData: TDialog
     lessonTitle: string
     numberOfExercises: number
     showFeedback: boolean
@@ -116,6 +122,7 @@ export interface IStore {
     translations: TTranslations
     shouldBeTested: boolean
     targetButtonForFeedback: "build" | "feedback"
+
     start: () => void
     setListeners: ()=>void
     checkRigobotInvitation: () => void
@@ -154,6 +161,11 @@ export interface IStore {
     displayTestButton: boolean
     test: () => void
 }
+
+export type TDialog = {
+    message: string
+    format: "md" | "txt"
+  }
 
 type TRunExerciseTestsOptions = {
     toast: boolean

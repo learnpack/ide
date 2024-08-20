@@ -8,6 +8,7 @@
   --bg-color-dark-gray: #a1a1a1;
 
   --color-active: #1986da;
+  --4geeks-yellow: #ffd900;
   --color-blue-opaque: #ebf8fe;
   --color-blue: #c1dfed;
   --color-success: #21b761;
@@ -270,6 +271,13 @@ form input {
   display: block;
 }
 
+.d-flex {
+  display: flex;
+}
+
+.space-between {
+  justify-content: space-between;
+}
 .align-center {
   align-items: center;
 }

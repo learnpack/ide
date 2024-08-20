@@ -205,3 +205,13 @@
   margin-top: 15px;
 }
 
+
+
+.alert {
+  background-color: var(--4geeks-yellow);
+  padding: 3px 10px;
+  border-radius: 10px;
+  color: black;
+  font-weight: bold;
+  text-align: center;
+}
