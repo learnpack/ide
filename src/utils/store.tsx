@@ -16,6 +16,7 @@ import {
   startRecording,
   debounce,
   removeSpecialCharacters,
+  PUBLISH_MODE,
 } from "./lib";
 import Socket from "./socket";
 import { IStore, TDialog } from "./storeTypes";
@@ -35,10 +36,13 @@ class MissingRigobotAccountError extends Error {
 }
 
 const HOST = getHost();
+
+if (!PUBLISH_MODE) {
+}
 Socket.start(HOST, disconnected, onConnectCli);
 
 const FASTAPI_HOST = "https://ai.4geeks.com";
-// const FASTAPI_HOST = "http://localhost:8000";
+
 const chatSocket = io(`${FASTAPI_HOST}`);
 
 chatSocket.on("connect", () => {
@@ -92,7 +96,7 @@ const useStore = create<IStore>((set, get) => ({
   },
   videoTutorial: "",
   allowedActions: [],
-  compilerSocket: Socket.createScope("compiler"),
+  compilerSocket: !PUBLISH_MODE ? Socket.createScope("compiler") : {},
   showVideoTutorial: false,
   exerciseMessages: {},
   host: HOST,
@@ -145,6 +149,8 @@ const useStore = create<IStore>((set, get) => ({
       setOpenedModals,
       setBuildButtonText,
     } = get();
+
+    if (PUBLISH_MODE) return;
 
     let debounceSuccess = debounce((data: any) => {
       const stdout = removeSpecialCharacters(data.logs[0]);
@@ -327,14 +333,17 @@ const useStore = create<IStore>((set, get) => ({
         set({
           dialogData: { message: config.config.warnings.agent, format: "md" },
         });
-        setOpenedModals({dialog: true})
+        setOpenedModals({ dialog: true });
       }
-      
+
       if (config.config.warnings.extension) {
         set({
-          dialogData: { message: config.config.warnings.extension, format: "md" },
+          dialogData: {
+            message: config.config.warnings.extension,
+            format: "md",
+          },
         });
-        setOpenedModals({dialog: true})
+        setOpenedModals({ dialog: true });
       }
 
       const slug = config.config.slug;
@@ -570,6 +579,11 @@ const useStore = create<IStore>((set, get) => ({
       url,
       exerciseSlug: getCurrentExercise().slug,
     };
+
+    if (PUBLISH_MODE) {
+      window.location.href = url;
+      return
+    }
     compilerSocket.openWindow(data);
   },
 
@@ -653,6 +667,7 @@ const useStore = create<IStore>((set, get) => ({
     const data = {
       exerciseSlug: getCurrentExercise().slug,
     };
+    if (PUBLISH_MODE) return
     compilerSocket.emit("open_terminal", data);
   },
 

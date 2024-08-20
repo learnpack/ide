@@ -5,6 +5,7 @@ import useStore from "../../../utils/store";
 import { toast } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useEffect } from "react";
+import { PUBLISH_MODE } from "../../../utils/lib";
 
 function debounce(func: any, wait: any) {
   let timeout: any;
@@ -58,6 +59,7 @@ export default function BuildButton() {
   }, 100);
 
   useEffect(() => {
+    if (PUBLISH_MODE) return
     compilerSocket.onStatus("compiler-error", compilerErrorHandler);
     compilerSocket.onStatus("compiler-success", compilerSuccessHandler);
   }, [currentExercisePosition]);

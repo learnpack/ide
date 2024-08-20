@@ -1,6 +1,9 @@
 import useStore from "../../utils/store";
 import { useEffect, useState } from "react";
 import { InputModal } from "../sections/modals/InputModal";
+import { PUBLISH_MODE } from "../../utils/lib";
+
+
 
 import "./styles.css";
 export function SocketHandler() {
@@ -25,6 +28,7 @@ export function SocketHandler() {
   const [shouldWeSend, setShouldWeSend] = useState(false);
 
   useEffect(() => {
+    if (PUBLISH_MODE) return
     compilerSocket.on("file_change", (data: any) => {
 
       const current = getCurrentExercise();
@@ -45,6 +49,8 @@ export function SocketHandler() {
     //     setAllowedActions(data.allowed);
     //   }
     // });
+
+    if (PUBLISH_MODE) return
 
     compilerSocket.on("reload", (data: any) => {
       data;
