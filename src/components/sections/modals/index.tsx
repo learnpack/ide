@@ -4,7 +4,6 @@ import LoginModal from "./LoginModal"
 import SocketDisconnectionModal from "./SocketDisconnectionModal"
 import useStore from "../../../utils/store"
 import { RigobotInviteModal } from "./RigobotInvite"
-import { SolutionModal } from "./Solution"
 import { ResetModal } from "./Reset"
 import { Presentator } from "../../composites/Presentator/Presentator"
 import { DialogModal } from "./DialogModal"
@@ -27,9 +26,6 @@ export const ModalsContainer = () => {
             }
             {
                 openedModals.rigobotInvite && <RigobotInviteModal />
-            }
-            {
-                openedModals.solution && <SolutionModal />
             }
             {
                 openedModals.reset && <ResetModal />

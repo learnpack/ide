@@ -1,0 +1,802 @@
+{
+    "config": {
+        "port": 3000,
+        "os": "win32",
+        "editor": {
+            "mode": "extension",
+            "agent": "vscode",
+            "version": "4.0.0"
+        },
+        "dirPath": "./.learn",
+        "configPath": "learn.json",
+        "outputPath": ".learn/dist",
+        "publicPath": "/preview",
+        "publicUrl": "http://localhost:3000",
+        "contact": "https://github.com/learnpack/learnpack/issues/new",
+        "language": "auto",
+        "autoPlay": true,
+        "projectType": "tutorial",
+        "grading": "incremental",
+        "exercisesPath": ".learn/exercises",
+        "webpackTemplate": null,
+        "disableGrading": false,
+        "disabledActions": [],
+        "actions": [],
+        "entries": {
+            "html": "index.html",
+            "vanillajs": "index.js",
+            "react": "app.jsx",
+            "node": "app.js",
+            "python3": "app.py",
+            "java": "app.java"
+        },
+        "suggestions": {
+            "agent": "vscode"
+        },
+        "warnings": {
+            "agent": null
+        },
+        "title": "Build a Digital Postcard with HTML/CSS",
+        "slug": "exercise-postcard",
+        "status": "published",
+        "translations": [
+            "es",
+            "us"
+        ],
+        "repository": "https://github.com/breatheco-de/exercise-postcard",
+        "solution": "https://github.com/breatheco-de/exercise-postcard/tree/solution",
+        "duration": 4,
+        "skills": [
+            "html-layouts"
+        ],
+        "difficulty": "beginner",
+        "videoSolutions": true,
+        "bugsLink": "https://github.com/learnpack/learnpack/issues/new",
+        "technologies": [
+            "html",
+            "css",
+            "layouts"
+        ],
+        "description": "Replicate this postcard with CSS and HTML",
+        "preview": "https://github.com/breatheco-de/exercise-postcard/blob/main/.learn/assets/preview.png?raw=true",
+        "talents": [
+            {
+                "badge": "identator",
+                "points": 10
+            },
+            {
+                "badge": "tag-master",
+                "points": 10
+            },
+            {
+                "badge": "path-master",
+                "points": 10
+            },
+            {
+                "badge": "select-everything",
+                "points": 10
+            },
+            {
+                "badge": "be-dry",
+                "points": 10
+            },
+            {
+                "badge": "abc",
+                "points": 10
+            }
+        ],
+        "video": {
+            "intro": {
+                "en": "https://www.youtube.com/watch?v=rvVPyewhFSU",
+                "es": "https://www.youtube.com/watch?v=rvVPyewhFSU"
+            }
+        }
+    },
+    "address": "http://localhost:3000",
+    "currentExercise": "01-design",
+    "exercises": [
+        {
+            "position": 0,
+            "path": ".learn\\exercises\\00-welcome",
+            "slug": "00-welcome",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": null,
+            "entry": null,
+            "title": "00-welcome",
+            "graded": false,
+            "files": [
+                {
+                    "path": "./.devcontainer",
+                    "name": ".devcontainer",
+                    "hidden": true
+                },
+                {
+                    "path": "./.git",
+                    "name": ".git",
+                    "hidden": true
+                },
+                {
+                    "path": "./.github",
+                    "name": ".github",
+                    "hidden": true
+                },
+                {
+                    "path": "./.gitignore",
+                    "name": ".gitignore",
+                    "hidden": true
+                },
+                {
+                    "path": "./.gitpod.Dockerfile",
+                    "name": ".gitpod.Dockerfile",
+                    "hidden": true
+                },
+                {
+                    "path": "./.gitpod.yml",
+                    "name": ".gitpod.yml",
+                    "hidden": true
+                },
+                {
+                    "path": "./.learn",
+                    "name": ".learn",
+                    "hidden": true
+                },
+                {
+                    "path": "./.vscode",
+                    "name": ".vscode",
+                    "hidden": true
+                },
+                {
+                    "path": "./learn.json",
+                    "name": "learn.json",
+                    "hidden": true
+                },
+                {
+                    "path": "./README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": "./README.md",
+                    "name": "README.md",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 1,
+            "path": ".learn\\exercises\\01-design",
+            "slug": "01-design",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": null,
+            "entry": null,
+            "title": "01-design",
+            "graded": false,
+            "files": [
+                {
+                    "path": "./.devcontainer",
+                    "name": ".devcontainer",
+                    "hidden": true
+                },
+                {
+                    "path": "./.git",
+                    "name": ".git",
+                    "hidden": true
+                },
+                {
+                    "path": "./.github",
+                    "name": ".github",
+                    "hidden": true
+                },
+                {
+                    "path": "./.gitignore",
+                    "name": ".gitignore",
+                    "hidden": true
+                },
+                {
+                    "path": "./.gitpod.Dockerfile",
+                    "name": ".gitpod.Dockerfile",
+                    "hidden": true
+                },
+                {
+                    "path": "./.gitpod.yml",
+                    "name": ".gitpod.yml",
+                    "hidden": true
+                },
+                {
+                    "path": "./.learn",
+                    "name": ".learn",
+                    "hidden": true
+                },
+                {
+                    "path": "./.vscode",
+                    "name": ".vscode",
+                    "hidden": true
+                },
+                {
+                    "path": "./learn.json",
+                    "name": "learn.json",
+                    "hidden": true
+                },
+                {
+                    "path": "./README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": "./README.md",
+                    "name": "README.md",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 2,
+            "path": ".learn\\exercises\\02-create-index",
+            "slug": "02-create-index",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "node",
+            "entry": null,
+            "title": "02-create-index",
+            "graded": true,
+            "files": [
+                {
+                    "path": ".learn\\exercises\\02-create-index/test.js",
+                    "name": "test.js",
+                    "hidden": true
+                },
+                {
+                    "path": "./.devcontainer",
+                    "name": ".devcontainer",
+                    "hidden": true
+                },
+                {
+                    "path": "./.git",
+                    "name": ".git",
+                    "hidden": true
+                },
+                {
+                    "path": "./.github",
+                    "name": ".github",
+                    "hidden": true
+                },
+                {
+                    "path": "./.gitignore",
+                    "name": ".gitignore",
+                    "hidden": true
+                },
+                {
+                    "path": "./.gitpod.Dockerfile",
+                    "name": ".gitpod.Dockerfile",
+                    "hidden": true
+                },
+                {
+                    "path": "./.gitpod.yml",
+                    "name": ".gitpod.yml",
+                    "hidden": true
+                },
+                {
+                    "path": "./.learn",
+                    "name": ".learn",
+                    "hidden": true
+                },
+                {
+                    "path": "./.vscode",
+                    "name": ".vscode",
+                    "hidden": true
+                },
+                {
+                    "path": "./learn.json",
+                    "name": "learn.json",
+                    "hidden": true
+                },
+                {
+                    "path": "./README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": "./README.md",
+                    "name": "README.md",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 3,
+            "path": ".learn\\exercises\\03-add-first-html",
+            "slug": "03-add-first-html",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": null,
+            "entry": null,
+            "title": "03-add-first-html",
+            "graded": false,
+            "files": [
+                {
+                    "path": ".learn\\exercises\\03-add-first-html/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\03-add-first-html/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 4,
+            "path": ".learn\\exercises\\04-build-the-website",
+            "slug": "04-build-the-website",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": null,
+            "entry": null,
+            "title": "04-build-the-website",
+            "graded": false,
+            "files": [
+                {
+                    "path": ".learn\\exercises\\04-build-the-website/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\04-build-the-website/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 5,
+            "path": ".learn\\exercises\\05-how-to-start",
+            "slug": "05-how-to-start",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": null,
+            "entry": null,
+            "title": "05-how-to-start",
+            "graded": false,
+            "files": [
+                {
+                    "path": ".learn\\exercises\\05-how-to-start/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\05-how-to-start/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 6,
+            "path": ".learn\\exercises\\06-lets-start-building",
+            "slug": "06-lets-start-building",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "node",
+            "entry": null,
+            "title": "06-lets-start-building",
+            "graded": true,
+            "files": [
+                {
+                    "path": ".learn\\exercises\\06-lets-start-building/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\06-lets-start-building/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\06-lets-start-building/test.js",
+                    "name": "test.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 7,
+            "path": ".learn\\exercises\\07-the-first-div",
+            "slug": "07-the-first-div",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "node",
+            "entry": null,
+            "title": "07-the-first-div",
+            "graded": true,
+            "files": [
+                {
+                    "path": ".learn\\exercises\\07-the-first-div/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\07-the-first-div/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\07-the-first-div/test.js",
+                    "name": "test.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 8,
+            "path": ".learn\\exercises\\08-adding-styles",
+            "slug": "08-adding-styles",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "node",
+            "entry": null,
+            "title": "08-adding-styles",
+            "graded": true,
+            "files": [
+                {
+                    "path": ".learn\\exercises\\08-adding-styles/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\08-adding-styles/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\08-adding-styles/test.js",
+                    "name": "test.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 9,
+            "path": ".learn\\exercises\\08.1-red-borders",
+            "slug": "08.1-red-borders",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "node",
+            "entry": null,
+            "title": "08.1-red-borders",
+            "graded": true,
+            "files": [
+                {
+                    "path": ".learn\\exercises\\08.1-red-borders/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\08.1-red-borders/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\08.1-red-borders/test.js",
+                    "name": "test.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 10,
+            "path": ".learn\\exercises\\09-connecting-stylesheet",
+            "slug": "09-connecting-stylesheet",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "node",
+            "entry": null,
+            "title": "09-connecting-stylesheet",
+            "graded": true,
+            "files": [
+                {
+                    "path": ".learn\\exercises\\09-connecting-stylesheet/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\09-connecting-stylesheet/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\09-connecting-stylesheet/test.js",
+                    "name": "test.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 11,
+            "path": ".learn\\exercises\\10-center-postcard",
+            "slug": "10-center-postcard",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "node",
+            "entry": null,
+            "title": "10-center-postcard",
+            "graded": true,
+            "files": [
+                {
+                    "path": ".learn\\exercises\\10-center-postcard/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\10-center-postcard/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\10-center-postcard/test.js",
+                    "name": "test.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 12,
+            "path": ".learn\\exercises\\11-postcard-divisions",
+            "slug": "11-postcard-divisions",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "node",
+            "entry": null,
+            "title": "11-postcard-divisions",
+            "graded": true,
+            "files": [
+                {
+                    "path": ".learn\\exercises\\11-postcard-divisions/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\11-postcard-divisions/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\11-postcard-divisions/test.js",
+                    "name": "test.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 13,
+            "path": ".learn\\exercises\\11.1-header-content",
+            "slug": "11.1-header-content",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "node",
+            "entry": null,
+            "title": "11.1-header-content",
+            "graded": true,
+            "files": [
+                {
+                    "path": ".learn\\exercises\\11.1-header-content/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\11.1-header-content/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\11.1-header-content/solution.hide.css",
+                    "name": "solution.hide.css",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\11.1-header-content/solution.hide.html",
+                    "name": "solution.hide.html",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\11.1-header-content/test.js",
+                    "name": "test.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 14,
+            "path": ".learn\\exercises\\11.2-header-styles",
+            "slug": "11.2-header-styles",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "node",
+            "entry": null,
+            "title": "11.2-header-styles",
+            "graded": true,
+            "files": [
+                {
+                    "path": ".learn\\exercises\\11.2-header-styles/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\11.2-header-styles/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\11.2-header-styles/test.js",
+                    "name": "test.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 15,
+            "path": ".learn\\exercises\\12-split-postcard-body",
+            "slug": "12-split-postcard-body",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "node",
+            "entry": null,
+            "title": "12-split-postcard-body",
+            "graded": true,
+            "files": [
+                {
+                    "path": ".learn\\exercises\\12-split-postcard-body/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\12-split-postcard-body/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\12-split-postcard-body/test.js",
+                    "name": "test.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 16,
+            "path": ".learn\\exercises\\12.1-body-content",
+            "slug": "12.1-body-content",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "node",
+            "entry": null,
+            "title": "12.1-body-content",
+            "graded": true,
+            "files": [
+                {
+                    "path": ".learn\\exercises\\12.1-body-content/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\12.1-body-content/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\12.1-body-content/test.js",
+                    "name": "test.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 17,
+            "path": ".learn\\exercises\\13-check-your-code",
+            "slug": "13-check-your-code",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": null,
+            "entry": null,
+            "title": "13-check-your-code",
+            "graded": false,
+            "files": [
+                {
+                    "path": ".learn\\exercises\\13-check-your-code/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\13-check-your-code/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 18,
+            "path": ".learn\\exercises\\14-goodbye",
+            "slug": "14-goodbye",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": null,
+            "entry": null,
+            "title": "14-goodbye",
+            "graded": false,
+            "files": [
+                {
+                    "path": ".learn\\exercises\\14-goodbye/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": ".learn\\exercises\\14-goodbye/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        }
+    ],
+    "bugsLink": null,
+    "videoSolutions": false,
+    "localhostOnly": false,
+    "session": 3045489408900557000
+}

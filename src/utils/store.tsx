@@ -17,6 +17,8 @@ import {
   debounce,
   removeSpecialCharacters,
   PUBLISH_MODE,
+  extractFrontMatter,
+  loginBreathecode,
 } from "./lib";
 import Socket from "./socket";
 import { IStore, TDialog } from "./storeTypes";
@@ -38,8 +40,8 @@ class MissingRigobotAccountError extends Error {
 const HOST = getHost();
 
 if (!PUBLISH_MODE) {
+  Socket.start(HOST, disconnected, onConnectCli);
 }
-Socket.start(HOST, disconnected, onConnectCli);
 
 const FASTAPI_HOST = "https://ai.4geeks.com";
 
@@ -227,6 +229,9 @@ const useStore = create<IStore>((set, get) => ({
       get();
 
     try {
+      if (PUBLISH_MODE) {
+        throw Error("Published package, no API available");
+      }
       const res = await fetch(`${HOST}/check/rigo/status`);
       const json = await res.json();
 
@@ -323,20 +328,22 @@ const useStore = create<IStore>((set, get) => ({
   },
 
   fetchExercises: async () => {
-    const { getLessonTitle, fetchReadme, user_id, setOpenedModals } = get();
+    const { fetchReadme, user_id, setOpenedModals } = get();
 
     try {
-      const res = await fetch(`${HOST}/config`);
+      const res = !PUBLISH_MODE
+        ? await fetch(`${HOST}/config`)
+        : await fetch(`${HOST}/config.json`);
       const config = await res.json();
 
-      if (config.config.warnings.agent) {
+      if (config.config.warnings.agent && !PUBLISH_MODE) {
         set({
           dialogData: { message: config.config.warnings.agent, format: "md" },
         });
         setOpenedModals({ dialog: true });
       }
 
-      if (config.config.warnings.extension) {
+      if (config.config.warnings.extension && !PUBLISH_MODE) {
         set({
           dialogData: {
             message: config.config.warnings.extension,
@@ -405,8 +412,8 @@ const useStore = create<IStore>((set, get) => ({
       return;
     }
 
-    const respose = await getExercise(slug);
-    const exercise = await respose.json();
+    const respose = PUBLISH_MODE ? "":await getExercise(slug);
+    const exercise =PUBLISH_MODE? exercises[index] : await respose.json();
 
     let isTesteable = exercise.graded;
     let isBuildable;
@@ -421,8 +428,6 @@ const useStore = create<IStore>((set, get) => ({
 
     if (solutionFile) {
       hasSolution = true;
-      let solution = await getFileContent(slug, solutionFile.name);
-      set({ currentSolution: solution });
     }
     set({
       isTesteable: isTesteable,
@@ -516,10 +521,11 @@ const useStore = create<IStore>((set, get) => ({
     };
 
     try {
-      const res = await fetch(host + "/login", config);
-      const json = await res.json();
+      const res = PUBLISH_MODE
+        ? await loginBreathecode(loginInfo.email, loginInfo.password)
+        : await fetch(host + "/login", config);
 
-      console.log(json, "json response");
+      const json = PUBLISH_MODE ? res : await res.json();
 
       set({ bc_token: json.token, user_id: json.user_id });
 
@@ -581,8 +587,8 @@ const useStore = create<IStore>((set, get) => ({
     };
 
     if (PUBLISH_MODE) {
-      window.location.href = url;
-      return
+      window.open(url, "_blank");
+      return;
     }
     compilerSocket.openWindow(data);
   },
@@ -607,24 +613,50 @@ const useStore = create<IStore>((set, get) => ({
       return;
     }
 
-    const response = await fetch(
-      `${HOST}/exercise/${slug}/readme?lang=${language}`
-    );
-    const exercise = await response.json();
+    let response;
+    let body;
 
-    if (exercise.attributes.tutorial) {
-      set({ videoTutorial: exercise.attributes.tutorial });
-    } else if (exercise.attributes.intro) {
-      // openLink(exercise.attributes.intro);
-      set({
-        videoTutorial: exercise.attributes.intro,
-        showVideoTutorial: true,
-      });
+    if (PUBLISH_MODE) {
+      response = await fetch(
+        `${HOST}/exercises/${slug}/README${
+          language === "us" ? "" : "." + language
+        }.md`
+      );
+      const readme = await response.text();
+      const { frontMatter, content } = extractFrontMatter(readme);
+      body = content;
+
+      if (frontMatter.tutorial) {
+        set({ videoTutorial: frontMatter.tutorial });
+      } else if (frontMatter.intro) {
+        set({
+          videoTutorial: frontMatter.intro,
+          showVideoTutorial: true,
+        });
+      } else {
+        set({ videoTutorial: "", showVideoTutorial: false });
+      }
     } else {
-      set({ videoTutorial: "", showVideoTutorial: false });
+      response = await fetch(
+        `${HOST}/exercise/${slug}/readme?lang=${language}`
+      );
+      const exercise = await response.json();
+
+      if (exercise.attributes.tutorial) {
+        set({ videoTutorial: exercise.attributes.tutorial });
+      } else if (exercise.attributes.intro) {
+        set({
+          videoTutorial: exercise.attributes.intro,
+          showVideoTutorial: true,
+        });
+      } else {
+        set({ videoTutorial: "", showVideoTutorial: false });
+      }
+
+      getConfigObject();
     }
 
-    let readme = replaceSlot(exercise.body, "{{publicUrl}}", HOST);
+    let readme = replaceSlot(body, "{{publicUrl}}", HOST);
 
     if (typeof configObject.config.variables === "object") {
       for (let v in configObject.config.variables) {
@@ -636,11 +668,10 @@ const useStore = create<IStore>((set, get) => ({
       }
     }
 
+    fetchSingleExerciseInfo(currentExercisePosition);
+
     set({ currentContent: readme });
     set({ currentReadme: readme });
-
-    fetchSingleExerciseInfo(currentExercisePosition);
-    getConfigObject();
   },
 
   toggleSidebar: () => {
@@ -667,7 +698,7 @@ const useStore = create<IStore>((set, get) => ({
     const data = {
       exerciseSlug: getCurrentExercise().slug,
     };
-    if (PUBLISH_MODE) return
+    if (PUBLISH_MODE) return;
     compilerSocket.emit("open_terminal", data);
   },
 

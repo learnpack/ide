@@ -1,11 +1,16 @@
 import { Remarkable } from "remarkable";
-import {linkify} from 'remarkable/linkify';
-// @ts-ignore
-// import katex from 'remarkable-katex'
+import { linkify } from "remarkable/linkify";
 
+import frontMatter from "front-matter";
+
+export const extractFrontMatter = (markdownText: string) => {
+  const { attributes, body } = frontMatter(markdownText);
+  return { frontMatter: attributes, content: body };
+};
 export const DEV_MODE =true;
 
-export const PUBLISH_MODE = false
+const BREATHECODE_HOST = "https://breathecode.herokuapp.com";
+export const PUBLISH_MODE = true;
 export const RIGOBOT_API_URL = "https://rigobot.herokuapp.com";
 
 const fullURL =
@@ -21,7 +26,7 @@ const fullURL =
 
 export const convertMarkdownToHTML = (markdown: any) => {
   // const md = new Remarkable({linkify: true});
-  const md = new Remarkable().use(linkify)
+  const md = new Remarkable().use(linkify);
   // .use(katex)
   let html = md.render(markdown);
   html = replaceSrc(html);
@@ -87,12 +92,14 @@ export const getHost = function (): string {
     ? `${preConfig.address}:${preConfig.port}`
     : getParams("host") || fullURL;
 
-  // TODO: DO THIS BETTER
   if (DEV_MODE) {
     HOST = "http://localhost:3000";
   }
+  
+  if (PUBLISH_MODE) {
+    HOST = window.location.origin;
+  }
 
-  // console.log("HOST", HOST);
   return HOST;
 };
 
@@ -137,7 +144,7 @@ export const onConnectCli = () => {
   if (modal) {
     modal.style.display = "none";
   }
-}
+};
 
 export const getParamsObject = (): Record<string, string> => {
   let params = window.location.hash.substring(1);
@@ -180,42 +187,43 @@ export const startRecording = async () => {
     // @ts-ignore
     function showModal(devices) {
       // Create the modal container
-      const modalContainer = document.createElement('div');
-      modalContainer.classList.add('self-closing-modal');
-      const modalContent = document.createElement('div');
-      modalContent.classList.add('modal-content'); 
+      const modalContainer = document.createElement("div");
+      modalContainer.classList.add("self-closing-modal");
+      const modalContent = document.createElement("div");
+      modalContent.classList.add("modal-content");
       // Create the list of audioinput devices
-      const deviceList = document.createElement('ul');
+      const deviceList = document.createElement("ul");
       // @ts-ignore
-      devices.forEach(device => {
-        if (device.kind === 'audioinput') {
-          const listItem = document.createElement('li');
+      devices.forEach((device) => {
+        if (device.kind === "audioinput") {
+          const listItem = document.createElement("li");
           listItem.textContent = `${device.kind}: ${device.label} (ID: ${device.deviceId})`;
           deviceList.appendChild(listItem);
         }
       });
-      
+
       // Append the list to the modal
       modalContent.appendChild(deviceList);
 
       modalContainer.appendChild(modalContent);
-    
+
       // Add a close button
-      const closeButton = document.createElement('button');
-      closeButton.textContent = 'Close';
+      const closeButton = document.createElement("button");
+      closeButton.textContent = "Close";
       closeButton.onclick = () => document.body.removeChild(modalContainer);
       modalContent.appendChild(closeButton);
-    
+
       // Append the modal to the body
       document.body.appendChild(modalContainer);
     }
-    
+
     // Get the available devices and show the modal
-    navigator.mediaDevices.enumerateDevices()
-      .then(devices => {
+    navigator.mediaDevices
+      .enumerateDevices()
+      .then((devices) => {
         showModal(devices);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("Error listing devices:", err);
       });
     // Get the video stream for screen sharing with audio
@@ -256,5 +264,53 @@ export const startRecording = async () => {
     };
   } catch (err) {
     console.error("Error starting recording:", err);
+  }
+};
+
+export const loginBreathecode = async (identification: string, password: string) => {
+  try {
+    const url = `${BREATHECODE_HOST}/v1/auth/login/`;
+
+    const headers = { "Content-Type": "application/json" }
+    const response = await fetch(url, {
+      body: JSON.stringify({
+        email: identification,
+        password: password,
+      }),
+      method: "post",
+      headers
+      
+    });
+    
+    const json = await response.json();
+    
+    let rigoPayload = null;
+    try {
+      rigoPayload = await loginRigobot(json.token);
+    } catch {
+      return { ...json, rigobot: null };
+    }
+    
+    return { ...json, rigobot: rigoPayload };
+  } catch (error) {
+    console.error("ERROR LOGIN IN BREATHECODE ", error);
+  }
+};
+
+const loginRigobot = async (token: string) => {
+  const headers = { "Content-Type": "application/json" }
+  try {
+    console.log("LOGIN TO RIGOBOT");
+    
+    const rigoUrl = `${RIGOBOT_API_URL}/v1/auth/me/token?breathecode_token=${token}`;
+    const rigoResp = await fetch(rigoUrl, {
+      headers
+    });
+    const rigobotJson = await rigoResp.json();
+
+    
+    return rigobotJson;
+  } catch (error) {
+    throw new Error("Failed to log in to Rigo");
   }
 };
