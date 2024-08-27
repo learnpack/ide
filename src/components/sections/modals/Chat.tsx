@@ -42,7 +42,8 @@ export default function Chat() {
     registerAIInteraction,
     setListeners,
     getCurrentExercise,
-    user_id
+    user_id,
+    bc_token
   } = useStore((state) => ({
     setOpenedModals: state.setOpenedModals,
     currentExercisePosition: state.currentExercisePosition,
@@ -64,6 +65,7 @@ export default function Chat() {
     setListeners: state.setListeners,
     getCurrentExercise: state.getCurrentExercise,
     user_id: state.user_id,
+    bc_token: state.bc_token
 
   }));
 
@@ -276,6 +278,9 @@ export default function Chat() {
         purpose: learnpackPurposeId,
         token: token,
       },
+      breathecode: {
+        token: bc_token
+      }
     };
     return data;
   };

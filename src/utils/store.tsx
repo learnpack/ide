@@ -224,10 +224,12 @@ const useStore = create<IStore>((set, get) => ({
       const res = await fetch(`${HOST}/check/rigo/status`);
       const json = await res.json();
 
+      
       if (res.status === 400) {
         throw Error("The user is not logged in");
       }
       set({ token: json.rigoToken });
+      set({bc_token: json.payload.token})
       if (opts.startConversation) {
         startConversation(currentExercisePosition);
       }
@@ -510,8 +512,6 @@ const useStore = create<IStore>((set, get) => ({
     try {
       const res = await fetch(host + "/login", config);
       const json = await res.json();
-
-      console.log(json, "json response");
 
       set({ bc_token: json.token, user_id: json.user_id });
 
