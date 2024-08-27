@@ -232,6 +232,7 @@ const useStore = create<IStore>((set, get) => ({
         startConversation(currentExercisePosition);
       }
     } catch (err) {
+      console.error("ERROR Trying to get Rigobot status ", err)
       set({ token: "" });
       setOpenedModals({ login: true });
     }

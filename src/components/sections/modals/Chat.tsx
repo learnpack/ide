@@ -271,8 +271,8 @@ export default function Chat() {
         context: contextFilesContent,
         imageB64: "",
       },
-      data: {
-        conversationID: conversationIdsCache[currentExercisePosition],
+      conversation: {
+        id: conversationIdsCache[currentExercisePosition],
         purpose: learnpackPurposeId,
         token: token,
       },
