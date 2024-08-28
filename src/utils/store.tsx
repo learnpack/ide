@@ -17,11 +17,12 @@ import {
   debounce,
   removeSpecialCharacters,
 } from "./lib";
-import Socket from "./socket";
+import Socket from "../managers/socket";
 import { IStore, TDialog } from "./storeTypes";
 import toast from "react-hot-toast";
-import { getStatus } from "./socket";
+import { getStatus } from "../managers/socket";
 import { DEV_MODE, RIGOBOT_API_URL } from "./lib";
+import { EventProxy } from "../managers/EventProxy";
 type TFile = {
   name: string;
   hidden: boolean;
@@ -35,10 +36,10 @@ class MissingRigobotAccountError extends Error {
 }
 
 const HOST = getHost();
-Socket.start(HOST, disconnected, onConnectCli);
 
-const FASTAPI_HOST = "https://ai.4geeks.com";
-// const FASTAPI_HOST = "http://localhost:8000";
+
+// const FASTAPI_HOST = "https://ai.4geeks.com";
+const FASTAPI_HOST = "http://localhost:8000";
 const chatSocket = io(`${FASTAPI_HOST}`);
 
 chatSocket.on("connect", () => {
@@ -92,7 +93,7 @@ const useStore = create<IStore>((set, get) => ({
   },
   videoTutorial: "",
   allowedActions: [],
-  compilerSocket: Socket.createScope("compiler"),
+  compilerSocket: EventProxy.getEmitter("localStorage"),
   showVideoTutorial: false,
   exerciseMessages: {},
   host: HOST,
@@ -224,17 +225,16 @@ const useStore = create<IStore>((set, get) => ({
       const res = await fetch(`${HOST}/check/rigo/status`);
       const json = await res.json();
 
-      
       if (res.status === 400) {
         throw Error("The user is not logged in");
       }
       set({ token: json.rigoToken });
-      set({bc_token: json.payload.token})
+      set({ bc_token: json.payload.token });
       if (opts.startConversation) {
         startConversation(currentExercisePosition);
       }
     } catch (err) {
-      console.error("ERROR Trying to get Rigobot status ", err)
+      console.error("ERROR Trying to get Rigobot status ", err);
       set({ token: "" });
       setOpenedModals({ login: true });
     }
@@ -330,14 +330,17 @@ const useStore = create<IStore>((set, get) => ({
         set({
           dialogData: { message: config.config.warnings.agent, format: "md" },
         });
-        setOpenedModals({dialog: true})
+        setOpenedModals({ dialog: true });
       }
-      
+
       if (config.config.warnings.extension) {
         set({
-          dialogData: { message: config.config.warnings.extension, format: "md" },
+          dialogData: {
+            message: config.config.warnings.extension,
+            format: "md",
+          },
         });
-        setOpenedModals({dialog: true})
+        setOpenedModals({ dialog: true });
       }
 
       const slug = config.config.slug;
@@ -730,9 +733,12 @@ const useStore = create<IStore>((set, get) => ({
     const [icon, message] = getStatus("compiling");
     toast.success(message, { icon: icon });
 
+    
     const data = {
       exerciseSlug: getCurrentExercise().slug,
     };
+    console.log(compilerSocket);
+    
     compilerSocket.emit("build", data);
   },
   runExerciseTests: (opts) => {

@@ -1,6 +1,6 @@
 import SimpleButton from "../../mockups/SimpleButton";
 import { svgs } from "../../../assets/svgs";
-import { getStatus } from "../../../utils/socket";
+import { getStatus } from "../../../managers/socket";
 import useStore from "../../../utils/store";
 import { toast } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
@@ -28,7 +28,7 @@ export default function BuildButton() {
     isBuildable,
     build,
     isTesteable,
-    runExerciseTests
+    runExerciseTests,
   } = useStore((state) => ({
     currentExercisePosition: state.currentExercisePosition,
     exercises: state.exercises,
@@ -68,18 +68,18 @@ export default function BuildButton() {
       toast: true,
       setFeedbackButton: false,
       feedbackButtonText: t("Running..."),
-      targetButton: "build"
+      targetButton: "build",
     });
   };
 
   const changeToTest = !isBuildable && isTesteable;
-  
+
   return (
     <SimpleButton
       id="build-button"
       text={t(buildbuttonText.text)}
       svg={svgs.buildIcon}
-      extraClass={`pill bg-blue ${buildbuttonText.className }`}
+      extraClass={`pill bg-blue ${buildbuttonText.className}`}
       action={() => {
         changeToTest ? runTests() : build(t("Running..."));
       }}

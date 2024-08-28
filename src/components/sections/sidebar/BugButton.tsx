@@ -8,7 +8,6 @@ export default function BugButton() {
         currentExercisePosition: state.currentExercisePosition,
         exercises: state.exercises,
         lessonTitle: state.lessonTitle,
-        // compilerSocket: state.compilerSocket
     }));
     let defaultTitle = "Bug"
 

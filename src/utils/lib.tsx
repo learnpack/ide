@@ -3,7 +3,7 @@ import {linkify} from 'remarkable/linkify';
 // @ts-ignore
 // import katex from 'remarkable-katex'
 
-export const DEV_MODE =false;
+export const DEV_MODE =true;
 
 export const RIGOBOT_API_URL = "https://rigobot.herokuapp.com";
 

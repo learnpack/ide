@@ -140,9 +140,11 @@ export default function Chat() {
   }, [messages]);
 
   useEffect(() => {
-    if (!waitingTestResult) return;
+    // if (!waitingTestResult) return;
 
     compilerSocket.onStatus("testing-success", (data: any) => {
+      console.log("Receiving  testing-success error in chat");
+      
       setMessages((prev) => {
         let messages = [...prev];
         messages[messages.length - 1].text = "**Tests passed!**";
@@ -203,8 +205,11 @@ export default function Chat() {
   };
 
   const sendUserMessage = async () => {
+    console.log("sendUserMessage");
+    
     if (Boolean(userMessage.trim() == "")) return;
     if (isGenerating) return;
+  
 
     const isFirstInteraction = messages.length === 1;
 
@@ -263,8 +268,9 @@ export default function Chat() {
   };
 
   const getMessageData = async () => {
-    const contextFilesContent = await getContextFilesContent();
 
+    const contextFilesContent = await getContextFilesContent();
+    
     const data = {
       message: {
         type: "user",

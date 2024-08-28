@@ -5,6 +5,7 @@ import useStore from "../../../utils/store";
 import { useTranslation } from "react-i18next";
 import { Alert } from "../../composites/Alert/Alert";
 import { OpenWindowLink } from "../../composites/OpenWindowLink";
+import Editor from "../../composites/Editor/Editor";
 
 interface Alerts {
   incrementalTest: boolean;
@@ -62,6 +63,7 @@ export default function LessonContainer() {
         </Alert>
       )}
       <LessonContent />
+      <Editor />
     </div>
   );
 }

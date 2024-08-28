@@ -212,7 +212,7 @@ export default {
 
     if (this.socket) {
       this.socket.on("connect", () => onConnect && onConnect());
-      // console.log("Connected to host " + host);
+      console.log("Connected to host " + host);
       this.socket.on("disconnect", () => onDisconnect && onDisconnect());
     } else {
       console.error(`Failed to connect to host: ${host}`);
