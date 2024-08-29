@@ -24,7 +24,7 @@ export default function BuildButton() {
     currentExercisePosition,
     compilerSocket,
     buildbuttonText,
-    setBuildButtonText,
+    setBuildButtonPrompt,
     isBuildable,
     build,
     isTesteable,
@@ -34,7 +34,7 @@ export default function BuildButton() {
     exercises: state.exercises,
     compilerSocket: state.compilerSocket,
     buildbuttonText: state.buildbuttonText,
-    setBuildButtonText: state.setBuildButtonText,
+    setBuildButtonPrompt: state.setBuildButtonPrompt,
     isBuildable: state.isBuildable,
     build: state.build,
     isTesteable: state.isTesteable,
@@ -45,7 +45,7 @@ export default function BuildButton() {
   let compilerErrorHandler = debounce((data: any) => {
     data;
     // const stdout = data.logs[0];
-    setBuildButtonText(t("Try again"), "bg-fail");
+    setBuildButtonPrompt(t("Try again"), "bg-fail");
     const [icon, message] = getStatus("compiler-error");
     toast.error(message, { icon: icon });
   }, 100);
@@ -54,7 +54,7 @@ export default function BuildButton() {
     data;
     const [icon, message] = getStatus("compiler-success");
     toast.success(message, { icon: icon });
-    setBuildButtonText(t("Run"), "bg-success");
+    setBuildButtonPrompt(t("Run"), "bg-success");
   }, 100);
 
   useEffect(() => {
@@ -63,7 +63,7 @@ export default function BuildButton() {
   }, [currentExercisePosition]);
 
   const runTests = () => {
-    setBuildButtonText(t("Running..."), "bg-blue");
+    setBuildButtonPrompt(t("Running..."), "bg-blue");
     runExerciseTests({
       toast: true,
       setFeedbackButton: false,

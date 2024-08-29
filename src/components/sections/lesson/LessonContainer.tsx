@@ -62,8 +62,8 @@ export default function LessonContainer() {
           </div>
         </Alert>
       )}
-      <LessonContent />
       <Editor />
+      <LessonContent />
     </div>
   );
 }

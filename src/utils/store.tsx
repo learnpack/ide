@@ -22,7 +22,9 @@ import { IStore, TDialog } from "./storeTypes";
 import toast from "react-hot-toast";
 import { getStatus } from "../managers/socket";
 import { DEV_MODE, RIGOBOT_API_URL } from "./lib";
-import { EventProxy } from "../managers/EventProxy";
+import { EventProxy, TEnvironment } from "../managers/EventProxy";
+import { fetchManager } from "../managers/fetchManager";
+
 type TFile = {
   name: string;
   hidden: boolean;
@@ -35,8 +37,9 @@ class MissingRigobotAccountError extends Error {
   }
 }
 
-const HOST = getHost();
+const ENVIRONMENT: TEnvironment = "localStorage";
 
+const HOST = getHost();
 
 // const FASTAPI_HOST = "https://ai.4geeks.com";
 const FASTAPI_HOST = "http://localhost:8000";
@@ -47,6 +50,9 @@ chatSocket.on("connect", () => {
 });
 
 const defaultParams = getParamsObject();
+
+fetchManager.init(ENVIRONMENT, HOST);
+
 const useStore = create<IStore>((set, get) => ({
   language: defaultParams.language || "us",
   languageMap: {
@@ -78,6 +84,18 @@ const useStore = create<IStore>((set, get) => ({
     text: "Run",
     className: "",
   },
+  editorTabs: [
+    {
+      id: 1,
+      name: "tab 1",
+      content: "Default tab openeded",
+    },
+    {
+      id: 2,
+      name: "tab 2",
+      content: "Another testing tab",
+    },
+  ],
   feedbackbuttonProps: {
     text: "Get feedback",
     className: "",
@@ -93,7 +111,7 @@ const useStore = create<IStore>((set, get) => ({
   },
   videoTutorial: "",
   allowedActions: [],
-  compilerSocket: EventProxy.getEmitter("localStorage"),
+  compilerSocket: EventProxy.getEmitter(ENVIRONMENT),
   showVideoTutorial: false,
   exerciseMessages: {},
   host: HOST,
@@ -119,7 +137,6 @@ const useStore = create<IStore>((set, get) => ({
       checkLoggedStatus,
       currentExercisePosition,
       setListeners,
-      getConfigObject,
     } = get();
     fetchExercises()
       .then(() => {
@@ -144,7 +161,7 @@ const useStore = create<IStore>((set, get) => ({
       toastFromStatus,
       setFeedbackButtonProps,
       setOpenedModals,
-      setBuildButtonText,
+      setBuildButtonPrompt,
     } = get();
 
     let debounceSuccess = debounce((data: any) => {
@@ -155,7 +172,7 @@ const useStore = create<IStore>((set, get) => ({
       if (get().targetButtonForFeedback === "feedback") {
         setFeedbackButtonProps("Succeded", "bg-success text-white");
       } else {
-        setBuildButtonText("Succeded", "bg-success text-white");
+        setBuildButtonPrompt("Succeded", "bg-success text-white");
       }
     }, 100);
 
@@ -167,7 +184,7 @@ const useStore = create<IStore>((set, get) => ({
       if (get().targetButtonForFeedback === "feedback") {
         setFeedbackButtonProps("Try again", "bg-fail text-white");
       } else {
-        setBuildButtonText("Try again", "bg-fail text-white");
+        setBuildButtonPrompt("Try again", "bg-fail text-white");
       }
     }, 100);
 
@@ -196,12 +213,13 @@ const useStore = create<IStore>((set, get) => ({
   setShowVideoTutorial: (show: boolean) => {
     set({ showVideoTutorial: show });
   },
+  // TODO: This is not being used implement or delete
   setAllowedActions: (actions) => {
     set({ allowedActions: actions });
   },
 
   // functions
-  setBuildButtonText: (t, c = "") => {
+  setBuildButtonPrompt: (t, c = "") => {
     set({ buildbuttonText: { text: t, className: c } });
   },
 
@@ -242,7 +260,7 @@ const useStore = create<IStore>((set, get) => ({
   getContextFilesContent: async () => {
     const {
       getCurrentExercise,
-      currentReadme,
+      currentContent,
       isBuildable,
       isTesteable,
       configObject,
@@ -282,49 +300,37 @@ const useStore = create<IStore>((set, get) => ({
     let contextFiles = currentExercise.files.filter(extractor);
 
     let filePromises = contextFiles.map(async (file, index) => {
-      let fileContent = await getFileContent(slug, file.name);
-      return `---
-      # File name: ${file.name}. Content: 
-      \`${fileContent}\`
-      ---
+      let fileContent = await fetchManager.getFileContent(slug, file.name);
+      return `
+< File name: ${file.name} \n
+  Content: 
+\`${fileContent}\`
+>
       `;
     });
 
     return Promise.all(filePromises).then((filesContext) => {
       context += filesContext.join("\n");
       context += `
-      ---This is the current exercise instructions:
-      ${currentReadme}
-      ---
-      
-      <MANDATORY FOR AI: The user's set up the application in "${language}" language, give your feedback in "${language}" language, please.>
+<
+This is the current exercise instructions:
+${currentContent}
+>
+
+<MANDATORY FOR AI: The user's set up the application in "${language}" language, give your feedback in "${language}" language, please.>
 
       `;
+      console.log(context);
 
       return context;
     });
-  },
-
-  getConfigObject: async () => {
-    if (!HOST) {
-      return;
-    }
-    try {
-      const res = await fetch(`${HOST}/config`);
-      const config = await res.json();
-      set({ configObject: config });
-      return config;
-    } catch (err) {
-      disconnected();
-    }
   },
 
   fetchExercises: async () => {
     const { getLessonTitle, fetchReadme, user_id, setOpenedModals } = get();
 
     try {
-      const res = await fetch(`${HOST}/config`);
-      const config = await res.json();
+      const config = await fetchManager.getExercises();
 
       if (config.config.warnings.agent) {
         set({
@@ -411,7 +417,7 @@ const useStore = create<IStore>((set, get) => ({
 
     if (exercise.entry) isBuildable = true;
     if (!exercise.language) isBuildable = false;
-    // TODO: check if the exercise is buildable based in the language and the entry file
+
     const solutionFile = exercise.files.find((file) =>
       file.name.includes("solution.hide")
     );
@@ -434,7 +440,7 @@ const useStore = create<IStore>((set, get) => ({
       startConversation,
       fetchReadme,
       token,
-      setBuildButtonText,
+      setBuildButtonPrompt,
       setFeedbackButtonProps,
       checkParams,
     } = get();
@@ -452,7 +458,7 @@ const useStore = create<IStore>((set, get) => ({
     if (token) {
       startConversation(newPosition);
     }
-    setBuildButtonText("Run", "");
+    setBuildButtonPrompt("Run", "");
     setFeedbackButtonProps("Get feedback", "");
 
     fetchReadme();
@@ -576,20 +582,30 @@ const useStore = create<IStore>((set, get) => ({
     };
     compilerSocket.openWindow(data);
   },
+  updateEditorTabs: () => {
+    const {
+      getCurrentExercise
+    } = get();
 
-  clearBcToken: () => {
-    set({ bc_token: "" });
+    const exercise = getCurrentExercise()
+    console.log(exercise.files);
+    const notHidden = exercise.files.filter((f)=>{
+      return !f.hidden
+    })
+    console.log(notHidden);
+    
   },
+
   fetchReadme: async () => {
     const {
       language,
       exercises,
       currentExercisePosition,
-      getConfigObject,
       setShowVideoTutorial,
       fetchSingleExerciseInfo,
       configObject,
       openLink,
+
     } = get();
 
     const slug = exercises[currentExercisePosition]?.slug;
@@ -597,10 +613,7 @@ const useStore = create<IStore>((set, get) => ({
       return;
     }
 
-    const response = await fetch(
-      `${HOST}/exercise/${slug}/readme?lang=${language}`
-    );
-    const exercise = await response.json();
+    const exercise = await fetchManager.getReadme(slug, language);
 
     if (exercise.attributes.tutorial) {
       set({ videoTutorial: exercise.attributes.tutorial });
@@ -627,10 +640,8 @@ const useStore = create<IStore>((set, get) => ({
     }
 
     set({ currentContent: readme });
-    set({ currentReadme: readme });
 
     fetchSingleExerciseInfo(currentExercisePosition);
-    getConfigObject();
   },
 
   toggleSidebar: () => {
@@ -699,9 +710,6 @@ const useStore = create<IStore>((set, get) => ({
         feedbackButtonText: "Running...",
         targetButton: "feedback",
       });
-      // toast.error(
-      //   "You are in incremental mode! Pass the tests for this exercise to continue with the next one!"
-      // );
       return;
     }
     setPosition(Number(desiredPosition));
@@ -728,17 +736,16 @@ const useStore = create<IStore>((set, get) => ({
     set({ shouldBeTested: value });
   },
   build: (buildText) => {
-    const { setBuildButtonText, compilerSocket, getCurrentExercise } = get();
-    setBuildButtonText(buildText, "");
+    const { setBuildButtonPrompt, compilerSocket, getCurrentExercise } = get();
+    setBuildButtonPrompt(buildText, "");
     const [icon, message] = getStatus("compiling");
     toast.success(message, { icon: icon });
 
-    
     const data = {
       exerciseSlug: getCurrentExercise().slug,
     };
     console.log(compilerSocket);
-    
+
     compilerSocket.emit("build", data);
   },
   runExerciseTests: (opts) => {
@@ -767,7 +774,6 @@ const useStore = create<IStore>((set, get) => ({
     if (opts && opts.toast) toastFromStatus("testing");
   },
 
-  // Turn the following property to true to easily test things using a button in the navbar
   registerAIInteraction: (stepPosition, interaction) => {
     const { compilerSocket, getCurrentExercise } = get();
 
@@ -783,10 +789,10 @@ const useStore = create<IStore>((set, get) => ({
   // Leave this empty for development purposes
   displayTestButton: DEV_MODE,
   test: async () => {
-    const { openTerminal } = get();
+    const { openTerminal, getContextFilesContent, updateEditorTabs } = get();
     // disconnected();
-
-    openTerminal();
+    toast.success("Test button pressed, implement something");
+    updateEditorTabs()
   },
 }));
 

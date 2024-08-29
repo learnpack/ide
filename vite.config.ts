@@ -9,8 +9,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         sourcemap:  true,
-        format: 'iife', // or 'umd',
-        // Override default asset file naming to avoid 'assets' folder
+        format: 'iife', 
         assetFileNames: '[name][extname]',
         chunkFileNames: '[name].js',
         entryFileNames: '[name].js'

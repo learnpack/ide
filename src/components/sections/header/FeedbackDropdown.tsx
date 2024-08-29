@@ -38,7 +38,6 @@ export const FeedbackDropdown = ({
     toastFromStatus: state.toastFromStatus,
     bc_token: state.bc_token,
     openLink: state.openLink,
-    clearBcToken: state.clearBcToken,
     checkRigobotInvitation: state.checkRigobotInvitation,
     hasSolution: state.hasSolution,
     currentSolution: state.currentSolution,

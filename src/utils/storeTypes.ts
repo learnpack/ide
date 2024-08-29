@@ -1,175 +1,174 @@
-
 interface IBuildProps {
-    text: string
-    className: string
+  text: string;
+  className: string;
 }
 
-
 interface ILanguageMap {
-    [key: string]: string
+  [key: string]: string;
 }
 
 type TTitle = {
-    [key: string]: string
-
-}
+  [key: string]: string;
+};
 
 interface IConfig {
-    title: TTitle
-    intro: any
-    editor: any
-    grading: string
-    warnings: TWarnings
+  title: TTitle;
+  intro: any;
+  editor: any;
+  grading: string;
+  warnings: TWarnings;
 }
 
-type TWarnings= {
-    agent?: string | null
-    extension?: string | null
-}
+type TWarnings = {
+  agent?: string | null;
+  extension?: string | null;
+};
 
 interface IConfigObject {
-    config: IConfig
+  config: IConfig;
 }
 
 type IMessage = {
-    extraClass?: string
-    type: string
-    text: string
-}
+  extraClass?: string;
+  type: string;
+  text: string;
+};
 
 interface IExerciseMessages {
-    [key: number]: IMessage[]
-
+  [key: number]: IMessage[];
 }
 
 export type TExercise = {
-    path: any
-    files: any
-    slug: string
-    translations: object
-    done: boolean
-}
-
+  path: any;
+  files: any;
+  slug: string;
+  translations: object;
+  done: boolean;
+};
 
 export type TNumberCache = {
-    [key: number]: number
-}
-
+  [key: number]: number;
+};
 
 type TCheckParamsOptions = {
-    justReturn: boolean 
-}
+  justReturn: boolean;
+};
 
 type TOpenedModals = {
-    [key: string]: boolean
-}
+  [key: string]: boolean;
+};
 
 type TCheckLoggedStatusOptions = {
-    startConversation: boolean
-}
+  startConversation: boolean;
+};
 
 type TLoginInfo = {
-    email: string
-    password: string
-}
-type TTestStatus = "successful" | "failed" | ""
+  email: string;
+  password: string;
+};
+type TTestStatus = "successful" | "failed" | "";
 
 type TTestResult = {
-    status: TTestStatus
-    logs: string
-}
+  status: TTestStatus;
+  logs: string;
+};
 type TTranslations = {
-    testButtonSuccess: string
-    testButtonFailed: string
-    testButtonRunning: string
-}
+  testButtonSuccess: string;
+  testButtonFailed: string;
+  testButtonRunning: string;
+};
 export interface IStore {
-    showTutorial: any
-    exercises: any[]
-    chatInitialMessage: string
-    currentContent: string
-    currentReadme: string
-    currentExercisePosition: number
-    language: string
-    learnpackPurposeId: number
-    status: string
-    dialogData: TDialog
-    lessonTitle: string
-    numberOfExercises: number
-    showFeedback: boolean
-    buildbuttonText: IBuildProps
-    feedbackbuttonProps: IBuildProps
-    compilerSocket: any
-    user_id: number | null
-    token: string
-    bc_token: string
-    solvedExercises: number
-    languageMap: ILanguageMap
-    configObject: IConfigObject
-    allowedActions: string[]
-    videoTutorial: string
-    showVideoTutorial: boolean
-    exerciseMessages: IExerciseMessages
-    host: string
-    isTesteable: boolean
-    isBuildable: boolean
-    hasSolution: boolean
-    currentSolution: string
-    chatSocket: any
-    conversationIdsCache: TNumberCache
-    openedModals: TOpenedModals
-    lastTestResult: TTestResult
-    translations: TTranslations
-    shouldBeTested: boolean
-    targetButtonForFeedback: "build" | "feedback"
+  showTutorial: any;
+  exercises: any[];
+  chatInitialMessage: string;
+  currentContent: string;
+  currentExercisePosition: number;
+  language: string;
+  learnpackPurposeId: number;
+  status: string;
+  dialogData: TDialog;
+  lessonTitle: string;
+  numberOfExercises: number;
+  showFeedback: boolean;
+  buildbuttonText: IBuildProps;
+  feedbackbuttonProps: IBuildProps;
+  compilerSocket: any;
+  user_id: number | null;
+  token: string;
+  bc_token: string;
+  solvedExercises: number;
+  languageMap: ILanguageMap;
+  configObject: IConfigObject;
+  allowedActions: string[];
+  videoTutorial: string;
+  showVideoTutorial: boolean;
+  exerciseMessages: IExerciseMessages;
+  host: string;
+  isTesteable: boolean;
+  isBuildable: boolean;
+  hasSolution: boolean;
+  currentSolution: string;
+  chatSocket: any;
+  conversationIdsCache: TNumberCache;
+  openedModals: TOpenedModals;
+  lastTestResult: TTestResult;
+  translations: TTranslations;
+  shouldBeTested: boolean;
+  targetButtonForFeedback: "build" | "feedback";
+  editorTabs: TEditorTab[];
 
-    start: () => void
-    setListeners: ()=>void
-    checkRigobotInvitation: () => void
-    clearBcToken: () => void
-    openLink: (url: string) => void
-    setTestResult: (status: TTestStatus, logs: string) => void
-    checkParams: (opts: TCheckParamsOptions) => void
-    handlePositionChange: (desiredPosition: number) => void
-    setOpenedModals: (modals: Partial<TOpenedModals>) => void
-    startConversation: (exercisePosition:number)=> void
-    getContextFilesContent: () => Promise<string>
-    loginToRigo: (loginInfo: TLoginInfo) => Promise<void | false>
-    getCurrentExercise: () => TExercise
-    setExerciseMessages: (messages: IMessage[], position: number) => void
-    setShowVideoTutorial: (show: boolean) => void
-    setAllowedActions: (actions: string[]) => void
-    getConfigObject: () => void
-    setLanguage: (language: string, fetchExercise?: boolean) => void
-    checkLoggedStatus: (opts?: TCheckLoggedStatusOptions) => void
-    setToken: (newToken: string) => void
-    setBuildButtonText: (t: string, c: string) => void
-    setFeedbackButtonProps: (t: string, c: string) => void
-    fetchSingleExerciseInfo: (index: number) => TExercise
-    toggleFeedback: () => void
-    fetchExercises: () => void
-    getLessonTitle: () => void
-    build: (buildText: string) => void
-    setPosition: (position: number) => void
-    fetchReadme: () => void
-    toggleSidebar: () => void
-    toastFromStatus: (status:string) => void
-    setShouldBeTested: (value: boolean) => void
-    openTerminal: () => void
-    runExerciseTests: (opts?: TRunExerciseTestsOptions) => void
-    registerAIInteraction: (setPosition: number, interaction: object) => void
-    displayTestButton: boolean
-    test: () => void
+  start: () => void;
+  setListeners: () => void;
+  checkRigobotInvitation: () => void;
+  openLink: (url: string) => void;
+  setTestResult: (status: TTestStatus, logs: string) => void;
+  checkParams: (opts: TCheckParamsOptions) => void;
+  handlePositionChange: (desiredPosition: number) => void;
+  setOpenedModals: (modals: Partial<TOpenedModals>) => void;
+  startConversation: (exercisePosition: number) => void;
+  getContextFilesContent: () => Promise<string>;
+  loginToRigo: (loginInfo: TLoginInfo) => Promise<void | false>;
+  getCurrentExercise: () => TExercise;
+  setExerciseMessages: (messages: IMessage[], position: number) => void;
+  setShowVideoTutorial: (show: boolean) => void;
+  setAllowedActions: (actions: string[]) => void;
+
+  setLanguage: (language: string, fetchExercise?: boolean) => void;
+  checkLoggedStatus: (opts?: TCheckLoggedStatusOptions) => void;
+  setToken: (newToken: string) => void;
+  setBuildButtonPrompt: (t: string, c: string) => void;
+  setFeedbackButtonProps: (t: string, c: string) => void;
+  fetchSingleExerciseInfo: (index: number) => TExercise;
+  toggleFeedback: () => void;
+  fetchExercises: () => void;
+  getLessonTitle: () => void;
+  build: (buildText: string) => void;
+  setPosition: (position: number) => void;
+  fetchReadme: () => void;
+  toggleSidebar: () => void;
+  toastFromStatus: (status: string) => void;
+  setShouldBeTested: (value: boolean) => void;
+  openTerminal: () => void;
+  runExerciseTests: (opts?: TRunExerciseTestsOptions) => void;
+  registerAIInteraction: (setPosition: number, interaction: object) => void;
+  displayTestButton: boolean;
+  test: () => void;
 }
+
+type TEditorTab = {
+  id: number;
+  name: string;
+  content: string;
+};
 
 export type TDialog = {
-    message: string
-    format: "md" | "txt"
-  }
+  message: string;
+  format: "md" | "txt";
+};
 
 type TRunExerciseTestsOptions = {
-    toast: boolean
-    setFeedbackButton: boolean
-    feedbackButtonText: string
-    targetButton: "build" | "feedback"
-}
+  toast: boolean;
+  setFeedbackButton: boolean;
+  feedbackButtonText: string;
+  targetButton: "build" | "feedback";
+};

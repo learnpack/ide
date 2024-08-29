@@ -1,7 +1,7 @@
 import { disconnected, getHost, onConnectCli } from "../utils/lib";
 import Socket from "./socket";
 
-type TEnvironment = "localhost" | "localStorage"
+export type TEnvironment = "localhost" | "localStorage"
 
 type EventCallback = (data: any) => void;
 
