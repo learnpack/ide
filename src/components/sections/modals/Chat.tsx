@@ -43,7 +43,7 @@ export default function Chat() {
     setListeners,
     getCurrentExercise,
     user_id,
-    bc_token
+    // bc_token
   } = useStore((state) => ({
     setOpenedModals: state.setOpenedModals,
     currentExercisePosition: state.currentExercisePosition,
@@ -65,7 +65,7 @@ export default function Chat() {
     setListeners: state.setListeners,
     getCurrentExercise: state.getCurrentExercise,
     user_id: state.user_id,
-    bc_token: state.bc_token
+    // bc_token: state.bc_token
 
   }));
 
@@ -277,10 +277,10 @@ export default function Chat() {
         id: conversationIdsCache[currentExercisePosition],
         purpose: learnpackPurposeId,
         token: token,
-      },
-      breathecode: {
-        token: bc_token
       }
+      // breathecode: {
+      //   token: bc_token
+      // }
     };
     return data;
   };
