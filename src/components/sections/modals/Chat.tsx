@@ -6,7 +6,6 @@ import { removeSpecialCharacters } from "../../../utils/lib";
 import { useTranslation } from "react-i18next";
 import TagManager from "react-gtm-module";
 
-
 type TAIInteraction = {
   student_message?: string;
   starting_at?: number;
@@ -43,7 +42,8 @@ export default function Chat() {
     setListeners,
     getCurrentExercise,
     user_id,
-    bc_token
+    bc_token,
+    openLink,
   } = useStore((state) => ({
     setOpenedModals: state.setOpenedModals,
     currentExercisePosition: state.currentExercisePosition,
@@ -65,8 +65,8 @@ export default function Chat() {
     setListeners: state.setListeners,
     getCurrentExercise: state.getCurrentExercise,
     user_id: state.user_id,
-    bc_token: state.bc_token
-
+    bc_token: state.bc_token,
+    openLink: state.openLink,
   }));
 
   const fakeMessages = [{ type: "bot", text: t(chatInitialMessage) }];
@@ -121,8 +121,7 @@ export default function Chat() {
             user_id: user_id,
           },
         });
-        
-        
+
         aiInteraction = {};
         setExerciseMessages(messages, currentExercisePosition);
       }
@@ -133,9 +132,26 @@ export default function Chat() {
       chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
     }
 
+    if (!chatMessagesContainer) return;
+    const anchors = chatMessagesContainer.getElementsByTagName("a");
+
+    const handleClick = (event: any) => {
+      event.preventDefault();
+      openLink(event.target.href);
+    };
+
+    for (let anchor of anchors) {
+      anchor.addEventListener("click", handleClick);
+    }
+
     return () => {
       chatSocket.off("response");
       chatSocket.off("responseFinished");
+
+      if (!chatMessagesContainer) return;
+      for (let anchor of anchors) {
+        anchor.removeEventListener("click", handleClick);
+      }
     };
   }, [messages]);
 
@@ -144,7 +160,7 @@ export default function Chat() {
 
     compilerSocket.onStatus("testing-success", (data: any) => {
       console.log("Receiving  testing-success error in chat");
-      
+
       setMessages((prev) => {
         let messages = [...prev];
         messages[messages.length - 1].text = "**Tests passed!**";
@@ -206,10 +222,9 @@ export default function Chat() {
 
   const sendUserMessage = async () => {
     console.log("sendUserMessage");
-    
+
     if (Boolean(userMessage.trim() == "")) return;
     if (isGenerating) return;
-  
 
     const isFirstInteraction = messages.length === 1;
 
@@ -268,9 +283,8 @@ export default function Chat() {
   };
 
   const getMessageData = async () => {
-
     const contextFilesContent = await getContextFilesContent();
-    
+
     const data = {
       message: {
         type: "user",
@@ -285,8 +299,8 @@ export default function Chat() {
         token: token,
       },
       breathecode: {
-        token: bc_token
-      }
+        token: bc_token,
+      },
     };
     return data;
   };

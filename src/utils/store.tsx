@@ -21,9 +21,9 @@ import Socket from "../managers/socket";
 import { IStore, TDialog } from "./storeTypes";
 import toast from "react-hot-toast";
 import { getStatus } from "../managers/socket";
-import { DEV_MODE, RIGOBOT_API_URL } from "./lib";
+import { DEV_MODE, RIGOBOT_HOST } from "./lib";
 import { EventProxy, TEnvironment } from "../managers/EventProxy";
-import { fetchManager } from "../managers/fetchManager";
+import { FetchManager } from "../managers/fetchManager";
 
 type TFile = {
   name: string;
@@ -51,7 +51,7 @@ chatSocket.on("connect", () => {
 
 const defaultParams = getParamsObject();
 
-fetchManager.init(ENVIRONMENT, HOST);
+FetchManager.init(ENVIRONMENT, HOST);
 
 const useStore = create<IStore>((set, get) => ({
   language: defaultParams.language || "us",
@@ -89,11 +89,6 @@ const useStore = create<IStore>((set, get) => ({
       id: 1,
       name: "tab 1",
       content: "Default tab openeded",
-    },
-    {
-      id: 2,
-      name: "tab 2",
-      content: "Another testing tab",
     },
   ],
   feedbackbuttonProps: {
@@ -240,19 +235,15 @@ const useStore = create<IStore>((set, get) => ({
       get();
 
     try {
-      const res = await fetch(`${HOST}/check/rigo/status`);
-      const json = await res.json();
+      const json = await FetchManager.checkLoggedStatus();
 
-      if (res.status === 400) {
-        throw Error("The user is not logged in");
-      }
       set({ token: json.rigoToken });
       set({ bc_token: json.payload.token });
       if (opts.startConversation) {
         startConversation(currentExercisePosition);
       }
     } catch (err) {
-      console.error("ERROR Trying to get Rigobot status ", err);
+      console.error("ERROR: Trying to get Rigobot status ", err);
       set({ token: "" });
       setOpenedModals({ login: true });
     }
@@ -300,7 +291,7 @@ const useStore = create<IStore>((set, get) => ({
     let contextFiles = currentExercise.files.filter(extractor);
 
     let filePromises = contextFiles.map(async (file, index) => {
-      let fileContent = await fetchManager.getFileContent(slug, file.name);
+      let fileContent = await FetchManager.getFileContent(slug, file.name);
       return `
 < File name: ${file.name} \n
   Content: 
@@ -330,7 +321,7 @@ ${currentContent}
     const { getLessonTitle, fetchReadme, user_id, setOpenedModals } = get();
 
     try {
-      const config = await fetchManager.getExercises();
+      const config = await FetchManager.getExercises();
 
       if (config.config.warnings.agent) {
         set({
@@ -510,17 +501,8 @@ ${currentContent}
       setOpenedModals,
     } = get();
 
-    const config = {
-      method: "post",
-      body: JSON.stringify(loginInfo),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
-
     try {
-      const res = await fetch(host + "/login", config);
-      const json = await res.json();
+      const json = await FetchManager.login(loginInfo);
 
       set({ bc_token: json.token, user_id: json.user_id });
 
@@ -549,7 +531,7 @@ ${currentContent}
 
   checkRigobotInvitation: async () => {
     const { bc_token, setToken, openLink, setOpenedModals } = get();
-    const rigoAcceptedUrl = `${RIGOBOT_API_URL}/v1/auth/me/token?breathecode_token=${bc_token}`;
+    const rigoAcceptedUrl = `${RIGOBOT_HOST}/v1/auth/me/token?breathecode_token=${bc_token}`;
     const res = await fetch(rigoAcceptedUrl);
     if (res.status != 200) {
       toast.error("You have not accepted Rigobot's invitation yet!");
@@ -583,17 +565,14 @@ ${currentContent}
     compilerSocket.openWindow(data);
   },
   updateEditorTabs: () => {
-    const {
-      getCurrentExercise
-    } = get();
+    const { getCurrentExercise } = get();
 
-    const exercise = getCurrentExercise()
+    const exercise = getCurrentExercise();
     console.log(exercise.files);
-    const notHidden = exercise.files.filter((f)=>{
-      return !f.hidden
-    })
+    const notHidden = exercise.files.filter((f) => {
+      return !f.hidden;
+    });
     console.log(notHidden);
-    
   },
 
   fetchReadme: async () => {
@@ -605,7 +584,6 @@ ${currentContent}
       fetchSingleExerciseInfo,
       configObject,
       openLink,
-
     } = get();
 
     const slug = exercises[currentExercisePosition]?.slug;
@@ -613,7 +591,7 @@ ${currentContent}
       return;
     }
 
-    const exercise = await fetchManager.getReadme(slug, language);
+    const exercise = await FetchManager.getReadme(slug, language);
 
     if (exercise.attributes.tutorial) {
       set({ videoTutorial: exercise.attributes.tutorial });
@@ -792,7 +770,9 @@ ${currentContent}
     const { openTerminal, getContextFilesContent, updateEditorTabs } = get();
     // disconnected();
     toast.success("Test button pressed, implement something");
-    updateEditorTabs()
+    // updateEditorTabs();
+
+    // fetchManager.logout()
   },
 }));
 

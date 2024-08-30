@@ -42,6 +42,7 @@ export default function LoginModal() {
     e.preventDefault();
     setIsLoading(true);
 
+
     const isLoggedId = await loginToRigo({
       email: email,
       password: password,

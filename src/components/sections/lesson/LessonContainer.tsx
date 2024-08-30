@@ -62,7 +62,7 @@ export default function LessonContainer() {
           </div>
         </Alert>
       )}
-      <Editor />
+      {/* <Editor /> */}
       <LessonContent />
     </div>
   );
