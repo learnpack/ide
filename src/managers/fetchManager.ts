@@ -1,4 +1,4 @@
-import { RIGOBOT_HOST } from "../utils/lib";
+import { getExercise, RIGOBOT_HOST } from "../utils/lib";
 import { TEnvironment } from "./EventProxy";
 import frontMatter from "front-matter";
 import { LocalStorage } from "./localStorage";
@@ -59,6 +59,24 @@ export const FetchManager = {
     return text;
   },
 
+  getExerciseInfo: async (slug: string) => {
+    const methods: TMethods = {
+      localhost: async () => {
+        const respose = await getExercise(slug);
+        const exercise = await respose.json();
+        return exercise;
+      },
+      localStorage: async () => {
+        const respose = await fetch("/config.json");
+        const config = await respose.json();
+        const exercise = config.exercises.find((e: any) => e.slug === slug);
+        return exercise;
+      },
+    };
+
+    return await methods[FetchManager.ENVIRONMENT as keyof TMethods]();
+  },
+
   checkLoggedStatus: async () => {
     const methods: TMethods = {
       localStorage: async () => {
@@ -66,13 +84,15 @@ export const FetchManager = {
         if (!session) throw Error("The user is not logged in");
         const user = await validateUser(session.token);
 
-        if (!user) throw Error("The token is invalid or inactive!")
+        // console.log(user);
+
+        if (!user) throw Error("The token is invalid or inactive!");
 
         const loggedFormat = {
-          payload: {...session},
-          rigoToken: session.rigobot.key
-        }
-        return loggedFormat
+          payload: { ...session },
+          rigoToken: session.rigobot.key,
+        };
+        return loggedFormat;
       },
       localhost: async () => {
         const res = await fetch(`${FetchManager.HOST}/check/rigo/status`);
@@ -96,7 +116,7 @@ export const FetchManager = {
   login: async (loginInfo: any) => {
     const methods: TMethods = {
       localhost: async () => {
-        return await loginCLI(loginInfo, FetchManager.HOST);
+        return await loginLocalhost(loginInfo, FetchManager.HOST);
       },
       localStorage: async () => {
         return await loginLocalStorage(loginInfo);
@@ -112,7 +132,9 @@ export const FetchManager = {
         await logoutCLI(FetchManager.HOST);
       },
       localStorage: async () => {
-        throw Error("NOT IMPLEMENTED LOGOUT WITH LOCALSTORAGE");
+        console.log("TRYING TO LOGOUt WIth localstraoge");
+        LocalStorage.remove("session");
+        window.location.reload();
       },
     };
 
@@ -120,9 +142,6 @@ export const FetchManager = {
   },
 };
 
-// const loginBreathecode = async () => {
-//   const config = {}
-// }
 
 const validateUser = async (breathecodeToken: string) => {
   const config = {
@@ -158,7 +177,7 @@ const logoutCLI = async (host: string) => {
   }
 };
 
-const loginCLI = async (loginInfo: any, host: string) => {
+const loginLocalhost = async (loginInfo: any, host: string) => {
   const config = {
     method: "post",
     body: JSON.stringify(loginInfo),
@@ -193,7 +212,7 @@ const loginLocalStorage = async (loginInfo: any) => {
 
   const rigobotJson = await rigoResp.json();
   const returns = { ...json, rigobot: { ...rigobotJson } };
-  console.log(returns);
+
   LocalStorage.set("session", returns);
   return returns;
 };

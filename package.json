@@ -11,6 +11,7 @@
     "compile-command": "tsc src/utils/development.ts && node src/utils/development.js --turn on"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.6.0",
     "front-matter": "^4.0.2",
     "i18next": "^23.10.1",
     "monaco-editor": "^0.50.0",
@@ -30,6 +31,7 @@
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
     "@types/react-gtm-module": "^2.0.3",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "@types/remarkable": "^2.0.3",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",

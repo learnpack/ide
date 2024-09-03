@@ -11,5 +11,14 @@ export const LocalStorage = {
     },
     clear: () => {
         localStorage.clear();
-    }
+    },
+    getEditorTabs: (slug: string) => {
+        return LocalStorage.get(`editorTabs_${slug}`) || [];
+    },
+    setEditorTabs: (slug: string, tabs: any) => {
+        LocalStorage.set(`editorTabs_${slug}`, tabs);
+    },
+    cleanEditorTabs: (slug: string) => {
+        LocalStorage.remove(`editorTabs_${slug}`);
+    },
 };

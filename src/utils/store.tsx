@@ -85,11 +85,6 @@ const useStore = create<IStore>((set, get) => ({
     className: "",
   },
   editorTabs: [
-    {
-      id: 1,
-      name: "tab 1",
-      content: "Default tab openeded",
-    },
   ],
   feedbackbuttonProps: {
     text: "Get feedback",
@@ -399,8 +394,7 @@ ${currentContent}
       return;
     }
 
-    const respose = await getExercise(slug);
-    const exercise = await respose.json();
+    const exercise = await FetchManager.getExerciseInfo(slug);
 
     let isTesteable = exercise.graded;
     let isBuildable;
@@ -565,16 +559,36 @@ ${currentContent}
     compilerSocket.openWindow(data);
   },
   updateEditorTabs: () => {
-    const { getCurrentExercise } = get();
+    const { getCurrentExercise, editorTabs } = get();
 
     const exercise = getCurrentExercise();
-    console.log(exercise.files);
+    // console.log(exercise.files);
     const notHidden = exercise.files.filter((f) => {
       return !f.hidden;
     });
-    console.log(notHidden);
+
+    notHidden.forEach(async (element, index) => {
+      const content = await FetchManager.getFileContent(
+        exercise.slug,
+        element.name
+      );
+
+      const tab = {
+        id: index,
+        content: content,
+        name: element.name,
+      };
+
+      set({ editorTabs: [...editorTabs, tab] });
+    });
   },
 
+  cleanEditorTabs: (slug: string) => {
+    LocalStorage.cleanEditorTabs(slug);
+    set({ editorTabs: [] });
+  },
+
+  
   fetchReadme: async () => {
     const {
       language,
@@ -584,6 +598,7 @@ ${currentContent}
       fetchSingleExerciseInfo,
       configObject,
       openLink,
+      updateEditorTabs
     } = get();
 
     const slug = exercises[currentExercisePosition]?.slug;
@@ -618,8 +633,10 @@ ${currentContent}
     }
 
     set({ currentContent: readme });
+    set({ editorTabs: [] });
 
     fetchSingleExerciseInfo(currentExercisePosition);
+    updateEditorTabs()
   },
 
   toggleSidebar: () => {
@@ -691,6 +708,7 @@ ${currentContent}
       return;
     }
     setPosition(Number(desiredPosition));
+
   },
 
   toastFromStatus: (status) => {
@@ -770,9 +788,9 @@ ${currentContent}
     const { openTerminal, getContextFilesContent, updateEditorTabs } = get();
     // disconnected();
     toast.success("Test button pressed, implement something");
-    // updateEditorTabs();
+    updateEditorTabs();
 
-    // fetchManager.logout()
+    // FetchManager.logout()
   },
 }));
 
