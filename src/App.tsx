@@ -8,7 +8,6 @@ import { Toaster } from "react-hot-toast";
 import { Header } from "./components/sections/header";
 import { ModalsContainer } from "./components/sections/modals";
 import { ShortcutsListener } from "./components/composites/ShortcutListener";
-import CodeEditor from "./components/composites/Editor/Editor";
 
 export default function Home() {
   return (

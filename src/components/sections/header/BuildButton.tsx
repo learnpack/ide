@@ -44,7 +44,10 @@ export default function BuildButton() {
 
   let compilerErrorHandler = debounce((data: any) => {
     data;
-    // const stdout = data.logs[0];
+
+    if (data.recommendations) {
+      toast.error(data.recommendations);
+    }
     setBuildButtonPrompt(t("Try again"), "bg-fail");
     const [icon, message] = getStatus("compiler-error");
     toast.error(message, { icon: icon });
@@ -52,6 +55,7 @@ export default function BuildButton() {
 
   let compilerSuccessHandler = debounce((data: any) => {
     data;
+
     const [icon, message] = getStatus("compiler-success");
     toast.success(message, { icon: icon });
     setBuildButtonPrompt(t("Run"), "bg-success");

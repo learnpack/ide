@@ -298,10 +298,3 @@ form input {
     opacity: 1;
   }
 }
-
-
-.workbench {
-  width: 100%;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-}

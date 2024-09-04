@@ -142,6 +142,7 @@ export interface IStore {
   toggleFeedback: () => void;
   fetchExercises: () => void;
   getLessonTitle: () => void;
+  updateEditorTabs: () => void
   build: (buildText: string) => void;
   setPosition: (position: number) => void;
   fetchReadme: () => void;

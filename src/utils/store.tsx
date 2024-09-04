@@ -24,6 +24,7 @@ import { getStatus } from "../managers/socket";
 import { DEV_MODE, RIGOBOT_HOST } from "./lib";
 import { EventProxy, TEnvironment } from "../managers/EventProxy";
 import { FetchManager } from "../managers/fetchManager";
+import { LocalStorage } from "../managers/localStorage";
 
 type TFile = {
   name: string;
@@ -84,8 +85,7 @@ const useStore = create<IStore>((set, get) => ({
     text: "Run",
     className: "",
   },
-  editorTabs: [
-  ],
+  editorTabs: [],
   feedbackbuttonProps: {
     text: "Get feedback",
     className: "",
@@ -562,10 +562,34 @@ ${currentContent}
     const { getCurrentExercise, editorTabs } = get();
 
     const exercise = getCurrentExercise();
-    // console.log(exercise.files);
-    const notHidden = exercise.files.filter((f) => {
-      return !f.hidden;
-    });
+    const notHidden = exercise.files.filter((f) => !f.hidden);
+    let editorTabsCopy = [...editorTabs];
+
+    const terminalIndex = editorTabsCopy.findIndex(
+      (t) => t.name === "terminal"
+    );
+
+    const logs = LocalStorage.get(`terminalLogs_${exercise.slug}`);
+
+    if (logs !== null) {
+      console.log("logs", logs);
+      let terminalContent = "";
+      logs.forEach((log) => {
+        terminalContent += log.stdout + "\n";
+        terminalContent += log.stderr + "\n\n";
+      });
+
+      const terminalTab = {
+        id: "terminal",
+        content: terminalContent,
+        name: "terminal",
+      };
+      if (terminalIndex === -1) {
+        editorTabsCopy.push(terminalTab);
+      } else {
+        editorTabsCopy[terminalIndex] = terminalTab;
+      }
+    }
 
     notHidden.forEach(async (element, index) => {
       const content = await FetchManager.getFileContent(
@@ -573,13 +597,23 @@ ${currentContent}
         element.name
       );
 
+      const tabExists = editorTabsCopy.some((tab) => tab.name === element.name);
+
       const tab = {
         id: index,
         content: content,
         name: element.name,
       };
-
-      set({ editorTabs: [...editorTabs, tab] });
+      if (!tabExists) {
+        editorTabsCopy = [...editorTabsCopy, tab];
+        set({ editorTabs: [...editorTabsCopy] });
+      } else {
+        const tabIndex = editorTabsCopy.findIndex(
+          (t) => t.name === element.name
+        );
+        editorTabsCopy[tabIndex] = tab;
+        set({ editorTabs: [...editorTabsCopy] });
+      }
     });
   },
 
@@ -588,7 +622,6 @@ ${currentContent}
     set({ editorTabs: [] });
   },
 
-  
   fetchReadme: async () => {
     const {
       language,
@@ -598,7 +631,7 @@ ${currentContent}
       fetchSingleExerciseInfo,
       configObject,
       openLink,
-      updateEditorTabs
+      updateEditorTabs,
     } = get();
 
     const slug = exercises[currentExercisePosition]?.slug;
@@ -636,7 +669,7 @@ ${currentContent}
     set({ editorTabs: [] });
 
     fetchSingleExerciseInfo(currentExercisePosition);
-    updateEditorTabs()
+    updateEditorTabs();
   },
 
   toggleSidebar: () => {
@@ -708,7 +741,6 @@ ${currentContent}
       return;
     }
     setPosition(Number(desiredPosition));
-
   },
 
   toastFromStatus: (status) => {
@@ -732,15 +764,24 @@ ${currentContent}
     set({ shouldBeTested: value });
   },
   build: (buildText) => {
-    const { setBuildButtonPrompt, compilerSocket, getCurrentExercise } = get();
+    const {
+      setBuildButtonPrompt,
+      compilerSocket,
+      getCurrentExercise,
+      editorTabs,
+      token,
+      updateEditorTabs,
+    } = get();
     setBuildButtonPrompt(buildText, "");
     const [icon, message] = getStatus("compiling");
     toast.success(message, { icon: icon });
 
     const data = {
       exerciseSlug: getCurrentExercise().slug,
+      token,
+      updateEditorTabs,
+      editorTabs,
     };
-    console.log(compilerSocket);
 
     compilerSocket.emit("build", data);
   },
@@ -752,10 +793,12 @@ ${currentContent}
       setFeedbackButtonProps,
       isTesteable,
       toastFromStatus,
+      token
     } = get();
 
     const data = {
       exerciseSlug: getCurrentExercise().slug,
+      token: token
     };
     compilerSocket.emit("test", data);
 
@@ -769,7 +812,6 @@ ${currentContent}
       setFeedbackButtonProps(opts.feedbackButtonText, "palpitate");
     if (opts && opts.toast) toastFromStatus("testing");
   },
-
   registerAIInteraction: (stepPosition, interaction) => {
     const { compilerSocket, getCurrentExercise } = get();
 
@@ -785,12 +827,9 @@ ${currentContent}
   // Leave this empty for development purposes
   displayTestButton: DEV_MODE,
   test: async () => {
-    const { openTerminal, getContextFilesContent, updateEditorTabs } = get();
+    const { openTerminal, getContextFilesContent } = get();
     // disconnected();
     toast.success("Test button pressed, implement something");
-    updateEditorTabs();
-
-    // FetchManager.logout()
   },
 }));
 

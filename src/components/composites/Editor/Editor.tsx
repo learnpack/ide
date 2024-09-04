@@ -2,13 +2,15 @@ import React, { useEffect, useState } from "react";
 import MonacoEditor from "@monaco-editor/react";
 import useStore from "../../../utils/store";
 import { LocalStorage } from "../../../managers/localStorage";
-import "./Editor.css"; 
+import "./Editor.css";
+
 interface Tab {
   id: number;
   name: string;
   content: string;
 }
-const EDITOR_THEME_KEY = "editor_theme"
+
+const EDITOR_THEME_KEY = "editor_theme";
 
 const languageMap: { [key: string]: string } = {
   ".js": "javascript",
@@ -51,19 +53,41 @@ const CodeEditor: React.FC = () => {
     LocalStorage.setEditorTabs(ex.slug, newTabs);
   };
 
+  const removeTab = (id: number, name: string) => {
+    const ex = getCurrentExercise();
+
+    if (name === "terminal") {
+      console.log("removing terminal");
+      LocalStorage.remove(`terminalLogs_${ex.slug}`);
+    }
+    const newTabs = tabs.filter((tab) => tab.id !== id);
+    setTabs(newTabs);
+    if (newTabs.length > 0) setActiveTab(newTabs[0].id);
+
+    LocalStorage.setEditorTabs(ex.slug, newTabs);
+  };
+
   useEffect(() => {
+    console.log("UPDATING TABS");
+    
+    const terminalIndex = editorTabs.findIndex((t) => t.name === "terminal");
     setTabs([...editorTabs]);
     const ex = getCurrentExercise();
     if (!ex) return;
     const cachedEditorTabs = LocalStorage.getEditorTabs(ex.slug);
 
-    const cachedTheme = LocalStorage.get(EDITOR_THEME_KEY)
+    const cachedTheme = LocalStorage.get(EDITOR_THEME_KEY);
     if (cachedTheme) {
       setTheme(cachedTheme);
     }
 
-    if (cachedEditorTabs.length === 0) return;
-    setTabs([...cachedEditorTabs]);
+    if (cachedEditorTabs.length > 0 && terminalIndex !== -1) {
+      setTabs([...cachedEditorTabs, editorTabs[terminalIndex]]);
+    } else if (cachedEditorTabs.length > 0 && terminalIndex === -1) {
+      setTabs([...cachedEditorTabs]);
+    } else {
+      setTabs([...editorTabs]);
+    }
   }, [editorTabs]);
 
   const handleThemeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -71,33 +95,42 @@ const CodeEditor: React.FC = () => {
     setTheme(newTheme);
     const ex = getCurrentExercise();
     if (ex) {
-      LocalStorage.set('editor_theme', newTheme);
+      LocalStorage.set("editor_theme", newTheme);
     }
   };
-  
+
   return (
-    <div style={{display: `${tabs.length === 0 ? "none": "block"
-    }`}} className="editor-container">
+    <div
+      style={{ display: `${tabs.length === 0 ? "none" : "block"}` }}
+      className="editor-container"
+    >
       <div className="tabs">
         {tabs.map((tab) => (
-          <button
+          <div
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={tab.id === activeTab ? "active" : ""}
+            className={`tab ${tab.id === activeTab ? "active" : ""}`}
           >
-            {tab.name}
-          </button>
+            <button onClick={() => setActiveTab(tab.id)}>{tab.name}</button>
+            <button
+              className="close-tab"
+              onClick={() => removeTab(tab.id, tab.name)}
+            >
+              x
+            </button>
+          </div>
         ))}
-        <button onClick={addTab} className="add-tab">+</button>
+        <button onClick={addTab} className="add-tab">
+          +
+        </button>
+        <div className="theme-selector">
+          <select id="theme-select" value={theme} onChange={handleThemeChange}>
+            <option value="light">Light</option>
+            <option value="vs-dark">Dark</option>
+            <option value="hc-black">High Contrast</option>
+          </select>
+        </div>
       </div>
-      <div className="theme-selector">
-        <label htmlFor="theme-select">Select Theme: </label>
-        <select id="theme-select" value={theme} onChange={handleThemeChange}>
-          <option value="light">Light</option>
-          <option value="vs-dark">Dark</option>
-          <option value="hc-black">High Contrast</option>
-        </select>
-      </div>
+
       <div className="editor">
         {tabs.map(
           (tab) =>
