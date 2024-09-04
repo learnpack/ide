@@ -50,14 +50,14 @@ const CodeEditor: React.FC = () => {
     );
     setTabs(newTabs);
     const ex = getCurrentExercise();
-    LocalStorage.setEditorTabs(ex.slug, newTabs);
+    const withoutTerminal = newTabs.filter((t)=>t.name !== "terminal")
+    LocalStorage.setEditorTabs(ex.slug, withoutTerminal);
   };
 
   const removeTab = (id: number, name: string) => {
     const ex = getCurrentExercise();
 
     if (name === "terminal") {
-      console.log("removing terminal");
       LocalStorage.remove(`terminalLogs_${ex.slug}`);
     }
     const newTabs = tabs.filter((tab) => tab.id !== id);
@@ -68,8 +68,6 @@ const CodeEditor: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log("UPDATING TABS");
-    
     const terminalIndex = editorTabs.findIndex((t) => t.name === "terminal");
     setTabs([...editorTabs]);
     const ex = getCurrentExercise();

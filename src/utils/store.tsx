@@ -16,6 +16,7 @@ import {
   startRecording,
   debounce,
   removeSpecialCharacters,
+  ENVIRONMENT,
 } from "./lib";
 import Socket from "../managers/socket";
 import { IStore, TDialog } from "./storeTypes";
@@ -37,8 +38,6 @@ class MissingRigobotAccountError extends Error {
     this.name = "MissingRigobotAccountError";
   }
 }
-
-const ENVIRONMENT: TEnvironment = "localStorage";
 
 const HOST = getHost();
 
@@ -152,6 +151,7 @@ const useStore = create<IStore>((set, get) => ({
       setFeedbackButtonProps,
       setOpenedModals,
       setBuildButtonPrompt,
+      editorTabs,
     } = get();
 
     let debounceSuccess = debounce((data: any) => {
@@ -187,6 +187,7 @@ const useStore = create<IStore>((set, get) => ({
       set({ dialogData: data.data });
       setOpenedModals({ dialog: true });
     });
+
   },
 
   getCurrentExercise: () => {
@@ -409,7 +410,7 @@ ${currentContent}
 
     if (solutionFile) {
       hasSolution = true;
-      let solution = await getFileContent(slug, solutionFile.name);
+      let solution = await FetchManager.getFileContent(slug, solutionFile.name);
       set({ currentSolution: solution });
     }
     set({
@@ -572,7 +573,6 @@ ${currentContent}
     const logs = LocalStorage.get(`terminalLogs_${exercise.slug}`);
 
     if (logs !== null) {
-      console.log("logs", logs);
       let terminalContent = "";
       logs.forEach((log) => {
         terminalContent += log.stdout + "\n";
@@ -793,12 +793,12 @@ ${currentContent}
       setFeedbackButtonProps,
       isTesteable,
       toastFromStatus,
-      token
+      token,
     } = get();
 
     const data = {
       exerciseSlug: getCurrentExercise().slug,
-      token: token
+      token: token,
     };
     compilerSocket.emit("test", data);
 

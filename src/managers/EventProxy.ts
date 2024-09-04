@@ -12,6 +12,14 @@ export type TEnvironment = "localhost" | "localStorage";
 
 type EventCallback = (data: any) => void;
 
+function generateUUID() {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    var r = (Math.random() * 16) | 0,
+      v = c == "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 let HOST = getHost();
 
 function removeTripleBackticks(input: string): string {
@@ -49,6 +57,14 @@ const localStorageEventEmitter = {
   onStatus: (status: string, callback: EventCallback) => {
     localStorageEventEmitter.statusEvents[status] = callback;
   },
+  openWindow: (data:any) => {
+    if (data && data.url) {
+        window.open(data.url, '_blank');
+    } else {
+        console.error("No URL provided in data");
+    }
+}
+
 };
 
 localStorageEventEmitter.on("build", async (data) => {
@@ -94,6 +110,27 @@ localStorageEventEmitter.on("reset", async (data) => {
   data.updateEditorTabs();
 });
 
+localStorageEventEmitter.on("open", async (data) => {
+  const cachedTabs = LocalStorage.get(`editorTabs_${data.exerciseSlug}`);
+
+  console.log(cachedTabs, "cachedTabs");
+  
+  const content = await FetchManager.getFileContent(
+    data.exerciseSlug,
+    data.solutionFileName
+  );
+  const solutionTab = {
+    id: generateUUID(),
+    name: "Solution",
+    content: content,
+  };
+
+  const cachedtabsCopy = [...cachedTabs, solutionTab];
+  LocalStorage.setEditorTabs(data.exerciseSlug, cachedtabsCopy);
+
+  data.updateEditorTabs();
+});
+
 localStorageEventEmitter.on("test", async (data) => {
   const cachedEditorTabs = LocalStorage.get(`editorTabs_${data.exerciseSlug}`);
 
@@ -116,9 +153,9 @@ localStorageEventEmitter.on("test", async (data) => {
 ${cached.content}
 \`\`\`
       `;
-      continue
+      continue;
     }
- 
+
     const fileContent = await FetchManager.getFileContent(
       data.exerciseSlug,
       f.name
@@ -130,7 +167,6 @@ ${fileContent}
 \`\`\`
       `;
   }
-
 
   const inputs = {
     code: testContent,

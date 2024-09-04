@@ -24,6 +24,7 @@ export const FeedbackDropdown = ({
     hasSolution,
     getCurrentExercise,
     // currentExercisePosition,
+    updateEditorTabs
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     token: state.token,
@@ -43,6 +44,7 @@ export const FeedbackDropdown = ({
     currentSolution: state.currentSolution,
     getCurrentExercise: state.getCurrentExercise,
     currentExercisePosition: state.currentExercisePosition,
+    updateEditorTabs: state.updateEditorTabs
   }));
 
   const { t } = useTranslation();
@@ -83,13 +85,15 @@ export const FeedbackDropdown = ({
   };
 
   const openSolutionFile = () => {
-    // setOpenedModals({ solution: true });
     const solutionFile = getCurrentExercise().files.find((file: any) =>
       file.name.includes("solution.hide")
     );
+
     const data = {
       exerciseSlug: getCurrentExercise().slug,
       files: [solutionFile.path],
+      solutionFileName: solutionFile.name,
+      updateEditorTabs: updateEditorTabs
     };
     compilerSocket.emit("open", data);
   };

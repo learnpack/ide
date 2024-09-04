@@ -1,9 +1,11 @@
 import { Remarkable } from "remarkable";
 import { linkify } from "remarkable/linkify";
+import { TEnvironment } from "../managers/EventProxy";
 // @ts-ignore
 // import katex from 'remarkable-katex'
 
 export const DEV_MODE =true;
+export const ENVIRONMENT: TEnvironment = "localStorage";
 
 export const RIGOBOT_HOST = "https://rigobot.herokuapp.com";
 
@@ -53,7 +55,12 @@ function replaceSrc(rawText: string) {
   const regex = /src="\.\.\/\.\./g;
   // Replace all occurrences with http://localhost:3000
 
-  const host = getHost();
+  let host = getHost();
+
+
+  if (ENVIRONMENT === "localStorage"){
+    host =""
+  }
   const modifiedText = rawText.replace(regex, `src="${host}`);
 
   // Return the modified text
