@@ -173,7 +173,8 @@ ${fileContent}
   };
   const dataRigobotReturns = await testRigo(data.token, inputs);
   const json = JSON.parse(removeTripleBackticks(dataRigobotReturns));
-
+  console.log(json);
+  
   if (json.exitCode === 0) {
     localStorageEventEmitter.emitStatus("testing-success", {
       ...dataRigobotReturns,
@@ -185,6 +186,9 @@ ${fileContent}
       logs: [json.stdout],
     });
   }
+  const prevLogs = LocalStorage.get(`terminalLogs_${data.exerciseSlug}`);
+  let logs = prevLogs ? prevLogs : [];
+  LocalStorage.set(`terminalLogs_${data.exerciseSlug}`, [...logs, json]);
 });
 
 export const EventProxy = {

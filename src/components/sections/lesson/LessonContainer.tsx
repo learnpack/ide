@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Alert } from "../../composites/Alert/Alert";
 import { OpenWindowLink } from "../../composites/OpenWindowLink";
 import CodeEditor from "../../composites/Editor/Editor";
-
+import { ENVIRONMENT } from "../../../utils/lib";
 
 interface Alerts {
   incrementalTest: boolean;
@@ -69,9 +69,9 @@ export default function LessonContainer() {
             </div>
           </Alert>
         )}
-      
+
       <LessonContent />
-      <CodeEditor />
+      {ENVIRONMENT === "localStorage" && <CodeEditor />}
     </div>
   );
 }

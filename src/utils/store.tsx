@@ -41,8 +41,8 @@ class MissingRigobotAccountError extends Error {
 
 const HOST = getHost();
 
-// const FASTAPI_HOST = "https://ai.4geeks.com";
-const FASTAPI_HOST = "http://localhost:8000";
+const FASTAPI_HOST = "https://ai.4geeks.com";
+// const FASTAPI_HOST = "http://localhost:8000";
 const chatSocket = io(`${FASTAPI_HOST}`);
 
 chatSocket.on("connect", () => {
@@ -821,7 +821,6 @@ ${currentContent}
       event: "ai_interaction",
       eventData: interaction,
     };
-
     compilerSocket.emit("ai_interaction", telemetryData);
   },
   // Leave this empty for development purposes
@@ -830,6 +829,7 @@ ${currentContent}
     const { openTerminal, getContextFilesContent } = get();
     // disconnected();
     toast.success("Test button pressed, implement something");
+    await FetchManager.logout()
   },
 }));
 
