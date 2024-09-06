@@ -20,9 +20,6 @@
   animation-fill-mode: backwards;
 }
 
-.preview-card .click span {
-  background-color: red;
-}
 
 .preview-card .click:hover {
   background-color: rgba(0, 0, 0, 0.5);
@@ -31,10 +28,10 @@
 
 @keyframes scaleOnHover {
   from {
-    font-size: 100px;
+    scale: 1;
   }
   to {
-    font-size: 200px;
+    scale: 1.2;
   }
 }
 
@@ -59,6 +56,9 @@
   border-radius: 8px;
   box-shadow: 0 0 20px rgba(153, 153, 153, 0.3);
   width: fit-content;
+}
+.video-modal .click svg {
+  width: 150px;
 }
 
 .video-modal .close {

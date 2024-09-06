@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import useStore from "../../../utils/store";
+import { svgs } from "../../../assets/svgs";
 
 interface IVideoModalProps {
   link: string;
@@ -56,8 +57,8 @@ const VideoModal: React.FC<IVideoModalProps> = ({ link, hideModal }) => {
         <div className="modal-content">
           <div className="preview-card">
             <img src={fetchPreview(link)} alt="" />
-            <span className="click bg-gray" onClick={handleOpenLink}>
-              👀
+            <span className="click" onClick={handleOpenLink}>
+              {svgs.youtubeVideo}
             </span>
           </div>
           <span className="close" onClick={hideModal}>

@@ -57,11 +57,35 @@ export const ShortcutsListener = ({ children }: ShortcutListenerProps) => {
       if (event.ctrlKey && event.altKey && event.key === "Enter") {
         setOpenedModals({ chat: !openedModals.chat });
       }
+      if (event.ctrlKey && (event.key === "+" || event.key === "-")) {
+        event.preventDefault();
+        const scale = window.devicePixelRatio;
+        if (scale > 2) {
+          document.body.style.transform = `scale(${2 / scale})`;
+        } else {
+          document.body.style.transform = 'none';
+        }
+      }
+    };
+
+    const handleWheel = (event: WheelEvent) => {
+      if (event.ctrlKey) {
+        event.preventDefault();
+        const scale = window.devicePixelRatio;
+        if (scale > 2) {
+          document.body.style.transform = `scale(${2 / scale})`;
+        } else {
+          document.body.style.transform = 'none';
+        }
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("wheel", handleWheel, { passive: false });
+
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("wheel", handleWheel);
     };
   }, [currentExercisePosition, openedModals.chat]);
 
