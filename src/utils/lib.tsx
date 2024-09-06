@@ -4,7 +4,7 @@ import { TEnvironment } from "../managers/EventProxy";
 // @ts-ignore
 // import katex from 'remarkable-katex'
 
-export const DEV_MODE =true;
+export const DEV_MODE =false;
 export const ENVIRONMENT: TEnvironment = "localhost";
 
 export const RIGOBOT_HOST = "https://rigobot.herokuapp.com";

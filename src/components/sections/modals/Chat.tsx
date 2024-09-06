@@ -42,7 +42,6 @@ export default function Chat() {
     setListeners,
     getCurrentExercise,
     user_id,
-    bc_token,
     openLink,
     bc_token
   } = useStore((state) => ({
@@ -69,7 +68,6 @@ export default function Chat() {
 
     bc_token: state.bc_token,
     openLink: state.openLink,
-    bc_token: state.bc_token
   }));
 
   const fakeMessages = [{ type: "bot", text: t(chatInitialMessage) }];
