@@ -5,6 +5,8 @@ import useStore from "../../../utils/store";
 import { useTranslation } from "react-i18next";
 import { Alert } from "../../composites/Alert/Alert";
 import { OpenWindowLink } from "../../composites/OpenWindowLink";
+import CodeEditor from "../../composites/Editor/Editor";
+import { ENVIRONMENT } from "../../../utils/lib";
 
 interface Alerts {
   incrementalTest: boolean;
@@ -48,20 +50,28 @@ export default function LessonContainer() {
 
   return (
     <div className="lesson-container-component">
-      {alerts.incrementalTest && <blockquote>{t("incremental-test-alert")}</blockquote>}
-      {configObject.config.warnings && configObject.config.warnings.agent && alerts.agent && (
-        <Alert>
-          <div className="d-flex space-between">
-            <p>
-              {t("agent-mismatch-error")}
-              {" "}  
-              <OpenWindowLink href="https://4geeks.com/lesson/agent-vs-mode" text="Read more"/>
-            </p>
-            <button onClick={() => handleHideAlert("agent")}>Hide</button>
-          </div>
-        </Alert>
+      {alerts.incrementalTest && (
+        <blockquote>{t("incremental-test-alert")}</blockquote>
       )}
+      {configObject.config.warnings &&
+        configObject.config.warnings.agent &&
+        alerts.agent && (
+          <Alert>
+            <div className="d-flex space-between">
+              <p>
+                {t("agent-mismatch-error")}{" "}
+                <OpenWindowLink
+                  href="https://4geeks.com/lesson/agent-vs-mode"
+                  text="Read more"
+                />
+              </p>
+              <button onClick={() => handleHideAlert("agent")}>Hide</button>
+            </div>
+          </Alert>
+        )}
+
       <LessonContent />
+      {ENVIRONMENT === "localStorage" && <CodeEditor />}
     </div>
   );
 }

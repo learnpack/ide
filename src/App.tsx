@@ -16,6 +16,7 @@ export default function Home() {
         <ModalsContainer />
         <SocketHandler />
         <Header />
+        
         <LessonContainer />
       </ShortcutsListener>
       <Toaster />

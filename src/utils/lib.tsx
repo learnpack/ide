@@ -1,11 +1,13 @@
 import { Remarkable } from "remarkable";
-import {linkify} from 'remarkable/linkify';
+import { linkify } from "remarkable/linkify";
+import { TEnvironment } from "../managers/EventProxy";
 // @ts-ignore
 // import katex from 'remarkable-katex'
 
-export const DEV_MODE =false;
+export const DEV_MODE =true;
+export const ENVIRONMENT: TEnvironment = "localhost";
 
-export const RIGOBOT_API_URL = "https://rigobot.herokuapp.com";
+export const RIGOBOT_HOST = "https://rigobot.herokuapp.com";
 
 const fullURL =
   location.protocol +
@@ -19,9 +21,7 @@ const fullURL =
  */
 
 export const convertMarkdownToHTML = (markdown: any) => {
-  // const md = new Remarkable({linkify: true});
-  const md = new Remarkable().use(linkify)
-  // .use(katex)
+  const md = new Remarkable().use(linkify);
   let html = md.render(markdown);
   html = replaceSrc(html);
   return html;
@@ -55,7 +55,12 @@ function replaceSrc(rawText: string) {
   const regex = /src="\.\.\/\.\./g;
   // Replace all occurrences with http://localhost:3000
 
-  const host = getHost();
+  let host = getHost();
+
+
+  if (ENVIRONMENT === "localStorage"){
+    host =""
+  }
   const modifiedText = rawText.replace(regex, `src="${host}`);
 
   // Return the modified text
@@ -103,7 +108,7 @@ export const getFileContent = async (slug: string, file: string) => {
 
 export const startChat = async (purpose_id: string | number, token: string) => {
   const conversationUrl =
-    RIGOBOT_API_URL + "/v1/conversation/?purpose=" + purpose_id;
+    RIGOBOT_HOST + "/v1/conversation/?purpose=" + purpose_id;
 
   const config = {
     method: "POST",
@@ -136,7 +141,7 @@ export const onConnectCli = () => {
   if (modal) {
     modal.style.display = "none";
   }
-}
+};
 
 export const getParamsObject = (): Record<string, string> => {
   let params = window.location.hash.substring(1);
@@ -179,42 +184,43 @@ export const startRecording = async () => {
     // @ts-ignore
     function showModal(devices) {
       // Create the modal container
-      const modalContainer = document.createElement('div');
-      modalContainer.classList.add('self-closing-modal');
-      const modalContent = document.createElement('div');
-      modalContent.classList.add('modal-content'); 
+      const modalContainer = document.createElement("div");
+      modalContainer.classList.add("self-closing-modal");
+      const modalContent = document.createElement("div");
+      modalContent.classList.add("modal-content");
       // Create the list of audioinput devices
-      const deviceList = document.createElement('ul');
+      const deviceList = document.createElement("ul");
       // @ts-ignore
-      devices.forEach(device => {
-        if (device.kind === 'audioinput') {
-          const listItem = document.createElement('li');
+      devices.forEach((device) => {
+        if (device.kind === "audioinput") {
+          const listItem = document.createElement("li");
           listItem.textContent = `${device.kind}: ${device.label} (ID: ${device.deviceId})`;
           deviceList.appendChild(listItem);
         }
       });
-      
+
       // Append the list to the modal
       modalContent.appendChild(deviceList);
 
       modalContainer.appendChild(modalContent);
-    
+
       // Add a close button
-      const closeButton = document.createElement('button');
-      closeButton.textContent = 'Close';
+      const closeButton = document.createElement("button");
+      closeButton.textContent = "Close";
       closeButton.onclick = () => document.body.removeChild(modalContainer);
       modalContent.appendChild(closeButton);
-    
+
       // Append the modal to the body
       document.body.appendChild(modalContainer);
     }
-    
+
     // Get the available devices and show the modal
-    navigator.mediaDevices.enumerateDevices()
-      .then(devices => {
+    navigator.mediaDevices
+      .enumerateDevices()
+      .then((devices) => {
         showModal(devices);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("Error listing devices:", err);
       });
     // Get the video stream for screen sharing with audio

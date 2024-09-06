@@ -1,0 +1,54 @@
+.tab {
+  display: flex;
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-right: 5px;
+}
+.tabs {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.tabs button {
+  padding: 5px 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.tabs button:hover {
+  background-color: #ddd;
+}
+
+.tabs button.active {
+  background-color: #d3e9fd;
+  font-weight: bold;
+}
+
+.tabs button.add-tab {
+  background-color: #444444;
+  color: white;
+  border: none;
+}
+
+.tabs button.add-tab:hover {
+  background-color: var(--color-active);
+}
+
+.theme-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.editor {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+select {
+  padding: 3px;
+  border-radius: 5px;
+}

@@ -1,6 +1,7 @@
 import useStore from "../../../utils/store";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { convertMarkdownToHTML } from "../../../utils/lib";
+
 export default function LessonContent() {
     const { currentContent, start, openLink } = useStore(state => ({
         currentContent: state.currentContent,
@@ -8,25 +9,27 @@ export default function LessonContent() {
         openLink: state.openLink
     }));
 
-    useEffect(() => {
-        start();
-    }, [])
+    const lessonContentRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const lessonContentDiv = document.querySelector('.lesson-content-component');
+        start();
+    }, []);
+
+    useEffect(() => {
+        const lessonContentDiv = lessonContentRef.current;
         if (!lessonContentDiv) return;
 
         const anchors = lessonContentDiv.getElementsByTagName('a');
-    
-        const handleClick = (event:any) => {
+
+        const handleClick = (event: any) => {
             event.preventDefault();
             openLink(event.target.href);
         };
-    
+
         for (let anchor of anchors) {
             anchor.addEventListener('click', handleClick);
         }
-    
+
         // Cleanup event listeners on component unmount
         return () => {
             for (let anchor of anchors) {
@@ -35,8 +38,8 @@ export default function LessonContent() {
         };
     }, [currentContent]);
 
-    return <>
-        <div className="lesson-content-component" dangerouslySetInnerHTML={{ __html: convertMarkdownToHTML(currentContent) }}>
+    return (
+        <div ref={lessonContentRef} dangerouslySetInnerHTML={{ __html: convertMarkdownToHTML(currentContent) }}>
         </div>
-    </>
+    );
 }

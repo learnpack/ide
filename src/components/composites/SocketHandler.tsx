@@ -39,12 +39,6 @@ export function SocketHandler() {
   }, []);
 
   useEffect(() => {
-    // compilerSocket.whenUpdated((scope: any, data: any) => {
-    //   scope;
-    //   if (data.status && data.status == "ready") {
-    //     setAllowedActions(data.allowed);
-    //   }
-    // });
 
     compilerSocket.on("reload", (data: any) => {
       data;

@@ -1,6 +1,6 @@
 import SimpleButton from "../../mockups/SimpleButton";
 import { svgs } from "../../../assets/svgs";
-import { getStatus } from "../../../utils/socket";
+import { getStatus } from "../../../managers/socket";
 import useStore from "../../../utils/store";
 import { toast } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
@@ -24,17 +24,17 @@ export default function BuildButton() {
     currentExercisePosition,
     compilerSocket,
     buildbuttonText,
-    setBuildButtonText,
+    setBuildButtonPrompt,
     isBuildable,
     build,
     isTesteable,
-    runExerciseTests
+    runExerciseTests,
   } = useStore((state) => ({
     currentExercisePosition: state.currentExercisePosition,
     exercises: state.exercises,
     compilerSocket: state.compilerSocket,
     buildbuttonText: state.buildbuttonText,
-    setBuildButtonText: state.setBuildButtonText,
+    setBuildButtonPrompt: state.setBuildButtonPrompt,
     isBuildable: state.isBuildable,
     build: state.build,
     isTesteable: state.isTesteable,
@@ -44,17 +44,21 @@ export default function BuildButton() {
 
   let compilerErrorHandler = debounce((data: any) => {
     data;
-    // const stdout = data.logs[0];
-    setBuildButtonText(t("Try again"), "bg-fail");
+
+    if (data.recommendations) {
+      toast.error(data.recommendations);
+    }
+    setBuildButtonPrompt(t("Try again"), "bg-fail");
     const [icon, message] = getStatus("compiler-error");
     toast.error(message, { icon: icon });
   }, 100);
 
   let compilerSuccessHandler = debounce((data: any) => {
     data;
+
     const [icon, message] = getStatus("compiler-success");
     toast.success(message, { icon: icon });
-    setBuildButtonText(t("Run"), "bg-success");
+    setBuildButtonPrompt(t("Run"), "bg-success");
   }, 100);
 
   useEffect(() => {
@@ -63,23 +67,23 @@ export default function BuildButton() {
   }, [currentExercisePosition]);
 
   const runTests = () => {
-    setBuildButtonText(t("Running..."), "bg-blue");
+    setBuildButtonPrompt(t("Running..."), "bg-blue");
     runExerciseTests({
       toast: true,
       setFeedbackButton: false,
       feedbackButtonText: t("Running..."),
-      targetButton: "build"
+      targetButton: "build",
     });
   };
 
   const changeToTest = !isBuildable && isTesteable;
-  
+
   return (
     <SimpleButton
       id="build-button"
       text={t(buildbuttonText.text)}
       svg={svgs.buildIcon}
-      extraClass={`pill bg-blue ${buildbuttonText.className }`}
+      extraClass={`pill bg-blue ${buildbuttonText.className}`}
       action={() => {
         changeToTest ? runTests() : build(t("Running..."));
       }}
