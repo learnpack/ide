@@ -44,6 +44,7 @@ export default function Chat() {
     user_id,
     bc_token,
     openLink,
+    bc_token
   } = useStore((state) => ({
     setOpenedModals: state.setOpenedModals,
     currentExercisePosition: state.currentExercisePosition,
@@ -65,8 +66,10 @@ export default function Chat() {
     setListeners: state.setListeners,
     getCurrentExercise: state.getCurrentExercise,
     user_id: state.user_id,
+
     bc_token: state.bc_token,
     openLink: state.openLink,
+    bc_token: state.bc_token
   }));
 
   const fakeMessages = [{ type: "bot", text: t(chatInitialMessage) }];
@@ -297,6 +300,7 @@ export default function Chat() {
         id: conversationIdsCache[currentExercisePosition],
         purpose: learnpackPurposeId,
         token: token,
+
       },
       breathecode: {
         token: bc_token,
