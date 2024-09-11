@@ -62,12 +62,14 @@ export const FetchManager = {
 
     if (FetchManager.ENVIRONMENT === "localStorage" && opts.cached) {
       const cachedEditorTabs = LocalStorage.get(`editorTabs_${slug}`);
-      const cached = cachedEditorTabs.find((t: any) => {
-        return t.name === file;
-      });
+      if (cachedEditorTabs) {
+        const cached = cachedEditorTabs.find((t: any) => {
+          return t.name === file;
+        });
 
-      if (cached) {
-        return cached.content;
+        if (cached) {
+          return cached.content;
+        }
       }
     }
 

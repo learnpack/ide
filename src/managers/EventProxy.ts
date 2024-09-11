@@ -142,31 +142,16 @@ localStorageEventEmitter.on("open", async (data) => {
 });
 
 localStorageEventEmitter.on("test", async (data) => {
-  const cachedEditorTabs = LocalStorage.get(`editorTabs_${data.exerciseSlug}`);
-
   const exe = await FetchManager.getExerciseInfo(data.exerciseSlug);
 
   let testContent = "";
   for (const f of exe.files) {
     if (f.name.includes("solution") || f.name.includes("README")) continue;
 
-    const cached = cachedEditorTabs.find((t: any) => {
-      console.log(t.name === f.name);
-      return t.name === f.name;
-    });
-    if (cached) {
-      testContent += `
-\`\`\`FILE: ${f.name} ${!f.hidden ? "USER CODE" : "TEST FILE"}
-
-${cached.content}
-\`\`\`
-      `;
-      continue;
-    }
-
     const fileContent = await FetchManager.getFileContent(
       data.exerciseSlug,
-      f.name
+      f.name,
+      { cached: true }
     );
     testContent += `
 \`\`\`FILE: ${f.name} ${!f.hidden ? "USER CODE" : "TEST FILE"}
@@ -218,7 +203,7 @@ ${fileContent}
 });
 
 export const EventProxy = {
-  getEmitter:(environment: TEnvironment) => {
+  getEmitter: (environment: TEnvironment) => {
     const emitters = {
       localhost: () => {
         Socket.start(HOST, disconnected, onConnectCli);
