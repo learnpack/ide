@@ -48,13 +48,29 @@ export const FetchManager = {
     return matter;
   },
 
-  getFileContent: async (slug: string, file: string) => {
+  getFileContent: async (
+    slug: string,
+    file: string,
+    opts: { cached: boolean } = { cached: false }
+  ) => {
     const url =
       FetchManager.ENVIRONMENT === "localhost"
         ? `${FetchManager.HOST}/exercise/${slug}/file/${file}`
         : `/exercises/${slug}/${file}`;
 
     const response = await fetch(url);
+
+    if (FetchManager.ENVIRONMENT === "localStorage" && opts.cached) {
+      const cachedEditorTabs = LocalStorage.get(`editorTabs_${slug}`);
+      const cached = cachedEditorTabs.find((t: any) => {
+        return t.name === file;
+      });
+
+      if (cached) {
+        return cached.content;
+      }
+    }
+
     const text = await response.text();
     return text;
   },

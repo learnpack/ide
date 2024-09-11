@@ -195,8 +195,8 @@ const useStore = create<IStore>((set, get) => ({
 
   figureEnvironment: async () => {
     const env = await getEnvironment();
-    set({compilerSocket: EventProxy.getEmitter(env)})
-    FetchManager.init(env, HOST)
+    set({ compilerSocket: EventProxy.getEmitter(env) });
+    FetchManager.init(env, HOST);
   },
 
   getCurrentExercise: () => {
@@ -295,7 +295,10 @@ const useStore = create<IStore>((set, get) => ({
     let contextFiles = currentExercise.files.filter(extractor);
 
     let filePromises = contextFiles.map(async (file, index) => {
-      let fileContent = await FetchManager.getFileContent(slug, file.name);
+      let fileContent = await FetchManager.getFileContent(slug, file.name, {
+        cached: true,
+      });
+
       return `
 < File name: ${file.name} \n
   Content: 
