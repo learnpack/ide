@@ -86,7 +86,10 @@ export const FetchManager = {
 
         // console.log(user);
 
-        if (!user) throw Error("The token is invalid or inactive!");
+        if (!user) {
+          LocalStorage.remove("session");
+          throw Error("The token is invalid or inactive!");
+        }
 
         const loggedFormat = {
           payload: { ...session },
@@ -141,7 +144,6 @@ export const FetchManager = {
     methods[FetchManager.ENVIRONMENT as keyof TMethods]();
   },
 };
-
 
 const validateUser = async (breathecodeToken: string) => {
   const config = {

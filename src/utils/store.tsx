@@ -13,10 +13,10 @@ import {
   getHost,
   getParamsObject,
   replaceSlot,
-  startRecording,
   debounce,
   removeSpecialCharacters,
   ENVIRONMENT,
+  getEnvironment,
 } from "./lib";
 import Socket from "../managers/socket";
 import { IStore, TDialog } from "./storeTypes";
@@ -110,6 +110,7 @@ const useStore = create<IStore>((set, get) => ({
     video: false,
     reset: false,
   },
+  activeTab: 0,
   lastTestResult: {
     status: "",
     logs: "",
@@ -126,22 +127,25 @@ const useStore = create<IStore>((set, get) => ({
       checkLoggedStatus,
       currentExercisePosition,
       setListeners,
+      figureEnvironment,
     } = get();
-    fetchExercises()
-      .then(() => {
-        return checkParams({ justReturn: false });
-      })
-      .then((params) => {
-        if (Object.keys(params).length === 0) {
-          fetchReadme();
-        }
-      })
-      .then(() => {
-        checkLoggedStatus({ startConversation: true });
-      })
-      .then(() => {
-        setListeners();
-      });
+    figureEnvironment().then(() =>
+      fetchExercises()
+        .then(() => {
+          return checkParams({ justReturn: false });
+        })
+        .then((params) => {
+          if (Object.keys(params).length === 0) {
+            fetchReadme();
+          }
+        })
+        .then(() => {
+          checkLoggedStatus({ startConversation: true });
+        })
+        .then(() => {
+          setListeners();
+        })
+    );
   },
   setListeners: () => {
     const {
@@ -187,7 +191,12 @@ const useStore = create<IStore>((set, get) => ({
       set({ dialogData: data.data });
       setOpenedModals({ dialog: true });
     });
+  },
 
+  figureEnvironment: async () => {
+    const env = await getEnvironment();
+    set({compilerSocket: EventProxy.getEmitter(env)})
+    FetchManager.init(env, HOST)
   },
 
   getCurrentExercise: () => {
@@ -239,7 +248,6 @@ const useStore = create<IStore>((set, get) => ({
         startConversation(currentExercisePosition);
       }
     } catch (err) {
-      console.error("ERROR: Trying to get Rigobot status ", err);
       set({ token: "" });
       setOpenedModals({ login: true });
     }
@@ -559,7 +567,7 @@ ${currentContent}
     };
     compilerSocket.openWindow(data);
   },
-  updateEditorTabs: () => {
+  updateEditorTabs: (newTab = null) => {
     const { getCurrentExercise, editorTabs } = get();
 
     const exercise = getCurrentExercise();
@@ -570,51 +578,52 @@ ${currentContent}
       (t) => t.name === "terminal"
     );
 
-    const logs = LocalStorage.get(`terminalLogs_${exercise.slug}`);
-
-    if (logs !== null) {
-      let terminalContent = "";
-      logs.forEach((log) => {
-        terminalContent += log.stdout + "\n";
-        terminalContent += log.stderr + "\n\n";
-      });
-
-      const terminalTab = {
-        id: "terminal",
-        content: terminalContent,
-        name: "terminal",
-      };
-      if (terminalIndex === -1) {
-        editorTabsCopy.push(terminalTab);
+    if (newTab) {
+      const tabExists = editorTabsCopy.some((tab) => tab.name === newTab.name);
+      if (tabExists) {
+        const tabIndex = editorTabsCopy.findIndex(
+          (t) => t.name === newTab.name
+        );
+        editorTabsCopy[tabIndex] = { ...newTab, isActive: true };
       } else {
-        editorTabsCopy[terminalIndex] = terminalTab;
+        editorTabsCopy = editorTabsCopy.map((tab) => ({
+          ...tab,
+          isActive: false,
+        }));
+        editorTabsCopy.push({ ...newTab, isActive: true });
       }
     }
 
-    notHidden.forEach(async (element, index) => {
-      const content = await FetchManager.getFileContent(
-        exercise.slug,
-        element.name
-      );
-
-      const tabExists = editorTabsCopy.some((tab) => tab.name === element.name);
-
-      const tab = {
-        id: index,
-        content: content,
-        name: element.name,
-      };
-      if (!tabExists) {
-        editorTabsCopy = [...editorTabsCopy, tab];
-        set({ editorTabs: [...editorTabsCopy] });
-      } else {
-        const tabIndex = editorTabsCopy.findIndex(
-          (t) => t.name === element.name
+    const updateTabs = async () => {
+      for (const [index, element] of notHidden.entries()) {
+        const content = await FetchManager.getFileContent(
+          exercise.slug,
+          element.name
         );
-        editorTabsCopy[tabIndex] = tab;
-        set({ editorTabs: [...editorTabsCopy] });
+
+        const tabExists = editorTabsCopy.some(
+          (tab) => tab.name === element.name
+        );
+
+        const tab = {
+          id: index,
+          content: content,
+          name: element.name,
+          isActive: index === 0 && !newTab, // Only the first file is active if no newTab
+        };
+
+        if (!tabExists) {
+          editorTabsCopy = [...editorTabsCopy, tab];
+        } else {
+          const tabIndex = editorTabsCopy.findIndex(
+            (t) => t.name === element.name
+          );
+          editorTabsCopy[tabIndex] = tab;
+        }
       }
-    });
+      set({ editorTabs: [...editorTabsCopy] });
+    };
+    updateTabs();
   },
 
   cleanEditorTabs: (slug: string) => {
@@ -794,11 +803,13 @@ ${currentContent}
       isTesteable,
       toastFromStatus,
       token,
+      updateEditorTabs,
     } = get();
 
     const data = {
       exerciseSlug: getCurrentExercise().slug,
       token: token,
+      updateEditorTabs,
     };
     compilerSocket.emit("test", data);
 
@@ -829,7 +840,7 @@ ${currentContent}
     const { openTerminal, getContextFilesContent } = get();
     // disconnected();
     toast.success("Test button pressed, implement something");
-    await FetchManager.logout()
+    await FetchManager.logout();
   },
 }));
 

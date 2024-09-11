@@ -205,6 +205,8 @@ const actions = [
   "open_terminal",
 ];
 
+const scopes = {}; // Add this line to store created scopes
+
 export default {
   socket: null,
   start: function (host, onDisconnect: any = null, onConnect: any = null) {
@@ -219,6 +221,10 @@ export default {
     }
   },
   createScope: function (scopeName) {
+    if (scopes[scopeName]) {
+      return scopes[scopeName]; // Return existing scope if already created
+    }
+
     const scope = {
       socket: this.socket,
       name: scopeName,
@@ -276,6 +282,7 @@ export default {
       if (scope.updatedCallback) scope.updatedCallback(scope, data);
     });
 
+    scopes[scopeName] = scope; // Store the created scope
     return scope;
   },
 };

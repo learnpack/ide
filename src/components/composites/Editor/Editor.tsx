@@ -8,6 +8,7 @@ interface Tab {
   id: number;
   name: string;
   content: string;
+  isActive: boolean; // New property
 }
 
 const EDITOR_THEME_KEY = "editor_theme";
@@ -31,7 +32,6 @@ const CodeEditor: React.FC = () => {
     getCurrentExercise: state.getCurrentExercise,
   }));
   const [tabs, setTabs] = useState<Tab[]>([...editorTabs]);
-  const [activeTab, setActiveTab] = useState<number>(0);
   const [theme, setTheme] = useState("light");
 
   const addTab = () => {
@@ -39,9 +39,9 @@ const CodeEditor: React.FC = () => {
       id: tabs.length + 1,
       name: `Tab ${tabs.length + 1}`,
       content: "",
+      isActive: false,
     };
     setTabs([...tabs, newTab]);
-    setActiveTab(newTab.id);
   };
 
   const updateContent = (id: number, content: string) => {
@@ -50,7 +50,7 @@ const CodeEditor: React.FC = () => {
     );
     setTabs(newTabs);
     const ex = getCurrentExercise();
-    const withoutTerminal = newTabs.filter((t)=>t.name !== "terminal")
+    const withoutTerminal = newTabs.filter((t) => t.name !== "terminal");
     LocalStorage.setEditorTabs(ex.slug, withoutTerminal);
   };
 
@@ -62,16 +62,29 @@ const CodeEditor: React.FC = () => {
     }
     const newTabs = tabs.filter((tab) => tab.id !== id);
     setTabs(newTabs);
-    if (newTabs.length > 0) setActiveTab(newTabs[0].id);
+    if (newTabs.length > 0) {
+      setTabs(
+        newTabs.map((tab, index) => ({
+          ...tab,
+          isActive: index === 0,
+        }))
+      );
+    }
 
     LocalStorage.setEditorTabs(ex.slug, newTabs);
   };
 
+  const handleTabClick = (id: number) => {
+    const newTabs = tabs.map((tab) =>
+      tab.id === id ? { ...tab, isActive: true } : { ...tab, isActive: false }
+    );
+    setTabs(newTabs);
+  };
+
   useEffect(() => {
-    const terminalIndex = editorTabs.findIndex((t) => t.name === "terminal");
-    setTabs([...editorTabs]);
     const ex = getCurrentExercise();
     if (!ex) return;
+
     const cachedEditorTabs = LocalStorage.getEditorTabs(ex.slug);
 
     const cachedTheme = LocalStorage.get(EDITOR_THEME_KEY);
@@ -79,13 +92,27 @@ const CodeEditor: React.FC = () => {
       setTheme(cachedTheme);
     }
 
-    if (cachedEditorTabs.length > 0 && terminalIndex !== -1) {
-      setTabs([...cachedEditorTabs, editorTabs[terminalIndex]]);
-    } else if (cachedEditorTabs.length > 0 && terminalIndex === -1) {
-      setTabs([...cachedEditorTabs]);
-    } else {
-      setTabs([...editorTabs]);
+    const tabMap = new Map();
+
+    editorTabs.forEach((tab) => tabMap.set(tab.name, tab));
+
+    // @ts-ignore
+    cachedEditorTabs.forEach((tab) => tabMap.set(tab.name, tab));
+
+    const updatedTabs = Array.from(tabMap.values());
+
+    const activeTabs = updatedTabs.filter((tab) => tab.isActive);
+
+    if (activeTabs.length > 1) {
+      const lastActiveTab = activeTabs[activeTabs.length - 1];
+      updatedTabs.forEach((tab) => {
+        tab.isActive = tab === lastActiveTab;
+      });
+    } else if (activeTabs.length === 0 && updatedTabs.length > 0) {
+      updatedTabs[0].isActive = true;
     }
+
+    setTabs(updatedTabs);
   }, [editorTabs]);
 
   const handleThemeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -104,11 +131,8 @@ const CodeEditor: React.FC = () => {
     >
       <div className="tabs">
         {tabs.map((tab) => (
-          <div
-            key={tab.id}
-            className={`tab ${tab.id === activeTab ? "active" : ""}`}
-          >
-            <button onClick={() => setActiveTab(tab.id)}>{tab.name}</button>
+          <div key={tab.id} className={`tab ${tab.isActive ? "active" : ""}`}>
+            <button onClick={() => handleTabClick(tab.id)}>{tab.name}</button>
             <button
               className="close-tab"
               onClick={() => removeTab(tab.id, tab.name)}
@@ -132,7 +156,7 @@ const CodeEditor: React.FC = () => {
       <div className="editor">
         {tabs.map(
           (tab) =>
-            tab.id === activeTab && (
+            tab.isActive && (
               <MonacoEditor
                 key={tab.id}
                 height="400px"
@@ -143,6 +167,9 @@ const CodeEditor: React.FC = () => {
                 options={{
                   fontSize: 12,
                   fontFamily: '"Fira code", "Fira Mono", monospace',
+                  readOnly:
+                    tab.name === "terminal" ||
+                    tab.name.includes("solution.hide"),
                 }}
               />
             )

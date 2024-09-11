@@ -1,19 +1,72 @@
 import { Remarkable } from "remarkable";
 import { linkify } from "remarkable/linkify";
 import { TEnvironment } from "../managers/EventProxy";
+
 // @ts-ignore
 // import katex from 'remarkable-katex'
 
 export const DEV_MODE =false;
-export const ENVIRONMENT: TEnvironment = "localhost";
 
-export const RIGOBOT_HOST = "https://rigobot.herokuapp.com";
+//@ts-ignore
+export function getParams(opts) {
+  if (!Array.isArray(opts)) opts = [opts];
+  const urlParams = new URLSearchParams(window.location.search);
+  let obj = {};
+  //@ts-ignore
+  opts.forEach((name) => (obj[name] = urlParams.get(name)));
+  //@ts-ignore
+  const result = opts.length == 1 ? obj[opts[0]] : obj;
+  return result;
+}
 
 const fullURL =
   location.protocol +
   "//" +
   location.hostname +
   (location.port ? ":" + location.port : "");
+
+export const getHost = function (): string {
+  let preConfig = getParams("config");
+  if (preConfig && preConfig !== "") preConfig = JSON.parse(atob(preConfig));
+
+  let HOST = preConfig
+    ? `${preConfig.address}:${preConfig.port}`
+    : getParams("host") || fullURL;
+
+  // TODO: DO THIS BETTER
+  if (DEV_MODE) {
+    HOST = "http://localhost:3000";
+  }
+
+  // console.log("HOST", HOST);
+  return HOST;
+};
+
+export let ENVIRONMENT: TEnvironment = "localhost";
+
+export const getEnvironment = async () => {
+  const host = getHost();
+
+  try {
+    const response = await fetch(`${host}/config`);
+    if (response.ok) {
+      ENVIRONMENT = "localhost";
+      return "localhost";
+    } else throw Error("The response was unsuccesfull");
+  } catch (e) {
+    console.log(e);
+    ENVIRONMENT = "localStorage";
+    return "localStorage";
+  }
+};
+
+getEnvironment();
+// TODO: INVESTIGATE: This line of code made me change from format: "iife" to "system"
+// export const ENVIRONMENT: TEnvironment = await getEnvironment();
+// export const ENVIRONMENT: TEnvironment = "localStorage";
+
+export const RIGOBOT_HOST = "https://rigobot.herokuapp.com";
+
 /**
  * Converts markdown to HTML and injects it into a div.
  * @param {string} markdown - The markdown string to be converted.
@@ -57,9 +110,8 @@ function replaceSrc(rawText: string) {
 
   let host = getHost();
 
-
-  if (ENVIRONMENT === "localStorage"){
-    host =""
+  if (ENVIRONMENT === "localStorage") {
+    host = "";
   }
   const modifiedText = rawText.replace(regex, `src="${host}`);
 
@@ -69,35 +121,6 @@ function replaceSrc(rawText: string) {
 
 export const getExercise = async (slug: string) => {
   return await fetch(`${getHost()}/exercise/${slug}`);
-};
-
-//@ts-ignore
-export function getParams(opts) {
-  if (!Array.isArray(opts)) opts = [opts];
-  const urlParams = new URLSearchParams(window.location.search);
-  let obj = {};
-  //@ts-ignore
-  opts.forEach((name) => (obj[name] = urlParams.get(name)));
-  //@ts-ignore
-  const result = opts.length == 1 ? obj[opts[0]] : obj;
-  return result;
-}
-
-export const getHost = function (): string {
-  let preConfig = getParams("config");
-  if (preConfig && preConfig !== "") preConfig = JSON.parse(atob(preConfig));
-
-  let HOST = preConfig
-    ? `${preConfig.address}:${preConfig.port}`
-    : getParams("host") || fullURL;
-
-  // TODO: DO THIS BETTER
-  if (DEV_MODE) {
-    HOST = "http://localhost:3000";
-  }
-
-  // console.log("HOST", HOST);
-  return HOST;
 };
 
 export const getFileContent = async (slug: string, file: string) => {
@@ -177,89 +200,4 @@ export const replaceSlot = (
 ): string => {
   const slotRegex = new RegExp(slot, "g");
   return string.replace(slotRegex, value);
-};
-
-export const startRecording = async () => {
-  try {
-    // @ts-ignore
-    function showModal(devices) {
-      // Create the modal container
-      const modalContainer = document.createElement("div");
-      modalContainer.classList.add("self-closing-modal");
-      const modalContent = document.createElement("div");
-      modalContent.classList.add("modal-content");
-      // Create the list of audioinput devices
-      const deviceList = document.createElement("ul");
-      // @ts-ignore
-      devices.forEach((device) => {
-        if (device.kind === "audioinput") {
-          const listItem = document.createElement("li");
-          listItem.textContent = `${device.kind}: ${device.label} (ID: ${device.deviceId})`;
-          deviceList.appendChild(listItem);
-        }
-      });
-
-      // Append the list to the modal
-      modalContent.appendChild(deviceList);
-
-      modalContainer.appendChild(modalContent);
-
-      // Add a close button
-      const closeButton = document.createElement("button");
-      closeButton.textContent = "Close";
-      closeButton.onclick = () => document.body.removeChild(modalContainer);
-      modalContent.appendChild(closeButton);
-
-      // Append the modal to the body
-      document.body.appendChild(modalContainer);
-    }
-
-    // Get the available devices and show the modal
-    navigator.mediaDevices
-      .enumerateDevices()
-      .then((devices) => {
-        showModal(devices);
-      })
-      .catch((err) => {
-        console.error("Error listing devices:", err);
-      });
-    // Get the video stream for screen sharing with audio
-    const stream = await navigator.mediaDevices.getDisplayMedia({
-      video: true,
-      audio: true,
-    });
-
-    // Create a new MediaRecorder with the stream
-    const recorder = new MediaRecorder(stream);
-
-    // Set up the ondataavailable event handler
-    recorder.ondataavailable = (e) => {
-      const chunks = [];
-      chunks.push(e.data);
-      const blob = new Blob(chunks, { type: "video/webm" });
-      const url = URL.createObjectURL(blob);
-
-      // Create an anchor element and trigger a download
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "recording.webm";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    };
-
-    // Start the recording
-    console.log("Starting recording");
-
-    recorder.start();
-
-    // Return control functions for the recording
-    return {
-      stop: () => recorder.stop(),
-      pause: () => recorder.pause(),
-      resume: () => recorder.resume(),
-    };
-  } catch (err) {
-    console.error("Error starting recording:", err);
-  }
 };

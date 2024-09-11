@@ -57,14 +57,13 @@ const localStorageEventEmitter = {
   onStatus: (status: string, callback: EventCallback) => {
     localStorageEventEmitter.statusEvents[status] = callback;
   },
-  openWindow: (data:any) => {
+  openWindow: (data: any) => {
     if (data && data.url) {
-        window.open(data.url, '_blank');
+      window.open(data.url, "_blank");
     } else {
-        console.error("No URL provided in data");
+      console.error("No URL provided in data");
     }
-}
-
+  },
 };
 
 localStorageEventEmitter.on("build", async (data) => {
@@ -98,10 +97,28 @@ ${tab.name}
   } else {
     localStorageEventEmitter.emitStatus("compiler-success", json);
   }
-  let logs = prevLogs ? prevLogs : [];
-  LocalStorage.set(`terminalLogs_${data.exerciseSlug}`, [...logs, json]);
+  let logs = prevLogs ? [...prevLogs, json] : [json];
 
-  data.updateEditorTabs();
+  LocalStorage.set(`terminalLogs_${data.exerciseSlug}`, logs);
+
+  if (logs !== null) {
+    let terminalContent = "";
+    logs.forEach((log: any) => {
+      terminalContent += log.stdout + "\n";
+      terminalContent += log.stderr + "\n\n";
+      if (log.testResults) {
+        terminalContent += log.testResults + "\n\n";
+      }
+    });
+
+    const terminalTab = {
+      id: "terminal",
+      content: terminalContent,
+      name: "terminal",
+      isActive: true,
+    };
+    data.updateEditorTabs(terminalTab);
+  }
 });
 
 localStorageEventEmitter.on("reset", async (data) => {
@@ -111,24 +128,17 @@ localStorageEventEmitter.on("reset", async (data) => {
 });
 
 localStorageEventEmitter.on("open", async (data) => {
-  const cachedTabs = LocalStorage.get(`editorTabs_${data.exerciseSlug}`);
-
-  console.log(cachedTabs, "cachedTabs");
-  
   const content = await FetchManager.getFileContent(
     data.exerciseSlug,
     data.solutionFileName
   );
   const solutionTab = {
     id: generateUUID(),
-    name: "Solution",
+    name: data.solutionFileName,
     content: content,
   };
 
-  const cachedtabsCopy = [...cachedTabs, solutionTab];
-  LocalStorage.setEditorTabs(data.exerciseSlug, cachedtabsCopy);
-
-  data.updateEditorTabs();
+  data.updateEditorTabs(solutionTab);
 });
 
 localStorageEventEmitter.on("test", async (data) => {
@@ -139,8 +149,6 @@ localStorageEventEmitter.on("test", async (data) => {
   let testContent = "";
   for (const f of exe.files) {
     if (f.name.includes("solution") || f.name.includes("README")) continue;
-
-    console.log(f.name);
 
     const cached = cachedEditorTabs.find((t: any) => {
       console.log(t.name === f.name);
@@ -173,8 +181,7 @@ ${fileContent}
   };
   const dataRigobotReturns = await testRigo(data.token, inputs);
   const json = JSON.parse(removeTripleBackticks(dataRigobotReturns));
-  console.log(json);
-  
+
   if (json.exitCode === 0) {
     localStorageEventEmitter.emitStatus("testing-success", {
       ...dataRigobotReturns,
@@ -187,12 +194,31 @@ ${fileContent}
     });
   }
   const prevLogs = LocalStorage.get(`terminalLogs_${data.exerciseSlug}`);
-  let logs = prevLogs ? prevLogs : [];
-  LocalStorage.set(`terminalLogs_${data.exerciseSlug}`, [...logs, json]);
+  let logs = prevLogs ? [...prevLogs, json] : [json];
+  LocalStorage.set(`terminalLogs_${data.exerciseSlug}`, logs);
+
+  if (logs !== null) {
+    let terminalContent = "";
+    logs.forEach((log: any) => {
+      terminalContent += log.stdout + "\n";
+      terminalContent += log.stderr + "\n\n";
+      if (log.testResults) {
+        terminalContent += log.testResults + "\n\n";
+      }
+    });
+
+    const terminalTab = {
+      id: generateUUID(),
+      content: terminalContent,
+      name: "terminal",
+      isActive: true,
+    };
+    data.updateEditorTabs(terminalTab);
+  }
 });
 
 export const EventProxy = {
-  getEmitter: (environment: TEnvironment) => {
+  getEmitter:(environment: TEnvironment) => {
     const emitters = {
       localhost: () => {
         Socket.start(HOST, disconnected, onConnectCli);

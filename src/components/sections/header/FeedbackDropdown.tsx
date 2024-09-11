@@ -3,6 +3,7 @@ import { svgs } from "../../../assets/svgs";
 import SimpleButton from "../../mockups/SimpleButton";
 import { OpenWindowLink } from "../../composites/OpenWindowLink";
 import { useTranslation } from "react-i18next";
+import { ENVIRONMENT } from "../../../utils/lib";
 
 interface IFeedbackDropdown {
   toggleFeedbackVisibility: () => void;
@@ -24,7 +25,7 @@ export const FeedbackDropdown = ({
     hasSolution,
     getCurrentExercise,
     // currentExercisePosition,
-    updateEditorTabs
+    updateEditorTabs,
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     token: state.token,
@@ -44,7 +45,7 @@ export const FeedbackDropdown = ({
     currentSolution: state.currentSolution,
     getCurrentExercise: state.getCurrentExercise,
     currentExercisePosition: state.currentExercisePosition,
-    updateEditorTabs: state.updateEditorTabs
+    updateEditorTabs: state.updateEditorTabs,
   }));
 
   const { t } = useTranslation();
@@ -55,7 +56,7 @@ export const FeedbackDropdown = ({
       toast: true,
       setFeedbackButton: true,
       feedbackButtonText: t("Running..."),
-      targetButton: "feedback"
+      targetButton: "feedback",
     });
   };
 
@@ -85,6 +86,7 @@ export const FeedbackDropdown = ({
   };
 
   const openSolutionFile = () => {
+    // TODO: This should open ALL solution files 
     const solutionFile = getCurrentExercise().files.find((file: any) =>
       file.name.includes("solution.hide")
     );
@@ -93,16 +95,15 @@ export const FeedbackDropdown = ({
       exerciseSlug: getCurrentExercise().slug,
       files: [solutionFile.path],
       solutionFileName: solutionFile.name,
-      updateEditorTabs: updateEditorTabs
+      updateEditorTabs: updateEditorTabs,
     };
     compilerSocket.emit("open", data);
   };
 
-
   const startTour = () => {
     setOpenedModals({ tutorial: true });
     toggleFeedbackVisibility();
-  }
+  };
 
   return (
     <div id="feedback-dropdown" className="feedback-dropdown">
@@ -111,7 +112,9 @@ export const FeedbackDropdown = ({
           svg={svgs.testIcon}
           text={isTesteable ? t("Run tests") : t("No tests available")}
           action={runTests}
-          disabled={!isTesteable}
+          disabled={
+            !isTesteable || (ENVIRONMENT === "localStorage" && !Boolean(token))
+          }
         />
       }
       {Boolean(token) ? (

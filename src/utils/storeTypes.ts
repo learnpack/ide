@@ -116,7 +116,7 @@ export interface IStore {
   shouldBeTested: boolean;
   targetButtonForFeedback: "build" | "feedback";
   editorTabs: TEditorTab[];
-
+  // activeTab: ;
   start: () => void;
   setListeners: () => void;
   checkRigobotInvitation: () => void;
@@ -142,7 +142,7 @@ export interface IStore {
   toggleFeedback: () => void;
   fetchExercises: () => void;
   getLessonTitle: () => void;
-  updateEditorTabs: () => void
+  updateEditorTabs: () => void;
   build: (buildText: string) => void;
   setPosition: (position: number) => void;
   fetchReadme: () => void;
@@ -160,6 +160,7 @@ type TEditorTab = {
   id: number;
   name: string;
   content: string;
+  isActive: boolean;
 };
 
 export type TDialog = {
