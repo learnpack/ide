@@ -20,6 +20,26 @@ function generateUUID() {
   });
 }
 
+function extractAndParseResult(xmlString: string): any {
+  const resultTagStart = "<result>";
+  const resultTagEnd = "</result>";
+
+  const startIndex = xmlString.indexOf(resultTagStart) + resultTagStart.length;
+  const endIndex = xmlString.indexOf(resultTagEnd);
+
+  if (startIndex === -1 || endIndex === -1) {
+    throw new Error("Result tags not found in the provided string.");
+  }
+
+  const resultString = xmlString.substring(startIndex, endIndex).trim();
+
+  try {
+    return JSON.parse(resultString);
+  } catch (error) {
+    throw new Error("Failed to parse JSON from the result string.");
+  }
+}
+
 let HOST = getHost();
 
 function removeTripleBackticks(input: string): string {
@@ -165,7 +185,8 @@ ${fileContent}
     code: testContent,
   };
   const dataRigobotReturns = await testRigo(data.token, inputs);
-  const json = JSON.parse(removeTripleBackticks(dataRigobotReturns));
+
+  const json = extractAndParseResult(dataRigobotReturns);
 
   if (json.exitCode === 0) {
     localStorageEventEmitter.emitStatus("testing-success", {

@@ -54,7 +54,7 @@ export const getEnvironment = async () => {
       return "localhost";
     } else throw Error("The response was unsuccesfull");
   } catch (e) {
-    console.log(e);
+    // console.log(e);
     ENVIRONMENT = "localStorage";
     return "localStorage";
   }
