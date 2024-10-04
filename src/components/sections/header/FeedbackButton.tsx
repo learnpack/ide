@@ -4,7 +4,12 @@ import { svgs } from "../../../assets/svgs";
 import useStore from "../../../utils/store";
 import { FeedbackDropdown } from "./FeedbackDropdown";
 import { useTranslation } from "react-i18next";
-export default function FeedbackButton(): JSX.Element {
+
+export default function FeedbackButton({
+  direction = "down",
+}: {
+  direction: "down" | "up";
+}): JSX.Element {
   const feedbackbuttonProps = useStore((state) => state.feedbackbuttonProps);
   const { t } = useTranslation();
 
@@ -28,18 +33,18 @@ export default function FeedbackButton(): JSX.Element {
   return (
     <div
       id="feedback-button"
-      className="pos-relative feedback-dropdown-container"
+      className="pos-relative"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <SimpleButton
-        text={<span>{t(feedbackbuttonProps.text)}</span>}
+        text={t(feedbackbuttonProps.text)}
         svg={svgs.feedbackIcon}
-        extraClass={`pill border-blue color-blue row-reverse ${feedbackbuttonProps.className}`}
+        extraClass={`pill color-blue row-reverse ${feedbackbuttonProps.className}`}
         action={toggleFeedback}
       />
       {showFeedback && (
-        <FeedbackDropdown toggleFeedbackVisibility={toggleFeedback} />
+        <FeedbackDropdown direction={direction} toggleFeedbackVisibility={toggleFeedback} />
       )}
     </div>
   );

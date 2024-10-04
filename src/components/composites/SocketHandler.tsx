@@ -26,20 +26,18 @@ export function SocketHandler() {
 
   useEffect(() => {
     compilerSocket.on("file_change", (data: any) => {
-
       const current = getCurrentExercise();
       const fullpath = data.logs;
 
       const doesCurrentStepChange = fullpath.includes(current.path);
 
       if (!doesCurrentStepChange) return;
-      
+
       setShouldBeTested(true);
     });
   }, []);
 
   useEffect(() => {
-
     compilerSocket.on("reload", (data: any) => {
       data;
       window.location.reload();
@@ -56,7 +54,7 @@ export function SocketHandler() {
     const emitResponses = () => {
       compilerSocket.emit("input", {
         inputs: inputsResponses,
-        exerciseSlug: exercises[currentExercisePosition].slug,
+        exerciseSlug: exercises[Number(currentExercisePosition)].slug,
       });
 
       setInputsResponses([]);

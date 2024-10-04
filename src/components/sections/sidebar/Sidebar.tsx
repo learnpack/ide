@@ -45,39 +45,41 @@ export default function Sidebar() {
     });
   };
 
-  return showSidebar ? (
-    createPortal(
-      <>
-        <div className="sidebar-component">
-          <section>
-            <h2>{title}</h2>
-          </section>
-          <section className="">
-            <p>
-              {solvedExercises}/{numberOfExercises} {t("Solved exercises")}
-            </p>
-            <SimpleButton action={closeSidebar} svg={svgs.closeIcon} />
-          </section>
-          <ExercisesList closeSidebar={closeSidebar} />
+  return (
+    <>
+      {showSidebar &&
+        createPortal(
+          <>
+            <div className="sidebar-component">
+              <section>
+                <h2>{title}</h2>
+              </section>
+              <section className="">
+                <p>
+                  {solvedExercises}/{numberOfExercises} {t("Solved exercises")}
+                </p>
+                <SimpleButton action={closeSidebar} svg={svgs.closeIcon} />
+              </section>
+              <ExercisesList closeSidebar={closeSidebar} />
 
-          <section className="p-4 footer">
-            <BugButton />
-            <span>
-              <strong>{t("Current version")}</strong>:{" "}
-              {versionSections.join(".")}
-            </span>
-          </section>
-        </div>
-      </>,
-      document.body
-    )
-  ) : (
-    <SimpleButton
-      svg={svgs.dropdownButton}
-      id="sidebar-toggle"
-      action={() => {
-        setShowSidebar(true);
-      }}
-    />
+              <section className="p-4 footer">
+                <BugButton />
+                <span>
+                  <strong>{t("Current version")}</strong>:{" "}
+                  {versionSections.join(".")}
+                </span>
+              </section>
+            </div>
+          </>,
+          document.body
+        )}
+      <SimpleButton
+        svg={svgs.dropdownButton}
+        id="sidebar-toggle"
+        action={() => {
+          setShowSidebar(true);
+        }}
+      />
+    </>
   );
 }

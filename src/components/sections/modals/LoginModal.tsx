@@ -42,7 +42,6 @@ export default function LoginModal() {
     e.preventDefault();
     setIsLoading(true);
 
-
     const isLoggedId = await loginToRigo({
       email: email,
       password: password,
@@ -69,10 +68,10 @@ export default function LoginModal() {
         }}
       >
         <div className="modal-content">
-          <h2>Login </h2>
+          <h2>{t("login")}</h2>
 
           <div>
-            <p>{t("loginMessage")}</p>
+            <p>{t("login-message")}</p>
           </div>
 
           <form action="">

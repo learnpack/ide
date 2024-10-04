@@ -7,13 +7,16 @@
   --bg-color-gray: #eff1f4;
   --bg-color-dark-gray: #a1a1a1;
 
-  --color-active: #1986da;
+  --color-active: #02a9ea;
   --4geeks-yellow: #ffd900;
+  --opaque-blue-editor: #a5d9f8;
+  --soft-blue-color: #eef9fe;
   --color-blue-opaque: #ebf8fe;
   --color-blue: #c1dfed;
   --color-success: #21b761;
   --color-fail: #eb5757;
   --bg-color-code: #2d3748;
+  --link-inactive-color: #a9a9a9;
   --backdrop-background: rgba(0, 0, 0, 0.7);
 
   --font-color-secondary: #9c9c9c;

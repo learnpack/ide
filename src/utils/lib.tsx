@@ -51,11 +51,27 @@ export const getEnvironment = async () => {
     const response = await fetch(`${host}/config`);
     if (response.ok) {
       ENVIRONMENT = "localhost";
+
+  
+      const myEvent = new CustomEvent("environment-change", {
+        detail: { environment: "localhost" },
+      });
+
+      // Dispatch the event
+      document.dispatchEvent(myEvent);
+
       return "localhost";
     } else throw Error("The response was unsuccesfull");
   } catch (e) {
     // console.log(e);
     ENVIRONMENT = "localStorage";
+
+    const myEvent = new CustomEvent("environment-change", {
+      detail: { environment: "localStorage" },
+    });
+
+    // Dispatch the event
+    document.dispatchEvent(myEvent);
     return "localStorage";
   }
 };

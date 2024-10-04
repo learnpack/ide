@@ -17,8 +17,8 @@ export default function Navbar() {
           alt="Learnpack"
           style={{ width: "40px", height: "auto" }}
         />
-        <BuildButton />
-        <FeedbackButton />
+        <BuildButton extraClass="" />
+        <FeedbackButton direction="down" />
         <ResetButton />
         <TestButton display={displayTestButton} />
       </section>

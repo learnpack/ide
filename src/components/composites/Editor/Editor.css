@@ -1,14 +1,11 @@
-.tab {
-  display: flex;
-  background-color: #ffffff;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  margin-right: 5px;
-}
 .tabs {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
+}
+.tab {
+  display: flex;
+  background-color: #ffffff;
+  border-right: 1px solid #ccc;
 }
 
 .tabs button {
@@ -17,38 +14,118 @@
   transition: background-color 0.3s ease;
 }
 
-.tabs button:hover {
-  background-color: #ddd;
+.tab .close-tab {
+  color: black !important;
+}
+.tab.active {
+  background-color: var(--opaque-blue-editor);
+  border-top-right-radius: 6px;
+  border-top-left-radius: 6px;
 }
 
-.tabs button.active {
-  background-color: #d3e9fd;
-  font-weight: bold;
+.tab.active button {
+  color: var(--color-active);
 }
 
 .tabs button.add-tab {
-  background-color: #444444;
-  color: white;
+  color: rgb(0, 0, 0);
   border: none;
-}
-
-.tabs button.add-tab:hover {
-  background-color: var(--color-active);
 }
 
 .theme-selector {
   display: flex;
   align-items: center;
   gap: 10px;
+  display: none;
 }
 
 .editor {
-  border: 1px solid #ccc;
+  border: 8px solid #a5d9f8;
   border-radius: 5px;
-  overflow: hidden;
+  position: relative;
+}
+.terminal {
+  border-radius: 5px;
+  border: 8px solid #a5d9f8;
+  margin-top: -8px;
+  padding: 8px;
 }
 
-select {
-  padding: 3px;
-  border-radius: 5px;
+.terminal > h5 {
+  border-bottom: 1px solid #dadada;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.terminal > pre {
+  background-color: white;
+  border: none;
+  max-height: 300px;
+}
+.editor .editor-footer {
+  background-color: white;
+  position: absolute;
+  bottom: 8px;
+  padding: 8px;
+  width: calc(100% - 16px);
+  left: 8px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.editor-footer.UNMODIFIED {
+  background-color: var(--soft-blue-color);
+}
+.editor-footer.MODIFIED {
+  background-color: white;
+}
+
+.editor-footer .not-started {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--color-active);
+  padding: 4px;
+}
+
+.editor-footer .footer-actions {
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.editor-footer .footer-actions > div > button,
+.editor-footer .footer-actions > button,
+.editor-footer .footer-actions > div {
+  width: 100%;
+  padding: 5px;
+  border-radius: 4px;
+  display: flex;
+  font-size: 12px;
+  justify-content: center;
+  align-items: center;
+  color: var(--link-inactive-color);
+  gap: 5px;
+}
+.footer-actions button {
+  font-size: 14px;
+}
+.editor-footer .footer-actions > button svg,
+.editor-footer .footer-actions > div svg {
+  height: 15px;
+}
+.editor-footer .footer-actions > button svg path,
+.editor-footer .footer-actions > div > button > svg path {
+  stroke: var(--link-inactive-color);
+}
+
+.editor-footer .footer-actions button.active {
+  background-color: var(--color-active);
+  color: white;
+}
+.editor-footer .footer-actions button.active svg path {
+  stroke: white;
 }

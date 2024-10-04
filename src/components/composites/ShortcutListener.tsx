@@ -32,10 +32,10 @@ export const ShortcutsListener = ({ children }: ShortcutListenerProps) => {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey && event.key === "ArrowRight" && !event.shiftKey) {
-        handlePositionChange(currentExercisePosition + 1);
+        handlePositionChange(Number(currentExercisePosition) + 1);
       }
       if (event.ctrlKey && event.key === "ArrowLeft" && !event.shiftKey) {
-        handlePositionChange(currentExercisePosition - 1);
+        handlePositionChange(Number(currentExercisePosition) - 1);
       }
       if (
         event.ctrlKey &&
@@ -46,7 +46,12 @@ export const ShortcutsListener = ({ children }: ShortcutListenerProps) => {
       ) {
         build(t("Running..."));
       }
-      if (event.ctrlKey && event.shiftKey && event.key === "Enter" && isTesteable) {
+      if (
+        event.ctrlKey &&
+        event.shiftKey &&
+        event.key === "Enter" &&
+        isTesteable
+      ) {
         runExerciseTests({
           toast: true,
           setFeedbackButton: true,
@@ -63,29 +68,29 @@ export const ShortcutsListener = ({ children }: ShortcutListenerProps) => {
         if (scale > 2) {
           document.body.style.transform = `scale(${2 / scale})`;
         } else {
-          document.body.style.transform = 'none';
+          document.body.style.transform = "none";
         }
       }
     };
 
-    const handleWheel = (event: WheelEvent) => {
-      if (event.ctrlKey) {
-        event.preventDefault();
-        const scale = window.devicePixelRatio;
-        if (scale > 2) {
-          document.body.style.transform = `scale(${2 / scale})`;
-        } else {
-          document.body.style.transform = 'none';
-        }
-      }
-    };
+    // const handleWheel = (event: WheelEvent) => {
+    //   if (event.ctrlKey) {
+    //     event.preventDefault();
+    //     const scale = window.devicePixelRatio;
+    //     if (scale > 2) {
+    //       document.body.style.transform = `scale(${2 / scale})`;
+    //     } else {
+    //       document.body.style.transform = "none";
+    //     }
+    //   }
+    // };
 
     window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("wheel", handleWheel, { passive: false });
+    // window.addEventListener("wheel", handleWheel, { passive: false });
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("wheel", handleWheel);
+      // window.removeEventListener("wheel", handleWheel);
     };
   }, [currentExercisePosition, openedModals.chat]);
 

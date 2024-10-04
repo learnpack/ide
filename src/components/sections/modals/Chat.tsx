@@ -43,7 +43,7 @@ export default function Chat() {
     getCurrentExercise,
     user_id,
     openLink,
-    bc_token
+    bc_token,
   } = useStore((state) => ({
     setOpenedModals: state.setOpenedModals,
     currentExercisePosition: state.currentExercisePosition,
@@ -75,7 +75,7 @@ export default function Chat() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [waitingTestResult, setWaitingTestResult] = useState(false);
   const [messages, setMessages] = useState(
-    exerciseMessages[currentExercisePosition] || fakeMessages
+    exerciseMessages[Number(currentExercisePosition)] || fakeMessages
   );
   const [userMessage, setUserMessage] = useState("");
   const [userMessageCache, setUserMessageCache] = useState("");
@@ -83,8 +83,8 @@ export default function Chat() {
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
 
-    if (conversationIdsCache[currentExercisePosition] == undefined) {
-      startConversation(currentExercisePosition);
+    if (conversationIdsCache[Number(currentExercisePosition)] == undefined) {
+      startConversation(Number(currentExercisePosition));
     }
 
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -112,7 +112,7 @@ export default function Chat() {
         setIsGenerating(false);
         aiInteraction.ending_at = Date.now();
         aiInteraction.ai_response = messages[messages.length - 1].text;
-        registerAIInteraction(currentExercisePosition, aiInteraction);
+        registerAIInteraction(Number(currentExercisePosition), aiInteraction);
 
         TagManager.dataLayer({
           dataLayer: {
@@ -124,7 +124,7 @@ export default function Chat() {
         });
 
         aiInteraction = {};
-        setExerciseMessages(messages, currentExercisePosition);
+        setExerciseMessages(messages, Number(currentExercisePosition));
       }
     });
 
@@ -295,10 +295,9 @@ export default function Chat() {
         imageB64: "",
       },
       conversation: {
-        id: conversationIdsCache[currentExercisePosition],
+        id: conversationIdsCache[Number(currentExercisePosition)],
         purpose: learnpackPurposeId,
         token: token,
-
       },
       breathecode: {
         token: bc_token,
@@ -370,7 +369,7 @@ const Message = ({ type, text, extraClass }: IMessage) => {
   }
 
   const closeChatAndNext = () => {
-    handlePositionChange(currentExercisePosition + 1);
+    handlePositionChange(Number(currentExercisePosition) + 1);
     setOpenedModals({ chat: false });
   };
 

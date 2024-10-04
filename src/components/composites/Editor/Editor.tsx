@@ -3,6 +3,11 @@ import MonacoEditor from "@monaco-editor/react";
 import useStore from "../../../utils/store";
 import { LocalStorage } from "../../../managers/localStorage";
 import "./Editor.css";
+import { svgs } from "../../../assets/svgs";
+import FeedbackButton from "../../sections/header/FeedbackButton";
+import ResetButton from "../../sections/header/ResetButton";
+import BuildButton from "../../sections/header/BuildButton";
+import { useTranslation } from "react-i18next";
 
 interface Tab {
   id: number;
@@ -26,6 +31,8 @@ const getLanguageFromExtension = (fileName: string): string => {
   return languageMap[extension] || "plaintext";
 };
 
+type TEditorStatus = "UNMODIFIED" | "MODIFIED" | "ERROR" | "SUCCESS";
+
 const CodeEditor: React.FC = () => {
   const { editorTabs, getCurrentExercise } = useStore((state) => ({
     editorTabs: state.editorTabs,
@@ -33,6 +40,7 @@ const CodeEditor: React.FC = () => {
   }));
   const [tabs, setTabs] = useState<Tab[]>([...editorTabs]);
   const [theme, setTheme] = useState("light");
+  const [editorStatus, setEditorStatus] = useState<TEditorStatus>("UNMODIFIED");
 
   const addTab = () => {
     const newTab: Tab = {
@@ -52,6 +60,7 @@ const CodeEditor: React.FC = () => {
     const ex = getCurrentExercise();
     const withoutTerminal = newTabs.filter((t) => t.name !== "terminal");
     LocalStorage.setEditorTabs(ex.slug, withoutTerminal);
+    setEditorStatus("MODIFIED");
   };
 
   const removeTab = (id: number, name: string) => {
@@ -124,26 +133,31 @@ const CodeEditor: React.FC = () => {
     }
   };
 
+  const terminalTab = tabs.find((tab) => tab.name === "terminal");
+
+  const filteredTabs = tabs.filter((tab) => tab.name != "terminal");
+
   return (
     <div
       style={{ display: `${tabs.length === 0 ? "none" : "block"}` }}
       className="editor-container"
     >
       <div className="tabs">
-        {tabs.map((tab) => (
+        <button onClick={addTab} className="add-tab">
+          +
+        </button>
+        {filteredTabs.map((tab) => (
           <div key={tab.id} className={`tab ${tab.isActive ? "active" : ""}`}>
             <button onClick={() => handleTabClick(tab.id)}>{tab.name}</button>
             <button
               className="close-tab"
               onClick={() => removeTab(tab.id, tab.name)}
             >
-              x
+              &times;
             </button>
           </div>
         ))}
-        <button onClick={addTab} className="add-tab">
-          +
-        </button>
+
         <div className="theme-selector">
           <select id="theme-select" value={theme} onChange={handleThemeChange}>
             <option value="light">Light</option>
@@ -174,7 +188,45 @@ const CodeEditor: React.FC = () => {
               />
             )
         )}
+        <EditorFooter editorStatus={editorStatus} />
       </div>
+      {terminalTab && (
+        <div className="terminal">
+          <h5>
+            <span>Terminal</span>{" "}
+            <button onClick={() => removeTab(terminalTab.id, terminalTab.name)}>
+              &times;
+            </button>
+          </h5>
+          <pre>{terminalTab.content}</pre>
+        </div>
+      )}
+    </div>
+  );
+};
+
+type EditorFooterProps = {
+  editorStatus: TEditorStatus;
+};
+
+const EditorFooter = ({ editorStatus }: EditorFooterProps) => {
+  const { t } = useTranslation();
+
+  return (
+    <div className={`editor-footer ${editorStatus}`}>
+      {editorStatus === "UNMODIFIED" && (
+        <div className="not-started">
+          <span>{svgs.learnpackLogo}</span>
+          <span>{t("read-instructions")}</span>
+        </div>
+      )}
+      {editorStatus === "MODIFIED" && (
+        <div className="footer-actions">
+          <FeedbackButton direction="up" />
+          <ResetButton />
+          <BuildButton extraClass={"active"} />
+        </div>
+      )}
     </div>
   );
 };

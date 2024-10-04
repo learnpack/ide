@@ -135,7 +135,7 @@ ${tab.name}
       id: "terminal",
       content: terminalContent,
       name: "terminal",
-      isActive: true,
+      isActive: false,
     };
     data.updateEditorTabs(terminalTab);
   }
@@ -217,7 +217,7 @@ ${fileContent}
       id: generateUUID(),
       content: terminalContent,
       name: "terminal",
-      isActive: true,
+      isActive: false,
     };
     data.updateEditorTabs(terminalTab);
   }

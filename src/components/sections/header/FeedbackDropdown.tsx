@@ -7,10 +7,12 @@ import { ENVIRONMENT } from "../../../utils/lib";
 
 interface IFeedbackDropdown {
   toggleFeedbackVisibility: () => void;
+  direction: "up" | "down";
 }
 
 export const FeedbackDropdown = ({
   toggleFeedbackVisibility,
+  direction,
 }: IFeedbackDropdown) => {
   const {
     compilerSocket,
@@ -86,7 +88,7 @@ export const FeedbackDropdown = ({
   };
 
   const openSolutionFile = () => {
-    // TODO: This should open ALL solution files 
+    // TODO: This should open ALL solution files
     const solutionFile = getCurrentExercise().files.find((file: any) =>
       file.name.includes("solution.hide")
     );
@@ -100,13 +102,13 @@ export const FeedbackDropdown = ({
     compilerSocket.emit("open", data);
   };
 
-  const startTour = () => {
-    setOpenedModals({ tutorial: true });
-    toggleFeedbackVisibility();
-  };
+  // const startTour = () => {
+  //   setOpenedModals({ tutorial: true });
+  //   toggleFeedbackVisibility();
+  // };
 
   return (
-    <div id="feedback-dropdown" className="feedback-dropdown">
+    <div id="feedback-dropdown" className={`feedback-dropdown ${direction}`}>
       {
         <SimpleButton
           svg={svgs.testIcon}
@@ -159,11 +161,11 @@ export const FeedbackDropdown = ({
         svg={svgs.fourGeeksIcon}
         action={openLearnpackDocs}
       />
-      <SimpleButton
+      {/* <SimpleButton
         text={t("Take LearnPack tour")}
         svg={svgs.fourGeeksIcon}
         action={startTour}
-      />
+      /> */}
       <p>
         {t("Feedback plays an important role when learning technical skills. ")}
         <OpenWindowLink

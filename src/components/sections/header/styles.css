@@ -26,6 +26,11 @@
   gap: 3px;
   align-items: center;
 }
+.navbar-component > section > button,
+.navbar-component > section > div {
+  border: 1px solid var(--color-active);
+  border-radius: 5px;
+}
 
 .lesson-options {
   display: flex;
@@ -48,8 +53,6 @@
   cursor: not-allowed;
 }
 
-
-
 @keyframes scale-navbar {
   from {
   }
@@ -61,9 +64,8 @@
 
 .feedback-dropdown {
   position: absolute;
-  top: 103%;
-  left: -75%;
-  width: max-content;
+
+  width: 250px !important;
   padding: 2px;
   border: 1px solid var(--color-active);
   background-color: white;
@@ -72,9 +74,17 @@
   font-size: var(--font-size-small);
   display: flex;
   gap: 5px;
-  align-items: baseline;
-  z-index: 1;
+  align-items: baseline !important;
+  z-index: 4;
   flex-direction: column;
+}
+.feedback-dropdown.up {
+  bottom: 103%;
+  left: 10%;
+}
+.feedback-dropdown.down {
+  top: 103%;
+  left: -75%;
 }
 
 .feedback-dropdown > * {

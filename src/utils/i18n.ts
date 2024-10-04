@@ -5,12 +5,13 @@ i18n.use(initReactI18next).init({
   resources: {
     en: {
       translation: {
-        loginMessage:
+        "login-message":
           "Log in to 4Geeks to get performance statistics, access to our AI mentor, and many other benefits.",
         Run: "Run",
         "Run tests": "Run tests",
         "Running...": "Running...",
         "Login to use AI feedback": "Login to use AI feedback",
+        "login": "Login",
         "Get help from AI": "Rigobot AI Mentor",
         "To use the AI services you must login with your 4geeks account, and you have been accepted Rigobot":
           "To use the AI services you must login with your 4geeks account, and you have been accepted Rigobot",
@@ -21,7 +22,7 @@ i18n.use(initReactI18next).init({
         submit: "Sign in",
         "Review model solution": "Review model solution",
         "Model solution not available": "Model solution not available",
-        Reset: "Reset",
+        Reset: "Start over",
         "not available": "not available",
         "About LearnPack": "About LearnPack",
         "Feedback plays an important role when learning technical skills. ":
@@ -69,10 +70,13 @@ i18n.use(initReactI18next).init({
         "incremental-test-alert":
           "You must successfully complete and test this step before continuing to the next one. Carefully read the instructions and ask for feedback if you need any help.",
           "agent-mismatch-error": "These exercises were designed to run in a different agent",
+          "instructions": "Instructions",
+          "read-instructions": "Read the instructions and fill in your code to complete the exercise."
       },
     },
     es: {
       translation: {
+        "login": "Inicia sesión",
         Run: "Ejecutar",
         "Running...": "Ejecutando...",
         "Run tests": "Ejecutar tests",
@@ -141,12 +145,14 @@ i18n.use(initReactI18next).init({
           "¡Si prefieres, puedes cambiar el idioma!",
         "This is a quick tutorial to help you get started. Click next to continue.":
           "Este es un tutorial rápido para ayudarte a comenzar. Haz clic en siguiente para continuar.",
-        loginMessage:
+        "login-message":
           "Inicia session en 4Geeks para obtener estadisticas de tu desempeño, acceso al nuestro mentor AI y muchos otros beneficios.",
         skip: "Saltar",
         "incremental-test-alert":
           "Debes completar y probar con éxito este paso antes de continuar con el siguiente. Lee cuidadosamente las instrucciones y pide retroalimentación si necesitas ayuda.",
           "agent-mismatch-error": "Estos ejercicios fueron diseñados para ejecutarse en un agente diferente",
+          "instructions": "Instrucciones",
+          "read-instructions": "Lee las instrucciones y rellena tu codigo para compltar el ejercicio"
       },
     },
   },

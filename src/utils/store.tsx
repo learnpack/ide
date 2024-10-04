@@ -1,15 +1,12 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import io from "socket.io-client";
 import TagManager from "react-gtm-module";
 import { create } from "zustand";
 import {
-  convertMarkdownToHTML,
   changeSidebarVisibility,
-  getExercise,
-  getFileContent,
   startChat,
   disconnected,
-  onConnectCli,
   getHost,
   getParamsObject,
   replaceSlot,
@@ -18,12 +15,11 @@ import {
   ENVIRONMENT,
   getEnvironment,
 } from "./lib";
-import Socket from "../managers/socket";
-import { IStore, TDialog } from "./storeTypes";
+import { IStore } from "./storeTypes";
 import toast from "react-hot-toast";
 import { getStatus } from "../managers/socket";
 import { DEV_MODE, RIGOBOT_HOST } from "./lib";
-import { EventProxy, TEnvironment } from "../managers/EventProxy";
+import { EventProxy } from "../managers/EventProxy";
 import { FetchManager } from "../managers/fetchManager";
 import { LocalStorage } from "../managers/localStorage";
 
@@ -33,7 +29,7 @@ type TFile = {
 };
 
 class MissingRigobotAccountError extends Error {
-  constructor(message) {
+  constructor(message: string) {
     super(message);
     this.name = "MissingRigobotAccountError";
   }
@@ -59,12 +55,14 @@ const useStore = create<IStore>((set, get) => ({
     us: "en",
     es: "sp",
   },
-  showTutorial: true,
   learnpackPurposeId: defaultParams.purpose || 26,
   exercises: [],
   currentContent: "",
-  targetButtonForFeedback: "feedback",
-  dialogData: {},
+  targetButtonForFeedback: "feedback" as "feedback",
+  dialogData: {
+    message: "",
+    format: "md" as "md",
+  },
   chatSocket: chatSocket,
   currentExercisePosition: defaultParams.currentExercise || 0,
   chatInitialMessage:
@@ -96,6 +94,8 @@ const useStore = create<IStore>((set, get) => ({
       editor: {
         agent: "",
       },
+      title: {},
+      warnings: {},
     },
   },
   videoTutorial: "",
@@ -122,19 +122,17 @@ const useStore = create<IStore>((set, get) => ({
       fetchExercises,
       fetchReadme,
       checkParams,
-      startConversation,
-      token,
       checkLoggedStatus,
-      currentExercisePosition,
       setListeners,
       figureEnvironment,
     } = get();
     figureEnvironment().then(() =>
       fetchExercises()
+        // @ts-ignore
         .then(() => {
           return checkParams({ justReturn: false });
         })
-        .then((params) => {
+        .then((params: any) => {
           if (Object.keys(params).length === 0) {
             fetchReadme();
           }
@@ -155,10 +153,9 @@ const useStore = create<IStore>((set, get) => ({
       setFeedbackButtonProps,
       setOpenedModals,
       setBuildButtonPrompt,
-      editorTabs,
     } = get();
 
-    let debounceSuccess = debounce((data: any) => {
+    const debounceSuccess = debounce((data: any) => {
       const stdout = removeSpecialCharacters(data.logs[0]);
       setTestResult("successful", stdout);
       toastFromStatus("testing-success");
@@ -170,7 +167,7 @@ const useStore = create<IStore>((set, get) => ({
       }
     }, 100);
 
-    let debounceError = debounce((data: any) => {
+    const debounceError = debounce((data: any) => {
       const stdout = removeSpecialCharacters(data.logs[0]);
       setTestResult("failed", stdout);
       toastFromStatus("testing-error");
@@ -184,23 +181,28 @@ const useStore = create<IStore>((set, get) => ({
 
     compilerSocket.onStatus("testing-success", debounceSuccess);
     compilerSocket.onStatus("testing-error", debounceError);
-    compilerSocket.onStatus("open_window", (data) => {
+    compilerSocket.onStatus("open_window", () => {
       toastFromStatus("open_window");
     });
-    compilerSocket.on("dialog", (data: TDialog) => {
+    compilerSocket.on("dialog", (data: any) => {
       set({ dialogData: data.data });
       setOpenedModals({ dialog: true });
     });
   },
 
   figureEnvironment: async () => {
+    console.log("Trying to figure out environment!");
+
     const env = await getEnvironment();
+    console.log("Environment detected!", env);
     set({ compilerSocket: EventProxy.getEmitter(env) });
     FetchManager.init(env, HOST);
+    return { message: "Environment figured out!" };
   },
 
   getCurrentExercise: () => {
     const { exercises, currentExercisePosition } = get();
+    // @ts-ignore
     return exercises[currentExercisePosition];
   },
 
@@ -229,6 +231,7 @@ const useStore = create<IStore>((set, get) => ({
 
   setOpenedModals: (modals) => {
     const { openedModals } = get();
+    // @ts-ignore
     set({ openedModals: { ...openedModals, ...modals } });
   },
 
@@ -244,8 +247,8 @@ const useStore = create<IStore>((set, get) => ({
 
       set({ token: json.rigoToken });
       set({ bc_token: json.payload.token });
-      if (opts.startConversation) {
-        startConversation(currentExercisePosition);
+      if (opts && opts.startConversation) {
+        startConversation(Number(currentExercisePosition));
       }
     } catch (err) {
       set({ token: "" });
@@ -253,14 +256,8 @@ const useStore = create<IStore>((set, get) => ({
     }
   },
   getContextFilesContent: async () => {
-    const {
-      getCurrentExercise,
-      currentContent,
-      isBuildable,
-      isTesteable,
-      configObject,
-      language,
-    } = get();
+    const { getCurrentExercise, currentContent, configObject, language } =
+      get();
     let context = "";
 
     const getExtractor = (mode = "isolated") => {
@@ -280,22 +277,22 @@ const useStore = create<IStore>((set, get) => ({
           );
         },
       };
-
+      // @ts-ignore
       return modeToExtractor[mode];
     };
 
-    let currentExercise = getCurrentExercise();
+    const currentExercise = getCurrentExercise();
     const slug = currentExercise.slug;
     let mode = configObject.config.grading;
 
     if (!["incremental", "isolated"].includes(mode)) mode = "incremental";
 
-    let extractor = getExtractor(mode);
+    const extractor = getExtractor(mode);
 
-    let contextFiles = currentExercise.files.filter(extractor);
-
-    let filePromises = contextFiles.map(async (file, index) => {
-      let fileContent = await FetchManager.getFileContent(slug, file.name, {
+    const contextFiles = currentExercise.files.filter(extractor);
+    // @ts-ignore
+    const filePromises = contextFiles.map(async (file) => {
+      const fileContent = await FetchManager.getFileContent(slug, file.name, {
         cached: true,
       });
 
@@ -325,7 +322,7 @@ ${currentContent}
   },
 
   fetchExercises: async () => {
-    const { getLessonTitle, fetchReadme, user_id, setOpenedModals } = get();
+    const { user_id, setOpenedModals } = get();
 
     try {
       const config = await FetchManager.getExercises();
@@ -365,14 +362,14 @@ ${currentContent}
     }
   },
   checkParams: ({ justReturn }) => {
-    const { setLanguage, setPosition, currentExercisePosition, language } =
-      get();
+    const { setLanguage, setPosition, language } = get();
 
     let params = window.location.hash.substring(1);
     const paramsUrlSeaerch = new URLSearchParams(params);
 
     let paramsObject = {};
     for (const [key, value] of paramsUrlSeaerch.entries()) {
+      // @ts-ignore
       paramsObject[key] = value;
     }
 
@@ -380,7 +377,9 @@ ${currentContent}
       return paramsObject;
     }
 
+    // @ts-ignore
     const languageParam = paramsObject.language;
+    // @ts-ignore
     const position = paramsObject.currentExercise;
 
     if (languageParam) {
@@ -393,6 +392,7 @@ ${currentContent}
 
     return paramsObject;
   },
+  // @ts-ignore
   fetchSingleExerciseInfo: async (index) => {
     const { exercises } = get();
 
@@ -414,7 +414,7 @@ ${currentContent}
 
     if (exercise.entry) isBuildable = true;
     if (!exercise.language) isBuildable = false;
-
+    // @ts-ignore
     const solutionFile = exercise.files.find((file) =>
       file.name.includes("solution.hide")
     );
@@ -443,8 +443,8 @@ ${currentContent}
     } = get();
 
     let params = checkParams({ justReturn: true });
-
     let hash = `currentExercise=${newPosition}${
+      // @ts-ignore
       params.language ? "&language=" + params.language : ""
     }`;
 
@@ -497,10 +497,9 @@ ${currentContent}
       conversationId: conversationId,
     });
   },
-
+  // @ts-ignore
   loginToRigo: async (loginInfo) => {
     const {
-      host,
       setToken,
       startConversation,
       currentExercisePosition,
@@ -530,6 +529,7 @@ ${currentContent}
         return false;
       }
     }
+    // @ts-ignore
     startConversation(currentExercisePosition);
     setOpenedModals({ login: false, chat: true });
     return true;
@@ -558,7 +558,7 @@ ${currentContent}
       },
       body: JSON.stringify(payload),
     };
-    const resServer = await fetch(`${HOST}/set-rigobot-token`, config);
+    await fetch(`${HOST}/set-rigobot-token`, config);
     setOpenedModals({ chat: true });
   },
 
@@ -574,26 +574,47 @@ ${currentContent}
     const { getCurrentExercise, editorTabs } = get();
 
     const exercise = getCurrentExercise();
+    // @ts-ignore
     const notHidden = exercise.files.filter((f) => !f.hidden);
     let editorTabsCopy = [...editorTabs];
 
-    const terminalIndex = editorTabsCopy.findIndex(
-      (t) => t.name === "terminal"
-    );
-
     if (newTab) {
+      // @ts-ignore
       const tabExists = editorTabsCopy.some((tab) => tab.name === newTab.name);
+
       if (tabExists) {
         const tabIndex = editorTabsCopy.findIndex(
+          // @ts-ignore
           (t) => t.name === newTab.name
         );
-        editorTabsCopy[tabIndex] = { ...newTab, isActive: true };
+        editorTabsCopy[tabIndex] = {
+          // @ts-ignore
+          ...newTab,
+          // @ts-ignore
+          isActive: newTab.name === "terminal" ? false : true,
+        };
       } else {
-        editorTabsCopy = editorTabsCopy.map((tab) => ({
-          ...tab,
-          isActive: false,
-        }));
-        editorTabsCopy.push({ ...newTab, isActive: true });
+        // @ts-ignore
+        if (newTab.name === "terminal") {
+          editorTabsCopy.push({
+            // @ts-ignore
+            ...newTab,
+            // @ts-ignore
+            isActive: false,
+          });
+        } else {
+          editorTabsCopy = editorTabsCopy.map((tab) => ({
+            ...tab,
+            isActive: false,
+          }));
+
+          editorTabsCopy.push({
+            // @ts-ignore
+            ...newTab,
+            // @ts-ignore
+            isActive: true,
+          });
+        }
       }
     }
 
@@ -612,7 +633,7 @@ ${currentContent}
           id: index,
           content: content,
           name: element.name,
-          isActive: index === 0 && !newTab, // Only the first file is active if no newTab
+          isActive: index === 0 && !newTab,
         };
 
         if (!tabExists) {
@@ -639,13 +660,11 @@ ${currentContent}
       language,
       exercises,
       currentExercisePosition,
-      setShowVideoTutorial,
       fetchSingleExerciseInfo,
       configObject,
-      openLink,
       updateEditorTabs,
     } = get();
-
+    // @ts-ignore
     const slug = exercises[currentExercisePosition]?.slug;
     if (!slug) {
       return;
@@ -666,12 +685,14 @@ ${currentContent}
     }
 
     let readme = replaceSlot(exercise.body, "{{publicUrl}}", HOST);
-
+    // @ts-ignore
     if (typeof configObject.config.variables === "object") {
+      // @ts-ignore
       for (let v in configObject.config.variables) {
         readme = replaceSlot(
           readme,
           `{{${v}}}`,
+          // @ts-ignore
           configObject.config.variables[v]
         );
       }
@@ -679,7 +700,7 @@ ${currentContent}
 
     set({ currentContent: readme });
     set({ editorTabs: [] });
-
+    // @ts-ignore
     fetchSingleExerciseInfo(currentExercisePosition);
     updateEditorTabs();
   },
@@ -694,6 +715,7 @@ ${currentContent}
 
     let params = checkParams({ justReturn: true });
     let hash = `language=${language}${
+      // @ts-ignore
       params.currentExercise ? "&currentExercise=" + params.currentExercise : ""
     }`;
     window.location.hash = hash;
@@ -735,11 +757,12 @@ ${currentContent}
 
     let letPass = true;
 
-    if (desiredPosition > currentExercisePosition) {
+    if (desiredPosition > Number(currentExercisePosition)) {
       letPass =
         !isTesteable ||
         gradingMode === "isolated" ||
         (gradingMode === "incremental" &&
+          // @ts-ignore
           exercises[currentExercisePosition].done);
     }
 
@@ -766,9 +789,12 @@ ${currentContent}
   },
 
   setTestResult: (status, logs) => {
-    const { exercises } = get();
+    console.log(logs, "SET TEST RESULT");
+
+    const { exercises, currentExercisePosition } = get();
     const copy = [...exercises];
-    copy[get().currentExercisePosition].done = status === "successful";
+
+    copy[Number(currentExercisePosition)].done = status === "successful";
     set({ exercises: copy });
   },
 
@@ -803,7 +829,7 @@ ${currentContent}
       compilerSocket,
       getCurrentExercise,
       setFeedbackButtonProps,
-      isTesteable,
+      // isTesteable,
       toastFromStatus,
       token,
       updateEditorTabs,
@@ -840,7 +866,7 @@ ${currentContent}
   // Leave this empty for development purposes
   displayTestButton: DEV_MODE,
   test: async () => {
-    const { openTerminal, getContextFilesContent } = get();
+    // const { openTerminal, getContextFilesContent } = get();
     // disconnected();
     toast.success("Test button pressed, implement something");
     await FetchManager.logout();

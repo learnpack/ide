@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import "./App.css";
 import "./index.css";
 import "./components.css";
@@ -8,19 +9,54 @@ import { Toaster } from "react-hot-toast";
 import { Header } from "./components/sections/header";
 import { ModalsContainer } from "./components/sections/modals";
 import { ShortcutsListener } from "./components/composites/ShortcutListener";
+import { NewHeader } from "./components/Header/NewHeader";
+import { Container } from "./components/Container/Container";
+import { ENVIRONMENT } from "./utils/lib";
 
 export default function Home() {
+  const [environment, setEnvironment] = useState(ENVIRONMENT); // Initialize state
+
+  useEffect(() => {
+    const handleEnvironmentChange = (event: any) => {
+      setEnvironment(event.detail.environment); 
+    };
+
+    // Add event listener
+    document.addEventListener("environment-change", handleEnvironmentChange);
+
+    // Cleanup listener on component unmount
+    return () => {
+      document.removeEventListener(
+        "environment-change",
+        handleEnvironmentChange
+      );
+    };
+  }, []); // Empty dependency array to run once on mount
+
+  useEffect(() => {
+    console.log("ENVIRONMENT JUST CHANGED");
+    console.log(environment); // Log the updated environment
+  }, [environment]); // Run when environment changes
+
   return (
     <main id="main-container" className="">
       <ShortcutsListener>
         <ModalsContainer />
         <SocketHandler />
-        <Header />
-        
-        <LessonContainer />
+        {environment === "localhost" && (
+          <>
+            <Header />
+            <LessonContainer />
+          </>
+        )}
+        {environment === "localStorage" && (
+          <>
+            <NewHeader />
+            <Container />
+          </>
+        )}
       </ShortcutsListener>
       <Toaster />
-      
     </main>
   );
 }

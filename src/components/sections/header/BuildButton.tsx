@@ -19,7 +19,11 @@ function debounce(func: any, wait: any) {
   };
 }
 
-export default function BuildButton() {
+export default function BuildButton({
+  extraClass = "",
+}: {
+  extraClass: string;
+}) {
   const { t } = useTranslation();
   const {
     currentExercisePosition,
@@ -86,7 +90,7 @@ export default function BuildButton() {
       id="build-button"
       text={t(buildbuttonText.text)}
       svg={svgs.buildIcon}
-      extraClass={`pill bg-blue ${buildbuttonText.className}`}
+      extraClass={`pill bg-blue ${buildbuttonText.className} ${extraClass}`}
       action={() => {
         changeToTest ? runTests() : build(t("Running..."));
       }}

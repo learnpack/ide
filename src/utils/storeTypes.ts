@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 interface IBuildProps {
   text: string;
   className: string;
@@ -78,13 +79,12 @@ type TTranslations = {
   testButtonRunning: string;
 };
 export interface IStore {
-  showTutorial: any;
   exercises: any[];
   chatInitialMessage: string;
   currentContent: string;
-  currentExercisePosition: number;
+  currentExercisePosition: number | string;
   language: string;
-  learnpackPurposeId: number;
+  learnpackPurposeId: number | string;
   status: string;
   dialogData: TDialog;
   lessonTitle: string;
@@ -154,6 +154,7 @@ export interface IStore {
   registerAIInteraction: (setPosition: number, interaction: object) => void;
   displayTestButton: boolean;
   test: () => void;
+  figureEnvironment: () => Promise<object>;
 }
 
 type TEditorTab = {

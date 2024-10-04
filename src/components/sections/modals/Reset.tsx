@@ -11,13 +11,13 @@ export const ResetModal = () => {
     exercises,
     currentExercisePosition,
     setOpenedModals,
-    updateEditorTabs
+    updateEditorTabs,
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     exercises: state.exercises,
     currentExercisePosition: state.currentExercisePosition,
     setOpenedModals: state.setOpenedModals,
-    updateEditorTabs: state.updateEditorTabs
+    updateEditorTabs: state.updateEditorTabs,
   }));
 
   useEffect(() => {
@@ -30,8 +30,8 @@ export const ResetModal = () => {
 
   const handleReset = () => {
     const data = {
-      exerciseSlug: exercises[currentExercisePosition].slug,
-      updateEditorTabs: updateEditorTabs
+      exerciseSlug: exercises[Number(currentExercisePosition)].slug,
+      updateEditorTabs: updateEditorTabs,
     };
 
     compilerSocket.emit("reset", data);

@@ -1,0 +1,22 @@
+.container {
+  display: flex;
+  gap: 8px;
+  background-color: #f9f9f9;
+  padding: 10px;
+}
+
+.container > section {
+  padding: 8px;
+  width: 50%;
+  height: 100%;
+}
+
+.container > section:first-child {
+  background-color: white;
+}
+
+.container > section > h3 {
+  border-bottom: 3px solid var(--color-active);
+  text-align: center;
+  font-family: monospace;
+}
