@@ -115,7 +115,7 @@ export default function LoginModal() {
               <OpenWindowLink
                 callback={sendAnalytics}
                 text={t("Sign up here!")}
-                href="https://4geeks.com/pricing"
+                href="https://4geeks.com/pricing?plan=basic"
               />{" "}
             </span>
           </form>
