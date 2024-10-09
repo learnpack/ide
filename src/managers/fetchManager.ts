@@ -146,6 +146,31 @@ export const FetchManager = {
 
     return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
   },
+  loginWithToken: async (breathecodeToken: string) => {
+    const user = await validateUser(breathecodeToken);
+
+    if (!user) {
+      throw Error("Unable to login with provided credentials");
+    }
+
+    const rigoUrl = `${RIGOBOT_HOST}/v1/auth/me/token?breathecode_token=${breathecodeToken}`;
+    const rigoResp = await fetch(rigoUrl);
+
+    if (!rigoResp.ok) {
+      throw Error("Unable to obtain Rigobot token");
+    }
+
+    const rigobotJson = await rigoResp.json();
+    const returns = { ...user, rigobot: { ...rigobotJson } };
+    LocalStorage.set("session", returns);
+
+    const loggedFormat = {
+      payload: { ...returns },
+      rigoToken: returns.rigobot.key,
+    };
+
+    return loggedFormat;
+  },
 
   logout: async () => {
     const methods: TMethods = {

@@ -122,7 +122,7 @@ export const getStatus = function (status = "initializing", language = "us") {
   const good = (lang = "us") => {
     const goodMessages = messages[lang].goodMessages;
     return `${getGoodIcon()} ${
-        goodMessages[Math.floor(Math.random() * goodMessages.length)]
+      goodMessages[Math.floor(Math.random() * goodMessages.length)]
     }`;
   };
   const bad = (lang = "us") => {
@@ -210,7 +210,9 @@ const scopes = {}; // Add this line to store created scopes
 export default {
   socket: null,
   start: function (host, onDisconnect: any = null, onConnect: any = null) {
-    this.socket = io.connect(host);
+    this.socket = io.connect(host, {
+      reconnectionAttempts: 10,
+    });
 
     if (this.socket) {
       this.socket.on("connect", () => onConnect && onConnect());

@@ -49,6 +49,8 @@
   border: 8px solid #a5d9f8;
   margin-top: -8px;
   padding: 8px;
+  max-height: 250px;
+  overflow-y: auto;
 }
 
 .terminal > h5 {
@@ -61,7 +63,6 @@
 .terminal > pre {
   background-color: white;
   border: none;
-  max-height: 300px;
 }
 .editor .editor-footer {
   background-color: white;

@@ -191,10 +191,7 @@ const useStore = create<IStore>((set, get) => ({
   },
 
   figureEnvironment: async () => {
-    console.log("Trying to figure out environment!");
-
     const env = await getEnvironment();
-    console.log("Environment detected!", env);
     set({ compilerSocket: EventProxy.getEmitter(env) });
     FetchManager.init(env, HOST);
     return { message: "Environment figured out!" };
@@ -239,18 +236,34 @@ const useStore = create<IStore>((set, get) => ({
     set({ token: newToken });
   },
   checkLoggedStatus: async (opts) => {
-    const { startConversation, currentExercisePosition, setOpenedModals } =
-      get();
+    const {
+      startConversation,
+      currentExercisePosition,
+      setOpenedModals,
+      checkParams,
+    } = get();
+
+    const params = checkParams({ justReturn: true });
 
     try {
-      const json = await FetchManager.checkLoggedStatus();
+      // @ts-ignore
+      if (params.token) {
+        // @ts-ignore
+        const json = await FetchManager.loginWithToken(params.token);
+        set({ token: json.rigoToken });
+        set({ bc_token: json.payload.token });
+      } else {
+        const json = await FetchManager.checkLoggedStatus();
+        set({ token: json.rigoToken });
+        set({ bc_token: json.payload.token });
+      }
 
-      set({ token: json.rigoToken });
-      set({ bc_token: json.payload.token });
       if (opts && opts.startConversation) {
         startConversation(Number(currentExercisePosition));
       }
     } catch (err) {
+      console.log("SOME BAD ERROR HAPPENED");
+      
       set({ token: "" });
       setOpenedModals({ login: true });
     }
@@ -365,10 +378,10 @@ ${currentContent}
     const { setLanguage, setPosition, language } = get();
 
     let params = window.location.hash.substring(1);
-    const paramsUrlSeaerch = new URLSearchParams(params);
+    const paramsUrlSearch = new URLSearchParams(params);
 
     let paramsObject = {};
-    for (const [key, value] of paramsUrlSeaerch.entries()) {
+    for (const [key, value] of paramsUrlSearch.entries()) {
       // @ts-ignore
       paramsObject[key] = value;
     }
@@ -443,10 +456,16 @@ ${currentContent}
     } = get();
 
     let params = checkParams({ justReturn: true });
+
+    console.log(params, "PARAMS WHEN SETTING POSITION");
+
     let hash = `currentExercise=${newPosition}${
       // @ts-ignore
       params.language ? "&language=" + params.language : ""
-    }`;
+      // @ts-ignore
+    }${params.token ? "&token=" + params.token : ""}`;
+
+    console.log(hash, "NEW HASH");
 
     window.location.hash = hash;
 
@@ -717,7 +736,11 @@ ${currentContent}
     let hash = `language=${language}${
       // @ts-ignore
       params.currentExercise ? "&currentExercise=" + params.currentExercise : ""
+    }${
+      // @ts-ignore
+      params.token ? "&token=" + params.token : ""
     }`;
+
     window.location.hash = hash;
 
     if (fetchExercise) {

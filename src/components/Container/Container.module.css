@@ -3,16 +3,37 @@
   gap: 8px;
   background-color: #f9f9f9;
   padding: 10px;
+  flex-wrap: wrap;
 }
 
 .container > section {
   padding: 8px;
-  width: 50%;
   height: 100%;
+  width: 100%;
+}
+
+@media only screen and (min-width: 768px) {
+  /* Styles for devices that are not phones */
+  .container {
+    display: flex;
+    gap: 8px;
+    flex-wrap: nowrap;
+    padding: 10px;
+  }
+
+  .container > section {
+    padding: 8px;
+    max-height: 80vh;
+    width: 50%;
+    overflow: auto;
+  }
 }
 
 .container > section:first-child {
   background-color: white;
+}
+.container > section:only-child {
+  width: 100%;
 }
 
 .container > section > h3 {

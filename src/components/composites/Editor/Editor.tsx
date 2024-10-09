@@ -140,7 +140,7 @@ const CodeEditor: React.FC = () => {
   return (
     <div
       style={{ display: `${tabs.length === 0 ? "none" : "block"}` }}
-      className="editor-container"
+      
     >
       <div className="tabs">
         <button onClick={addTab} className="add-tab">
@@ -179,6 +179,9 @@ const CodeEditor: React.FC = () => {
                 value={tab.content}
                 onChange={(value) => updateContent(tab.id, value || "")}
                 options={{
+                  minimap: {
+                    enabled: false
+                  },
                   fontSize: 12,
                   fontFamily: '"Fira code", "Fira Mono", monospace',
                   readOnly:

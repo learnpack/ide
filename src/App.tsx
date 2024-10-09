@@ -18,7 +18,7 @@ export default function Home() {
 
   useEffect(() => {
     const handleEnvironmentChange = (event: any) => {
-      setEnvironment(event.detail.environment); 
+      setEnvironment(event.detail.environment);
     };
 
     // Add event listener
@@ -31,12 +31,7 @@ export default function Home() {
         handleEnvironmentChange
       );
     };
-  }, []); // Empty dependency array to run once on mount
-
-  useEffect(() => {
-    console.log("ENVIRONMENT JUST CHANGED");
-    console.log(environment); // Log the updated environment
-  }, [environment]); // Run when environment changes
+  }, []);
 
   return (
     <main id="main-container" className="">
