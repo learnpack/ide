@@ -212,6 +212,9 @@ form input {
 .bg-success {
   background-color: var(--color-success) !important;
 }
+.bg-grey, .bg-gray {
+  background-color: var(--bg-color-gray);
+}
 
 .dropdown {
   display: flex;
@@ -300,4 +303,11 @@ form input {
   100% {
     opacity: 1;
   }
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+.justify-around {
+  justify-content: space-around;
 }

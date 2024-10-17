@@ -11,7 +11,7 @@ i18n.use(initReactI18next).init({
         "Run tests": "Run tests",
         "Running...": "Running...",
         "Login to use AI feedback": "Login to use AI feedback",
-        "login": "Login",
+        login: "Login",
         "Get help from AI": "Rigobot AI Mentor",
         "To use the AI services you must login with your 4geeks account, and you have been accepted Rigobot":
           "To use the AI services you must login with your 4geeks account, and you have been accepted Rigobot",
@@ -69,14 +69,22 @@ i18n.use(initReactI18next).init({
         skip: "Skip",
         "incremental-test-alert":
           "You must successfully complete and test this step before continuing to the next one. Carefully read the instructions and ask for feedback if you need any help.",
-          "agent-mismatch-error": "These exercises were designed to run in a different agent",
-          "instructions": "Instructions",
-          "read-instructions": "Read the instructions and fill in your code to complete the exercise."
+        "agent-mismatch-error":
+          "These exercises were designed to run in a different agent",
+        instructions: "Instructions",
+        "read-instructions":
+          "Read the instructions and fill in your code to complete the exercise.",
+        "prev-session":
+          "You have a session opened in another place, do you want to continue your progress here or start from scratch?",
+        "continue-here": "Continue here",
+        "start-again": "Start again",
+        "we-got-you-covered": "We got you covered",
+        "please-select-option": "Please select an option"
       },
     },
     es: {
       translation: {
-        "login": "Inicia sesión",
+        login: "Inicia sesión",
         Run: "Ejecutar",
         "Running...": "Ejecutando...",
         "Run tests": "Ejecutar tests",
@@ -150,9 +158,17 @@ i18n.use(initReactI18next).init({
         skip: "Saltar",
         "incremental-test-alert":
           "Debes completar y probar con éxito este paso antes de continuar con el siguiente. Lee cuidadosamente las instrucciones y pide retroalimentación si necesitas ayuda.",
-          "agent-mismatch-error": "Estos ejercicios fueron diseñados para ejecutarse en un agente diferente",
-          "instructions": "Instrucciones",
-          "read-instructions": "Lee las instrucciones y rellena tu codigo para compltar el ejercicio"
+        "agent-mismatch-error":
+          "Estos ejercicios fueron diseñados para ejecutarse en un agente diferente",
+        instructions: "Instrucciones",
+        "read-instructions":
+          "Lee las instrucciones y rellena tu codigo para compltar el ejercicio",
+        "prev-session":
+          "Tienes una sesión abierta en otro lugar, ¿quieres continuar con tu progreso acá o empezar desde cero?",
+        "continue-here": "Seguir acá",
+        "start-again": "Empezar de nuevo",
+        "we-got-you-covered": "Te tenemos cubierto",
+        "please-select-option": "Por favor selecciona una opción"
       },
     },
   },

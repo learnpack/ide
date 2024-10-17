@@ -1,3 +1,5 @@
+import { Tab } from "../types/editor";
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 interface IBuildProps {
   text: string;
@@ -13,6 +15,7 @@ type TTitle = {
 };
 
 interface IConfig {
+  slug: string;
   title: TTitle;
   intro: any;
   editor: any;
@@ -78,6 +81,10 @@ type TTranslations = {
   testButtonFailed: string;
   testButtonRunning: string;
 };
+
+type TSessionActionsOpts = {
+  action: "new" | "continue";
+};
 export interface IStore {
   exercises: any[];
   chatInitialMessage: string;
@@ -112,6 +119,7 @@ export interface IStore {
   conversationIdsCache: TNumberCache;
   openedModals: TOpenedModals;
   lastTestResult: TTestResult;
+
   translations: TTranslations;
   shouldBeTested: boolean;
   targetButtonForFeedback: "build" | "feedback";
@@ -146,13 +154,17 @@ export interface IStore {
   build: (buildText: string) => void;
   setPosition: (position: number) => void;
   fetchReadme: () => void;
+  updateFileContent: (exerciseSlug: string, tab: Tab) => void;
   toggleSidebar: () => void;
   toastFromStatus: (status: string) => void;
   setShouldBeTested: (value: boolean) => void;
   openTerminal: () => void;
   runExerciseTests: (opts?: TRunExerciseTestsOptions) => void;
   registerAIInteraction: (setPosition: number, interaction: object) => void;
+  sessionActions: (opts: TSessionActionsOpts) => void;
   displayTestButton: boolean;
+  getOrCreateActiveSession: () => void;
+  updateDBSession: () => void;
   test: () => void;
   figureEnvironment: () => Promise<object>;
 }

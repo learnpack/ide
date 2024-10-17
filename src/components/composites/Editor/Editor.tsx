@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import MonacoEditor from "@monaco-editor/react";
 import useStore from "../../../utils/store";
 import { LocalStorage } from "../../../managers/localStorage";
@@ -8,13 +8,10 @@ import FeedbackButton from "../../sections/header/FeedbackButton";
 import ResetButton from "../../sections/header/ResetButton";
 import BuildButton from "../../sections/header/BuildButton";
 import { useTranslation } from "react-i18next";
+import { debounce } from "../../../utils/lib";
+import { Tab } from "../../../types/editor"
 
-interface Tab {
-  id: number;
-  name: string;
-  content: string;
-  isActive: boolean; // New property
-}
+
 
 const EDITOR_THEME_KEY = "editor_theme";
 
@@ -34,13 +31,22 @@ const getLanguageFromExtension = (fileName: string): string => {
 type TEditorStatus = "UNMODIFIED" | "MODIFIED" | "ERROR" | "SUCCESS";
 
 const CodeEditor: React.FC = () => {
-  const { editorTabs, getCurrentExercise } = useStore((state) => ({
+  const { editorTabs, getCurrentExercise, updateFileContent } = useStore((state) => ({
     editorTabs: state.editorTabs,
     getCurrentExercise: state.getCurrentExercise,
+    updateFileContent: state.updateFileContent
   }));
   const [tabs, setTabs] = useState<Tab[]>([...editorTabs]);
   const [theme, setTheme] = useState("light");
   const [editorStatus, setEditorStatus] = useState<TEditorStatus>("UNMODIFIED");
+
+  const debouncedStore = useCallback(
+    debounce((tab: Tab, exerciseSlug: string) => {
+      console.log(tab, "TAB RECEIVED AFTER WAIT");
+      updateFileContent(exerciseSlug, tab)
+    }, 2000),
+    []
+  );
 
   const addTab = () => {
     const newTab: Tab = {
@@ -57,10 +63,13 @@ const CodeEditor: React.FC = () => {
       tab.id === id ? { ...tab, content } : tab
     );
     setTabs(newTabs);
+    console.log(newTabs);
+
     const ex = getCurrentExercise();
     const withoutTerminal = newTabs.filter((t) => t.name !== "terminal");
     LocalStorage.setEditorTabs(ex.slug, withoutTerminal);
     setEditorStatus("MODIFIED");
+    debouncedStore(newTabs.find((t) => t.id === id), ex.slug);
   };
 
   const removeTab = (id: number, name: string) => {
@@ -138,10 +147,7 @@ const CodeEditor: React.FC = () => {
   const filteredTabs = tabs.filter((tab) => tab.name != "terminal");
 
   return (
-    <div
-      style={{ display: `${tabs.length === 0 ? "none" : "block"}` }}
-      
-    >
+    <div style={{ display: `${tabs.length === 0 ? "none" : "block"}` }}>
       <div className="tabs">
         <button onClick={addTab} className="add-tab">
           +
@@ -180,7 +186,7 @@ const CodeEditor: React.FC = () => {
                 onChange={(value) => updateContent(tab.id, value || "")}
                 options={{
                   minimap: {
-                    enabled: false
+                    enabled: false,
                   },
                   fontSize: 12,
                   fontFamily: '"Fira code", "Fira Mono", monospace',

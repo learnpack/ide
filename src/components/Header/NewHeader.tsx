@@ -10,6 +10,7 @@ export const NewHeader = () => {
       handlePositionChange: state.handlePositionChange,
       currentExercisePosition: state.currentExercisePosition,
       exercises: state.exercises,
+      test: state.test
     })
   );
 
@@ -34,6 +35,9 @@ export const NewHeader = () => {
         >
           {svgs.nextArrowButton}
         </button>
+        {/* <button onClick={test}>
+          TEST
+        </button> */}
       </section>
       <section>{svgs.learnpackLogo}</section>
       <section>

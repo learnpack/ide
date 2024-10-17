@@ -3,6 +3,7 @@ import { TEnvironment } from "./EventProxy";
 import frontMatter from "front-matter";
 import { LocalStorage } from "./localStorage";
 
+
 const BREATHECODE_HOST = "https://breathecode.herokuapp.com";
 
 // Correct the type definition for TMethods
@@ -259,5 +260,8 @@ const loginLocalStorage = async (loginInfo: any) => {
   const returns = { ...json, rigobot: { ...rigobotJson } };
 
   LocalStorage.set("session", returns);
+
+  
+
   return returns;
 };

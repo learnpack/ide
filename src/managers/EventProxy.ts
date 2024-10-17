@@ -274,16 +274,3 @@ const testRigo = async (token: string, inputs: object) => {
 
   return json.answer;
 };
-
-// const getTemplate = async (token: string) => {
-//   const request_url = `${RIGOBOT_HOST}/v1/prompting/templates/${57}`;
-//   const res = await fetch(request_url, {
-//     method: "GET",
-//     headers: {
-//       "Content-Type": "application/json",
-//       Authorization: "Token " + token,
-//     },
-//   });
-//   const json = await res.json();
-//   return json;
-// };

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import io from "socket.io-client";
+import { v4 as uuidv4 } from "uuid";
 import TagManager from "react-gtm-module";
 import { create } from "zustand";
 import {
@@ -22,6 +23,7 @@ import { DEV_MODE, RIGOBOT_HOST } from "./lib";
 import { EventProxy } from "../managers/EventProxy";
 import { FetchManager } from "../managers/fetchManager";
 import { LocalStorage } from "../managers/localStorage";
+import { createSession, getSession, updateSession } from "./apiCalls";
 
 type TFile = {
   name: string;
@@ -91,6 +93,7 @@ const useStore = create<IStore>((set, get) => ({
     config: {
       intro: "",
       grading: "",
+      slug: "",
       editor: {
         agent: "",
       },
@@ -109,9 +112,11 @@ const useStore = create<IStore>((set, get) => ({
     login: false,
     video: false,
     reset: false,
+    session: false,
   },
   activeTab: 0,
   lastTestResult: {
+    // @ts-ignore
     status: "",
     logs: "",
   },
@@ -241,6 +246,7 @@ const useStore = create<IStore>((set, get) => ({
       currentExercisePosition,
       setOpenedModals,
       checkParams,
+      getOrCreateActiveSession,
     } = get();
 
     const params = checkParams({ justReturn: true });
@@ -261,9 +267,10 @@ const useStore = create<IStore>((set, get) => ({
       if (opts && opts.startConversation) {
         startConversation(Number(currentExercisePosition));
       }
+      getOrCreateActiveSession();
     } catch (err) {
       console.log("SOME BAD ERROR HAPPENED");
-      
+
       set({ token: "" });
       setOpenedModals({ login: true });
     }
@@ -457,16 +464,11 @@ ${currentContent}
 
     let params = checkParams({ justReturn: true });
 
-    console.log(params, "PARAMS WHEN SETTING POSITION");
-
     let hash = `currentExercise=${newPosition}${
       // @ts-ignore
       params.language ? "&language=" + params.language : ""
       // @ts-ignore
     }${params.token ? "&token=" + params.token : ""}`;
-
-    console.log(hash, "NEW HASH");
-
     window.location.hash = hash;
 
     set({ currentExercisePosition: newPosition });
@@ -523,6 +525,7 @@ ${currentContent}
       startConversation,
       currentExercisePosition,
       setOpenedModals,
+      getOrCreateActiveSession,
     } = get();
 
     try {
@@ -550,7 +553,8 @@ ${currentContent}
     }
     // @ts-ignore
     startConversation(currentExercisePosition);
-    setOpenedModals({ login: false, chat: true });
+    setOpenedModals({ login: false });
+    getOrCreateActiveSession();
     return true;
   },
 
@@ -812,13 +816,14 @@ ${currentContent}
   },
 
   setTestResult: (status, logs) => {
-    console.log(logs, "SET TEST RESULT");
+    console.log(logs);
 
-    const { exercises, currentExercisePosition } = get();
+    const { exercises, currentExercisePosition, updateDBSession } = get();
     const copy = [...exercises];
 
     copy[Number(currentExercisePosition)].done = status === "successful";
     set({ exercises: copy });
+    updateDBSession();
   },
 
   setShouldBeTested: (value) => {
@@ -888,10 +893,127 @@ ${currentContent}
   },
   // Leave this empty for development purposes
   displayTestButton: DEV_MODE,
+  getOrCreateActiveSession: async () => {
+    const { token, configObject, setOpenedModals } = get();
+    let tabHash = "";
+    if (ENVIRONMENT === "localStorage") {
+      tabHash = LocalStorage.get("TAB_HASH");
+      if (!tabHash) {
+        tabHash = uuidv4();
+        LocalStorage.set("TAB_HASH", tabHash);
+      }
+    }
+
+    try {
+      const session = await getSession(token, configObject.config.slug);
+
+      if (!session.tab_hash) {
+        await updateSession(
+          token,
+          tabHash,
+          configObject.config.slug,
+          configObject,
+          session.key
+        );
+        LocalStorage.set("LEARNPACK_SESSION_KEY", session.key);
+      }
+
+      if (session.tab_hash !== tabHash) {
+        setOpenedModals({ session: true });
+      } else {
+        set({
+          configObject: session.config_json,
+          exercises: session.config_json.exercises,
+        });
+        LocalStorage.set("LEARNPACK_SESSION_KEY", session.key);
+      }
+    } catch (e) {
+      console.log("Error trying to get session");
+    }
+  },
+  updateDBSession: async () => {
+    const { configObject, exercises, token } = get();
+    let tabHash = "";
+    console.log("UPDATE SESSION IN DB");
+    console.log(exercises);
+
+    const configCopy = { ...configObject, exercises };
+
+    if (ENVIRONMENT === "localStorage") {
+      const sessionKey = LocalStorage.get("LEARNPACK_SESSION_KEY");
+      tabHash = LocalStorage.get("TAB_HASH");
+      await updateSession(
+        token,
+        tabHash,
+        configObject.config.slug,
+        configCopy,
+        sessionKey
+      );
+    }
+  },
+  updateFileContent: (exerciseSlug, tab) => {
+    const { exercises, updateDBSession } = get();
+
+    let newExercises = exercises.map((e) => {
+      if (e.slug === exerciseSlug) {
+        return {
+          ...e,
+          files: e.files.map((f: any) => {
+            return f.name === tab.name
+              ? {
+                  ...f,
+                  content: tab.content,
+                }
+              : f;
+          }),
+        };
+      } else {
+        return e;
+      }
+    });
+    set({ exercises: newExercises });
+    updateDBSession();
+  },
+  sessionActions: async ({ action = "new" }) => {
+    const { configObject, token } = get();
+    if (ENVIRONMENT === "localStorage") {
+      // console.log(configObject, exercises);
+
+      let tabHash = LocalStorage.get("TAB_HASH");
+
+      if (action === "new") {
+        const session = await createSession(
+          token,
+          tabHash,
+          configObject.config.slug,
+          configObject
+        );
+        LocalStorage.set("LEARNPACK_SESSION_KEY", session.key);
+      }
+
+      if (action === "continue") {
+        const session = await getSession(token, configObject.config.slug);
+        await updateSession(
+          token,
+          tabHash,
+          configObject.config.slug,
+          null,
+          session.key
+        );
+        set({
+          configObject: session.config_json,
+          exercises: session.config_json.exercises,
+        });
+        LocalStorage.set("LEARNPACK_SESSION_KEY", session.key);
+      }
+    }
+  },
   test: async () => {
-    // const { openTerminal, getContextFilesContent } = get();
+    const { configObject, token } = get();
     // disconnected();
-    toast.success("Test button pressed, implement something");
+    const session = await getSession(token, configObject.config.slug);
+    LocalStorage.set("LEARNPACK_SESSION_KEY", session.key);
+    console.log(session.key);
     await FetchManager.logout();
   },
 }));

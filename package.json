@@ -1,7 +1,7 @@
 {
   "name": "learnpack-ai",
   "private": true,
-  "version": "4.3.1",
+  "version": "4.3.2",
   "scripts": {
     "dev": "node src/utils/development.js --turn on && vite",
     "build": "node src/utils/development.js --turn off && tsc && vite build && node bin/publish.js && node src/utils/createVersionsFile.js",
@@ -25,6 +25,7 @@
     "remarkable-katex": "^1.2.1",
     "socket.io": "^4.7.2",
     "socket.io-client": "^4.7.2",
+    "uuid": "^10.0.0",
     "zustand": "^4.4.1"
   },
   "devDependencies": {
@@ -33,6 +34,7 @@
     "@types/react-gtm-module": "^2.0.3",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@types/remarkable": "^2.0.3",
+    "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "@vitejs/plugin-react-swc": "^3.3.2",

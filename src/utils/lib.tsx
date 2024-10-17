@@ -77,9 +77,6 @@ export const getEnvironment = async () => {
 };
 
 getEnvironment();
-// TODO: INVESTIGATE: This line of code made me change from format: "iife" to "system"
-// export const ENVIRONMENT: TEnvironment = await getEnvironment();
-// export const ENVIRONMENT: TEnvironment = "localStorage";
 
 export const RIGOBOT_HOST = "https://rigobot.herokuapp.com";
 
