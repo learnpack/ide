@@ -7,17 +7,15 @@ import SimpleButton from "../../mockups/SimpleButton";
 export const ResetModal = () => {
   const { t } = useTranslation();
   const {
-    compilerSocket,
-    exercises,
-    currentExercisePosition,
     setOpenedModals,
-    updateEditorTabs,
+
+    resetExercise,
+    getCurrentExercise,
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
-    exercises: state.exercises,
-    currentExercisePosition: state.currentExercisePosition,
     setOpenedModals: state.setOpenedModals,
-    updateEditorTabs: state.updateEditorTabs,
+    resetExercise: state.resetExercise,
+    getCurrentExercise: state.getCurrentExercise,
   }));
 
   useEffect(() => {
@@ -29,12 +27,9 @@ export const ResetModal = () => {
   };
 
   const handleReset = () => {
-    const data = {
-      exerciseSlug: exercises[Number(currentExercisePosition)].slug,
-      updateEditorTabs: updateEditorTabs,
-    };
-
-    compilerSocket.emit("reset", data);
+    resetExercise({
+      exerciseSlug: getCurrentExercise().slug,
+    });
     toggleModal();
   };
   return (

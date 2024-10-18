@@ -2,8 +2,7 @@ import { getExercise, RIGOBOT_HOST } from "../utils/lib";
 import { TEnvironment } from "./EventProxy";
 import frontMatter from "front-matter";
 import { LocalStorage } from "./localStorage";
-
-
+import { v4 as uuidv4 } from "uuid";
 const BREATHECODE_HOST = "https://breathecode.herokuapp.com";
 
 // Correct the type definition for TMethods
@@ -135,6 +134,61 @@ export const FetchManager = {
     return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
   },
 
+  setTabHash: async (tabHash: string) => {
+    const methods: TMethods = {
+      localhost: async () => {
+        const body = {
+          hash: tabHash,
+        };
+
+        const res = await fetch(`${FetchManager.HOST}/set-tab-hash`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+        if (res.status === 400) {
+          console.log("ERROR");
+          console.log(res);
+          throw Error("Impossible to set tab hash");
+        }
+        await res.json();
+        return true;
+      },
+      localStorage: async () => {},
+    };
+    return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
+  },
+  getTabHash: async () => {
+    const methods: TMethods = {
+      localhost: async () => {
+        const res = await fetch(`${FetchManager.HOST}/check/rigo/status`);
+        if (res.status === 400) {
+          throw Error("The user is not logged in");
+        }
+        const json = await res.json();
+
+        if ("tabHash" in json.payload) {
+          return json.payload.tabHash;
+        } else {
+          const tabHash = uuidv4();
+          await FetchManager.setTabHash(tabHash);
+          return tabHash;
+        }
+      },
+      localStorage: async () => {
+        let tabHash = LocalStorage.get("TAB_HASH");
+        if (!tabHash) {
+          tabHash = uuidv4();
+          LocalStorage.set("TAB_HASH", tabHash);
+        }
+        return tabHash;
+      },
+    };
+    return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
+  },
+
   login: async (loginInfo: any) => {
     const methods: TMethods = {
       localhost: async () => {
@@ -260,8 +314,6 @@ const loginLocalStorage = async (loginInfo: any) => {
   const returns = { ...json, rigobot: { ...rigobotJson } };
 
   LocalStorage.set("session", returns);
-
-  
 
   return returns;
 };

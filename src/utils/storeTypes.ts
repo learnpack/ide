@@ -85,6 +85,10 @@ type TTranslations = {
 type TSessionActionsOpts = {
   action: "new" | "continue";
 };
+
+type TResetExerciseOpts= {
+  exerciseSlug: string
+}
 export interface IStore {
   exercises: any[];
   chatInitialMessage: string;
@@ -119,7 +123,8 @@ export interface IStore {
   conversationIdsCache: TNumberCache;
   openedModals: TOpenedModals;
   lastTestResult: TTestResult;
-
+  tabHash: string;
+  sessionKey: string
   translations: TTranslations;
   shouldBeTested: boolean;
   targetButtonForFeedback: "build" | "feedback";
@@ -160,6 +165,7 @@ export interface IStore {
   setShouldBeTested: (value: boolean) => void;
   openTerminal: () => void;
   runExerciseTests: (opts?: TRunExerciseTestsOptions) => void;
+  resetExercise: (opts:TResetExerciseOpts) => void
   registerAIInteraction: (setPosition: number, interaction: object) => void;
   sessionActions: (opts: TSessionActionsOpts) => void;
   displayTestButton: boolean;

@@ -44,7 +44,7 @@ const CodeEditor: React.FC = () => {
     debounce((tab: Tab, exerciseSlug: string) => {
       console.log(tab, "TAB RECEIVED AFTER WAIT");
       updateFileContent(exerciseSlug, tab)
-    }, 2000),
+    }, 5000),
     []
   );
 

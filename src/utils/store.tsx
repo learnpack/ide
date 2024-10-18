@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import io from "socket.io-client";
-import { v4 as uuidv4 } from "uuid";
 import TagManager from "react-gtm-module";
 import { create } from "zustand";
 import {
@@ -84,6 +83,9 @@ const useStore = create<IStore>((set, get) => ({
     text: "Run",
     className: "",
   },
+  tabHash: "",
+  sessionKey: "",
+
   editorTabs: [],
   feedbackbuttonProps: {
     text: "Get feedback",
@@ -643,10 +645,15 @@ ${currentContent}
 
     const updateTabs = async () => {
       for (const [index, element] of notHidden.entries()) {
-        const content = await FetchManager.getFileContent(
-          exercise.slug,
-          element.name
-        );
+        let content = "";
+        if ("content" in element) {
+          content = element.content;
+        } else {
+          content = await FetchManager.getFileContent(
+            exercise.slug,
+            element.name
+          );
+        }
 
         const tabExists = editorTabsCopy.some(
           (tab) => tab.name === element.name
@@ -671,11 +678,6 @@ ${currentContent}
       set({ editorTabs: [...editorTabsCopy] });
     };
     updateTabs();
-  },
-
-  cleanEditorTabs: (slug: string) => {
-    LocalStorage.cleanEditorTabs(slug);
-    set({ editorTabs: [] });
   },
 
   fetchReadme: async () => {
@@ -894,62 +896,57 @@ ${currentContent}
   // Leave this empty for development purposes
   displayTestButton: DEV_MODE,
   getOrCreateActiveSession: async () => {
-    const { token, configObject, setOpenedModals } = get();
-    let tabHash = "";
-    if (ENVIRONMENT === "localStorage") {
-      tabHash = LocalStorage.get("TAB_HASH");
-      if (!tabHash) {
-        tabHash = uuidv4();
-        LocalStorage.set("TAB_HASH", tabHash);
-      }
+    const { token, configObject, setOpenedModals, updateEditorTabs, tabHash } =
+      get();
+    let storedTabHash = tabHash;
+
+    if (!token) return
+    if (!storedTabHash) {
+      storedTabHash = await FetchManager.getTabHash();
+      set({ tabHash: storedTabHash });
     }
 
     try {
       const session = await getSession(token, configObject.config.slug);
+      console.log(session);
 
       if (!session.tab_hash) {
         await updateSession(
           token,
-          tabHash,
+          storedTabHash,
           configObject.config.slug,
           configObject,
           session.key
         );
-        LocalStorage.set("LEARNPACK_SESSION_KEY", session.key);
+        set({ sessionKey: session.key });
       }
 
-      if (session.tab_hash !== tabHash) {
+      if (session.tab_hash && session.tab_hash !== storedTabHash) {
         setOpenedModals({ session: true });
       } else {
         set({
           configObject: session.config_json,
           exercises: session.config_json.exercises,
         });
-        LocalStorage.set("LEARNPACK_SESSION_KEY", session.key);
+        set({ sessionKey: session.key });
+        updateEditorTabs();
       }
     } catch (e) {
       console.log("Error trying to get session");
     }
   },
   updateDBSession: async () => {
-    const { configObject, exercises, token } = get();
-    let tabHash = "";
-    console.log("UPDATE SESSION IN DB");
-    console.log(exercises);
+    const { configObject, exercises, token, tabHash, sessionKey } = get();
 
     const configCopy = { ...configObject, exercises };
 
-    if (ENVIRONMENT === "localStorage") {
-      const sessionKey = LocalStorage.get("LEARNPACK_SESSION_KEY");
-      tabHash = LocalStorage.get("TAB_HASH");
-      await updateSession(
-        token,
-        tabHash,
-        configObject.config.slug,
-        configCopy,
-        sessionKey
-      );
-    }
+    await updateSession(
+      token,
+      tabHash,
+      configObject.config.slug,
+      configCopy,
+      sessionKey
+    );
   },
   updateFileContent: (exerciseSlug, tab) => {
     const { exercises, updateDBSession } = get();
@@ -974,8 +971,35 @@ ${currentContent}
     set({ exercises: newExercises });
     updateDBSession();
   },
+  resetExercise: ({ exerciseSlug }) => {
+    const { updateEditorTabs, exercises, compilerSocket, updateDBSession } =
+      get();
+
+    let newExercises = exercises.map((e) => {
+      if (e.slug === exerciseSlug) {
+        return {
+          ...e,
+          files: e.files.map((f: any) => {
+            delete f.content;
+            return f;
+          }),
+        };
+      } else {
+        return e;
+      }
+    });
+
+    set({ exercises: newExercises });
+    updateDBSession();
+    const data = {
+      exerciseSlug: exerciseSlug,
+      updateEditorTabs: updateEditorTabs,
+    };
+    compilerSocket.emit("reset", data);
+  },
   sessionActions: async ({ action = "new" }) => {
-    const { configObject, token } = get();
+    const { configObject, token, updateEditorTabs } = get();
+
     if (ENVIRONMENT === "localStorage") {
       // console.log(configObject, exercises);
 
@@ -1005,16 +1029,18 @@ ${currentContent}
           exercises: session.config_json.exercises,
         });
         LocalStorage.set("LEARNPACK_SESSION_KEY", session.key);
+        updateEditorTabs();
       }
     }
   },
   test: async () => {
-    const { configObject, token } = get();
+    // const { configObject, token } = get();
     // disconnected();
-    const session = await getSession(token, configObject.config.slug);
-    LocalStorage.set("LEARNPACK_SESSION_KEY", session.key);
-    console.log(session.key);
+    // const session = await getSession(token, configObject.config.slug);
+    // LocalStorage.set("LEARNPACK_SESSION_KEY", session.key);
+    // console.log(session.key);
     await FetchManager.logout();
+    toast.success("Succesfully logged out");
   },
 }));
 

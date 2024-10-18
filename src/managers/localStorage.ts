@@ -18,7 +18,4 @@ export const LocalStorage = {
     setEditorTabs: (slug: string, tabs: any) => {
         LocalStorage.set(`editorTabs_${slug}`, tabs);
     },
-    cleanEditorTabs: (slug: string) => {
-        LocalStorage.remove(`editorTabs_${slug}`);
-    },
 };

@@ -5,7 +5,7 @@ import Sidebar from "../sections/sidebar/Sidebar";
 import styles from "./NewHeader.module.css";
 
 export const NewHeader = () => {
-  const { handlePositionChange, currentExercisePosition, exercises } = useStore(
+  const { handlePositionChange, currentExercisePosition, exercises} = useStore(
     (state) => ({
       handlePositionChange: state.handlePositionChange,
       currentExercisePosition: state.currentExercisePosition,

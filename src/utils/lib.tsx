@@ -79,6 +79,7 @@ export const getEnvironment = async () => {
 getEnvironment();
 
 export const RIGOBOT_HOST = "https://rigobot.herokuapp.com";
+// export const RIGOBOT_HOST = "https://8000-charlytoc-rigobot-bmwdeam7cev.ws-us116.gitpod.io";
 
 /**
  * Converts markdown to HTML and injects it into a div.

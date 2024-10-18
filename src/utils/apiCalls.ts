@@ -1,23 +1,18 @@
+import axios from 'axios';
 import { RIGOBOT_HOST } from "./lib";
 
 export const getSession = async (token: string, slug: string) => {
-  const url = RIGOBOT_HOST + `/v1/learnpack/session/?slug=${slug}`;
+  const url = `${RIGOBOT_HOST}/v1/learnpack/session/?slug=${slug}`;
 
   try {
-    const response = await fetch(url, {
-      method: "GET",
+    const response = await axios.get(url, {
       headers: {
         Authorization: `Token ${token}`,
-        // "Content-Type": "application/json",
+        // "Content-Type": "application/json", // Not needed for GET requests
       },
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data;
+    return response.data;
   } catch (error) {
     console.error("Error fetching session:", error);
     throw error; // Rethrow the error for further handling
@@ -31,30 +26,23 @@ export const updateSession = async (
   config_json: object | null,
   session_key: string
 ) => {
-  const url = RIGOBOT_HOST + `/v1/learnpack/session/${session_key}/`;
+  const url = `${RIGOBOT_HOST}/v1/learnpack/session/${session_key}/`;
 
-  const body = JSON.stringify({
+  const body = {
     tab_hash,
     config_json,
     package_slug,
-  });
+  };
 
   try {
-    const response = await fetch(url, {
-      method: "PUT",
+    const response = await axios.put(url, body, {
       headers: {
         Authorization: `Token ${token}`,
         "Content-Type": "application/json",
       },
-      body: body,
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data;
+    return response.data;
   } catch (error) {
     console.error("Error updating session:", error);
     throw error; // Rethrow the error for further handling
@@ -67,32 +55,25 @@ export const createSession = async (
   package_slug: string,
   config_json: object | null
 ) => {
-  const url = RIGOBOT_HOST + `/v1/learnpack/session/`;
+  const url = `${RIGOBOT_HOST}/v1/learnpack/session/`;
 
-  const body = JSON.stringify({
+  const body = {
     tab_hash,
     config_json,
     package_slug,
-  });
+  };
 
   try {
-    const response = await fetch(url, {
-      method: "POST",
+    const response = await axios.post(url, body, {
       headers: {
         Authorization: `Token ${token}`,
         "Content-Type": "application/json",
       },
-      body: body,
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data;
+    return response.data;
   } catch (error) {
-    console.error("Error updating session:", error);
-    throw error;
+    console.error("Error creating session:", error);
+    throw error; // Rethrow the error for further handling
   }
 };

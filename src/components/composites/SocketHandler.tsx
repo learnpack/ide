@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { InputModal } from "../sections/modals/InputModal";
 
 import "./styles.css";
+import { FetchManager } from "../../managers/fetchManager";
 export function SocketHandler() {
   const {
     compilerSocket,
@@ -11,6 +12,7 @@ export function SocketHandler() {
     setShouldBeTested,
     getCurrentExercise,
     currentExercisePosition,
+    updateFileContent,
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     exercises: state.exercises,
@@ -18,6 +20,7 @@ export function SocketHandler() {
     setShouldBeTested: state.setShouldBeTested,
     getCurrentExercise: state.getCurrentExercise,
     currentExercisePosition: state.currentExercisePosition,
+    updateFileContent: state.updateFileContent,
   }));
 
   const [inputsResponses, setInputsResponses] = useState([] as string[]);
@@ -25,12 +28,27 @@ export function SocketHandler() {
   const [shouldWeSend, setShouldWeSend] = useState(false);
 
   useEffect(() => {
-    compilerSocket.on("file_change", (data: any) => {
+    compilerSocket.on("file_change", async (data: any) => {
       const current = getCurrentExercise();
       const fullpath = data.logs;
 
       const doesCurrentStepChange = fullpath.includes(current.path);
+      const parts = fullpath.split("\\");
+      const fileName = parts[parts.length - 1];
+    
+      const fileContent = await FetchManager.getFileContent(
+        current.slug,
+        fileName
+      );
 
+      const tab = {
+        name: fileName,
+        content: fileContent,
+        isActive: false,
+        id: fileName,
+      };
+      
+      updateFileContent(current.slug, tab);
       if (!doesCurrentStepChange) return;
 
       setShouldBeTested(true);
