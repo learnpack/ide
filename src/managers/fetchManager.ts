@@ -156,7 +156,10 @@ export const FetchManager = {
         await res.json();
         return true;
       },
-      localStorage: async () => {},
+      localStorage: async () => {
+        LocalStorage.set("TAB_HASH", tabHash);
+        return true;
+      },
     };
     return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
   },
@@ -181,14 +184,66 @@ export const FetchManager = {
         let tabHash = LocalStorage.get("TAB_HASH");
         if (!tabHash) {
           tabHash = uuidv4();
-          LocalStorage.set("TAB_HASH", tabHash);
+          await FetchManager.setTabHash(tabHash);
         }
         return tabHash;
       },
     };
     return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
   },
+  getSessionKey: async () => {
+    const methods: TMethods = {
+      localhost: async () => {
+        const res = await fetch(`${FetchManager.HOST}/check/rigo/status`);
+        if (res.status === 400) {
+          throw Error("The user is not logged in");
+        }
+        const json = await res.json();
 
+        if ("sessionKey" in json.payload) {
+          return json.payload.sessionKey;
+        } else {
+          return null;
+        }
+      },
+      localStorage: async () => {
+        let sessionKey = LocalStorage.get("LEARNPACK_SESSION_KEY");
+        if (!sessionKey) {
+          return null;
+        }
+        return sessionKey;
+      },
+    };
+    return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
+  },
+  setSessionKey: async (sessionKey: string) => {
+    const methods: TMethods = {
+      localhost: async () => {
+        const body = {
+          sessionKey: sessionKey,
+        };
+
+        const res = await fetch(`${FetchManager.HOST}/set-session-key`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+        if (res.status === 400) {
+          console.log("ERROR");
+          console.log(res);
+          throw Error("Impossible to set tab hash");
+        }
+        await res.json();
+        return true;
+      },
+      localStorage: async () => {
+        LocalStorage.set("LEARNPACK_SESSION_KEY", sessionKey);
+      },
+    };
+    return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
+  },
   login: async (loginInfo: any) => {
     const methods: TMethods = {
       localhost: async () => {

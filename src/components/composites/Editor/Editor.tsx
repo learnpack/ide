@@ -103,8 +103,6 @@ const CodeEditor: React.FC = () => {
     const ex = getCurrentExercise();
     if (!ex) return;
 
-    const cachedEditorTabs = LocalStorage.getEditorTabs(ex.slug);
-
     const cachedTheme = LocalStorage.get(EDITOR_THEME_KEY);
     if (cachedTheme) {
       setTheme(cachedTheme);
@@ -113,9 +111,6 @@ const CodeEditor: React.FC = () => {
     const tabMap = new Map();
 
     editorTabs.forEach((tab) => tabMap.set(tab.name, tab));
-
-    // @ts-ignore
-    cachedEditorTabs.forEach((tab) => tabMap.set(tab.name, tab));
 
     const updatedTabs = Array.from(tabMap.values());
 

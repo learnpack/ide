@@ -651,7 +651,8 @@ ${currentContent}
         } else {
           content = await FetchManager.getFileContent(
             exercise.slug,
-            element.name
+            element.name,
+            { cached: true }
           );
         }
 
@@ -900,7 +901,7 @@ ${currentContent}
       get();
     let storedTabHash = tabHash;
 
-    if (!token) return
+    if (!token) return;
     if (!storedTabHash) {
       storedTabHash = await FetchManager.getTabHash();
       set({ tabHash: storedTabHash });
@@ -908,7 +909,6 @@ ${currentContent}
 
     try {
       const session = await getSession(token, configObject.config.slug);
-      console.log(session);
 
       if (!session.tab_hash) {
         await updateSession(
@@ -940,12 +940,16 @@ ${currentContent}
 
     const configCopy = { ...configObject, exercises };
 
+    let cachedSessionKey = "";
+    if (!sessionKey) {
+      cachedSessionKey = await FetchManager.getSessionKey();
+    }
     await updateSession(
       token,
       tabHash,
       configObject.config.slug,
       configCopy,
-      sessionKey
+      sessionKey || cachedSessionKey
     );
   },
   updateFileContent: (exerciseSlug, tab) => {
@@ -990,7 +994,9 @@ ${currentContent}
     });
 
     set({ exercises: newExercises });
+
     updateDBSession();
+
     const data = {
       exerciseSlug: exerciseSlug,
       updateEditorTabs: updateEditorTabs,
@@ -1012,7 +1018,10 @@ ${currentContent}
           configObject.config.slug,
           configObject
         );
-        LocalStorage.set("LEARNPACK_SESSION_KEY", session.key);
+        await FetchManager.setSessionKey(session.key);
+        set({
+          sessionKey: session.key,
+        });
       }
 
       if (action === "continue") {
@@ -1024,11 +1033,14 @@ ${currentContent}
           null,
           session.key
         );
+
+
         set({
           configObject: session.config_json,
           exercises: session.config_json.exercises,
+          sessionKey: session.key,
         });
-        LocalStorage.set("LEARNPACK_SESSION_KEY", session.key);
+        await FetchManager.setSessionKey(session.key);
         updateEditorTabs();
       }
     }

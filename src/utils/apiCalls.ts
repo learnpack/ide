@@ -42,6 +42,8 @@ export const updateSession = async (
       },
     });
 
+    console.log("Session updated!");
+    
     return response.data;
   } catch (error) {
     console.error("Error updating session:", error);
