@@ -5,7 +5,7 @@ import useStore from "../../../utils/store";
 import { toast } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useEffect } from "react";
-import { ENVIRONMENT } from "../../../utils/lib";
+
 
 function debounce(func: any, wait: any) {
   let timeout: any;
@@ -34,7 +34,6 @@ export default function BuildButton({
     build,
     isTesteable,
     runExerciseTests,
-    token,
   } = useStore((state) => ({
     currentExercisePosition: state.currentExercisePosition,
     exercises: state.exercises,
@@ -46,7 +45,6 @@ export default function BuildButton({
     isTesteable: state.isTesteable,
     feedbackButtonProps: state.feedbackbuttonProps,
     runExerciseTests: state.runExerciseTests,
-    token: state.token,
   }));
 
   let compilerErrorHandler = debounce((data: any) => {
@@ -95,8 +93,7 @@ export default function BuildButton({
         changeToTest ? runTests() : build(t("Running..."));
       }}
       disabled={
-        (!isBuildable && !isTesteable) ||
-        (ENVIRONMENT === "localStorage" && !Boolean(token))
+        (!isBuildable && !isTesteable)
       }
     />
   );

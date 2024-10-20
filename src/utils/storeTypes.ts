@@ -6,6 +6,19 @@ interface IBuildProps {
   className: string;
 }
 
+export type TPossibleParams = {
+  language?: string;
+  token?: string;
+  iframe?: string;
+  currentExercise?: string;
+  theme?: string;
+  purpose?: string;
+};
+
+export type TParamsActions = {
+  [key: string]: (param: string) => void;
+};
+
 interface ILanguageMap {
   [key: string]: string;
 }
@@ -86,9 +99,13 @@ type TSessionActionsOpts = {
   action: "new" | "continue";
 };
 
-type TResetExerciseOpts= {
-  exerciseSlug: string
-}
+type TResetExerciseOpts = {
+  exerciseSlug: string;
+};
+
+type TOpenLinkOptions = {
+  redirect?: boolean;
+};
 export interface IStore {
   exercises: any[];
   chatInitialMessage: string;
@@ -97,9 +114,10 @@ export interface IStore {
   language: string;
   learnpackPurposeId: number | string;
   status: string;
+  environment: "localhost" | "localStorage";
   dialogData: TDialog;
   lessonTitle: string;
-  numberOfExercises: number;
+
   showFeedback: boolean;
   buildbuttonText: IBuildProps;
   feedbackbuttonProps: IBuildProps;
@@ -107,7 +125,6 @@ export interface IStore {
   user_id: number | null;
   token: string;
   bc_token: string;
-  solvedExercises: number;
   languageMap: ILanguageMap;
   configObject: IConfigObject;
   allowedActions: string[];
@@ -124,18 +141,20 @@ export interface IStore {
   openedModals: TOpenedModals;
   lastTestResult: TTestResult;
   tabHash: string;
-  sessionKey: string
+  sessionKey: string;
   translations: TTranslations;
   shouldBeTested: boolean;
   targetButtonForFeedback: "build" | "feedback";
   editorTabs: TEditorTab[];
-  // activeTab: ;
+  isIframe: boolean;
+  theme: string;
   start: () => void;
+  handleEnvironmentChange: (event: any) => void;
   setListeners: () => void;
   checkRigobotInvitation: () => void;
-  openLink: (url: string) => void;
+  openLink: (url: string, opts?: TOpenLinkOptions) => void;
   setTestResult: (status: TTestStatus, logs: string) => void;
-  checkParams: (opts: TCheckParamsOptions) => void;
+  checkParams: (opts: TCheckParamsOptions) => TPossibleParams;
   handlePositionChange: (desiredPosition: number) => void;
   setOpenedModals: (modals: Partial<TOpenedModals>) => void;
   startConversation: (exercisePosition: number) => void;
@@ -151,21 +170,23 @@ export interface IStore {
   setToken: (newToken: string) => void;
   setBuildButtonPrompt: (t: string, c: string) => void;
   setFeedbackButtonProps: (t: string, c: string) => void;
-  fetchSingleExerciseInfo: (index: number) => TExercise;
+  fetchSingleExerciseInfo: (index: number) => Promise<TExercise>;
   toggleFeedback: () => void;
   fetchExercises: () => void;
   getLessonTitle: () => void;
   updateEditorTabs: () => void;
   build: (buildText: string) => void;
   setPosition: (position: number) => void;
+  handleNext: () => void;
   fetchReadme: () => void;
   updateFileContent: (exerciseSlug: string, tab: Tab) => void;
   toggleSidebar: () => void;
+  toggleTheme: () => void;
   toastFromStatus: (status: string) => void;
   setShouldBeTested: (value: boolean) => void;
   openTerminal: () => void;
   runExerciseTests: (opts?: TRunExerciseTestsOptions) => void;
-  resetExercise: (opts:TResetExerciseOpts) => void
+  resetExercise: (opts: TResetExerciseOpts) => void;
   registerAIInteraction: (setPosition: number, interaction: object) => void;
   sessionActions: (opts: TSessionActionsOpts) => void;
   displayTestButton: boolean;
@@ -173,6 +194,7 @@ export interface IStore {
   updateDBSession: () => void;
   test: () => void;
   figureEnvironment: () => Promise<object>;
+  cleanTerminal: () => void;
 }
 
 type TEditorTab = {

@@ -5,15 +5,15 @@ import { OpenWindowLink } from "../../composites/OpenWindowLink";
 import { useTranslation } from "react-i18next";
 import TagManager from "react-gtm-module";
 import { Modal } from "../../mockups/Modal";
+import { svgs } from "../../../assets/svgs";
 
 export default function LoginModal() {
-  const { setOpenedModals, loginToRigo } = useStore((state) => ({
-    setToken: state.setToken,
-    host: state.host,
+  const { setOpenedModals, loginToRigo, openLink } = useStore((state) => ({
+    
+    
     setOpenedModals: state.setOpenedModals,
-    startConversation: state.startConversation,
-    currentExercisePosition: state.currentExercisePosition,
     loginToRigo: state.loginToRigo,
+    openLink: state.openLink
   }));
 
   const { t } = useTranslation();
@@ -59,6 +59,20 @@ export default function LoginModal() {
     });
   };
 
+  function stringToBase64(str:string) {
+    return btoa(unescape(encodeURIComponent(str))); // Convierte la cadena a Base64
+}
+
+  function getCurrentUrlWithQueryParams() {
+    const currentUrl = window.location.href; 
+    return currentUrl; 
+}
+
+  const redirectGithub = () => {
+    let currentUrl = getCurrentUrlWithQueryParams()
+    openLink(`https://breathecode.herokuapp.com/v1/auth/github/?url=${stringToBase64(currentUrl)}`, {redirect:true})
+  }
+
   return (
     <>
       <Modal
@@ -73,8 +87,22 @@ export default function LoginModal() {
           <div>
             <p>{t("login-message")}</p>
           </div>
+          
 
           <form action="">
+          <div>
+            <SimpleButton
+              extraClass="btn-dark"
+              text={t("login-github")}
+              svg={svgs.github}
+              action={redirectGithub}
+            />
+          </div>
+          <div className="separator">
+            <div></div>
+            <h4>{t("or")}</h4>
+            <div></div>
+          </div>
             <input
               placeholder="Email"
               type="text"
@@ -103,13 +131,14 @@ export default function LoginModal() {
                 extraClass="bg-blue"
               />
               <SimpleButton
-                extraClass="bg-secondary"
+                extraClass="btn-dark"
                 action={() => {
                   setOpenedModals({ login: false });
                 }}
                 text={t("skip")}
               />
             </div>
+
             <span>
               {t("Don't have an account? ")}
               <OpenWindowLink

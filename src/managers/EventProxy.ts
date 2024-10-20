@@ -79,7 +79,9 @@ const localStorageEventEmitter = {
   },
   openWindow: (data: any) => {
     if (data && data.url) {
-      window.open(data.url, "_blank");
+      console.log(data);
+      const target = data.options.redirect ? "__self" : "__blank";
+      window.open(data.url, target);
     } else {
       console.error("No URL provided in data");
     }
@@ -87,62 +89,62 @@ const localStorageEventEmitter = {
 };
 
 localStorageEventEmitter.on("build", async (data) => {
-  const cachedEditorTabs =
-    LocalStorage.get(`editorTabs_${data.exerciseSlug}`) || data.editorTabs;
+  try {
+    const cachedEditorTabs =
+      LocalStorage.get(`editorTabs_${data.exerciseSlug}`) || data.editorTabs;
 
-  let content = "";
+    let content = "";
 
-  cachedEditorTabs.forEach((tab: any) => {
-    const contentToAdd = `
-\`\`\`
-${tab.name}
-\n${tab.content}\n 
+    cachedEditorTabs.forEach((tab: any) => {
+      const contentToAdd = `
+\`\`\`TAB NAME: ${tab.name}
+${tab.content} 
 \`\`\`\ 
 `;
-    content += contentToAdd;
-  });
-
-  const inputs = {
-    code: content,
-  };
-  const dataRigobotReturns = await buildRigo(data.token, inputs);
-
-  const prevLogs = LocalStorage.get(`terminalLogs_${data.exerciseSlug}`);
-
-  const json = JSON.parse(removeTripleBackticks(dataRigobotReturns));
-  //   console.log(json);
-
-  if (json.exitCode > 0) {
-    localStorageEventEmitter.emitStatus("compiler-error", json);
-  } else {
-    localStorageEventEmitter.emitStatus("compiler-success", json);
-  }
-  let logs = prevLogs ? [...prevLogs, json] : [json];
-
-  LocalStorage.set(`terminalLogs_${data.exerciseSlug}`, logs);
-
-  if (logs !== null) {
-    let terminalContent = "";
-    logs.forEach((log: any) => {
-      terminalContent += log.stdout + "\n";
-      terminalContent += log.stderr + "\n\n";
-      if (log.testResults) {
-        terminalContent += log.testResults + "\n\n";
-      }
+      content += contentToAdd;
     });
 
-    const terminalTab = {
-      id: "terminal",
-      content: terminalContent,
-      name: "terminal",
-      isActive: false,
+    const inputs = {
+      code: content,
     };
-    data.updateEditorTabs(terminalTab);
+    const dataRigobotReturns = await buildRigo(data.token, inputs);
+
+    const json = JSON.parse(removeTripleBackticks(dataRigobotReturns));
+
+    if (json.exitCode > 0) {
+      localStorageEventEmitter.emitStatus("compiler-error", json);
+    } else {
+      localStorageEventEmitter.emitStatus("compiler-success", json);
+    }
+    let logs = [json];
+
+    if (logs !== null) {
+      let terminalContent = "";
+      logs.forEach((log: any) => {
+        terminalContent += log.stdout + "\n";
+        terminalContent += log.stderr + "\n\n";
+        if (log.testResults) {
+          terminalContent += log.testResults + "\n\n";
+        }
+      });
+
+      const terminalTab = {
+        id: "terminal",
+        content: terminalContent,
+        name: "terminal",
+        isActive: false,
+      };
+      data.updateEditorTabs(terminalTab);
+    }
+  } catch (e) {
+    console.table({
+      "Something unexpected happened in the build event": e,
+    });
+    await FetchManager.logout();
   }
 });
 
 localStorageEventEmitter.on("reset", async (data) => {
-  LocalStorage.remove(`terminalLogs_${data.exerciseSlug}`);
   LocalStorage.remove(`editorTabs_${data.exerciseSlug}`);
   data.updateEditorTabs();
 });
@@ -162,64 +164,67 @@ localStorageEventEmitter.on("open", async (data) => {
 });
 
 localStorageEventEmitter.on("test", async (data) => {
-  const exe = await FetchManager.getExerciseInfo(data.exerciseSlug);
+  try {
+    const exe = await FetchManager.getExerciseInfo(data.exerciseSlug);
 
-  let testContent = "";
-  for (const f of exe.files) {
-    if (f.name.includes("solution") || f.name.includes("README")) continue;
+    let testContent = "";
+    for (const f of exe.files) {
+      if (f.name.includes("solution") || f.name.includes("README")) continue;
 
-    const fileContent = await FetchManager.getFileContent(
-      data.exerciseSlug,
-      f.name,
-      { cached: true }
-    );
-    testContent += `
+      const fileContent = await FetchManager.getFileContent(
+        data.exerciseSlug,
+        f.name,
+        { cached: true }
+      );
+      testContent += `
 \`\`\`FILE: ${f.name} ${!f.hidden ? "USER CODE" : "TEST FILE"}
 
 ${fileContent}
 \`\`\`
       `;
-  }
+    }
 
-  const inputs = {
-    code: testContent,
-  };
-  const dataRigobotReturns = await testRigo(data.token, inputs);
-
-  const json = extractAndParseResult(dataRigobotReturns);
-
-  if (json.exitCode === 0) {
-    localStorageEventEmitter.emitStatus("testing-success", {
-      ...dataRigobotReturns,
-      logs: [json.stdout],
-    });
-  } else {
-    localStorageEventEmitter.emitStatus("testing-error", {
-      ...dataRigobotReturns,
-      logs: [json.stdout],
-    });
-  }
-  const prevLogs = LocalStorage.get(`terminalLogs_${data.exerciseSlug}`);
-  let logs = prevLogs ? [...prevLogs, json] : [json];
-  LocalStorage.set(`terminalLogs_${data.exerciseSlug}`, logs);
-
-  if (logs !== null) {
-    let terminalContent = "";
-    logs.forEach((log: any) => {
-      terminalContent += log.stdout + "\n";
-      terminalContent += log.stderr + "\n\n";
-      if (log.testResults) {
-        terminalContent += log.testResults + "\n\n";
-      }
-    });
-
-    const terminalTab = {
-      id: generateUUID(),
-      content: terminalContent,
-      name: "terminal",
-      isActive: false,
+    const inputs = {
+      code: testContent,
     };
-    data.updateEditorTabs(terminalTab);
+    const dataRigobotReturns = await testRigo(data.token, inputs);
+
+    const json = extractAndParseResult(dataRigobotReturns);
+
+    if (json.exitCode === 0) {
+      localStorageEventEmitter.emitStatus("testing-success", {
+        ...dataRigobotReturns,
+        logs: [json.stdout],
+      });
+    } else {
+      localStorageEventEmitter.emitStatus("testing-error", {
+        ...dataRigobotReturns,
+        logs: [json.stdout],
+      });
+    }
+    let logs = [json];
+
+    if (logs !== null) {
+      let terminalContent = "";
+      logs.forEach((log: any) => {
+        terminalContent += log.stdout + "\n";
+        terminalContent += log.stderr + "\n\n";
+        if (log.testResults) {
+          terminalContent += log.testResults + "\n\n";
+        }
+      });
+
+      const terminalTab = {
+        id: generateUUID(),
+        content: terminalContent,
+        name: "terminal",
+        isActive: false,
+      };
+      data.updateEditorTabs(terminalTab);
+    }
+  } catch (e) {
+    console.log("ERROR TRYING TO TEST", e);
+    await FetchManager.logout();
   }
 });
 

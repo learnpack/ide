@@ -1,11 +1,13 @@
 .tabs {
   display: flex;
   align-items: center;
+  gap: 2px;
 }
 .tab {
   display: flex;
-  background-color: #ffffff;
-  border-right: 1px solid #ccc;
+  background-color: var(--bg-color);
+  border-top-right-radius: 6px;
+  border-top-left-radius: 6px;
 }
 
 .tabs button {
@@ -19,8 +21,6 @@
 }
 .tab.active {
   background-color: var(--opaque-blue-editor);
-  border-top-right-radius: 6px;
-  border-top-left-radius: 6px;
 }
 
 .tab.active button {
@@ -38,6 +38,10 @@
   gap: 10px;
   display: none;
 }
+.theme-selector select {
+  border-radius: 8px;
+  padding: 3px;
+}
 
 .editor {
   border: 8px solid #a5d9f8;
@@ -52,7 +56,13 @@
   max-height: 250px;
   overflow-y: auto;
 }
-
+.terminal.only {
+  margin-top: 0;
+  border: 0;
+}
+.terminal.hidden {
+  display: none;
+}
 .terminal > h5 {
   border-bottom: 1px solid #dadada;
   display: flex;
@@ -61,11 +71,11 @@
 }
 
 .terminal > pre {
-  background-color: white;
+  background-color: var(--bg-color);
   border: none;
 }
 .editor .editor-footer {
-  background-color: white;
+  background-color: var(--bg-color);
   position: absolute;
   bottom: 8px;
   padding: 8px;
@@ -76,10 +86,10 @@
 }
 
 .editor-footer.UNMODIFIED {
-  background-color: var(--soft-blue-color);
+  background-color: var(--modals-bg-color);
 }
 .editor-footer.MODIFIED {
-  background-color: white;
+  background-color: var(--modals-bg-color);
 }
 
 .editor-footer .not-started {
@@ -88,8 +98,18 @@
   gap: 9px;
   color: var(--color-active);
   padding: 4px;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.editor-footer .not-started span {
+  font-size: 12px;
 }
 
+.editor-footer .not-started > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
 .editor-footer .footer-actions {
   padding: 4px;
   display: flex;

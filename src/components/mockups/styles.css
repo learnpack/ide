@@ -13,16 +13,23 @@
 .self-closing-modal > div.modal-content {
   display: block;
   border-radius: 20px;
-  /* justify-content: center; */
   flex-direction: column;
-  /* align-items: center; */
-  background-color: white;
+  background-color: var(--modals-bg-color);
   padding: 20px;
-  width: min(99%, 450px);
+  width: min(600px, 98vw);
   gap: 10px;
   margin-inline: auto;
   overflow: auto;
   max-height: 90vh;
+  position: relative;
+}
+
+.self-closing-modal .modal-closer {
+  position: absolute;
+  right: 20px;
+  top: 25px;
+  z-index: 2;
+  cursor: pointer;
 }
 
 .icon-component {

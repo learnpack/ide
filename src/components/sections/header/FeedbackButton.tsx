@@ -27,7 +27,7 @@ export default function FeedbackButton({
   const handleMouseLeave = (): void => {
     hideFeedbackTimeout = setTimeout(() => {
       setShowFeedback(false);
-    }, 200); // 0.5 seconds delay
+    }, 200); 
   };
 
   return (

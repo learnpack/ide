@@ -14,8 +14,9 @@ import {
   removeSpecialCharacters,
   ENVIRONMENT,
   getEnvironment,
+  setWindowHash,
 } from "./lib";
-import { IStore } from "./storeTypes";
+import { IStore, TParamsActions, TPossibleParams } from "./storeTypes";
 import toast from "react-hot-toast";
 import { getStatus } from "../managers/socket";
 import { DEV_MODE, RIGOBOT_HOST } from "./lib";
@@ -46,7 +47,7 @@ chatSocket.on("connect", () => {
   console.log("connected to chat socket in ", FASTAPI_HOST);
 });
 
-const defaultParams = getParamsObject();
+const defaultParams = getParamsObject() as TPossibleParams;
 
 FetchManager.init(ENVIRONMENT, HOST);
 
@@ -70,9 +71,8 @@ const useStore = create<IStore>((set, get) => ({
     "Hello! I'm **Rigobot**, your friendly **AI Mentor**! \n\n I can help you if you feel stuck, ask me anything about this exercise!",
   conversationIdsCache: {},
   lessonTitle: "",
-  numberOfExercises: 0,
+
   user_id: null,
-  solvedExercises: 0,
   hasSolution: false,
   shouldBeTested: false,
   status: "",
@@ -83,6 +83,8 @@ const useStore = create<IStore>((set, get) => ({
     text: "Run",
     className: "",
   },
+  theme: "light",
+  isIframe: false,
   tabHash: "",
   sessionKey: "",
 
@@ -122,6 +124,8 @@ const useStore = create<IStore>((set, get) => ({
     status: "",
     logs: "",
   },
+  // @ts-ignore
+  environment: "localhost",
 
   // setters
   start: () => {
@@ -198,10 +202,16 @@ const useStore = create<IStore>((set, get) => ({
   },
 
   figureEnvironment: async () => {
+    console.log("FIGURANDO ENVIRONMENT");
+
     const env = await getEnvironment();
     set({ compilerSocket: EventProxy.getEmitter(env) });
     FetchManager.init(env, HOST);
+
     return { message: "Environment figured out!" };
+  },
+  handleEnvironmentChange: (event: any) => {
+    set({ environment: event.detail.environment });
   },
 
   getCurrentExercise: () => {
@@ -271,7 +281,7 @@ const useStore = create<IStore>((set, get) => ({
       }
       getOrCreateActiveSession();
     } catch (err) {
-      console.log("SOME BAD ERROR HAPPENED");
+      console.log("ERROR WHILE TRYING TO CHECK LOGGED STATUS", err);
 
       set({ token: "" });
       setOpenedModals({ login: true });
@@ -374,9 +384,8 @@ ${currentContent}
           user_id: user_id,
         },
       });
-
       set({ exercises: config.exercises });
-      set({ numberOfExercises: config.exercises.length });
+
       set({ lessonTitle: config.config.title.us });
       set({ configObject: config });
     } catch (err) {
@@ -386,35 +395,47 @@ ${currentContent}
   checkParams: ({ justReturn }) => {
     const { setLanguage, setPosition, language } = get();
 
-    let params = window.location.hash.substring(1);
-    const paramsUrlSearch = new URLSearchParams(params);
-
-    let paramsObject = {};
-    for (const [key, value] of paramsUrlSearch.entries()) {
-      // @ts-ignore
-      paramsObject[key] = value;
-    }
+    let paramsObject = getParamsObject();
 
     if (justReturn) {
       return paramsObject;
     }
 
-    // @ts-ignore
-    const languageParam = paramsObject.language;
-    // @ts-ignore
-    const position = paramsObject.currentExercise;
+    const paramsActions: TParamsActions = {
+      language: (value: string) => {
+        // console.log("Language found in params");
+        if (!(language === value)) {
+          setLanguage(value, false);
+        }
+      },
+      currentExercise: (value: string) => {
+        setPosition(Number(value));
+      },
+      iframe: (value: string) => {
+        if (value.toLowerCase() === "true") {
+          set({ isIframe: true });
+        }
+        if (value.toLowerCase() === "false") {
+          set({ isIframe: false });
+        }
+      },
+      theme: (value: string) => {
+        if (["light", "dark"].includes(value.toLowerCase().trim())) {
+          set({ theme: value });
+        }
+      },
+    };
 
-    if (languageParam) {
-      setLanguage(language, false);
-    }
-
-    if (position) {
-      setPosition(Number(position));
+    const entries = Object.entries(paramsObject);
+    for (let [key, value] of entries) {
+      if (key in paramsActions) {
+        paramsActions[key](value);
+      }
     }
 
     return paramsObject;
   },
-  // @ts-ignore
+
   fetchSingleExerciseInfo: async (index) => {
     const { exercises } = get();
 
@@ -437,13 +458,16 @@ ${currentContent}
     if (exercise.entry) isBuildable = true;
     if (!exercise.language) isBuildable = false;
     // @ts-ignore
-    const solutionFile = exercise.files.find((file) =>
+    const solutionFiles = exercise.files.filter((file) =>
       file.name.includes("solution.hide")
     );
 
-    if (solutionFile) {
+    if (solutionFiles.length > 0) {
       hasSolution = true;
-      let solution = await FetchManager.getFileContent(slug, solutionFile.name);
+      let solution = await FetchManager.getFileContent(
+        slug,
+        solutionFiles[0].name
+      );
       set({ currentSolution: solution });
     }
     set({
@@ -465,13 +489,7 @@ ${currentContent}
     } = get();
 
     let params = checkParams({ justReturn: true });
-
-    let hash = `currentExercise=${newPosition}${
-      // @ts-ignore
-      params.language ? "&language=" + params.language : ""
-      // @ts-ignore
-    }${params.token ? "&token=" + params.token : ""}`;
-    window.location.hash = hash;
+    setWindowHash({ ...params, currentExercise: String(newPosition) });
 
     set({ currentExercisePosition: newPosition });
 
@@ -499,6 +517,7 @@ ${currentContent}
         throw new Error("ConversationID not found in cache");
       }
     } catch (err) {
+      console.log("Initializing a new conversation");
       initialData = await startChat(learnpackPurposeId, token);
       conversationId = initialData.conversation_id;
     }
@@ -561,13 +580,14 @@ ${currentContent}
   },
 
   checkRigobotInvitation: async () => {
-    const { bc_token, setToken, openLink, setOpenedModals } = get();
+    const { bc_token, setToken, openLink } = get();
     const rigoAcceptedUrl = `${RIGOBOT_HOST}/v1/auth/me/token?breathecode_token=${bc_token}`;
     const res = await fetch(rigoAcceptedUrl);
     if (res.status != 200) {
       toast.error("You have not accepted Rigobot's invitation yet!");
       openLink(
-        "https://rigobot.herokuapp.com/invite?referer=4geeks&token=" + bc_token
+        "https://rigobot.herokuapp.com/invite?referer=4geeks&token=" + bc_token,
+        { redirect: false }
       );
       return;
     }
@@ -584,14 +604,16 @@ ${currentContent}
       body: JSON.stringify(payload),
     };
     await fetch(`${HOST}/set-rigobot-token`, config);
-    setOpenedModals({ chat: true });
+    // setOpenedModals({ chat: true });
   },
 
-  openLink: (url) => {
+  openLink: (url, opts) => {
     const { compilerSocket, getCurrentExercise } = get();
+    const options = { ...opts };
     const data = {
       url,
       exerciseSlug: getCurrentExercise().slug,
+      options,
     };
     compilerSocket.openWindow(data);
   },
@@ -681,6 +703,12 @@ ${currentContent}
     updateTabs();
   },
 
+  cleanTerminal: () => {
+    const { editorTabs } = get();
+    const newTabs = editorTabs.filter((t) => t.name !== "terminal");
+    set({ editorTabs: [...newTabs] });
+  },
+
   fetchReadme: async () => {
     const {
       language,
@@ -740,15 +768,7 @@ ${currentContent}
     set({ language: language });
 
     let params = checkParams({ justReturn: true });
-    let hash = `language=${language}${
-      // @ts-ignore
-      params.currentExercise ? "&currentExercise=" + params.currentExercise : ""
-    }${
-      // @ts-ignore
-      params.token ? "&token=" + params.token : ""
-    }`;
-
-    window.location.hash = hash;
+    setWindowHash({ ...params, language: language });
 
     if (fetchExercise) {
       fetchReadme();
@@ -761,6 +781,10 @@ ${currentContent}
       exerciseSlug: getCurrentExercise().slug,
     };
     compilerSocket.emit("open_terminal", data);
+  },
+  handleNext: () => {
+    const { currentExercisePosition, handlePositionChange } = get();
+    handlePositionChange(Number(currentExercisePosition) + 1);
   },
 
   handlePositionChange: async (desiredPosition) => {
@@ -825,7 +849,9 @@ ${currentContent}
     const copy = [...exercises];
 
     copy[Number(currentExercisePosition)].done = status === "successful";
+
     set({ exercises: copy });
+
     updateDBSession();
   },
 
@@ -840,7 +866,14 @@ ${currentContent}
       editorTabs,
       token,
       updateEditorTabs,
+      setOpenedModals,
     } = get();
+
+    if (!Boolean(token)) {
+      setOpenedModals({ mustLogin: true });
+      return
+    }
+
     setBuildButtonPrompt(buildText, "");
     const [icon, message] = getStatus("compiling");
     toast.success(message, { icon: icon });
@@ -1034,7 +1067,6 @@ ${currentContent}
           session.key
         );
 
-
         set({
           configObject: session.config_json,
           exercises: session.config_json.exercises,
@@ -1045,14 +1077,27 @@ ${currentContent}
       }
     }
   },
+  toggleTheme: () => {
+    const { theme, checkParams } = get();
+    let params = checkParams({ justReturn: true });
+    if (theme === "dark") {
+      setWindowHash({ ...params, theme: "light" });
+      set({ theme: "light" });
+    } else {
+      setWindowHash({ ...params, theme: "dark" });
+      set({ theme: "dark" });
+    }
+  },
   test: async () => {
-    // const { configObject, token } = get();
+    // const { theme } = get();
     // disconnected();
     // const session = await getSession(token, configObject.config.slug);
     // LocalStorage.set("LEARNPACK_SESSION_KEY", session.key);
     // console.log(session.key);
-    await FetchManager.logout();
-    toast.success("Succesfully logged out");
+    // await FetchManager.logout();
+    set({ token: "somethatisnotatoken" });
+
+    toast.success("Succesfully tested");
   },
 }));
 

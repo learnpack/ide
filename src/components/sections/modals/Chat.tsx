@@ -5,6 +5,7 @@ import { svgs } from "../../../assets/svgs";
 import { removeSpecialCharacters } from "../../../utils/lib";
 import { useTranslation } from "react-i18next";
 import TagManager from "react-gtm-module";
+import { Modal } from "../../mockups/Modal";
 
 type TAIInteraction = {
   student_message?: string;
@@ -17,7 +18,6 @@ type TAIInteraction = {
 let aiInteraction: TAIInteraction = {};
 
 export default function Chat() {
-  const backdropRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const { t } = useTranslation();
 
@@ -81,8 +81,6 @@ export default function Chat() {
   const [userMessageCache, setUserMessageCache] = useState("");
 
   useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside);
-
     if (conversationIdsCache[Number(currentExercisePosition)] == undefined) {
       startConversation(Number(currentExercisePosition));
     }
@@ -92,9 +90,7 @@ export default function Chat() {
     if (inputRef.current) {
       inputRef.current.focus();
     }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => {};
   }, []);
 
   useEffect(() => {
@@ -196,10 +192,8 @@ export default function Chat() {
     });
   }, [waitingTestResult]);
 
-  const handleClickOutside = (event: any) => {
-    if (event.target === backdropRef.current) {
-      setOpenedModals({ chat: false });
-    }
+  const handleClickOutside = () => {
+    setOpenedModals({ chat: false });
   };
 
   const trackUserMessage = (e: any) => {
@@ -307,17 +301,10 @@ export default function Chat() {
   };
 
   return (
-    <main ref={backdropRef} className="chat-container">
+    <Modal extraClass="chat-container" outsideClickHandler={handleClickOutside}>
       <div className="chat-modal">
         <section className="chat-header">
           <h3>{t("Rigobot AI-Tutor")}</h3>
-          <button
-            onClick={() => {
-              setOpenedModals({ chat: false });
-            }}
-          >
-            {svgs.closeIcon}
-          </button>
         </section>
         <section className="chat-messages">
           {messages.map((message, index) => (
@@ -342,7 +329,7 @@ export default function Chat() {
           </p>
         </section>
       </div>
-    </main>
+    </Modal>
   );
 }
 

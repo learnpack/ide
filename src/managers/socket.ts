@@ -211,7 +211,7 @@ export default {
   socket: null,
   start: function (host, onDisconnect: any = null, onConnect: any = null) {
     this.socket = io.connect(host, {
-      reconnectionAttempts: 10,
+      reconnectionAttempts: 5
     });
 
     if (this.socket) {

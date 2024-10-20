@@ -27,7 +27,7 @@ export const SessionModal = () => {
 
   return (
     <Modal outsideClickHandler={outsideClickHandler}>
-      <h3 className="text-center">We got you covered</h3>
+      <h3 className="text-center">{t("we-got-you-covered")}</h3>
       <p>{t("prev-session")}</p>
 
       <div className="d-flex justify-around">

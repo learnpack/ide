@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import "./styles.css";
+import { svgs } from "../../assets/svgs";
 
 interface IModal {
   children: React.ReactNode;
@@ -18,8 +19,13 @@ export const Modal = ({
   blockScroll = true,
 }: IModal) => {
   const modalRef = useRef<HTMLDivElement>(null);
+
   const handleClickOutside = (event: any) => {
-    if (modalRef.current === event.target) {
+    if (
+      modalRef.current === event.target ||
+      (event.target.classList &&
+        event.target.classList.includes("modal-closer"))
+    ) {
       outsideClickHandler();
     }
   };
@@ -27,7 +33,7 @@ export const Modal = ({
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
     const originalOverflow = document.body.style.overflow;
-    
+
     if (blockScroll) {
       // Set overflow to hidden when the modal is opened
       document.body.style.overflow = "hidden";
@@ -44,7 +50,12 @@ export const Modal = ({
 
   return createPortal(
     <div ref={modalRef} className="self-closing-modal" id={htmlId}>
-      <div className={`modal-content ${extraClass}`}>{children}</div>
+      <div className={`modal-content ${extraClass ? extraClass : ""}`}>
+        <div onClick={outsideClickHandler} className="modal-closer">
+          {svgs.closeIcon}
+        </div>
+        {children}
+      </div>
     </div>,
     document.body
   );

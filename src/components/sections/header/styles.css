@@ -68,7 +68,7 @@
   width: 250px !important;
   padding: 2px;
   border: 1px solid var(--color-active);
-  background-color: white;
+  background-color: var(--modals-bg-color);
   border-radius: 7px;
   max-width: 300px;
   font-size: var(--font-size-small);
@@ -80,7 +80,7 @@
 }
 .feedback-dropdown.up {
   bottom: 103%;
-  left: 10%;
+  right: 0;
 }
 .feedback-dropdown.down {
   top: 103%;
@@ -103,15 +103,20 @@
 
 .feedback-dropdown > button:hover {
   background-color: var(--color-blue-opaque);
+  
 }
 
 .feedback-dropdown > p {
   padding: 3px;
-  background-color: #f6f6f6;
+  background-color: #f6f6f643;
 }
 
 .feedback-dropdown > p > a {
   font-weight: 600;
   color: var(--color-active);
   cursor: pointer;
+}
+
+#feedback-button {
+  min-width: fit-content;
 }

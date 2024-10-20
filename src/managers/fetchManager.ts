@@ -1,4 +1,9 @@
-import { getExercise, RIGOBOT_HOST } from "../utils/lib";
+import {
+  getExercise,
+  getParamsObject,
+  RIGOBOT_HOST,
+  setWindowHash,
+} from "../utils/lib";
 import { TEnvironment } from "./EventProxy";
 import frontMatter from "front-matter";
 import { LocalStorage } from "./localStorage";
@@ -259,6 +264,8 @@ export const FetchManager = {
   loginWithToken: async (breathecodeToken: string) => {
     const user = await validateUser(breathecodeToken);
 
+    console.log(user);
+
     if (!user) {
       throw Error("Unable to login with provided credentials");
     }
@@ -288,8 +295,12 @@ export const FetchManager = {
         await logoutCLI(FetchManager.HOST);
       },
       localStorage: async () => {
-        console.log("TRYING TO LOGOUt WIth localstraoge");
         LocalStorage.remove("session");
+        const params = getParamsObject();
+        if (params.token) {
+          delete params.token;
+        }
+        setWindowHash(params);
         window.location.reload();
       },
     };

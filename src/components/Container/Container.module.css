@@ -1,8 +1,7 @@
 .container {
   display: flex;
   gap: 8px;
-  background-color: #f9f9f9;
-  padding: 10px;
+  background-color: var(--container-bg-color);
   flex-wrap: wrap;
 }
 
@@ -12,8 +11,41 @@
   width: 100%;
 }
 
+.container > section:first-child {
+  background-color: white;
+}
+
+.container h3 {
+  border-bottom: 3px solid var(--color-active);
+  text-align: center;
+  font-family: monospace;
+}
+
+.appTabs {
+  display: flex;
+  background-color: var(--tabs-bg-color);
+  justify-content: space-between;
+  width: 100%;
+}
+.appTabs > div {
+  width: 100%;
+  text-align: center;
+  padding: 10px;
+  color: #728ec0;
+  border-bottom: 1px solid transparent;
+  cursor: pointer;
+}
+
+.appTabs > div[data-visible="true"] {
+  background-color: var(--bg-color);
+  color: var(--color-active);
+  border-bottom: 3px solid var(--color-active);
+}
+.hiddenOnMobile {
+  display: none;
+}
+
 @media only screen and (min-width: 768px) {
-  /* Styles for devices that are not phones */
   .container {
     display: flex;
     gap: 8px;
@@ -24,20 +56,14 @@
   .container > section {
     padding: 8px;
     max-height: 80vh;
-    width: 50%;
+    width: 100%;
     overflow: auto;
   }
-}
-
-.container > section:first-child {
-  background-color: white;
-}
-.container > section:only-child {
-  width: 100%;
-}
-
-.container > section > h3 {
-  border-bottom: 3px solid var(--color-active);
-  text-align: center;
-  font-family: monospace;
+  .appTabs {
+    display: none;
+  }
+  .hiddenOnMobile {
+    display: block;
+    text-align: center;
+  }
 }

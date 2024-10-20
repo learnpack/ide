@@ -10,6 +10,7 @@ import { Presentator } from "../../composites/Presentator/Presentator";
 import { DialogModal } from "./DialogModal";
 import "./modals.css";
 import { SessionModal } from "./ContinueSession";
+import { MustLoginModal } from "./MustLogin";
 
 export const ModalsContainer = () => {
   const { openedModals, token } = useStore((state) => ({
@@ -28,6 +29,7 @@ export const ModalsContainer = () => {
       {openedModals.tutorial && <Presentator />}
       {openedModals.dialog && <DialogModal />}
       {openedModals.session && <SessionModal />}
+      {openedModals.mustLogin && <MustLoginModal />}
     </>
   );
 };

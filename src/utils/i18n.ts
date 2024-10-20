@@ -10,7 +10,7 @@ i18n.use(initReactI18next).init({
         Run: "Run",
         "Run tests": "Run tests",
         "Running...": "Running...",
-        "Login to use AI feedback": "Login to use AI feedback",
+        "Login to use AI feedback": "Login to get help from AI Mentor",
         login: "Login",
         "Get help from AI": "Rigobot AI Mentor",
         "To use the AI services you must login with your 4geeks account, and you have been accepted Rigobot":
@@ -32,7 +32,7 @@ i18n.use(initReactI18next).init({
           "Are you sure you want to reset the exercise? You will lose all your progress",
         Cancel: "Cancel",
         "Report a bug 🪰": "Report a bug 🪰",
-        "Solved exercises": "Solved exercises",
+        "solved-tests": "Solved tests",
         "Get feedback": "Get help",
         "Try again": "Try again",
         "Current version": "Current version",
@@ -79,7 +79,19 @@ i18n.use(initReactI18next).init({
         "continue-here": "Continue here",
         "start-again": "Start again",
         "we-got-you-covered": "We got you covered",
-        "please-select-option": "Please select an option"
+        "please-select-option": "Please select an option",
+        code: "Code",
+        output: "Output",
+        "compile-first": "You must compile or test your code to see the output",
+        or: "or",
+        "login-github": "Login with Github",
+        continue: "Continue",
+        "change-theme": "Change theme",
+        exercises: "Exercises",
+
+        "you-must-login-title": "Oops! Looks like you're not logged in.",
+        "you-must-login-message":
+          "To compile code on the web, please log in first!",
       },
     },
     es: {
@@ -88,7 +100,8 @@ i18n.use(initReactI18next).init({
         Run: "Ejecutar",
         "Running...": "Ejecutando...",
         "Run tests": "Ejecutar tests",
-        "Login to use AI feedback": "Inicia sesión para obtener ayuda de la IA",
+        "Login to use AI feedback":
+          "Inicia sesión para obtener ayuda del Mentor IA",
         "Get help from AI": "Obtener ayuda de Rigobot AI",
         "To use the AI services you must login with your 4geeks account, and you have been accepted Rigobot":
           "Para usar los servicios de IA, debes iniciar sesión con tu cuenta de 4geeks y haber aceptado los servicios de Rigobot",
@@ -109,7 +122,7 @@ i18n.use(initReactI18next).init({
           "¿Estás seguro de que quieres reiniciar el ejercicio? Perderás todo tu progreso",
         Cancel: "Cancelar",
         "Report a bug 🪰": "Reportar un error 🪰",
-        "Solved exercises": "Ejercicios resueltos",
+        "solved-tests": "Tests resueltos",
         "Get feedback": "Obtener ayuda",
         "Try again": "Intenta de nuevo",
         "Current version": "Versión actual",
@@ -168,7 +181,19 @@ i18n.use(initReactI18next).init({
         "continue-here": "Seguir acá",
         "start-again": "Empezar de nuevo",
         "we-got-you-covered": "Te tenemos cubierto",
-        "please-select-option": "Por favor selecciona una opción"
+        "please-select-option": "Por favor selecciona una opción",
+        code: "Código",
+        output: "Salida",
+        "compile-first":
+          "Tienes que compilar o testear tu código para ver la salida",
+        or: "o",
+        "login-github": "Loggeate con Github",
+        continue: "Sigue adelante",
+        "change-theme": "Cambia el tema",
+        exercises: "Ejercicios",
+        "you-must-login-title": "¡Ups! Parece que no has iniciado sesión.",
+        "you-must-login-message":
+          "Para compilar código en la web, ¡por favor inicia sesión primero!",
       },
     },
   },

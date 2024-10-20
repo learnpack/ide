@@ -1,9 +1,14 @@
 .lesson-container-component {
-  background-color: white;
+  /* background-color: white; */
   max-width: 1145px;
   margin: 0 auto;
   padding: 0px 15px;
   overflow-y: scroll;
+  color: var(--read-font-color);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  line-height: 1.5rem;
 }
 
 .lesson-content-component {
@@ -28,6 +33,9 @@
 .lesson-content-component h3 {
   font-size: 18px;
 }
+.lesson-content-component p {
+  line-height: 1.5rem;
+}
 
 .lesson-content-component > h1,
 .lesson-content-component h2,
@@ -41,9 +49,6 @@
 .lesson-content-component > pre {
   margin: 10px 0;
 }
-
-
-
 
 .simple-button-svg {
   max-height: 100% !important;

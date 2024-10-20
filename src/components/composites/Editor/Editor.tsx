@@ -9,11 +9,7 @@ import ResetButton from "../../sections/header/ResetButton";
 import BuildButton from "../../sections/header/BuildButton";
 import { useTranslation } from "react-i18next";
 import { debounce } from "../../../utils/lib";
-import { Tab } from "../../../types/editor"
-
-
-
-const EDITOR_THEME_KEY = "editor_theme";
+import { Tab } from "../../../types/editor";
 
 const languageMap: { [key: string]: string } = {
   ".js": "javascript",
@@ -30,20 +26,31 @@ const getLanguageFromExtension = (fileName: string): string => {
 
 type TEditorStatus = "UNMODIFIED" | "MODIFIED" | "ERROR" | "SUCCESS";
 
-const CodeEditor: React.FC = () => {
-  const { editorTabs, getCurrentExercise, updateFileContent } = useStore((state) => ({
-    editorTabs: state.editorTabs,
-    getCurrentExercise: state.getCurrentExercise,
-    updateFileContent: state.updateFileContent
-  }));
+type TCodeEditorProps = {
+  terminal: "hidden" | "only" | "normal";
+  hideTerminal?: () => void;
+};
+
+const CodeEditor: React.FC<TCodeEditorProps> = ({
+  terminal = "normal",
+  hideTerminal,
+}) => {
+  const { editorTabs, getCurrentExercise, updateFileContent, cleanTerminal,theme} =
+    useStore((state) => ({
+      editorTabs: state.editorTabs,
+      getCurrentExercise: state.getCurrentExercise,
+      updateFileContent: state.updateFileContent,
+      cleanTerminal: state.cleanTerminal,
+      theme: state.theme
+    }));
   const [tabs, setTabs] = useState<Tab[]>([...editorTabs]);
-  const [theme, setTheme] = useState("light");
+  const [editorTheme, setEditorTheme] = useState("light");
   const [editorStatus, setEditorStatus] = useState<TEditorStatus>("UNMODIFIED");
 
   const debouncedStore = useCallback(
     debounce((tab: Tab, exerciseSlug: string) => {
       console.log(tab, "TAB RECEIVED AFTER WAIT");
-      updateFileContent(exerciseSlug, tab)
+      updateFileContent(exerciseSlug, tab);
     }, 5000),
     []
   );
@@ -63,21 +70,24 @@ const CodeEditor: React.FC = () => {
       tab.id === id ? { ...tab, content } : tab
     );
     setTabs(newTabs);
-    console.log(newTabs);
 
     const ex = getCurrentExercise();
     const withoutTerminal = newTabs.filter((t) => t.name !== "terminal");
     LocalStorage.setEditorTabs(ex.slug, withoutTerminal);
     setEditorStatus("MODIFIED");
-    debouncedStore(newTabs.find((t) => t.id === id), ex.slug);
+    debouncedStore(
+      newTabs.find((t) => t.id === id),
+      ex.slug
+    );
   };
 
   const removeTab = (id: number, name: string) => {
-    const ex = getCurrentExercise();
-
-    if (name === "terminal") {
-      LocalStorage.remove(`terminalLogs_${ex.slug}`);
+    if (name === "terminal" && hideTerminal) {
+      hideTerminal();
+      cleanTerminal();
+      return;
     }
+
     const newTabs = tabs.filter((tab) => tab.id !== id);
     setTabs(newTabs);
     if (newTabs.length > 0) {
@@ -88,8 +98,6 @@ const CodeEditor: React.FC = () => {
         }))
       );
     }
-
-    LocalStorage.setEditorTabs(ex.slug, newTabs);
   };
 
   const handleTabClick = (id: number) => {
@@ -102,11 +110,6 @@ const CodeEditor: React.FC = () => {
   useEffect(() => {
     const ex = getCurrentExercise();
     if (!ex) return;
-
-    const cachedTheme = LocalStorage.get(EDITOR_THEME_KEY);
-    if (cachedTheme) {
-      setTheme(cachedTheme);
-    }
 
     const tabMap = new Map();
 
@@ -128,9 +131,20 @@ const CodeEditor: React.FC = () => {
     setTabs(updatedTabs);
   }, [editorTabs]);
 
+
+  useEffect(()=>{
+    if (theme === "light") {
+      setEditorTheme("light")
+    }
+    else if (theme === "dark") {
+      setEditorTheme("vs-dark")
+    }
+
+  },[theme])
+
   const handleThemeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newTheme = event.target.value;
-    setTheme(newTheme);
+    setEditorTheme(newTheme);
     const ex = getCurrentExercise();
     if (ex) {
       LocalStorage.set("editor_theme", newTheme);
@@ -143,24 +157,26 @@ const CodeEditor: React.FC = () => {
 
   return (
     <div style={{ display: `${tabs.length === 0 ? "none" : "block"}` }}>
-      <div className="tabs">
+      <div
+        className="tabs"
+        style={{ display: terminal === "only" ? "none" : "flex" }}
+      >
         <button onClick={addTab} className="add-tab">
           +
         </button>
         {filteredTabs.map((tab) => (
           <div key={tab.id} className={`tab ${tab.isActive ? "active" : ""}`}>
             <button onClick={() => handleTabClick(tab.id)}>{tab.name}</button>
-            <button
+            {/* <button
               className="close-tab"
               onClick={() => removeTab(tab.id, tab.name)}
             >
               &times;
-            </button>
+            </button> */}
           </div>
         ))}
-
         <div className="theme-selector">
-          <select id="theme-select" value={theme} onChange={handleThemeChange}>
+          <select id="theme-select" value={editorTheme} onChange={handleThemeChange}>
             <option value="light">Light</option>
             <option value="vs-dark">Dark</option>
             <option value="hc-black">High Contrast</option>
@@ -168,34 +184,36 @@ const CodeEditor: React.FC = () => {
         </div>
       </div>
 
-      <div className="editor">
-        {tabs.map(
-          (tab) =>
-            tab.isActive && (
-              <MonacoEditor
-                key={tab.id}
-                height="400px"
-                language={getLanguageFromExtension(tab.name)}
-                theme={theme}
-                value={tab.content}
-                onChange={(value) => updateContent(tab.id, value || "")}
-                options={{
-                  minimap: {
-                    enabled: false,
-                  },
-                  fontSize: 12,
-                  fontFamily: '"Fira code", "Fira Mono", monospace',
-                  readOnly:
-                    tab.name === "terminal" ||
-                    tab.name.includes("solution.hide"),
-                }}
-              />
-            )
-        )}
-        <EditorFooter editorStatus={editorStatus} />
-      </div>
+      {!(terminal === "only") && (
+        <div className="editor">
+          {tabs.map(
+            (tab) =>
+              tab.isActive && (
+                <MonacoEditor
+                  key={tab.id}
+                  height="400px"
+                  language={getLanguageFromExtension(tab.name)}
+                  theme={editorTheme}
+                  value={tab.content}
+                  onChange={(value) => updateContent(tab.id, value || "")}
+                  options={{
+                    minimap: {
+                      enabled: false,
+                    },
+                    fontSize: 12,
+                    fontFamily: '"Fira code", "Fira Mono", monospace',
+                    readOnly:
+                      tab.name === "terminal" ||
+                      tab.name.includes("solution.hide"),
+                  }}
+                />
+              )
+          )}
+          <EditorFooter editorStatus={editorStatus} />
+        </div>
+      )}
       {terminalTab && (
-        <div className="terminal">
+        <div className={`terminal ${terminal}`}>
           <h5>
             <span>Terminal</span>{" "}
             <button onClick={() => removeTab(terminalTab.id, terminalTab.name)}>
@@ -220,15 +238,18 @@ const EditorFooter = ({ editorStatus }: EditorFooterProps) => {
     <div className={`editor-footer ${editorStatus}`}>
       {editorStatus === "UNMODIFIED" && (
         <div className="not-started">
-          <span>{svgs.learnpackLogo}</span>
-          <span>{t("read-instructions")}</span>
+          <div>
+            <span>{svgs.learnpackLogo}</span>
+            <span>{t("read-instructions")}</span>
+          </div>
+          <FeedbackButton direction="up" />
         </div>
       )}
       {editorStatus === "MODIFIED" && (
         <div className="footer-actions">
-          <FeedbackButton direction="up" />
-          <ResetButton />
           <BuildButton extraClass={"active"} />
+          <ResetButton />
+          <FeedbackButton direction="up" />
         </div>
       )}
     </div>

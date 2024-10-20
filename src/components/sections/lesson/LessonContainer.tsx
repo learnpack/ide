@@ -1,17 +1,24 @@
-import { useEffect, useState } from "react";
+import { ReactElement, useEffect, useState } from "react";
 import LessonContent from "./LessonContent";
 import "./styles.css";
 import useStore from "../../../utils/store";
 import { useTranslation } from "react-i18next";
 import { Alert } from "../../composites/Alert/Alert";
 import { OpenWindowLink } from "../../composites/OpenWindowLink";
+import { ENVIRONMENT } from "../../../utils/lib";
 
 interface Alerts {
   incrementalTest: boolean;
   agent: boolean;
 }
 
-export default function LessonContainer() {
+export default function LessonContainer({
+  children,
+  continueAction,
+}: {
+  children?: ReactElement;
+  continueAction?: () => void;
+}) {
   const { t } = useTranslation();
   const [alerts, setAlerts] = useState<Alerts>({
     incrementalTest: false,
@@ -67,9 +74,13 @@ export default function LessonContainer() {
             </div>
           </Alert>
         )}
-
+      {children}
       <LessonContent />
-      {/* {ENVIRONMENT === "localStorage" && <CodeEditor />} */}
+      {ENVIRONMENT === "localStorage" && continueAction && (
+        <div onClick={continueAction} className="badge bg-blue">
+          {t("continue")}
+        </div>
+      )}
     </div>
   );
 }

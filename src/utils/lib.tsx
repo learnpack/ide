@@ -1,6 +1,7 @@
 import { Remarkable } from "remarkable";
 import { linkify } from "remarkable/linkify";
 import { TEnvironment } from "../managers/EventProxy";
+import { TPossibleParams } from "./storeTypes";
 
 // @ts-ignore
 // import katex from 'remarkable-katex'
@@ -52,7 +53,6 @@ export const getEnvironment = async () => {
     if (response.ok) {
       ENVIRONMENT = "localhost";
 
-  
       const myEvent = new CustomEvent("environment-change", {
         detail: { environment: "localhost" },
       });
@@ -180,8 +180,13 @@ export const onConnectCli = () => {
   }
 };
 
-export const getParamsObject = (): Record<string, string> => {
+function fixParams(str: string) {
+  return str.replace(/\?/g, "&");
+}
+
+export const getParamsObject = (): TPossibleParams => {
   let params = window.location.hash.substring(1);
+  params = fixParams(params);
   const paramsUrlSearch = new URLSearchParams(params);
 
   let paramsObject: Record<string, string> = {};
@@ -214,4 +219,17 @@ export const replaceSlot = (
 ): string => {
   const slotRegex = new RegExp(slot, "g");
   return string.replace(slotRegex, value);
+};
+
+export const setWindowHash = (params: TPossibleParams) => {
+  // Create a hash string from the params object
+  const hashString = Object.entries(params)
+    .map(
+      ([key, value]) =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+    )
+    .join("&");
+
+  // Set the window location hash
+  window.location.hash = hashString;
 };

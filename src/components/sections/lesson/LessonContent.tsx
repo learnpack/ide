@@ -3,17 +3,14 @@ import { useEffect, useRef } from "react";
 import { convertMarkdownToHTML } from "../../../utils/lib";
 
 export default function LessonContent() {
-    const { currentContent, start, openLink } = useStore(state => ({
+    const { currentContent, openLink } = useStore(state => ({
         currentContent: state.currentContent,
-        start: state.start,
         openLink: state.openLink
     }));
 
     const lessonContentRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        start();
-    }, []);
+    
 
     useEffect(() => {
         const lessonContentDiv = lessonContentRef.current;

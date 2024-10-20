@@ -20,7 +20,6 @@
   animation-fill-mode: backwards;
 }
 
-
 .preview-card .click:hover {
   background-color: rgba(0, 0, 0, 0.5);
   animation: scaleOnHover 0.5s ease 1 both;
@@ -80,27 +79,9 @@
   background-color: var(--color-active);
 }
 
-.chat-container {
-  position: absolute;
-  width: 100%;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 1;
-  font-size: 17px;
-}
-
 .chat-container .chat-modal {
-  background-color: white;
-  width: min(99%, 750px);
-  max-height: 90vh;
-  overflow-y: scroll;
-  position: relative !important;
-  padding: 20px;
-  border-radius: 10px;
+  background-color: var(--modals-bg-color);
+  max-height: 95vh;
 }
 
 .chat-container .chat-modal section {
@@ -142,32 +123,36 @@
 }
 
 .chat-container .chat-modal .chat-input textarea {
-  background-color: #ebececbf;
   width: 100%;
   padding: 5px;
-  resize: none;
+  resize: vertical;
   border-radius: 8px;
   padding-right: 40px;
   border: 0;
+  border: 1px solid var(--font-color-secondary);
   outline: none;
+  min-height: 80px;
 }
 
 .chat-container .chat-modal .chat-input button {
-  background-color: #9f9f9f;
   position: absolute;
   padding: 10px;
   display: flex;
   border-radius: 50%;
   right: 10px;
-  border: 1px solid white;
+  border: 1px solid var(--font-color-secondary);
 }
 
 .chat-container .chat-modal .chat-input button svg path {
-  stroke: white;
+  stroke: var(--font-color-secondary);
 }
 
 .chat-container .chat-modal .chat-input button:hover {
   background-color: #02a8ea;
+  color: var(--read-font-color);
+}
+.chat-container .chat-modal .chat-input :hover svg path {
+  stroke: var(--read-font-color);
 }
 
 .chat-container .chat-modal .chat-footer {
@@ -184,17 +169,13 @@
   padding: 10px;
 }
 
-.chat-container .next-button:hover {
-  background-color: var(--color-active);
-  color: white;
-}
-
 .chat-container .message {
-  background-color: #d1d1d1ef;
+  background-color: var(--color-hovered);
   padding: 10px;
   border-radius: 9px;
   margin-top: 5px;
   line-height: 25px;
+  word-break: break-word;
 }
 
 .chat-container .message.user {
@@ -204,8 +185,6 @@
 .chat-container .message p:not(:first-child) {
   margin-top: 15px;
 }
-
-
 
 .alert {
   background-color: var(--4geeks-yellow);

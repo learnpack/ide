@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import "./App.css";
 import "./index.css";
 import "./components.css";
@@ -11,30 +11,29 @@ import { ModalsContainer } from "./components/sections/modals";
 import { ShortcutsListener } from "./components/composites/ShortcutListener";
 import { NewHeader } from "./components/Header/NewHeader";
 import { Container } from "./components/Container/Container";
-import { ENVIRONMENT } from "./utils/lib";
+import useStore from "./utils/store";
 
 export default function Home() {
-  const [environment, setEnvironment] = useState(ENVIRONMENT); // Initialize state
-
+  const { environment, start, handleEnvironmentChange, theme } = useStore(
+    (s) => ({
+      environment: s.environment,
+      start: s.start,
+      handleEnvironmentChange: s.handleEnvironmentChange,
+      theme: s.theme,
+    })
+  );
   useEffect(() => {
-    const handleEnvironmentChange = (event: any) => {
-      setEnvironment(event.detail.environment);
-    };
+    start();
 
-    // Add event listener
     document.addEventListener("environment-change", handleEnvironmentChange);
-
-    // Cleanup listener on component unmount
-    return () => {
-      document.removeEventListener(
-        "environment-change",
-        handleEnvironmentChange
-      );
-    };
   }, []);
 
+  useEffect(() => {
+    console.log(theme, "THEME HAS CHANGED");
+  }, [theme]);
+
   return (
-    <main id="main-container" className="">
+    <main id="main-container" className={`${theme}`}>
       <ShortcutsListener>
         <ModalsContainer />
         <SocketHandler />
