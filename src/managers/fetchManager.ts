@@ -173,7 +173,9 @@ export const FetchManager = {
       localhost: async () => {
         const res = await fetch(`${FetchManager.HOST}/check/rigo/status`);
         if (res.status === 400) {
-          throw Error("The user is not logged in");
+          const tabHash = uuidv4();
+          await FetchManager.setTabHash(tabHash);
+          return tabHash;
         }
         const json = await res.json();
 
@@ -238,7 +240,7 @@ export const FetchManager = {
         if (res.status === 400) {
           console.log("ERROR");
           console.log(res);
-          throw Error("Impossible to set tab hash");
+          throw Error("Impossible to set session key");
         }
         await res.json();
         return true;
@@ -264,8 +266,6 @@ export const FetchManager = {
   loginWithToken: async (breathecodeToken: string) => {
     const user = await validateUser(breathecodeToken);
 
-    console.log(user);
-
     if (!user) {
       throw Error("Unable to login with provided credentials");
     }
@@ -285,6 +285,15 @@ export const FetchManager = {
       payload: { ...returns },
       rigoToken: returns.rigobot.key,
     };
+
+    if (FetchManager.ENVIRONMENT === "localhost") {
+      const tabHash = await FetchManager.getTabHash();
+      await setSessionInCLI({
+        ...loggedFormat.payload,
+        token: breathecodeToken,
+        tabHash: tabHash,
+      });
+    }
 
     return loggedFormat;
   },
@@ -322,8 +331,16 @@ const validateUser = async (breathecodeToken: string) => {
     return null;
   }
   const json = await res.json();
-  // TODO: get the name from this json
-  // console.log(json);
+
+  if ("roles" in json) {
+    delete json.roles;
+  }
+  if ("permissions" in json) {
+    delete json.permissions;
+  }
+  if ("settings" in json) {
+    delete json.settings
+  }
 
   return json;
 };
@@ -382,4 +399,25 @@ const loginLocalStorage = async (loginInfo: any) => {
   LocalStorage.set("session", returns);
 
   return returns;
+};
+
+const setSessionInCLI = async (payload: any) => {
+  const body = {
+    payload: { ...payload },
+  };
+
+  const res = await fetch(`${FetchManager.HOST}/set-session`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  if (res.status === 400) {
+    console.log("ERROR");
+    console.log(res);
+    throw Error("Impossible to set tab hash");
+  }
+  await res.json();
+  return true;
 };

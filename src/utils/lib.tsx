@@ -238,6 +238,9 @@ export const setWindowHash = (params: TPossibleParams) => {
     )
     .join("&");
 
+  const url = window.location.origin + window.location.pathname;
+  history.replaceState(null, "", url);
+
   // Set the window location hash
   window.location.hash = hashString;
 };

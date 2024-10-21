@@ -22,7 +22,6 @@ import { getStatus } from "../managers/socket";
 import { DEV_MODE, RIGOBOT_HOST } from "./lib";
 import { EventProxy } from "../managers/EventProxy";
 import { FetchManager } from "../managers/fetchManager";
-import { LocalStorage } from "../managers/localStorage";
 import { createSession, getSession, updateSession } from "./apiCalls";
 
 type TFile = {
@@ -937,6 +936,7 @@ ${currentContent}
     let storedTabHash = tabHash;
 
     if (!token) return;
+
     if (!storedTabHash) {
       storedTabHash = await FetchManager.getTabHash();
       set({ tabHash: storedTabHash });
@@ -964,6 +964,8 @@ ${currentContent}
           exercises: session.config_json.exercises,
         });
         set({ sessionKey: session.key });
+
+        await FetchManager.setSessionKey(session.key);
         updateEditorTabs();
       }
     } catch (e) {
@@ -1039,44 +1041,41 @@ ${currentContent}
     compilerSocket.emit("reset", data);
   },
   sessionActions: async ({ action = "new" }) => {
-    const { configObject, token, updateEditorTabs } = get();
+    const { configObject, token, updateEditorTabs, tabHash } = get();
+    let storedTabHash = tabHash;
+    if (!storedTabHash) {
+      storedTabHash = await FetchManager.getTabHash();
+    }
+    if (action === "new") {
+      const session = await createSession(
+        token,
+        tabHash,
+        configObject.config.slug,
+        configObject
+      );
+      await FetchManager.setSessionKey(session.key);
+      set({
+        sessionKey: session.key,
+      });
+    }
 
-    if (ENVIRONMENT === "localStorage") {
-      // console.log(configObject, exercises);
+    if (action === "continue") {
+      const session = await getSession(token, configObject.config.slug);
+      await updateSession(
+        token,
+        tabHash,
+        configObject.config.slug,
+        null,
+        session.key
+      );
 
-      let tabHash = LocalStorage.get("TAB_HASH");
-
-      if (action === "new") {
-        const session = await createSession(
-          token,
-          tabHash,
-          configObject.config.slug,
-          configObject
-        );
-        await FetchManager.setSessionKey(session.key);
-        set({
-          sessionKey: session.key,
-        });
-      }
-
-      if (action === "continue") {
-        const session = await getSession(token, configObject.config.slug);
-        await updateSession(
-          token,
-          tabHash,
-          configObject.config.slug,
-          null,
-          session.key
-        );
-
-        set({
-          configObject: session.config_json,
-          exercises: session.config_json.exercises,
-          sessionKey: session.key,
-        });
-        await FetchManager.setSessionKey(session.key);
-        updateEditorTabs();
-      }
+      set({
+        configObject: session.config_json,
+        exercises: session.config_json.exercises,
+        sessionKey: session.key,
+      });
+      await FetchManager.setSessionKey(session.key);
+      updateEditorTabs();
     }
   },
   toggleTheme: () => {
