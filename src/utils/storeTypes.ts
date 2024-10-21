@@ -106,6 +106,13 @@ type TResetExerciseOpts = {
 type TOpenLinkOptions = {
   redirect?: boolean;
 };
+
+type TRefreshData = {
+  newToken: string;
+  newTabHash: string
+  newBCToken: string
+};
+
 export interface IStore {
   exercises: any[];
   chatInitialMessage: string;
@@ -161,6 +168,7 @@ export interface IStore {
   getContextFilesContent: () => Promise<string>;
   loginToRigo: (loginInfo: TLoginInfo) => Promise<void | false>;
   getCurrentExercise: () => TExercise;
+  refreshDataFromAnotherTab: (data: TRefreshData) => void;
   setExerciseMessages: (messages: IMessage[], position: number) => void;
   setShowVideoTutorial: (show: boolean) => void;
   setAllowedActions: (actions: string[]) => void;

@@ -211,7 +211,7 @@ export default {
   socket: null,
   start: function (host, onDisconnect: any = null, onConnect: any = null) {
     this.socket = io.connect(host, {
-      reconnectionAttempts: 5
+      reconnectionAttempts: 5,
     });
 
     if (this.socket) {
@@ -265,8 +265,12 @@ export default {
     };
 
     this.socket.on(scopeName, (data) => {
-      if (data.logs) scope.logs = scope.logs.concat(data.logs);
-      if (data.status)
+
+      if (data.logs) {
+        scope.logs = scope.logs.concat(data.logs);
+      }
+
+      if (data.status) {
         scope.status = {
           code: data.status,
           message: data.data
@@ -275,12 +279,12 @@ export default {
           gif: data.data ? data.data.gif : null,
           video: data.data ? data.data.video : null,
         };
-
-      if (typeof scope.actionCallBacks[data.action] === "function")
+      }
+      if (typeof scope.actionCallBacks[data.action] === "function") {
         scope.actionCallBacks[data.action](data, scope);
+      }
       if (typeof scope.statusCallBacks[data.status] === "function")
         scope.statusCallBacks[data.status](data, scope);
-      // if (scope.updatedCallback) console.log(scopeName + " event: ", data) | scope.updatedCallback(scope, data)
       if (scope.updatedCallback) scope.updatedCallback(scope, data);
     });
 

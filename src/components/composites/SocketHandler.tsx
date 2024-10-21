@@ -1,18 +1,21 @@
 import useStore from "../../utils/store";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { InputModal } from "../sections/modals/InputModal";
 
 import "./styles.css";
 import { FetchManager } from "../../managers/fetchManager";
+import { debounce } from "../../utils/lib";
+import { Tab } from "../../types/editor";
 export function SocketHandler() {
   const {
     compilerSocket,
     exercises,
-
     setShouldBeTested,
     getCurrentExercise,
     currentExercisePosition,
     updateFileContent,
+    setOpenedModals,
+    refreshSession,
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     exercises: state.exercises,
@@ -21,11 +24,21 @@ export function SocketHandler() {
     getCurrentExercise: state.getCurrentExercise,
     currentExercisePosition: state.currentExercisePosition,
     updateFileContent: state.updateFileContent,
+    checkLoggedStatus: state.checkLoggedStatus,
+    setOpenedModals: state.setOpenedModals,
+    refreshSession: state.refreshDataFromAnotherTab,
   }));
 
   const [inputsResponses, setInputsResponses] = useState([] as string[]);
   const [inputs, setInputs] = useState([] as string[]);
   const [shouldWeSend, setShouldWeSend] = useState(false);
+
+  const debouncedStore = useCallback(
+    debounce((tab: Tab, exerciseSlug: string) => {
+      updateFileContent(exerciseSlug, tab);
+    }, 4000),
+    []
+  );
 
   useEffect(() => {
     compilerSocket.on("file_change", async (data: any) => {
@@ -35,7 +48,7 @@ export function SocketHandler() {
       const doesCurrentStepChange = fullpath.includes(current.path);
       const parts = fullpath.split("\\");
       const fileName = parts[parts.length - 1];
-    
+
       const fileContent = await FetchManager.getFileContent(
         current.slug,
         fileName
@@ -47,11 +60,21 @@ export function SocketHandler() {
         isActive: false,
         id: fileName,
       };
-      
-      updateFileContent(current.slug, tab);
-      if (!doesCurrentStepChange) return;
+      debouncedStore(tab, current.slug);
 
+      if (!doesCurrentStepChange) return;
       setShouldBeTested(true);
+    });
+
+    compilerSocket.on("session-refreshed", function (data: any) {
+      const _session = data.logs[0];
+
+      setOpenedModals({ login: false });
+      refreshSession({
+        newToken: _session.rigobot.key,
+        newTabHash: _session.tabHash,
+        newBCToken: _session.token,
+      });
     });
   }, []);
 

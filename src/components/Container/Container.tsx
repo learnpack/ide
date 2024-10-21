@@ -15,9 +15,10 @@ export const Container = () => {
   const [visibleTab, setVisibleTab] = useState(
     window.innerWidth <= 768 ? "instructions" : ("all" as TPossibleTabs)
   );
-  const { editorTabs, handleNext } = useStore((s) => ({
+  const { editorTabs, handleNext, environment } = useStore((s) => ({
     editorTabs: s.editorTabs,
     handleNext: s.handleNext,
+    environment: s.environment,
   }));
 
   const { t } = useTranslation();
@@ -124,7 +125,7 @@ export const Container = () => {
           <h3 className={styles.hiddenOnMobile}> {t("instructions")} </h3>
         </LessonContainer>
       </section>
-      {editorTabs.length > 0 && (
+      {editorTabs.length > 0 && !(environment === "localhost") && (
         <section
           style={{
             display:
@@ -134,13 +135,15 @@ export const Container = () => {
           <CodeEditor terminal={isMobile ? "hidden" : "normal"} />
         </section>
       )}
-      <section
-        style={{
-          display: visibleTab === "terminal" ? "block" : "none",
-        }}
-      >
-        <CodeEditor hideTerminal={hideTerminal} terminal="only" />
-      </section>
+      {!(environment === "localhost") && (
+        <section
+          style={{
+            display: visibleTab === "terminal" ? "block" : "none",
+          }}
+        >
+          <CodeEditor hideTerminal={hideTerminal} terminal="only" />
+        </section>
+      )}
     </main>
   );
 };

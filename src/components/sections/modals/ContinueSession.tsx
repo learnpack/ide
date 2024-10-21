@@ -30,10 +30,18 @@ export const SessionModal = () => {
       <h3 className="text-center">{t("we-got-you-covered")}</h3>
       <p>{t("prev-session")}</p>
 
-      <div className="d-flex justify-around">
+      <div className="d-flex justify-center gap-big">
         {" "}
-        <SimpleButton extraClass="pill bg-blue" text={"Continue here"} action={handleContinue}/>
-        <SimpleButton extraClass="pill bg-grey" text={"Start again"}  action={handleNew}/>
+        <SimpleButton
+          extraClass="pill bg-blue"
+          text={"Continue here"}
+          action={handleContinue}
+        />
+        <SimpleButton
+          extraClass="pill btn-dark"
+          text={"Start again"}
+          action={handleNew}
+        />
       </div>
     </Modal>
   );

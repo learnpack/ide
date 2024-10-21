@@ -49,7 +49,6 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
 
   const debouncedStore = useCallback(
     debounce((tab: Tab, exerciseSlug: string) => {
-      console.log(tab, "TAB RECEIVED AFTER WAIT");
       updateFileContent(exerciseSlug, tab);
     }, 5000),
     []

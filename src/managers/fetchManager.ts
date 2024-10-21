@@ -99,6 +99,27 @@ export const FetchManager = {
 
     return await methods[FetchManager.ENVIRONMENT as keyof TMethods]();
   },
+  saveFileContent: async (slug: string, filename: string, content: string) => {
+    const methods: TMethods = {
+      localhost: async () => {
+        try {
+          const url = `${FetchManager.HOST}/exercise/${slug}/file/${filename}`;
+          const respose = await fetch(url, {
+            method: "PUT",
+            body: content,
+          });
+          console.log(respose);
+        } catch (e) {
+          console.log(e);
+        }
+      },
+      localStorage: async () => {
+        console.log("SAVE FILE IN LS");
+      },
+    };
+
+    return await methods[FetchManager.ENVIRONMENT as keyof TMethods]();
+  },
 
   checkLoggedStatus: async () => {
     const methods: TMethods = {
@@ -339,7 +360,7 @@ const validateUser = async (breathecodeToken: string) => {
     delete json.permissions;
   }
   if ("settings" in json) {
-    delete json.settings
+    delete json.settings;
   }
 
   return json;

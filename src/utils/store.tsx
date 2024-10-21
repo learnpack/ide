@@ -201,8 +201,6 @@ const useStore = create<IStore>((set, get) => ({
   },
 
   figureEnvironment: async () => {
-    console.log("FIGURANDO ENVIRONMENT");
-
     const env = await getEnvironment();
     set({ compilerSocket: EventProxy.getEmitter(env) });
     FetchManager.init(env, HOST);
@@ -263,9 +261,7 @@ const useStore = create<IStore>((set, get) => ({
     const params = checkParams({ justReturn: true });
 
     try {
-      // @ts-ignore
       if (params.token) {
-        // @ts-ignore
         const json = await FetchManager.loginWithToken(params.token);
         set({ token: json.rigoToken });
         set({ bc_token: json.payload.token });
@@ -516,7 +512,6 @@ ${currentContent}
         throw new Error("ConversationID not found in cache");
       }
     } catch (err) {
-      console.log("Initializing a new conversation");
       initialData = await startChat(learnpackPurposeId, token);
       conversationId = initialData.conversation_id;
     }
@@ -669,6 +664,12 @@ ${currentContent}
         let content = "";
         if ("content" in element) {
           content = element.content;
+
+          await FetchManager.saveFileContent(
+            exercise.slug,
+            element.name,
+            content
+          );
         } else {
           content = await FetchManager.getFileContent(
             exercise.slug,
@@ -719,8 +720,6 @@ ${currentContent}
     } = get();
     // @ts-ignore
     const slug = exercises[currentExercisePosition]?.slug;
-    console.log("trying to fetch readme");
-
     if (!slug) {
       return;
     }
@@ -1077,6 +1076,21 @@ ${currentContent}
       await FetchManager.setSessionKey(session.key);
       updateEditorTabs();
     }
+  },
+
+  refreshDataFromAnotherTab: ({ newToken, newTabHash, newBCToken }) => {
+    const { token, bc_token, tabHash, getOrCreateActiveSession } = get();
+
+    if (!(token === newToken)) {
+      set({ token: newToken });
+    }
+    if (!(bc_token === newBCToken)) {
+      set({ bc_token: newBCToken });
+    }
+    if (!(tabHash === newTabHash)) {
+      set({ tabHash: newTabHash });
+    }
+    getOrCreateActiveSession();
   },
   toggleTheme: () => {
     const { theme, checkParams } = get();
