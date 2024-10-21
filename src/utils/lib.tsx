@@ -187,6 +187,14 @@ function fixParams(str: string) {
 export const getParamsObject = (): TPossibleParams => {
   let params = window.location.hash.substring(1);
   params = fixParams(params);
+  if (!params) {
+    const url = window.location.href;
+    const urlObj = new URL(url);
+    params = urlObj.search;
+    params = fixParams(params);
+  }
+  params = fixParams(params);
+
   const paramsUrlSearch = new URLSearchParams(params);
 
   let paramsObject: Record<string, string> = {};

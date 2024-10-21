@@ -143,8 +143,8 @@ const useStore = create<IStore>((set, get) => ({
         .then(() => {
           return checkParams({ justReturn: false });
         })
-        .then((params: any) => {
-          if (Object.keys(params).length === 0) {
+        .then((params: TPossibleParams) => {
+          if (!params.currentExercise) {
             fetchReadme();
           }
         })
@@ -720,6 +720,8 @@ ${currentContent}
     } = get();
     // @ts-ignore
     const slug = exercises[currentExercisePosition]?.slug;
+    console.log("trying to fetch readme");
+
     if (!slug) {
       return;
     }
@@ -871,7 +873,7 @@ ${currentContent}
 
     if (!Boolean(token)) {
       setOpenedModals({ mustLogin: true });
-      return
+      return;
     }
 
     setBuildButtonPrompt(buildText, "");

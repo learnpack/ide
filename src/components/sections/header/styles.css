@@ -12,7 +12,7 @@
 
 .navbar-component {
   padding: 10px 10px;
-  background-color: var(--bg-color-gray);
+  background-color: var(--bg-color);
   display: flex;
   width: 100%;
   transition: all 2s;
@@ -35,7 +35,7 @@
 .lesson-options {
   display: flex;
   align-items: center;
-  background-color: white;
+  background-color: var(--bg-color);
   margin: 0 auto;
   max-width: 1145px;
   padding: 8px;
@@ -103,7 +103,6 @@
 
 .feedback-dropdown > button:hover {
   background-color: var(--color-blue-opaque);
-  
 }
 
 .feedback-dropdown > p {
