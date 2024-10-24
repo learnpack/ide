@@ -134,7 +134,7 @@ export default function Sidebar() {
                   extraClass="clickeable pill"
                   svg={theme === "dark" ? svgs.sun : svgs.moon}
                 />
-                {!DEV_MODE && (
+                {DEV_MODE && (
                   <SimpleButton
                     action={devLogout}
                     extraClass="btn-dark pill"
