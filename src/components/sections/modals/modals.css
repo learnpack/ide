@@ -7,6 +7,9 @@
   width: 100%;
   gap: 20px;
 }
+.login-modal {
+  font-size: 16px;
+}
 
 .login-modal h2 {
   text-align: center;
@@ -17,4 +20,11 @@
   align-items: center;
   justify-content: center;
   gap: 5px;
+}
+
+.login-modal button {
+  font-size: 16px;
+}
+.login-modal input {
+  font-size: 16px;
 }
