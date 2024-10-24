@@ -8,8 +8,8 @@ import { createPortal } from "react-dom";
 import packageInfo from "../../../../package.json";
 import { useTranslation } from "react-i18next";
 import "./styles.css";
-import { DEV_MODE } from "../../../utils/lib";
-import { FetchManager } from "../../../managers/fetchManager";
+// import { DEV_MODE } from "../../../utils/lib";
+
 const version = packageInfo.version;
 let versionSections = version.split(".");
 versionSections[2] = String(parseInt(versionSections[2]) + 1);
@@ -94,9 +94,6 @@ export default function Sidebar() {
     drawCircle(percentage);
   }, [showSidebar]);
 
-  const devLogout = async () => {
-    await FetchManager.logout();
-  };
 
   return (
     <>
@@ -134,13 +131,13 @@ export default function Sidebar() {
                   extraClass="clickeable pill"
                   svg={theme === "dark" ? svgs.sun : svgs.moon}
                 />
-                {DEV_MODE && (
+                {/* {DEV_MODE && (
                   <SimpleButton
                     action={devLogout}
                     extraClass="btn-dark pill"
                     text={"logout"}
                   />
-                )}
+                )} */}
               </section>
             </div>
           </>,
