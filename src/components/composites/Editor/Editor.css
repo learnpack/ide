@@ -47,6 +47,8 @@
   border: 8px solid #a5d9f8;
   border-radius: 5px;
   position: relative;
+  padding-top: 20px;
+
 }
 .terminal {
   border-radius: 5px;

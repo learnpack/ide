@@ -364,6 +364,10 @@ form input {
 
 .btn-dark {
   border: 1px solid var(--bg-color-dark-gray);
+  
+}
+.w-100 {
+  width: 100%;
 }
 
 .btn-dark:hover {
@@ -404,4 +408,9 @@ form input {
 }
 .gap-big {
   gap: 20px;
+}
+
+
+.my-2 {
+  margin: 20px 0;
 }

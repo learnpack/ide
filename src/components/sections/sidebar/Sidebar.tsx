@@ -109,17 +109,14 @@ export default function Sidebar() {
               </section>
               <section className="min-width">
                 <p className="d-flex align-center gap-small">
-                  <span>
-                    {exercises.length} {t("exercises")} |
-                  </span>
-                  <span>
-                    {progress.solved}/{progress.graded} {t("solved-tests")}
-                  </span>
                   <canvas
                     width={"50"}
                     height={"50"}
                     id="percentageCanvas"
                   ></canvas>
+                  <span>
+                    {progress.solved}/{progress.graded} {t("solved")}
+                  </span>
                 </p>
 
                 <SimpleButton action={closeSidebar} svg={svgs.closeIcon} />
@@ -129,17 +126,20 @@ export default function Sidebar() {
               <section className="footer">
                 <BugButton />
                 <span>
-                  <strong>{t("Current version")}</strong>:{" "}
-                  {versionSections.join(".")}
+                  <strong>v{versionSections.join(".")}</strong>
                 </span>
                 <SimpleButton
-                  text={t("change-theme")}
+                  text={t("theme")}
                   action={toggleTheme}
                   extraClass="clickeable pill"
                   svg={theme === "dark" ? svgs.sun : svgs.moon}
                 />
-                {DEV_MODE && (
-                  <SimpleButton action={devLogout} extraClass="btn-dark pill" text={"logout"} />
+                {!DEV_MODE && (
+                  <SimpleButton
+                    action={devLogout}
+                    extraClass="btn-dark pill"
+                    text={"logout"}
+                  />
                 )}
               </section>
             </div>

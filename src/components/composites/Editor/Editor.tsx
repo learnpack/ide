@@ -199,12 +199,13 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                     minimap: {
                       enabled: false,
                     },
-                    fontSize: 12,
+                    fontSize: 15,
                     fontFamily: '"Fira code", "Fira Mono", monospace',
                     readOnly:
                       tab.name === "terminal" ||
                       tab.name.includes("solution.hide"),
                   }}
+                
                 />
               )
           )}

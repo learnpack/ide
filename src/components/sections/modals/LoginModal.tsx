@@ -9,11 +9,9 @@ import { svgs } from "../../../assets/svgs";
 
 export default function LoginModal() {
   const { setOpenedModals, loginToRigo, openLink } = useStore((state) => ({
-    
-    
     setOpenedModals: state.setOpenedModals,
     loginToRigo: state.loginToRigo,
-    openLink: state.openLink
+    openLink: state.openLink,
   }));
 
   const { t } = useTranslation();
@@ -59,19 +57,24 @@ export default function LoginModal() {
     });
   };
 
-  function stringToBase64(str:string) {
+  function stringToBase64(str: string) {
     return btoa(unescape(encodeURIComponent(str))); // Convierte la cadena a Base64
-}
+  }
 
   function getCurrentUrlWithQueryParams() {
-    const currentUrl = window.location.href; 
-    return currentUrl; 
-}
+    const currentUrl = window.location.href;
+    return currentUrl;
+  }
 
   const redirectGithub = () => {
-    let currentUrl = getCurrentUrlWithQueryParams()
-    openLink(`https://breathecode.herokuapp.com/v1/auth/github/?url=${stringToBase64(currentUrl)}`, {redirect:true})
-  }
+    let currentUrl = getCurrentUrlWithQueryParams();
+    openLink(
+      `https://breathecode.herokuapp.com/v1/auth/github/?url=${stringToBase64(
+        currentUrl
+      )}`,
+      { redirect: true }
+    );
+  };
 
   return (
     <>
@@ -87,22 +90,21 @@ export default function LoginModal() {
           <div>
             <p>{t("login-message")}</p>
           </div>
-          
 
           <form action="">
-          <div>
-            <SimpleButton
-              extraClass="btn-dark"
-              text={t("login-github")}
-              svg={svgs.github}
-              action={redirectGithub}
-            />
-          </div>
-          <div className="separator">
-            <div></div>
-            <h4>{t("or")}</h4>
-            <div></div>
-          </div>
+            <div>
+              <SimpleButton
+                extraClass="btn-dark w-100 justify-center"
+                text={t("login-github")}
+                svg={svgs.github}
+                action={redirectGithub}
+              />
+            </div>
+            <div className="separator">
+              <div></div>
+              <h4>{t("or")}</h4>
+              <div></div>
+            </div>
             <input
               placeholder="Email"
               type="text"
@@ -124,9 +126,9 @@ export default function LoginModal() {
               />
             </div>
 
-            <div>
+            <div className="my-2">
               <SimpleButton
-                text={isLoading ? t("Loading...") : t("submit")}
+                text={isLoading ? t("Loading...") : t("login")}
                 action={login}
                 extraClass="bg-blue"
               />
@@ -139,14 +141,16 @@ export default function LoginModal() {
               />
             </div>
 
-            <span>
-              {t("Don't have an account? ")}
-              <OpenWindowLink
-                callback={sendAnalytics}
-                text={t("Sign up here!")}
-                href="https://4geeks.com/pricing?plan=basic"
-              />{" "}
-            </span>
+            <div>
+              <span>
+                {t("Don't have an account? ")}
+                <OpenWindowLink
+                  callback={sendAnalytics}
+                  text={t("Sign up here!")}
+                  href="https://4geeks.com/pricing?plan=basic"
+                />{" "}
+              </span>
+            </div>
           </form>
         </div>
       </Modal>

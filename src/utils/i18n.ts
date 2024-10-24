@@ -5,13 +5,15 @@ i18n.use(initReactI18next).init({
   resources: {
     en: {
       translation: {
+        report: "Report 🐞",
         "login-message":
           "Log in to 4Geeks to get performance statistics, access to our AI mentor, and many other benefits.",
         Run: "Run",
+        theme: "Theme",
         "Run tests": "Run tests",
         "Running...": "Running...",
         "Login to use AI feedback": "Login to get help from AI Mentor",
-        login: "Login",
+        login: "Sign in",
         "Get help from AI": "Rigobot AI Mentor",
         "To use the AI services you must login with your 4geeks account, and you have been accepted Rigobot":
           "To use the AI services you must login with your 4geeks account, and you have been accepted Rigobot",
@@ -96,6 +98,8 @@ i18n.use(initReactI18next).init({
     },
     es: {
       translation: {
+        theme: "Tema",
+        report: "Reportar 🐞",
         login: "Inicia sesión",
         Run: "Ejecutar",
         "Running...": "Ejecutando...",

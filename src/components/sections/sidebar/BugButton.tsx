@@ -23,5 +23,5 @@ export default function BugButton() {
 
     `;
   const url = `https://github.com/learnpack/learnpack/issues/new?assignees=&labels=&projects=&template=bug_report.md&title=${defaultTitle}&body=${body}`;
-  return <OpenWindowLink href={url} text={t("Report a bug 🪰")} />;
+  return <OpenWindowLink href={url} text={t("report")} />;
 }
