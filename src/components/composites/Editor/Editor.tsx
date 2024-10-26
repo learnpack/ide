@@ -6,10 +6,12 @@ import "./Editor.css";
 import { svgs } from "../../../assets/svgs";
 import FeedbackButton from "../../sections/header/FeedbackButton";
 import ResetButton from "../../sections/header/ResetButton";
-import BuildButton from "../../sections/header/BuildButton";
+
 import { useTranslation } from "react-i18next";
 import { debounce } from "../../../utils/lib";
 import { Tab } from "../../../types/editor";
+import { CompileOptions } from "../../sections/header/CompileOptions";
+import SimpleButton from "../../mockups/SimpleButton";
 
 const languageMap: { [key: string]: string } = {
   ".js": "javascript",
@@ -35,21 +37,30 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
   terminal = "normal",
   hideTerminal,
 }) => {
-  const { editorTabs, getCurrentExercise, updateFileContent, cleanTerminal,theme} =
-    useStore((state) => ({
-      editorTabs: state.editorTabs,
-      getCurrentExercise: state.getCurrentExercise,
-      updateFileContent: state.updateFileContent,
-      cleanTerminal: state.cleanTerminal,
-      theme: state.theme
-    }));
-  const [tabs, setTabs] = useState<Tab[]>([...editorTabs]);
+  const {
+    tabs,
+    setTabs,
+    getCurrentExercise,
+    updateFileContent,
+    cleanTerminal,
+    theme,
+    updateDBSession,
+  } = useStore((state) => ({
+    tabs: state.editorTabs,
+    getCurrentExercise: state.getCurrentExercise,
+    updateFileContent: state.updateFileContent,
+    cleanTerminal: state.cleanTerminal,
+    theme: state.theme,
+    updateDBSession: state.updateDBSession,
+    setTabs: state.setEditorTabs,
+  }));
+
   const [editorTheme, setEditorTheme] = useState("light");
   const [editorStatus, setEditorStatus] = useState<TEditorStatus>("UNMODIFIED");
 
   const debouncedStore = useCallback(
-    debounce((tab: Tab, exerciseSlug: string) => {
-      updateFileContent(exerciseSlug, tab);
+    debounce(() => {
+      updateDBSession();
     }, 5000),
     []
   );
@@ -68,16 +79,21 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     const newTabs = tabs.map((tab) =>
       tab.id === id ? { ...tab, content } : tab
     );
+
     setTabs(newTabs);
 
     const ex = getCurrentExercise();
+
     const withoutTerminal = newTabs.filter((t) => t.name !== "terminal");
     LocalStorage.setEditorTabs(ex.slug, withoutTerminal);
+
     setEditorStatus("MODIFIED");
-    debouncedStore(
-      newTabs.find((t) => t.id === id),
-      ex.slug
-    );
+    const tab = newTabs.find((t) => t.id === id);
+
+    if (tab) {
+      updateFileContent(ex.slug, tab);
+      debouncedStore();
+    }
   };
 
   const removeTab = (id: number, name: string) => {
@@ -107,52 +123,23 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
   };
 
   useEffect(() => {
-    const ex = getCurrentExercise();
-    if (!ex) return;
-
-    const tabMap = new Map();
-
-    editorTabs.forEach((tab) => tabMap.set(tab.name, tab));
-
-    const updatedTabs = Array.from(tabMap.values());
-
-    const activeTabs = updatedTabs.filter((tab) => tab.isActive);
-
-    if (activeTabs.length > 1) {
-      const lastActiveTab = activeTabs[activeTabs.length - 1];
-      updatedTabs.forEach((tab) => {
-        tab.isActive = tab === lastActiveTab;
-      });
-    } else if (activeTabs.length === 0 && updatedTabs.length > 0) {
-      updatedTabs[0].isActive = true;
-    }
-
-    setTabs(updatedTabs);
-  }, [editorTabs]);
-
-
-  useEffect(()=>{
     if (theme === "light") {
-      setEditorTheme("light")
+      setEditorTheme("light");
+    } else if (theme === "dark") {
+      setEditorTheme("vs-dark");
     }
-    else if (theme === "dark") {
-      setEditorTheme("vs-dark")
-    }
+  }, [theme]);
 
-  },[theme])
-
-  const handleThemeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const newTheme = event.target.value;
-    setEditorTheme(newTheme);
-    const ex = getCurrentExercise();
-    if (ex) {
-      LocalStorage.set("editor_theme", newTheme);
+  useEffect(() => {
+    const someModified = tabs.some((t: Tab) => Boolean(t.modified));
+    if (someModified) {
+      setEditorStatus("MODIFIED");
     }
-  };
+  }, [tabs]);
 
   const terminalTab = tabs.find((tab) => tab.name === "terminal");
 
-  const filteredTabs = tabs.filter((tab) => tab.name != "terminal");
+  const filteredTabs = tabs.filter((tab) => tab.name !== "terminal");
 
   return (
     <div style={{ display: `${tabs.length === 0 ? "none" : "block"}` }}>
@@ -166,21 +153,8 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
         {filteredTabs.map((tab) => (
           <div key={tab.id} className={`tab ${tab.isActive ? "active" : ""}`}>
             <button onClick={() => handleTabClick(tab.id)}>{tab.name}</button>
-            {/* <button
-              className="close-tab"
-              onClick={() => removeTab(tab.id, tab.name)}
-            >
-              &times;
-            </button> */}
           </div>
         ))}
-        <div className="theme-selector">
-          <select id="theme-select" value={editorTheme} onChange={handleThemeChange}>
-            <option value="light">Light</option>
-            <option value="vs-dark">Dark</option>
-            <option value="hc-black">High Contrast</option>
-          </select>
-        </div>
       </div>
 
       {!(terminal === "only") && (
@@ -205,7 +179,6 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                       tab.name === "terminal" ||
                       tab.name.includes("solution.hide"),
                   }}
-                
                 />
               )
           )}
@@ -221,9 +194,32 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
             </button>
           </h5>
           <pre>{terminalTab.content}</pre>
+          {terminal === "only" && getCurrentExercise().done && (
+            <EditorFooter editorStatus={editorStatus} />
+          )}
         </div>
       )}
     </div>
+  );
+};
+
+const NextButton = () => {
+  const { currentExercisePosition, handlePositionChange, exercises } = useStore(
+    (state) => ({
+      currentExercisePosition: state.currentExercisePosition,
+      handlePositionChange: state.handlePositionChange,
+      exercises: state.exercises,
+    })
+  );
+
+  return (
+    <SimpleButton
+      disabled={currentExercisePosition === exercises.length - 1}
+      action={() => handlePositionChange(Number(currentExercisePosition) + 1)}
+      svg={svgs.nextArrow}
+      text={"Next"}
+      extraClass="w-100 bg-success text-white big"
+    />
   );
 };
 
@@ -233,10 +229,26 @@ type EditorFooterProps = {
 
 const EditorFooter = ({ editorStatus }: EditorFooterProps) => {
   const { t } = useTranslation();
+  const { lastState, getCurrentExercise } = useStore((state) => ({
+    lastState: state.lastState,
+    getCurrentExercise: state.getCurrentExercise,
+  }));
+
+  const ex = getCurrentExercise();
+
+  let letPass =
+    lastState === "success" && ex.done && editorStatus === "MODIFIED";
 
   return (
-    <div className={`editor-footer ${editorStatus}`}>
-      {editorStatus === "UNMODIFIED" && (
+    <div className={`editor-footer ${editorStatus} ${lastState}`}>
+      {letPass && (
+        <div className="footer-actions">
+          <ResetButton />
+          <NextButton />
+        </div>
+      )}
+
+      {editorStatus === "UNMODIFIED" && !letPass && (
         <div className="not-started">
           <div>
             <span>{svgs.learnpackLogo}</span>
@@ -245,9 +257,10 @@ const EditorFooter = ({ editorStatus }: EditorFooterProps) => {
           <FeedbackButton direction="up" />
         </div>
       )}
-      {editorStatus === "MODIFIED" && (
+
+      {editorStatus === "MODIFIED" && !letPass && (
         <div className="footer-actions">
-          <BuildButton extraClass={"active"} />
+          <CompileOptions />
           <ResetButton />
           <FeedbackButton direction="up" />
         </div>

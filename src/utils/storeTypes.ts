@@ -109,8 +109,8 @@ type TOpenLinkOptions = {
 
 type TRefreshData = {
   newToken: string;
-  newTabHash: string
-  newBCToken: string
+  newTabHash: string;
+  newBCToken: string;
 };
 
 export interface IStore {
@@ -155,6 +155,9 @@ export interface IStore {
   editorTabs: TEditorTab[];
   isIframe: boolean;
   theme: string;
+  lastState: "success" | "error" | "";
+  terminalShouldShow: boolean;
+  setTerminalShouldShow: (shouldShow: boolean) => void;
   start: () => void;
   handleEnvironmentChange: (event: any) => void;
   setListeners: () => void;
@@ -187,7 +190,7 @@ export interface IStore {
   setPosition: (position: number) => void;
   handleNext: () => void;
   fetchReadme: () => void;
-  updateFileContent: (exerciseSlug: string, tab: Tab) => void;
+  updateFileContent: (exerciseSlug: string, tab: Tab, updateTabs?: boolean) => void;
   toggleSidebar: () => void;
   toggleTheme: () => void;
   toastFromStatus: (status: string) => void;
@@ -203,6 +206,7 @@ export interface IStore {
   test: () => void;
   figureEnvironment: () => Promise<object>;
   cleanTerminal: () => void;
+  setEditorTabs: (tabs: TEditorTab[]) => void;
 }
 
 type TEditorTab = {

@@ -21,12 +21,17 @@
   --bg-color-code: #2d3748;
   --link-inactive-color: #a9a9a9;
   --backdrop-background: rgba(0, 0, 0, 0.7);
+  --soft-green: #A4FFBD;
+  --soft-red: #FFBEBE;
   --modals-bg-color: var(--bg-color);
   --font-color-secondary: #9c9c9c;
   --font-size-small: 16px;
+  --font-size-mini: 12px;
   --font-size-medium: 18px;
   --app-width: min(100%, 1111px);
   --read-font-color: black;
+  --dropdown-bg-color: white;
+  --standard-border-radius: 8px;
   font-size: 16px;
 }
 
@@ -51,6 +56,7 @@
   --font-color-secondary: #9c9c9c;
   --font-size-small: 16px;
   --font-size-medium: 18px;
+  --dropdown-bg-color: var(--bg-color);
   font-size: 16px;
   --read-font-color: white;
 }
@@ -253,6 +259,31 @@ form input {
 .dropdown {
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+.dropdown-content {
+  display: none;
+  position: absolute;
+  min-width: 230px;
+}
+.dropdown:hover .dropdown-content {
+  display: flex;
+  flex-direction: column;
+
+  background-color: var(--dropdown-bg-color);
+  padding: 5px;
+  width: fit-content;
+
+  border-radius: var(--standard-border-radius);
+}
+
+.dropdown.up .dropdown-content {
+  bottom: 100%;
+  left: 0;
+}
+.dropdown.down .dropdown-content {
+  top: 100%;
+  left: 0;
 }
 
 .modal-container {
@@ -364,7 +395,6 @@ form input {
 
 .btn-dark {
   border: 1px solid var(--bg-color-dark-gray);
-  
 }
 .w-100 {
   width: 100%;
@@ -379,7 +409,6 @@ form input {
   background-color: var(--app-bg-color);
   margin-inline: auto;
 }
-
 
 @media only screen and (min-width: 1111px) {
   #main-container {
@@ -409,7 +438,6 @@ form input {
 .gap-big {
   gap: 20px;
 }
-
 
 .my-2 {
   margin: 20px 0;

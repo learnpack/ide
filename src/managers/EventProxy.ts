@@ -79,9 +79,11 @@ const localStorageEventEmitter = {
   },
   openWindow: (data: any) => {
     if (data && data.url) {
-      console.log(data);
-      const target = data.options.redirect ? "__self" : "__blank";
-      window.open(data.url, target);
+      if (data.options.redirect) {
+        window.location.href = data.url;
+      } else {
+        window.open(data.url, "__blank");
+      }
     } else {
       console.error("No URL provided in data");
     }
@@ -171,7 +173,7 @@ localStorageEventEmitter.on("test", async (data) => {
     for (const f of exe.files) {
       if (f.name.includes("solution") || f.name.includes("README")) continue;
 
-      const fileContent = await FetchManager.getFileContent(
+      const { fileContent } = await FetchManager.getFileContent(
         data.exerciseSlug,
         f.name,
         { cached: true }

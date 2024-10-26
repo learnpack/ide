@@ -15,10 +15,19 @@ export const Container = () => {
   const [visibleTab, setVisibleTab] = useState(
     window.innerWidth <= 768 ? "instructions" : ("all" as TPossibleTabs)
   );
-  const { editorTabs, handleNext, environment } = useStore((s) => ({
+  const {
+    editorTabs,
+    handleNext,
+    environment,
+    terminalShouldShow,
+    setTerminalShouldShow,
+  } = useStore((s) => ({
     editorTabs: s.editorTabs,
     handleNext: s.handleNext,
     environment: s.environment,
+    setEditorTabs: s.setEditorTabs,
+    terminalShouldShow: s.terminalShouldShow,
+    setTerminalShouldShow: s.setTerminalShouldShow,
   }));
 
   const { t } = useTranslation();
@@ -30,6 +39,10 @@ export const Container = () => {
     ) {
       toast.error(t("compile-first"));
       return;
+    }
+
+    if (tabName === "code") {
+      setTerminalShouldShow(false);
     }
     setVisibleTab(tabName);
   };
@@ -62,19 +75,18 @@ export const Container = () => {
   useEffect(() => {
     const isTerminalActive = editorTabs.some((t) => t.name === "terminal");
 
-    if (isTerminalActive && isMobile) {
+    if (isTerminalActive && isMobile && terminalShouldShow) {
       setVisibleTab("terminal");
     }
 
     if (editorTabs.length === 0) {
       if (window.innerWidth > 768) {
         setVisibleTab("all");
-        // setVisibleTab("instructions");
       } else {
         setVisibleTab("instructions");
       }
     }
-  }, [editorTabs]);
+  }, [editorTabs, terminalShouldShow]);
 
   const handleLessonContinue = () => {
     if (isMobile && editorTabs.length > 0) {
@@ -138,7 +150,7 @@ export const Container = () => {
       {!(environment === "localhost") && (
         <section
           style={{
-            display: visibleTab === "terminal" ? "block" : "none",
+            display: visibleTab === "terminal" ? "block" : "none"
           }}
         >
           <CodeEditor hideTerminal={hideTerminal} terminal="only" />

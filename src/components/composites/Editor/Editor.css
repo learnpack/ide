@@ -48,7 +48,6 @@
   border-radius: 5px;
   position: relative;
   padding-top: 20px;
-
 }
 .terminal {
   border-radius: 5px;
@@ -57,10 +56,18 @@
   padding: 8px;
   max-height: 250px;
   overflow-y: auto;
+  position: relative;
+  padding-bottom: 20px;
 }
 .terminal.only {
   margin-top: 0;
   border: 0;
+  max-height: 500px;
+  & .editor-footer {
+    margin-top: 20px;
+    display: block;
+    position: relative;
+  }
 }
 .terminal.hidden {
   display: none;
@@ -75,8 +82,9 @@
 .terminal > pre {
   background-color: var(--bg-color);
   border: none;
+  height: 100%;
 }
-.editor .editor-footer {
+.editor-footer {
   background-color: var(--bg-color);
   position: absolute;
   bottom: 8px;
@@ -92,6 +100,16 @@
 }
 .editor-footer.MODIFIED {
   background-color: var(--modals-bg-color);
+}
+
+.editor .editor-footer.success {
+  background-color: var(--soft-green);
+  color: var(--color-active);
+}
+
+.editor .editor-footer.error {
+  color: white !important;
+  background-color: var(--soft-red);
 }
 
 .editor-footer .not-started {
@@ -133,6 +151,45 @@
   color: var(--link-inactive-color);
   gap: 5px;
 }
+.editor-footer.success {
+  background-color: var(--soft-green);
+
+  & .footer-actions > button svg path {
+    stroke: var(--color-success);
+  }
+  & .footer-actions > div > button > svg path {
+    stroke: var(--color-success);
+  }
+  & .footer-actions > div {
+    color: var(--color-success);
+  }
+  & .footer-actions > button {
+    color: var(--color-success);
+  }
+  & .footer-actions > div > button {
+    color: var(--color-success);
+  }
+}
+.editor-footer.error {
+  background-color: var(--soft-red);
+
+  & .footer-actions > button svg path {
+    stroke: var(--color-fail);
+  }
+  & .footer-actions > div > button > svg path {
+    stroke: var(--color-fail);
+  }
+  & .footer-actions > div > button {
+    color: var(--color-fail);
+  }
+  & .footer-actions > button {
+    color: var(--color-fail);
+  }
+  & .footer-actions > div {
+    color: var(--color-fail);
+  }
+}
+
 .footer-actions button {
   font-size: 14px;
 }

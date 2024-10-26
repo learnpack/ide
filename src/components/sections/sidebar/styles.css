@@ -6,7 +6,7 @@
   top: 0;
   font-size: 17px;
   z-index: 2;
-  background-color: var(--modals-bg-color);
+  background-color: var(--app-bg-color);
   animation: appear-4-right 0.5s ease 1 forwards;
   display: flex;
   flex-direction: column;
@@ -27,7 +27,7 @@
 }
 
 .sidebar-component .footer {
-  background-color: var(--bg-color);
+  background-color: transparent;
   position: fixed;
   bottom: 0;
   width: var(--app-width);
@@ -35,6 +35,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+
 }
 
 .sidebar-component .footer > a {

@@ -31,7 +31,9 @@ export const Modal = ({
   };
 
   useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside);
+    if (modalRef.current) {
+      modalRef.current.addEventListener("mousedown", handleClickOutside);
+    }
     const originalOverflow = document.body.style.overflow;
 
     if (blockScroll) {
@@ -40,11 +42,12 @@ export const Modal = ({
     }
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      if (modalRef.current) {
+        modalRef.current.removeEventListener("mousedown", handleClickOutside);
+      }
       if (blockScroll) {
         document.body.style.overflow = originalOverflow;
       }
-      // Reset overflow to initial value when the modal is closed
     };
   }, []);
 

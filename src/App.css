@@ -56,7 +56,21 @@
   align-items: center;
   gap: 10px;
   font-size: var(--font-size-medium);
-  padding: 10px 30px;
+  opacity: 0.9;
+  transition: opacity 0.1s ease-in-out;
+}
+.simple-button-svg:hover {
+  opacity: 1;
+}
+.simple-button-svg.big {
+  padding: 10px 30px !important;
+}
+
+.simple-button-svg.bg-success svg path {
+  stroke: white !important;
+}
+.simple-button-svg.small {
+  padding: 5px 15px;
 }
 
 .simple-button-svg:disabled {
@@ -176,4 +190,8 @@
 .on-hover-active:hover {
   background-color: var(--color-active);
   color: white;
+}
+
+.rounded {
+  border-radius: var(--standard-border-radius);
 }

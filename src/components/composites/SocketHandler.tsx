@@ -5,7 +5,7 @@ import { InputModal } from "../sections/modals/InputModal";
 import "./styles.css";
 import { FetchManager } from "../../managers/fetchManager";
 import { debounce } from "../../utils/lib";
-import { Tab } from "../../types/editor";
+
 export function SocketHandler() {
   const {
     compilerSocket,
@@ -16,6 +16,7 @@ export function SocketHandler() {
     updateFileContent,
     setOpenedModals,
     refreshSession,
+    updateDBSession,
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     exercises: state.exercises,
@@ -27,6 +28,7 @@ export function SocketHandler() {
     checkLoggedStatus: state.checkLoggedStatus,
     setOpenedModals: state.setOpenedModals,
     refreshSession: state.refreshDataFromAnotherTab,
+    updateDBSession: state.updateDBSession,
   }));
 
   const [inputsResponses, setInputsResponses] = useState([] as string[]);
@@ -34,8 +36,8 @@ export function SocketHandler() {
   const [shouldWeSend, setShouldWeSend] = useState(false);
 
   const debouncedStore = useCallback(
-    debounce((tab: Tab, exerciseSlug: string) => {
-      updateFileContent(exerciseSlug, tab);
+    debounce(() => {
+      updateDBSession();
     }, 4000),
     []
   );
@@ -49,7 +51,7 @@ export function SocketHandler() {
       const parts = fullpath.split("\\");
       const fileName = parts[parts.length - 1];
 
-      const fileContent = await FetchManager.getFileContent(
+      const { fileContent } = await FetchManager.getFileContent(
         current.slug,
         fileName
       );
@@ -59,8 +61,10 @@ export function SocketHandler() {
         content: fileContent,
         isActive: false,
         id: fileName,
+        modified: true,
       };
-      debouncedStore(tab, current.slug);
+      debouncedStore();
+      updateFileContent(current.slug, tab, true);
 
       if (!doesCurrentStepChange) return;
       setShouldBeTested(true);

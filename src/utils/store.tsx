@@ -86,10 +86,10 @@ const useStore = create<IStore>((set, get) => ({
   isIframe: false,
   tabHash: "",
   sessionKey: "",
-
+  lastState: "",
   editorTabs: [],
   feedbackbuttonProps: {
-    text: "Get feedback",
+    text: "execute-my-code",
     className: "",
   },
   configObject: {
@@ -104,6 +104,7 @@ const useStore = create<IStore>((set, get) => ({
       warnings: {},
     },
   },
+  terminalShouldShow: false,
   videoTutorial: "",
   allowedActions: [],
   compilerSocket: EventProxy.getEmitter(ENVIRONMENT),
@@ -168,6 +169,7 @@ const useStore = create<IStore>((set, get) => ({
     const debounceSuccess = debounce((data: any) => {
       const stdout = removeSpecialCharacters(data.logs[0]);
       setTestResult("successful", stdout);
+      set({ lastState: "success", terminalShouldShow: true });
       toastFromStatus("testing-success");
 
       if (get().targetButtonForFeedback === "feedback") {
@@ -180,6 +182,7 @@ const useStore = create<IStore>((set, get) => ({
     const debounceError = debounce((data: any) => {
       const stdout = removeSpecialCharacters(data.logs[0]);
       setTestResult("failed", stdout);
+      set({ lastState: "error", terminalShouldShow: true });
       toastFromStatus("testing-error");
 
       if (get().targetButtonForFeedback === "feedback") {
@@ -189,8 +192,31 @@ const useStore = create<IStore>((set, get) => ({
       }
     }, 100);
 
+    let compilerErrorHandler = debounce((data: any) => {
+      data;
+
+      set({ lastState: "error", terminalShouldShow: true });
+      if (data.recommendations) {
+        toast.error(data.recommendations);
+      }
+      setBuildButtonPrompt("Try again", "bg-fail");
+      const [icon, message] = getStatus("compiler-error");
+      toast.error(message, { icon: icon });
+    }, 100);
+
+    let compilerSuccessHandler = debounce((data: any) => {
+      data;
+      set({ lastState: "success", terminalShouldShow: true });
+      const [icon, message] = getStatus("compiler-success");
+      toast.success(message, { icon: icon });
+      setBuildButtonPrompt("Run", "bg-success");
+    }, 100);
+
     compilerSocket.onStatus("testing-success", debounceSuccess);
     compilerSocket.onStatus("testing-error", debounceError);
+    compilerSocket.onStatus("compiler-error", compilerErrorHandler);
+    compilerSocket.onStatus("compiler-success", compilerSuccessHandler);
+
     compilerSocket.onStatus("open_window", () => {
       toastFromStatus("open_window");
     });
@@ -202,6 +228,7 @@ const useStore = create<IStore>((set, get) => ({
 
   figureEnvironment: async () => {
     const env = await getEnvironment();
+
     set({ compilerSocket: EventProxy.getEmitter(env) });
     FetchManager.init(env, HOST);
 
@@ -248,6 +275,9 @@ const useStore = create<IStore>((set, get) => ({
 
   setToken: (newToken) => {
     set({ token: newToken });
+  },
+  setTerminalShouldShow: (shouldShow) => {
+    set({ terminalShouldShow: shouldShow });
   },
   checkLoggedStatus: async (opts) => {
     const {
@@ -319,9 +349,13 @@ const useStore = create<IStore>((set, get) => ({
     const contextFiles = currentExercise.files.filter(extractor);
     // @ts-ignore
     const filePromises = contextFiles.map(async (file) => {
-      const fileContent = await FetchManager.getFileContent(slug, file.name, {
-        cached: true,
-      });
+      const { fileContent } = await FetchManager.getFileContent(
+        slug,
+        file.name,
+        {
+          cached: true,
+        }
+      );
 
       return `
 < File name: ${file.name} \n
@@ -342,7 +376,6 @@ ${currentContent}
 <MANDATORY FOR AI: The user's set up the application in "${language}" language, give your feedback in "${language}" language, please.>
 
       `;
-      console.log(context);
 
       return context;
     });
@@ -463,7 +496,7 @@ ${currentContent}
         slug,
         solutionFiles[0].name
       );
-      set({ currentSolution: solution });
+      set({ currentSolution: solution.fileContent });
     }
     set({
       isTesteable: isTesteable,
@@ -491,9 +524,9 @@ ${currentContent}
     if (token) {
       startConversation(newPosition);
     }
-    setBuildButtonPrompt("Run", "");
-    setFeedbackButtonProps("Get feedback", "");
-
+    setBuildButtonPrompt("execute-my-code", "");
+    setFeedbackButtonProps("test-my-code", "");
+    set({ lastState: "" });
     fetchReadme();
   },
   startConversation: async (exercisePosition) => {
@@ -601,7 +634,7 @@ ${currentContent}
     // setOpenedModals({ chat: true });
   },
 
-  openLink: (url, opts) => {
+  openLink: (url, opts = { redirect: false }) => {
     const { compilerSocket, getCurrentExercise } = get();
     const options = { ...opts };
     const data = {
@@ -662,19 +695,19 @@ ${currentContent}
     const updateTabs = async () => {
       for (const [index, element] of notHidden.entries()) {
         let content = "";
-        if ("content" in element) {
-          content = element.content;
 
+        const { fileContent, edited } = await FetchManager.getFileContent(
+          exercise.slug,
+          element.name,
+          { cached: true }
+        );
+        content = fileContent;
+
+        if ("content" in element && element.content !== content) {
           await FetchManager.saveFileContent(
             exercise.slug,
             element.name,
             content
-          );
-        } else {
-          content = await FetchManager.getFileContent(
-            exercise.slug,
-            element.name,
-            { cached: true }
           );
         }
 
@@ -687,6 +720,7 @@ ${currentContent}
           content: content,
           name: element.name,
           isActive: index === 0 && !newTab,
+          modified: edited,
         };
 
         if (!tabExists) {
@@ -697,6 +731,10 @@ ${currentContent}
           );
           editorTabsCopy[tabIndex] = tab;
         }
+      }
+      const someActive = editorTabsCopy.some((tab) => tab.isActive);
+      if (!someActive && editorTabsCopy.length > 0) {
+        editorTabsCopy[0].isActive = true;
       }
       set({ editorTabs: [...editorTabsCopy] });
     };
@@ -875,6 +913,7 @@ ${currentContent}
     }
 
     setBuildButtonPrompt(buildText, "");
+
     const [icon, message] = getStatus("compiling");
     toast.success(message, { icon: icon });
 
@@ -887,17 +926,24 @@ ${currentContent}
 
     compilerSocket.emit("build", data);
   },
+  setEditorTabs: (tabs) => {
+    set({ editorTabs: tabs });
+  },
   runExerciseTests: (opts) => {
-    // This function will run the exercises tests and store the results in the state
     const {
       compilerSocket,
       getCurrentExercise,
       setFeedbackButtonProps,
-      // isTesteable,
       toastFromStatus,
       token,
       updateEditorTabs,
+      setOpenedModals,
     } = get();
+
+    if (!Boolean(token)) {
+      setOpenedModals({ mustLogin: true });
+      return;
+    }
 
     const data = {
       exerciseSlug: getCurrentExercise().slug,
@@ -907,7 +953,6 @@ ${currentContent}
     compilerSocket.emit("test", data);
 
     set({ shouldBeTested: false });
-
     if (opts?.targetButton) {
       set({ targetButtonForFeedback: opts.targetButton });
     }
@@ -988,8 +1033,8 @@ ${currentContent}
       sessionKey || cachedSessionKey
     );
   },
-  updateFileContent: (exerciseSlug, tab) => {
-    const { exercises, updateDBSession } = get();
+  updateFileContent: async (exerciseSlug, tab, updateTabs = false) => {
+    const { exercises, updateEditorTabs } = get();
 
     let newExercises = exercises.map((e) => {
       if (e.slug === exerciseSlug) {
@@ -1000,6 +1045,7 @@ ${currentContent}
               ? {
                   ...f,
                   content: tab.content,
+                  modified: true,
                 }
               : f;
           }),
@@ -1008,8 +1054,12 @@ ${currentContent}
         return e;
       }
     });
+
+    await FetchManager.saveFileContent(exerciseSlug, tab.name, tab.content);
     set({ exercises: newExercises });
-    updateDBSession();
+    if (updateTabs) {
+      updateEditorTabs();
+    }
   },
   resetExercise: ({ exerciseSlug }) => {
     const { updateEditorTabs, exercises, compilerSocket, updateDBSession } =
@@ -1021,6 +1071,7 @@ ${currentContent}
           ...e,
           files: e.files.map((f: any) => {
             delete f.content;
+            delete f.modified;
             return f;
           }),
         };
@@ -1104,14 +1155,18 @@ ${currentContent}
     }
   },
   test: async () => {
-    // const { theme } = get();
+    const { lastState } = get();
     // disconnected();
     // const session = await getSession(token, configObject.config.slug);
     // LocalStorage.set("LEARNPACK_SESSION_KEY", session.key);
     // console.log(session.key);
     // await FetchManager.logout();
-    set({ token: "somethatisnotatoken" });
-
+    // set({ token: "somethatisnotatoken" });
+    if (lastState === "error") {
+      set({ lastState: "success" });
+    } else {
+      set({ lastState: "error" });
+    }
     toast.success("Succesfully tested");
   },
 }));

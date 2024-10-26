@@ -58,6 +58,7 @@ export const FetchManager = {
     file: string,
     opts: { cached: boolean } = { cached: false }
   ) => {
+    let edited = false;
     const url =
       FetchManager.ENVIRONMENT === "localhost"
         ? `${FetchManager.HOST}/exercise/${slug}/file/${file}`
@@ -73,13 +74,14 @@ export const FetchManager = {
         });
 
         if (cached) {
-          return cached.content;
+          edited = true;
+          return { fileContent: cached.content, edited };
         }
       }
     }
 
-    const text = await response.text();
-    return text;
+    const fileContent = await response.text();
+    return { fileContent, edited };
   },
 
   getExerciseInfo: async (slug: string) => {
@@ -104,17 +106,17 @@ export const FetchManager = {
       localhost: async () => {
         try {
           const url = `${FetchManager.HOST}/exercise/${slug}/file/${filename}`;
-          const respose = await fetch(url, {
+          await fetch(url, {
             method: "PUT",
             body: content,
           });
-          console.log(respose);
         } catch (e) {
+          console.log("Error saving file content in CLI");
           console.log(e);
         }
       },
       localStorage: async () => {
-        console.log("SAVE FILE IN LS");
+        // console.log("SAVING FILE IN LS");
       },
     };
 

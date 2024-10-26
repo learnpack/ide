@@ -64,7 +64,6 @@
 
 .feedback-dropdown {
   position: absolute;
-
   width: 250px !important;
   padding: 2px;
   border: 1px solid var(--color-active);
@@ -107,7 +106,10 @@
 
 .feedback-dropdown > p {
   padding: 3px;
-  background-color: #f6f6f643;
+  background-color: var(--bg-color);
+  margin: 0;
+  font-size: var(--font-size-mini);
+  color: var(--read-font-color);
 }
 
 .feedback-dropdown > p > a {
@@ -119,3 +121,4 @@
 #feedback-button {
   min-width: fit-content;
 }
+

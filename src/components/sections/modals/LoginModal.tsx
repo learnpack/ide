@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import TagManager from "react-gtm-module";
 import { Modal } from "../../mockups/Modal";
 import { svgs } from "../../../assets/svgs";
+import toast from "react-hot-toast";
 
 export default function LoginModal() {
   const { setOpenedModals, loginToRigo, openLink } = useStore((state) => ({
@@ -68,6 +69,8 @@ export default function LoginModal() {
 
   const redirectGithub = () => {
     let currentUrl = getCurrentUrlWithQueryParams();
+
+    toast.success("Redirecting to GitHub...");
     openLink(
       `https://breathecode.herokuapp.com/v1/auth/github/?url=${stringToBase64(
         currentUrl
@@ -91,15 +94,15 @@ export default function LoginModal() {
             <p>{t("login-message")}</p>
           </div>
 
+          <div>
+            <SimpleButton
+              extraClass="btn-dark w-100 justify-center big rounded"
+              text={t("login-github")}
+              svg={svgs.github}
+              action={redirectGithub}
+            />
+          </div>
           <form action="">
-            <div>
-              <SimpleButton
-                extraClass="btn-dark w-100 justify-center"
-                text={t("login-github")}
-                svg={svgs.github}
-                action={redirectGithub}
-              />
-            </div>
             <div className="separator">
               <div></div>
               <h4>{t("or")}</h4>
@@ -130,10 +133,10 @@ export default function LoginModal() {
               <SimpleButton
                 text={isLoading ? t("Loading...") : t("login")}
                 action={login}
-                extraClass="bg-blue"
+                extraClass="bg-blue big"
               />
               <SimpleButton
-                extraClass="btn-dark"
+                extraClass="btn-dark big rounded"
                 action={() => {
                   setOpenedModals({ login: false });
                 }}

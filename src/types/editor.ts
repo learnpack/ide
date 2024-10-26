@@ -1,6 +1,7 @@
 export interface Tab {
-    id: number;
-    name: string;
-    content: string;
-    isActive: boolean; 
-  }
+  id: number;
+  name: string;
+  content: string;
+  isActive: boolean;
+  modified?: boolean;
+}

@@ -108,17 +108,7 @@ export const FeedbackDropdown = ({
   // };
 
   return (
-    <div id="feedback-dropdown" className={`feedback-dropdown ${direction}`}>
-      {
-        <SimpleButton
-          svg={svgs.testIcon}
-          text={isTesteable ? t("Run tests") : t("No tests available")}
-          action={runTests}
-          disabled={
-            !isTesteable || (ENVIRONMENT === "localStorage" && !Boolean(token))
-          }
-        />
-      }
+    <div className={`feedback-dropdown ${direction}`}>
       {Boolean(token) ? (
         <SimpleButton
           text={t("Get help from AI")}
@@ -140,6 +130,16 @@ export const FeedbackDropdown = ({
           action={openLoginModal}
         />
       )}
+
+      <SimpleButton
+        svg={svgs.testIcon}
+        text={isTesteable ? t("Run tests") : t("No tests available")}
+        action={runTests}
+        disabled={
+          !isTesteable || (ENVIRONMENT === "localStorage" && !Boolean(token))
+        }
+      />
+
       <SimpleButton
         text={
           hasSolution
@@ -166,7 +166,7 @@ export const FeedbackDropdown = ({
         svg={svgs.fourGeeksIcon}
         action={startTour}
       /> */}
-      <p>
+      <p >
         {t("Feedback plays an important role when learning technical skills. ")}
         <OpenWindowLink
           text={t("Learn why")}
