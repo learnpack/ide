@@ -58,6 +58,7 @@
   font-size: var(--font-size-medium);
   opacity: 0.9;
   transition: opacity 0.1s ease-in-out;
+  border: 1px solid transparent;
 }
 .simple-button-svg:hover {
   opacity: 1;
@@ -69,6 +70,10 @@
 .simple-button-svg.bg-success svg path {
   stroke: white !important;
 }
+.simple-button-svg.bg-blue svg path {
+  stroke: white !important;
+}
+
 .simple-button-svg.small {
   padding: 5px 15px;
 }

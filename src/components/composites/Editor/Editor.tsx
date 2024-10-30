@@ -65,16 +65,6 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     []
   );
 
-  const addTab = () => {
-    const newTab: Tab = {
-      id: tabs.length + 1,
-      name: `Tab ${tabs.length + 1}`,
-      content: "",
-      isActive: false,
-    };
-    setTabs([...tabs, newTab]);
-  };
-
   const updateContent = (id: number, content: string) => {
     const newTabs = tabs.map((tab) =>
       tab.id === id ? { ...tab, content } : tab
@@ -147,9 +137,6 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
         className="tabs"
         style={{ display: terminal === "only" ? "none" : "flex" }}
       >
-        <button onClick={addTab} className="add-tab">
-          +
-        </button>
         {filteredTabs.map((tab) => (
           <div key={tab.id} className={`tab ${tab.isActive ? "active" : ""}`}>
             <button onClick={() => handleTabClick(tab.id)}>{tab.name}</button>
@@ -163,8 +150,9 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
             (tab) =>
               tab.isActive && (
                 <MonacoEditor
+                  className="editor-monaco"
                   key={tab.id}
-                  height="400px"
+                  height="300px"
                   language={getLanguageFromExtension(tab.name)}
                   theme={editorTheme}
                   value={tab.content}
@@ -174,7 +162,20 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                       enabled: false,
                     },
                     fontSize: 15,
-                    fontFamily: '"Fira code", "Fira Mono", monospace',
+                    bracketPairColorization: {
+                      enabled: true,
+                    },
+                    cursorBlinking: "smooth",
+                    wordWrap: "on",
+                    padding: {
+                      top: 10,
+                      bottom: 0,
+                    },
+                    scrollbar: {
+                      vertical: "hidden",
+                      horizontal: "hidden",
+                    },
+                    lineNumbersMinChars: 3,
                     readOnly:
                       tab.name === "terminal" ||
                       tab.name.includes("solution.hide"),

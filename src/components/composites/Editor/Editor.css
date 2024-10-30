@@ -44,10 +44,16 @@
 }
 
 .editor {
-  border: 8px solid #a5d9f8;
+  border: 7px solid #a5d9f8;
   border-radius: 5px;
+  border-top-left-radius: 0;
   position: relative;
-  padding-top: 20px;
+  
+}
+
+.editor-monaco .view-lines,
+.editor-monaco .margin-view-overlays {
+  height: min(300px, fit-content) !important;
 }
 .terminal {
   border-radius: 5px;
@@ -148,8 +154,8 @@
   font-size: 12px;
   justify-content: center;
   align-items: center;
-  color: var(--link-inactive-color);
   gap: 5px;
+  color: var(--color-active);
 }
 .editor-footer.success {
   background-color: var(--soft-green);
@@ -191,7 +197,7 @@
 }
 
 .footer-actions button {
-  font-size: 14px;
+  font-size: 15px !important;
 }
 .editor-footer .footer-actions > button svg,
 .editor-footer .footer-actions > div svg {
@@ -199,7 +205,7 @@
 }
 .editor-footer .footer-actions > button svg path,
 .editor-footer .footer-actions > div > button > svg path {
-  stroke: var(--link-inactive-color);
+  stroke: var(--color-active);
 }
 
 .editor-footer .footer-actions button.active {

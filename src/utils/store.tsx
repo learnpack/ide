@@ -673,7 +673,6 @@ ${currentContent}
           editorTabsCopy.push({
             // @ts-ignore
             ...newTab,
-            // @ts-ignore
             isActive: false,
           });
         } else {
@@ -685,7 +684,6 @@ ${currentContent}
           editorTabsCopy.push({
             // @ts-ignore
             ...newTab,
-            // @ts-ignore
             isActive: true,
           });
         }

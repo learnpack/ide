@@ -43,12 +43,12 @@ export const ResetModal = () => {
       <section>
         <SimpleButton
           text={t("Reset")}
-          extraClass="pill bg-blue"
+          extraClass="pill bg-blue big"
           action={handleReset}
         />
         <SimpleButton
           text={t("Cancel")}
-          extraClass="pill border-blue color-blue"
+          extraClass="pill border-blue color-blue big"
           action={toggleModal}
         />
       </section>

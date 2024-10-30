@@ -3,7 +3,6 @@ import { svgs } from "../../../assets/svgs";
 import SimpleButton from "../../mockups/SimpleButton";
 import { OpenWindowLink } from "../../composites/OpenWindowLink";
 import { useTranslation } from "react-i18next";
-import { ENVIRONMENT } from "../../../utils/lib";
 
 interface IFeedbackDropdown {
   toggleFeedbackVisibility: () => void;
@@ -102,11 +101,6 @@ export const FeedbackDropdown = ({
     compilerSocket.emit("open", data);
   };
 
-  // const startTour = () => {
-  //   setOpenedModals({ tutorial: true });
-  //   toggleFeedbackVisibility();
-  // };
-
   return (
     <div className={`feedback-dropdown ${direction}`}>
       {Boolean(token) ? (
@@ -136,7 +130,7 @@ export const FeedbackDropdown = ({
         text={isTesteable ? t("Run tests") : t("No tests available")}
         action={runTests}
         disabled={
-          !isTesteable || (ENVIRONMENT === "localStorage" && !Boolean(token))
+          !isTesteable
         }
       />
 
@@ -161,11 +155,7 @@ export const FeedbackDropdown = ({
         svg={svgs.fourGeeksIcon}
         action={openLearnpackDocs}
       />
-      {/* <SimpleButton
-        text={t("Take LearnPack tour")}
-        svg={svgs.fourGeeksIcon}
-        action={startTour}
-      /> */}
+
       <p >
         {t("Feedback plays an important role when learning technical skills. ")}
         <OpenWindowLink

@@ -152,14 +152,15 @@ localStorageEventEmitter.on("reset", async (data) => {
 });
 
 localStorageEventEmitter.on("open", async (data) => {
-  const content = await FetchManager.getFileContent(
+  const { fileContent } = await FetchManager.getFileContent(
     data.exerciseSlug,
     data.solutionFileName
   );
   const solutionTab = {
     id: generateUUID(),
     name: data.solutionFileName,
-    content: content,
+    content: fileContent,
+    isActive: true,
   };
 
   data.updateEditorTabs(solutionTab);
