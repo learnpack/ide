@@ -186,17 +186,24 @@ export interface IStore {
   fetchExercises: () => void;
   getLessonTitle: () => void;
   updateEditorTabs: () => void;
-  build: (buildText: string) => void;
+  build: (buildText: string, submittedInputs?: string[]) => void;
   setPosition: (position: number) => void;
   handleNext: () => void;
   fetchReadme: () => void;
-  updateFileContent: (exerciseSlug: string, tab: Tab, updateTabs?: boolean) => void;
+  updateFileContent: (
+    exerciseSlug: string,
+    tab: Tab,
+    updateTabs?: boolean
+  ) => void;
   toggleSidebar: () => void;
   toggleTheme: () => void;
   toastFromStatus: (status: string) => void;
   setShouldBeTested: (value: boolean) => void;
   openTerminal: () => void;
-  runExerciseTests: (opts?: TRunExerciseTestsOptions) => void;
+  runExerciseTests: (
+    opts?: Partial<TRunExerciseTestsOptions>,
+    submittedInputs?: string[]
+  ) => void;
   resetExercise: (opts: TResetExerciseOpts) => void;
   registerAIInteraction: (setPosition: number, interaction: object) => void;
   sessionActions: (opts: TSessionActionsOpts) => void;

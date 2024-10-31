@@ -894,7 +894,7 @@ ${currentContent}
   setShouldBeTested: (value) => {
     set({ shouldBeTested: value });
   },
-  build: (buildText) => {
+  build: (buildText, submittedInputs = []) => {
     const {
       setBuildButtonPrompt,
       compilerSocket,
@@ -920,6 +920,7 @@ ${currentContent}
       token,
       updateEditorTabs,
       editorTabs,
+      submittedInputs,
     };
 
     compilerSocket.emit("build", data);
@@ -927,7 +928,7 @@ ${currentContent}
   setEditorTabs: (tabs) => {
     set({ editorTabs: tabs });
   },
-  runExerciseTests: (opts) => {
+  runExerciseTests: (opts, submittedInputs = []) => {
     const {
       compilerSocket,
       getCurrentExercise,
@@ -936,6 +937,7 @@ ${currentContent}
       token,
       updateEditorTabs,
       setOpenedModals,
+      editorTabs,
     } = get();
 
     if (!Boolean(token)) {
@@ -947,6 +949,8 @@ ${currentContent}
       exerciseSlug: getCurrentExercise().slug,
       token: token,
       updateEditorTabs,
+      editorTabs,
+      submittedInputs,
     };
     compilerSocket.emit("test", data);
 
@@ -955,8 +959,15 @@ ${currentContent}
       set({ targetButtonForFeedback: opts.targetButton });
     }
 
-    if (opts && opts.setFeedbackButton && opts.targetButton === "feedback")
+    if (
+      opts &&
+      opts.setFeedbackButton &&
+      opts.targetButton === "feedback" &&
+      opts.feedbackButtonText
+    ) {
       setFeedbackButtonProps(opts.feedbackButtonText, "palpitate");
+    }
+    
     if (opts && opts.toast) toastFromStatus("testing");
   },
   registerAIInteraction: (stepPosition, interaction) => {

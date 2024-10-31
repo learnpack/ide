@@ -17,23 +17,26 @@ export function SocketHandler() {
     setOpenedModals,
     refreshSession,
     updateDBSession,
+    build,
+    runExerciseTests,
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     exercises: state.exercises,
-    setAllowedActions: state.setAllowedActions,
     setShouldBeTested: state.setShouldBeTested,
     getCurrentExercise: state.getCurrentExercise,
     currentExercisePosition: state.currentExercisePosition,
     updateFileContent: state.updateFileContent,
-    checkLoggedStatus: state.checkLoggedStatus,
     setOpenedModals: state.setOpenedModals,
     refreshSession: state.refreshDataFromAnotherTab,
     updateDBSession: state.updateDBSession,
+    build: state.build,
+    runExerciseTests: state.runExerciseTests,
   }));
 
   const [inputsResponses, setInputsResponses] = useState([] as string[]);
   const [inputs, setInputs] = useState([] as string[]);
   const [shouldWeSend, setShouldWeSend] = useState(false);
+  const [nextAction, setNextAction] = useState("");
 
   const debouncedStore = useCallback(
     debounce(() => {
@@ -88,8 +91,11 @@ export function SocketHandler() {
       window.location.reload();
     });
 
-    compilerSocket.on("ask", async ({ inputs }: any) => {
+    compilerSocket.on("ask", async ({ inputs, nextAction }: any) => {
       setInputs(inputs);
+      if (nextAction) {
+        setNextAction(nextAction);
+      }
     });
   }, [currentExercisePosition, exercises]);
 
@@ -97,6 +103,22 @@ export function SocketHandler() {
     if (inputsResponses.length === 0) return;
 
     const emitResponses = () => {
+      if (nextAction === "build") {
+        build(
+          exercises[Number(currentExercisePosition)].instructions,
+          inputsResponses
+        );
+      }
+
+      if (nextAction === "test") {
+        runExerciseTests(
+          {
+            targetButton: "feedback",
+            toast: true,
+          },
+          inputsResponses
+        );
+      }
       compilerSocket.emit("input", {
         inputs: inputsResponses,
         exerciseSlug: exercises[Number(currentExercisePosition)].slug,

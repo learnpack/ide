@@ -20,6 +20,53 @@ function generateUUID() {
   });
 }
 
+const inputByLang = {
+  js: "prompt(",
+  py: "input(",
+  java: "Scanner(System.in).nextLine()",
+  cs: "Console.ReadLine()",
+  rb: "gets",
+  php: "$_POST['input']",
+  go: "bufio.NewReader(os.Stdin).ReadString('\\n')",
+  swift: "readLine()",
+};
+
+function escapeRegExp(string: string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
+}
+
+function searchInputsForFile(filename: string, fileContent: string) {
+  try {
+    // Get the extension of the filename
+    const extension = filename.split(".").pop();
+    if (!extension) return null;
+    const input = inputByLang[extension as keyof typeof inputByLang];
+    if (!input) return null;
+
+    let regex;
+
+    if (extension === "js" || extension === "py" || extension === "swift") {
+      const escapedInput = escapeRegExp(input);
+      regex = new RegExp(`${escapedInput}\\s*\\s*("(.*?)"|'(.*?)')`, "g");
+    }
+
+    const matches = [];
+    let match;
+
+    while ((match = regex?.exec(fileContent)) !== null) {
+      if (match) {
+        matches.push(match[1] || match[2]);
+      }
+    }
+
+    const fixedMatches = matches.map((match) => match.replace(/['"]/g, ""));
+    return fixedMatches.length > 0 ? fixedMatches : null;
+  } catch (error) {
+    console.error("Something went wrong:", error);
+    return null;
+  }
+}
+
 function extractAndParseResult(xmlString: string): any {
   const resultTagStart = "<result>";
   const resultTagEnd = "</result>";
@@ -96,18 +143,42 @@ localStorageEventEmitter.on("build", async (data) => {
       LocalStorage.get(`editorTabs_${data.exerciseSlug}`) || data.editorTabs;
 
     let content = "";
+    const inputsObject: Record<string, string> = {};
+
+    const userRequiredInputs: string[] = [];
 
     cachedEditorTabs.forEach((tab: any) => {
+      const inputs = searchInputsForFile(tab.name, tab.content);
+
+      if (inputs) {
+        userRequiredInputs.push(...inputs);
+      }
+
       const contentToAdd = `
-\`\`\`TAB NAME: ${tab.name}
-${tab.content} 
-\`\`\`\ 
+      \`\`\`FILE NAME: ${tab.name}
+      ${tab.content} 
+      \`\`\`\ 
 `;
       content += contentToAdd;
     });
 
+    if (userRequiredInputs.length > 0 && data.submittedInputs.length === 0) {
+      localStorageEventEmitter.emit("ask", {
+        inputs: userRequiredInputs,
+        nextAction: "build",
+      });
+      return;
+    }
+
+    if (data.submittedInputs.length > 0) {
+      data.submittedInputs.forEach((input: string, index: number) => {
+        inputsObject[`${userRequiredInputs[index]}`] = input;
+      });
+    }
+
     const inputs = {
       code: content,
+      inputs: JSON.stringify(inputsObject),
     };
     const dataRigobotReturns = await buildRigo(data.token, inputs);
 
@@ -171,6 +242,10 @@ localStorageEventEmitter.on("test", async (data) => {
     const exe = await FetchManager.getExerciseInfo(data.exerciseSlug);
 
     let testContent = "";
+    const inputsObject: Record<string, string> = {};
+
+    const userRequiredInputs: string[] = [];
+
     for (const f of exe.files) {
       if (f.name.includes("solution") || f.name.includes("README")) continue;
 
@@ -179,16 +254,39 @@ localStorageEventEmitter.on("test", async (data) => {
         f.name,
         { cached: true }
       );
+
+      const inputs = searchInputsForFile(f.name, fileContent);
+      if (inputs) {
+        userRequiredInputs.push(...inputs);
+      }
+
       testContent += `
-\`\`\`FILE: ${f.name} ${!f.hidden ? "USER CODE" : "TEST FILE"}
+\`\`\`FILE: ${f.name} ${
+        !f.hidden ? "(THIS FILE IS USER CODE)" : "(THIS FILE IS A TEST FILE)"
+      }
 
 ${fileContent}
 \`\`\`
       `;
     }
 
+    if (userRequiredInputs.length > 0 && data.submittedInputs.length === 0) {
+      localStorageEventEmitter.emit("ask", {
+        inputs: userRequiredInputs,
+        nextAction: "test",
+      });
+      return;
+    }
+
+    if (data.submittedInputs.length > 0) {
+      data.submittedInputs.forEach((input: string, index: number) => {
+        inputsObject[`${userRequiredInputs[index]}`] = input;
+      });
+    }
+
     const inputs = {
       code: testContent,
+      inputs: JSON.stringify(inputsObject),
     };
     const dataRigobotReturns = await testRigo(data.token, inputs);
 

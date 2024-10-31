@@ -161,7 +161,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                     minimap: {
                       enabled: false,
                     },
-                    fontSize: 15,
+                    fontSize: 16,
                     bracketPairColorization: {
                       enabled: true,
                     },
