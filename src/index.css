@@ -21,8 +21,8 @@
   --bg-color-code: #2d3748;
   --link-inactive-color: #a9a9a9;
   --backdrop-background: rgba(0, 0, 0, 0.7);
-  --soft-green: #A4FFBD;
-  --soft-red: #FFBEBE;
+  --soft-green: #a4ffbd;
+  --soft-red: #ffbebe;
   --modals-bg-color: var(--bg-color);
   --font-color-secondary: #9c9c9c;
   --font-size-small: 16px;
@@ -410,9 +410,15 @@ form input {
   margin-inline: auto;
 }
 
+#main-container.iframe-mode {
+  width: 100vw !important;
+}
 @media only screen and (min-width: 1111px) {
   #main-container {
     margin-top: 20px;
+  }
+  #main-container.iframe-mode {
+    margin-top: 0;
   }
 }
 
@@ -441,4 +447,13 @@ form input {
 
 .my-2 {
   margin: 20px 0;
+}
+.d-none {
+  display: none;
+}
+
+@media only screen and (min-width: 768px) {
+  .hide-continue-button {
+    display: none !important;
+  }
 }

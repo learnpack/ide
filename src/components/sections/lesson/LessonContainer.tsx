@@ -24,14 +24,19 @@ export default function LessonContainer({
     incrementalTest: false,
     agent: true,
   });
-  const { exercises, getCurrentExercise, configObject, isTesteable } = useStore(
-    (state) => ({
-      getCurrentExercise: state.getCurrentExercise,
-      exercises: state.exercises,
-      configObject: state.configObject,
-      isTesteable: state.isTesteable,
-    })
-  );
+  const {
+    exercises,
+    getCurrentExercise,
+    configObject,
+    isTesteable,
+    editorTabs,
+  } = useStore((state) => ({
+    getCurrentExercise: state.getCurrentExercise,
+    exercises: state.exercises,
+    configObject: state.configObject,
+    isTesteable: state.isTesteable,
+    editorTabs: state.editorTabs,
+  }));
 
   useEffect(() => {
     const current = getCurrentExercise();
@@ -58,26 +63,29 @@ export default function LessonContainer({
       {alerts.incrementalTest && (
         <blockquote>{t("incremental-test-alert")}</blockquote>
       )}
-      {configObject.config.warnings &&
-        configObject.config.warnings.agent &&
-        alerts.agent && (
-          <Alert>
-            <div className="d-flex space-between">
-              <p>
-                {t("agent-mismatch-error")}{" "}
-                <OpenWindowLink
-                  href="https://4geeks.com/lesson/agent-vs-mode"
-                  text="Read more"
-                />
-              </p>
-              <button onClick={() => handleHideAlert("agent")}>Hide</button>
-            </div>
-          </Alert>
-        )}
+      {configObject?.config?.warnings?.agent && alerts.agent && (
+        <Alert>
+          <div className="d-flex space-between">
+            <p>
+              {t("agent-mismatch-error")}{" "}
+              <OpenWindowLink
+                href="https://4geeks.com/lesson/agent-vs-mode"
+                text="Read more"
+              />
+            </p>
+            <button onClick={() => handleHideAlert("agent")}>Hide</button>
+          </div>
+        </Alert>
+      )}
       {children}
       <LessonContent />
       {ENVIRONMENT === "localStorage" && continueAction && (
-        <div onClick={continueAction} className="badge bg-blue">
+        <div
+          onClick={continueAction}
+          className={`badge bg-blue ${
+            editorTabs.length > 0 ? "hide-continue-button" : ""
+          }`}
+        >
           {t("continue")}
         </div>
       )}

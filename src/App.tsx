@@ -12,23 +12,25 @@ import { Container } from "./components/Container/Container";
 import useStore from "./utils/store";
 
 export default function Home() {
-  const {  start, handleEnvironmentChange, theme } = useStore(
-    (s) => ({
-      environment: s.environment,
-      start: s.start,
-      handleEnvironmentChange: s.handleEnvironmentChange,
-      theme: s.theme,
-    })
-  );
+  const { start, handleEnvironmentChange, theme, isIframe } = useStore((s) => ({
+    environment: s.environment,
+    start: s.start,
+    handleEnvironmentChange: s.handleEnvironmentChange,
+    theme: s.theme,
+    isIframe: s.isIframe,
+  }));
+
   useEffect(() => {
     start();
 
     document.addEventListener("environment-change", handleEnvironmentChange);
   }, []);
 
-
   return (
-    <main id="main-container" className={`${theme}`}>
+    <main
+      id="main-container"
+      className={`${theme} ${isIframe ? "iframe-mode" : ""}`}
+    >
       <ShortcutsListener>
         <ModalsContainer />
         <SocketHandler />
