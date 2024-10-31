@@ -96,6 +96,8 @@ i18n.use(initReactI18next).init({
           "To compile code on the web, please log in first!",
         "execute-my-code": "Execute my code",
         "test-my-code": "Test my code",
+        "display-another-tab": "Display in another tab",
+        "close-tab": "Close tab",
       },
     },
     es: {
@@ -202,6 +204,8 @@ i18n.use(initReactI18next).init({
           "Para compilar código en la web, ¡por favor inicia sesión primero!",
         "execute-my-code": "Ejecutar mi código",
         "test-my-code": "Testear mi código",
+        "display-another-tab": "Mostrar en otra pestaña",
+        "close-tab": "Cerrar pestaña",
       },
     },
   },

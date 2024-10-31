@@ -221,6 +221,7 @@ type TEditorTab = {
   name: string;
   content: string;
   isActive: boolean;
+  isHTML?: boolean;
 };
 
 export type TDialog = {

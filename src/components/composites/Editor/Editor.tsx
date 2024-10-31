@@ -12,6 +12,7 @@ import { debounce } from "../../../utils/lib";
 import { Tab } from "../../../types/editor";
 import { CompileOptions } from "../../sections/header/CompileOptions";
 import SimpleButton from "../../mockups/SimpleButton";
+import { Preview } from "../Preview/Preview";
 
 const languageMap: { [key: string]: string } = {
   ".js": "javascript",
@@ -55,6 +56,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     setTabs: state.setEditorTabs,
   }));
 
+  const { t } = useTranslation();
   const [editorTheme, setEditorTheme] = useState("light");
   const [editorStatus, setEditorStatus] = useState<TEditorStatus>("UNMODIFIED");
 
@@ -186,7 +188,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
           <EditorFooter editorStatus={editorStatus} />
         </div>
       )}
-      {terminalTab && (
+      {terminalTab && !terminalTab.isHTML && (
         <div className={`terminal ${terminal}`}>
           <h5>
             <span>Terminal</span>{" "}
@@ -198,6 +200,33 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
           {terminal === "only" && getCurrentExercise().done && (
             <EditorFooter editorStatus={editorStatus} />
           )}
+        </div>
+      )}
+      {terminalTab && terminalTab.isHTML && (
+        <div className={`terminal ${terminal}`}>
+          <h5>
+            <span>HTML</span>{" "}
+            <div className="d-flex">
+              <SimpleButton
+                title={t("display-another-tab")}
+                size="mini"
+                svg={svgs.redirect}
+                action={() => {
+                  window.open(
+                    `/preview?slug=${getCurrentExercise().slug}`,
+                    "__blank"
+                  );
+                }}
+              />
+              <SimpleButton
+                title={t("close-tab")}
+                size="mini"
+                svg={svgs.closeX}
+                action={() => removeTab(terminalTab.id, terminalTab.name)}
+              />
+            </div>
+          </h5>
+          <Preview html={terminalTab.content} />
         </div>
       )}
     </div>

@@ -1,3 +1,4 @@
+import { compileHTML } from "../utils/compileHTML";
 import {
   disconnected,
   getHost,
@@ -143,11 +144,13 @@ localStorageEventEmitter.on("build", async (data) => {
       LocalStorage.get(`editorTabs_${data.exerciseSlug}`) || data.editorTabs;
 
     let content = "";
+    let extensions: string[] = [];
     const inputsObject: Record<string, string> = {};
 
     const userRequiredInputs: string[] = [];
 
     cachedEditorTabs.forEach((tab: any) => {
+      extensions.push(tab.name.split(".").pop());
       const inputs = searchInputsForFile(tab.name, tab.content);
 
       if (inputs) {
@@ -174,6 +177,23 @@ localStorageEventEmitter.on("build", async (data) => {
       data.submittedInputs.forEach((input: string, index: number) => {
         inputsObject[`${userRequiredInputs[index]}`] = input;
       });
+    }
+
+    if (extensions.includes("html")) {
+      localStorage.setItem("htmlString", content);
+      
+      const outputTab = {
+        id: generateUUID(),
+        name: "terminal",
+        content: compileHTML(cachedEditorTabs),
+        isActive: false,
+        isHTML: true,
+      };
+      data.updateEditorTabs(outputTab);
+      localStorageEventEmitter.emitStatus("compiler-success", {
+        htmlString: content,
+      });
+      return;
     }
 
     const inputs = {
