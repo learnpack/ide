@@ -48,7 +48,6 @@
   border-radius: 5px;
   border-top-left-radius: 0;
   position: relative;
-  
 }
 
 .editor-monaco .view-lines,
@@ -60,10 +59,17 @@
   border: 8px solid #a5d9f8;
   margin-top: -8px;
   padding: 8px;
-  max-height: 250px;
+  height: 300px;
   overflow-y: auto;
   position: relative;
-  padding-bottom: 20px;
+
+  /* padding-bottom: 20px; */
+}
+.terminal.html {
+  height: min(400px, fit-content);
+  overflow-y: auto;
+  border: none;
+  padding-bottom: 8px;
 }
 .terminal.only {
   margin-top: 0;
@@ -88,7 +94,13 @@
 .terminal > pre {
   background-color: var(--bg-color);
   border: none;
-  height: 100%;
+  max-width: 100%;
+  height: fit-content F;
+  word-break: break-word !important;
+  white-space: pre-wrap;
+}
+.terminal > pre > code {
+  word-wrap: break-word;
 }
 .editor-footer {
   background-color: var(--bg-color);
@@ -110,7 +122,6 @@
 
 .editor .editor-footer.success {
   background-color: var(--soft-green);
-  color: var(--color-active);
 }
 
 .editor .editor-footer.error {
@@ -170,10 +181,10 @@
     color: var(--color-success);
   }
   & .footer-actions > button {
-    color: var(--color-success);
+    color: black;
   }
   & .footer-actions > div > button {
-    color: var(--color-success);
+    color: black;
   }
 }
 .editor-footer.error {

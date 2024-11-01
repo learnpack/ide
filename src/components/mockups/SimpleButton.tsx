@@ -28,7 +28,7 @@ export default function SimpleButton({
       title={title}
     >
       {svg}
-      <span>{text}</span>
+      {text && <span>{text}</span>}
     </button>
   );
 }

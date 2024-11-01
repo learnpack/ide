@@ -13,6 +13,7 @@ import { Tab } from "../../../types/editor";
 import { CompileOptions } from "../../sections/header/CompileOptions";
 import SimpleButton from "../../mockups/SimpleButton";
 import { Preview } from "../Preview/Preview";
+import toast from "react-hot-toast";
 
 const languageMap: { [key: string]: string } = {
   ".js": "javascript",
@@ -59,6 +60,9 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
   const { t } = useTranslation();
   const [editorTheme, setEditorTheme] = useState("light");
   const [editorStatus, setEditorStatus] = useState<TEditorStatus>("UNMODIFIED");
+  const [browserTabTitle, setBrowserTabTitle] = useState(
+    window.location.host + "/preview"
+  );
 
   const debouncedStore = useCallback(
     debounce(() => {
@@ -129,6 +133,14 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     }
   }, [tabs]);
 
+  const foundPreviewTitle = (title: string) => {
+    toast.error(title);
+    if (!title) return;
+    console.log();
+
+    setBrowserTabTitle(title);
+  };
+
   const terminalTab = tabs.find((tab) => tab.name === "terminal");
 
   const filteredTabs = tabs.filter((tab) => tab.name !== "terminal");
@@ -190,27 +202,28 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
       )}
       {terminalTab && !terminalTab.isHTML && (
         <div className={`terminal ${terminal}`}>
-          <h5>
+          <h5 className="d-flex justify-between align-center">
             <span>Terminal</span>{" "}
             <button onClick={() => removeTab(terminalTab.id, terminalTab.name)}>
               &times;
             </button>
           </h5>
-          <pre>{terminalTab.content}</pre>
+          <pre>{terminalTab.content.trim()}</pre>
           {terminal === "only" && getCurrentExercise().done && (
             <EditorFooter editorStatus={editorStatus} />
           )}
         </div>
       )}
       {terminalTab && terminalTab.isHTML && (
-        <div className={`terminal ${terminal}`}>
-          <h5>
-            <span>HTML</span>{" "}
+        <div className={`terminal ${terminal} html browser`}>
+          <div className="d-flex justify-between align-center browser-header">
+            <div className="padding-big browser-tab">{browserTabTitle}</div>
             <div className="d-flex">
               <SimpleButton
-                title={t("display-another-tab")}
+                title={t("display-another-tab padding-medium")}
                 size="mini"
-                svg={svgs.redirect}
+                svg={svgs.newTab}
+                extraClass="hover rounded"
                 action={() => {
                   window.open(
                     `/preview?slug=${getCurrentExercise().slug}`,
@@ -222,11 +235,17 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                 title={t("close-tab")}
                 size="mini"
                 svg={svgs.closeX}
+                extraClass="danger-on-hover rounded"
                 action={() => removeTab(terminalTab.id, terminalTab.name)}
               />
             </div>
-          </h5>
-          <Preview html={terminalTab.content} />
+          </div>
+          <div className="browser-body">
+            <Preview
+              onTitleRevealed={foundPreviewTitle}
+              html={terminalTab.content}
+            />
+          </div>
         </div>
       )}
     </div>

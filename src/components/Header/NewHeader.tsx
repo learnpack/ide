@@ -34,7 +34,9 @@ export const NewHeader = () => {
           {svgs.prevArrowButton}
         </button>
         <button
-          disabled={currentExercisePosition === exercises.length - 1}
+          disabled={
+            exercises && currentExercisePosition === exercises.length - 1
+          }
           onClick={() =>
             handlePositionChange(Number(currentExercisePosition) + 1)
           }

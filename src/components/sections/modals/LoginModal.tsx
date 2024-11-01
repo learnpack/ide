@@ -70,7 +70,7 @@ export default function LoginModal() {
   const redirectGithub = () => {
     let currentUrl = getCurrentUrlWithQueryParams();
 
-    toast.success("Redirecting to GitHub...");
+    toast.success(t("redirecting-to-github"));
     openLink(
       `https://breathecode.herokuapp.com/v1/auth/github/?url=${stringToBase64(
         currentUrl

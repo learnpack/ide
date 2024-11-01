@@ -9,7 +9,7 @@ export const CompileOptions = () => {
   const { t } = useTranslation();
 
   return (
-    <Dropdown className="up" openingElement={<SimpleButton svg={svgs.buildIcon} text={t("Run")} />}>
+    <Dropdown className="up" openingElement={<SimpleButton  svg={svgs.buildIcon} text={t("Run")} />}>
       <BuildButton extraClass="active big w-100" />
       <TestButton />
     </Dropdown>

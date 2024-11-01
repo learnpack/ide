@@ -98,6 +98,7 @@ i18n.use(initReactI18next).init({
         "test-my-code": "Test my code",
         "display-another-tab": "Display in another tab",
         "close-tab": "Close tab",
+        "redirecting-to-github": "Redirecting to GitHub...",
       },
     },
     es: {
@@ -206,6 +207,7 @@ i18n.use(initReactI18next).init({
         "test-my-code": "Testear mi código",
         "display-another-tab": "Mostrar en otra pestaña",
         "close-tab": "Cerrar pestaña",
+        "redirecting-to-github": "Redirigiendo a GitHub...",
       },
     },
   },

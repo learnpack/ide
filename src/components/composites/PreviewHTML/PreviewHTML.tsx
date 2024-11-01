@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Preview } from "../Preview/Preview";
 import { useLoaderData } from "react-router-dom";
 import { LocalStorage } from "../../../managers/localStorage";
@@ -32,9 +32,19 @@ export const PreviewHTMLPage: React.FC = () => {
     htmlString: string;
   };
 
+  const [previewTitle, setPreviewTitle] = useState("");
+
+  const foundPreviewTitle = (title: string) => {
+    setPreviewTitle(title);
+  };
+
+  useEffect(() => {
+    console.log(previewTitle);
+  }, [previewTitle]);
+
   return (
     <main>
-      <Preview html={htmlString} />
+      <Preview onTitleRevealed={foundPreviewTitle} html={htmlString} />
     </main>
   );
 };

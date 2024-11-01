@@ -36,7 +36,7 @@ export default function LessonContent() {
     }, [currentContent]);
 
     return (
-        <div ref={lessonContentRef} dangerouslySetInnerHTML={{ __html: convertMarkdownToHTML(currentContent) }}>
+        <div className="lesson-content" ref={lessonContentRef} dangerouslySetInnerHTML={{ __html: convertMarkdownToHTML(currentContent) }}>
         </div>
     );
 }
