@@ -13,7 +13,6 @@ import { Tab } from "../../../types/editor";
 import { CompileOptions } from "../../sections/header/CompileOptions";
 import SimpleButton from "../../mockups/SimpleButton";
 import { Preview } from "../Preview/Preview";
-import toast from "react-hot-toast";
 
 const languageMap: { [key: string]: string } = {
   ".js": "javascript",
@@ -134,10 +133,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
   }, [tabs]);
 
   const foundPreviewTitle = (title: string) => {
-    toast.error(title);
     if (!title) return;
-    console.log();
-
     setBrowserTabTitle(title);
   };
 
