@@ -64,8 +64,14 @@ export default function Sidebar() {
     }));
   const [showSidebar, setShowSidebar] = useState(false);
   const [progress, setProgress] = useState({
-    solved: exercises.filter((e: any) => e.done === true).length,
-    graded: exercises.filter((e: any) => e.graded).length,
+    solved:
+      exercises && exercises.filter
+        ? exercises.filter((e: any) => e.done === true).length
+        : 0,
+    graded:
+      exercises && exercises.filter
+        ? exercises.filter((e: any) => e.graded).length
+        : 0,
   });
 
   let title = lessonTitle;
@@ -93,7 +99,6 @@ export default function Sidebar() {
     const percentage = _progress.solved / _progress.graded;
     drawCircle(percentage);
   }, [showSidebar]);
-
 
   return (
     <>

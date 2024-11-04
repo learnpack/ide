@@ -508,3 +508,16 @@ form input {
 .padding-small {
   padding: 5px;
 }
+
+.bg-secondary {
+  background-color: var(--color-hovered);
+}
+.input {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--color-hovered);
+}
+
+.text-blue {
+  color: var(--color-active);
+}

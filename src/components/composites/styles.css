@@ -1,37 +1,10 @@
 .input-modal {
-  position: fixed;
-  top: 100px;
-  left: 50%;
   text-align: center;
-  background-color: white;
-  border-radius: 10px;
-  border: 1px solid var(--color-border);
-  z-index: 20;
-  transform: translate(-50%, 0);
+  background-color: var(--modals-bg-color);
+  color: var(--read-font-color);
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  width: min(400px, 90%);
 }
 
-.input-modal > input {
-  border: 1px solid gray;
-  border-radius: 8px;
-  padding: 10px;
-}
-
-.input-modal > div {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-}
-
-.input-modal button {
-  width: fit-content;
-  padding: 7px;
-  cursor: pointer;
-  border-radius: 6px;
-  background-color: var(--color-border);
-  color: white;
-}
