@@ -1,7 +1,7 @@
 {
   "name": "learnpack-ai",
   "private": true,
-  "version": "4.3.23",
+  "version": "4.3.24",
   "scripts": {
     "dev": "node src/utils/development.js --turn on && vite",
     "build": "node src/utils/development.js --turn off && tsc && vite build && node bin/publish.js && node src/utils/createVersionsFile.js",

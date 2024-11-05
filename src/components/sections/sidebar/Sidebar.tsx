@@ -75,7 +75,11 @@ export default function Sidebar() {
   });
 
   let title = lessonTitle;
-  if (configObject && typeof configObject.config.title === "object") {
+  if (
+    configObject &&
+    configObject.config &&
+    typeof configObject.config.title === "object"
+  ) {
     if (Object.keys(configObject.config.title).includes(language)) {
       title = configObject.config.title[language];
     }
