@@ -10,3 +10,7 @@
   display: flex;
   gap: 8px;
 }
+
+.header > section > button:disabled {
+  display: none;
+}

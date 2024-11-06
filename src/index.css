@@ -468,6 +468,10 @@ form input {
   border-radius: 5px;
   background-color: var(--soft-blue-color);
   color: var(--color-active);
+  max-width: 300px;
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+  white-space: nowrap;
 }
 
 .browser-header {

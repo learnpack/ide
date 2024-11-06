@@ -1,0 +1,827 @@
+{
+    "config": {
+        "port": 3000,
+        "os": "win32",
+        "editor": {
+            "mode": "extension",
+            "agent": "vscode",
+            "version": "4.0.0"
+        },
+        "dirPath": "./.learn",
+        "configPath": "learn.json",
+        "outputPath": ".learn/dist",
+        "publicPath": "/preview",
+        "publicUrl": "http://localhost:3000",
+        "contact": "https://github.com/learnpack/learnpack/issues/new",
+        "language": "auto",
+        "autoPlay": true,
+        "projectType": "tutorial",
+        "grading": "isolated",
+        "exercisesPath": "./exercises",
+        "webpackTemplate": null,
+        "disableGrading": false,
+        "disabledActions": [],
+        "actions": [],
+        "entries": {
+            "html": "index.html",
+            "vanillajs": "index.js",
+            "react": "app.jsx",
+            "node": "app.js",
+            "python3": "app.py",
+            "java": "app.java"
+        },
+        "suggestions": {
+            "agent": "vscode"
+        },
+        "warnings": {
+            "agent": null
+        },
+        "slug": "the-dom-exercises",
+        "repository": "https://github.com/4GeeksAcademy/javascript-dom-tutorial-exercises",
+        "title": {
+            "us": "Learn how to manipulate The DOM with JS",
+            "es": "Aprende cómo manipular el DOM con JavaScript"
+        },
+        "preview": "https://github.com/4GeeksAcademy/javascript-dom-tutorial-exercises/blob/master/preview.png?raw=true",
+        "description": {
+            "us": "Step by step, go over all the most important DOM concepts and methods: Use javascript to manipulate styles, HTML elements.",
+            "es": "Paso a paso, ve sobre todos los conceptos y métodos del DOM: Usa Javascript para manipular los estilos de los elementos de HTML."
+        },
+        "duration": 6,
+        "difficulty": "easy",
+        "videoSolutions": false,
+        "bugsLink": "https://github.com/learnpack/learnpack/issues/new",
+        "telemetry": {
+            "batch": "https://breathecode.herokuapp.com/v1/assignment/me/telemetry"
+        },
+        "translations": []
+    },
+    "address": "http://localhost:3000",
+    "currentExercise": "00-Welcome",
+    "exercises": [
+        {
+            "position": 0,
+            "path": "exercises\\00-Welcome",
+            "slug": "00-Welcome",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": null,
+            "entry": null,
+            "title": "00-Welcome",
+            "graded": false,
+            "files": [
+                {
+                    "path": "exercises\\00-Welcome/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\00-Welcome/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 1,
+            "path": "exercises\\01-hello-world",
+            "slug": "01-hello-world",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "vanillajs",
+            "entry": "exercises\\01-hello-world/index.js",
+            "title": "01-hello-world",
+            "graded": true,
+            "files": [
+                {
+                    "path": "exercises\\01-hello-world/index.html",
+                    "name": "index.html",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\01-hello-world/index.js",
+                    "name": "index.js",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\01-hello-world/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\01-hello-world/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\01-hello-world/solution.hide.js",
+                    "name": "solution.hide.js",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\01-hello-world/styles.css",
+                    "name": "styles.css",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\01-hello-world/tests.js",
+                    "name": "tests.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 2,
+            "path": "exercises\\02-Select-DOM-Element",
+            "slug": "02-Select-DOM-Element",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "vanillajs",
+            "entry": "exercises\\02-Select-DOM-Element/index.js",
+            "title": "02-Select-DOM-Element",
+            "graded": true,
+            "files": [
+                {
+                    "path": "exercises\\02-Select-DOM-Element/index.html",
+                    "name": "index.html",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\02-Select-DOM-Element/index.js",
+                    "name": "index.js",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\02-Select-DOM-Element/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\02-Select-DOM-Element/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\02-Select-DOM-Element/solution.hide.js",
+                    "name": "solution.hide.js",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\02-Select-DOM-Element/styles.css",
+                    "name": "styles.css",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\02-Select-DOM-Element/tests.js",
+                    "name": "tests.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 3,
+            "path": "exercises\\03-Change-Div-Background",
+            "slug": "03-Change-Div-Background",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "vanillajs",
+            "entry": "exercises\\03-Change-Div-Background/index.js",
+            "title": "03-Change-Div-Background",
+            "graded": true,
+            "files": [
+                {
+                    "path": "exercises\\03-Change-Div-Background/index.html",
+                    "name": "index.html",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\03-Change-Div-Background/index.js",
+                    "name": "index.js",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\03-Change-Div-Background/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\03-Change-Div-Background/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\03-Change-Div-Background/solution.hide.js",
+                    "name": "solution.hide.js",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\03-Change-Div-Background/styles.css",
+                    "name": "styles.css",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\03-Change-Div-Background/tests.js",
+                    "name": "tests.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 4,
+            "path": "exercises\\04-Move-DOM-Element",
+            "slug": "04-Move-DOM-Element",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "vanillajs",
+            "entry": "exercises\\04-Move-DOM-Element/index.js",
+            "title": "04-Move-DOM-Element",
+            "graded": true,
+            "files": [
+                {
+                    "path": "exercises\\04-Move-DOM-Element/index.html",
+                    "name": "index.html",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\04-Move-DOM-Element/index.js",
+                    "name": "index.js",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\04-Move-DOM-Element/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\04-Move-DOM-Element/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\04-Move-DOM-Element/solution.hide.js",
+                    "name": "solution.hide.js",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\04-Move-DOM-Element/styles.css",
+                    "name": "styles.css",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\04-Move-DOM-Element/tests.js",
+                    "name": "tests.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 5,
+            "path": "exercises\\05-Create-DOM-Element-First",
+            "slug": "05-Create-DOM-Element-First",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "vanillajs",
+            "entry": "exercises\\05-Create-DOM-Element-First/index.js",
+            "title": "05-Create-DOM-Element-First",
+            "graded": true,
+            "files": [
+                {
+                    "path": "exercises\\05-Create-DOM-Element-First/index.html",
+                    "name": "index.html",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\05-Create-DOM-Element-First/index.js",
+                    "name": "index.js",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\05-Create-DOM-Element-First/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\05-Create-DOM-Element-First/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\05-Create-DOM-Element-First/solution.hide.js",
+                    "name": "solution.hide.js",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\05-Create-DOM-Element-First/styles.css",
+                    "name": "styles.css",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\05-Create-DOM-Element-First/tests.js",
+                    "name": "tests.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 6,
+            "path": "exercises\\06-Create-DOM-Element-Second",
+            "slug": "06-Create-DOM-Element-Second",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "vanillajs",
+            "entry": "exercises\\06-Create-DOM-Element-Second/index.js",
+            "title": "06-Create-DOM-Element-Second",
+            "graded": true,
+            "files": [
+                {
+                    "path": "exercises\\06-Create-DOM-Element-Second/index.html",
+                    "name": "index.html",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\06-Create-DOM-Element-Second/index.js",
+                    "name": "index.js",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\06-Create-DOM-Element-Second/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\06-Create-DOM-Element-Second/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\06-Create-DOM-Element-Second/solution.hide.js",
+                    "name": "solution.hide.js",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\06-Create-DOM-Element-Second/styles.css",
+                    "name": "styles.css",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\06-Create-DOM-Element-Second/tests.js",
+                    "name": "tests.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 7,
+            "path": "exercises\\07-Create-DOM-list-of-li",
+            "slug": "07-Create-DOM-list-of-li",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "vanillajs",
+            "entry": "exercises\\07-Create-DOM-list-of-li/index.js",
+            "title": "07-Create-DOM-list-of-li",
+            "graded": true,
+            "files": [
+                {
+                    "path": "exercises\\07-Create-DOM-list-of-li/index.html",
+                    "name": "index.html",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\07-Create-DOM-list-of-li/index.js",
+                    "name": "index.js",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\07-Create-DOM-list-of-li/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\07-Create-DOM-list-of-li/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\07-Create-DOM-list-of-li/solution.hide.js",
+                    "name": "solution.hide.js",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\07-Create-DOM-list-of-li/styles.css",
+                    "name": "styles.css",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\07-Create-DOM-list-of-li/tests.js",
+                    "name": "tests.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 8,
+            "path": "exercises\\08.1-Remove-DOM-Element",
+            "slug": "08.1-Remove-DOM-Element",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "vanillajs",
+            "entry": "exercises\\08.1-Remove-DOM-Element/index.js",
+            "title": "08.1-Remove-DOM-Element",
+            "graded": true,
+            "files": [
+                {
+                    "path": "exercises\\08.1-Remove-DOM-Element/index.html",
+                    "name": "index.html",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\08.1-Remove-DOM-Element/index.js",
+                    "name": "index.js",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\08.1-Remove-DOM-Element/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\08.1-Remove-DOM-Element/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\08.1-Remove-DOM-Element/solution.hide.js",
+                    "name": "solution.hide.js",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\08.1-Remove-DOM-Element/styles.css",
+                    "name": "styles.css",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\08.1-Remove-DOM-Element/tests.js",
+                    "name": "tests.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 9,
+            "path": "exercises\\08.2-Remove-DOM-Element",
+            "slug": "08.2-Remove-DOM-Element",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "vanillajs",
+            "entry": "exercises\\08.2-Remove-DOM-Element/index.js",
+            "title": "08.2-Remove-DOM-Element",
+            "graded": true,
+            "files": [
+                {
+                    "path": "exercises\\08.2-Remove-DOM-Element/img",
+                    "name": "img",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\08.2-Remove-DOM-Element/index.html",
+                    "name": "index.html",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\08.2-Remove-DOM-Element/index.js",
+                    "name": "index.js",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\08.2-Remove-DOM-Element/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\08.2-Remove-DOM-Element/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\08.2-Remove-DOM-Element/solution.hide.js",
+                    "name": "solution.hide.js",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\08.2-Remove-DOM-Element/styles.css",
+                    "name": "styles.css",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\08.2-Remove-DOM-Element/tests.js",
+                    "name": "tests.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 10,
+            "path": "exercises\\09-Render-on-Click",
+            "slug": "09-Render-on-Click",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "vanillajs",
+            "entry": "exercises\\09-Render-on-Click/index.js",
+            "title": "09-Render-on-Click",
+            "graded": true,
+            "files": [
+                {
+                    "path": "exercises\\09-Render-on-Click/img",
+                    "name": "img",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\09-Render-on-Click/index.html",
+                    "name": "index.html",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\09-Render-on-Click/index.js",
+                    "name": "index.js",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\09-Render-on-Click/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\09-Render-on-Click/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\09-Render-on-Click/solution.hide.js",
+                    "name": "solution.hide.js",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\09-Render-on-Click/styles.css",
+                    "name": "styles.css",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\09-Render-on-Click/tests.js",
+                    "name": "tests.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 11,
+            "path": "exercises\\10-Add-li-on-Click",
+            "slug": "10-Add-li-on-Click",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "vanillajs",
+            "entry": "exercises\\10-Add-li-on-Click/index.js",
+            "title": "10-Add-li-on-Click",
+            "graded": true,
+            "files": [
+                {
+                    "path": "exercises\\10-Add-li-on-Click/img",
+                    "name": "img",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\10-Add-li-on-Click/index.html",
+                    "name": "index.html",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\10-Add-li-on-Click/index.js",
+                    "name": "index.js",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\10-Add-li-on-Click/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\10-Add-li-on-Click/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\10-Add-li-on-Click/solution.hide.js",
+                    "name": "solution.hide.js",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\10-Add-li-on-Click/styles.css",
+                    "name": "styles.css",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\10-Add-li-on-Click/tests.js",
+                    "name": "tests.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 12,
+            "path": "exercises\\11-Dynamic-HTML-String",
+            "slug": "11-Dynamic-HTML-String",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "vanillajs",
+            "entry": "exercises\\11-Dynamic-HTML-String/index.js",
+            "title": "11-Dynamic-HTML-String",
+            "graded": true,
+            "files": [
+                {
+                    "path": "exercises\\11-Dynamic-HTML-String/img",
+                    "name": "img",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\11-Dynamic-HTML-String/index.html",
+                    "name": "index.html",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\11-Dynamic-HTML-String/index.js",
+                    "name": "index.js",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\11-Dynamic-HTML-String/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\11-Dynamic-HTML-String/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\11-Dynamic-HTML-String/solution.hide.js",
+                    "name": "solution.hide.js",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\11-Dynamic-HTML-String/styles.css",
+                    "name": "styles.css",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\11-Dynamic-HTML-String/tests.js",
+                    "name": "tests.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 13,
+            "path": "exercises\\12-Add-Options-to-the-Select",
+            "slug": "12-Add-Options-to-the-Select",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "vanillajs",
+            "entry": "exercises\\12-Add-Options-to-the-Select/index.js",
+            "title": "12-Add-Options-to-the-Select",
+            "graded": true,
+            "files": [
+                {
+                    "path": "exercises\\12-Add-Options-to-the-Select/index.html",
+                    "name": "index.html",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\12-Add-Options-to-the-Select/index.js",
+                    "name": "index.js",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\12-Add-Options-to-the-Select/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\12-Add-Options-to-the-Select/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\12-Add-Options-to-the-Select/solution.hide.js",
+                    "name": "solution.hide.js",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\12-Add-Options-to-the-Select/styles.css",
+                    "name": "styles.css",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\12-Add-Options-to-the-Select/tests.js",
+                    "name": "tests.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        },
+        {
+            "position": 14,
+            "path": "exercises\\13-Todo-List",
+            "slug": "13-Todo-List",
+            "translations": {
+                "es": "README.es.md",
+                "us": "README.md"
+            },
+            "language": "vanillajs",
+            "entry": "exercises\\13-Todo-List/index.js",
+            "title": "13-Todo-List",
+            "graded": true,
+            "files": [
+                {
+                    "path": "exercises\\13-Todo-List/index.html",
+                    "name": "index.html",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\13-Todo-List/index.js",
+                    "name": "index.js",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\13-Todo-List/README.es.md",
+                    "name": "README.es.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\13-Todo-List/README.md",
+                    "name": "README.md",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\13-Todo-List/solution.hide.js",
+                    "name": "solution.hide.js",
+                    "hidden": true
+                },
+                {
+                    "path": "exercises\\13-Todo-List/styles.css",
+                    "name": "styles.css",
+                    "hidden": false
+                },
+                {
+                    "path": "exercises\\13-Todo-List/tests.js",
+                    "name": "tests.js",
+                    "hidden": true
+                }
+            ],
+            "done": false
+        }
+    ],
+    "bugsLink": null,
+    "videoSolutions": false,
+    "localhostOnly": false,
+    "session": 1136004208933523200
+}

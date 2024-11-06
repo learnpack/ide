@@ -3,7 +3,7 @@ import CodeEditor from "../composites/Editor/Editor";
 import LessonContainer from "../sections/lesson/LessonContainer";
 import { useTranslation } from "react-i18next";
 import useStore from "../../utils/store";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 
 type TPossibleTabs = "instructions" | "terminal" | "all" | "code";
@@ -15,6 +15,8 @@ export const Container = () => {
   const [visibleTab, setVisibleTab] = useState(
     window.innerWidth <= 768 ? "instructions" : ("all" as TPossibleTabs)
   );
+  const instructionsSectionRef = useRef<HTMLDivElement>(null);
+
   const {
     editorTabs,
     handleNext,
@@ -86,6 +88,13 @@ export const Container = () => {
         setVisibleTab("instructions");
       }
     }
+
+    if (instructionsSectionRef.current) {
+      instructionsSectionRef.current.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+    }
   }, [editorTabs, terminalShouldShow]);
 
   const handleLessonContinue = () => {
@@ -126,6 +135,7 @@ export const Container = () => {
         )}
       </div>
       <section
+        ref={instructionsSectionRef}
         style={{
           display:
             visibleTab === "instructions" || visibleTab === "all"
@@ -150,7 +160,7 @@ export const Container = () => {
       {!(environment === "localhost") && (
         <section
           style={{
-            display: visibleTab === "terminal" ? "block" : "none"
+            display: visibleTab === "terminal" ? "block" : "none",
           }}
         >
           <CodeEditor hideTerminal={hideTerminal} terminal="only" />
