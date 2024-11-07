@@ -240,6 +240,9 @@ const useStore = create<IStore>((set, get) => ({
 
   getCurrentExercise: () => {
     const { exercises, currentExercisePosition } = get();
+    if (!exercises || exercises.length === 0) {
+      return {};
+    }
     // @ts-ignore
     return exercises[currentExercisePosition];
   },
@@ -967,7 +970,7 @@ ${currentContent}
     ) {
       setFeedbackButtonProps(opts.feedbackButtonText, "palpitate");
     }
-    
+
     if (opts && opts.toast) toastFromStatus("testing");
   },
   registerAIInteraction: (stepPosition, interaction) => {
