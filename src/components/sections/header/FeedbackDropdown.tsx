@@ -27,6 +27,7 @@ export const FeedbackDropdown = ({
     getCurrentExercise,
     // currentExercisePosition,
     updateEditorTabs,
+    toggleRigo
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     token: state.token,
@@ -47,6 +48,7 @@ export const FeedbackDropdown = ({
     getCurrentExercise: state.getCurrentExercise,
     currentExercisePosition: state.currentExercisePosition,
     updateEditorTabs: state.updateEditorTabs,
+    toggleRigo: state.toggleRigo,
   }));
 
   const { t } = useTranslation();
@@ -78,7 +80,8 @@ export const FeedbackDropdown = ({
   };
 
   const showChat = () => {
-    setOpenedModals({ chat: true });
+    // setOpenedModals({ chat: true });
+    toggleRigo();
     toggleFeedbackVisibility();
   };
 

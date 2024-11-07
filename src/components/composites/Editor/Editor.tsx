@@ -162,7 +162,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                 <MonacoEditor
                   className="editor-monaco"
                   key={tab.id}
-                  height="300px"
+                  height="400px"
                   language={getLanguageFromExtension(tab.name)}
                   theme={editorTheme}
                   value={tab.content}

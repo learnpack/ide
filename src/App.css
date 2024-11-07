@@ -188,9 +188,6 @@
   color: white;
 }
 
-.bg-gray {
-  background-color: var(--bg-color-dark-gray) !important;
-}
 
 .text-center {
   text-align: center;
@@ -207,4 +204,21 @@
 
 .rounded {
   border-radius: var(--standard-border-radius);
+}
+
+
+
+.rigo-thumbnail {
+  position: fixed;
+  bottom: 20px;
+  cursor: pointer;
+  right: 10px;
+  background-color: var(--color-active);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: var(--read-font-color) 2px solid;
 }

@@ -87,6 +87,7 @@ const useStore = create<IStore>((set, get) => ({
   tabHash: "",
   sessionKey: "",
   lastState: "",
+  isRigoOpened: false,
   editorTabs: [],
   feedbackbuttonProps: {
     text: "execute-my-code",
@@ -112,7 +113,7 @@ const useStore = create<IStore>((set, get) => ({
   exerciseMessages: {},
   host: HOST,
   openedModals: {
-    chat: false,
+    chat: true,
     login: false,
     video: false,
     reset: false,
@@ -1165,6 +1166,9 @@ ${currentContent}
       setWindowHash({ ...params, theme: "dark" });
       set({ theme: "dark" });
     }
+  },
+  toggleRigo: () => {
+    set({ isRigoOpened: !get().isRigoOpened });
   },
   test: async () => {
     const { lastState } = get();

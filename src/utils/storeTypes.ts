@@ -154,9 +154,11 @@ export interface IStore {
   targetButtonForFeedback: "build" | "feedback";
   editorTabs: TEditorTab[];
   isIframe: boolean;
+  isRigoOpened: boolean;
   theme: string;
-  lastState: "success" | "error" | "";
+  lastState: "success" | "error" | string;
   terminalShouldShow: boolean;
+  toggleRigo: () => void;
   setTerminalShouldShow: (shouldShow: boolean) => void;
   start: () => void;
   handleEnvironmentChange: (event: any) => void;

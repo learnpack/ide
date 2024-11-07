@@ -12,5 +12,6 @@
 }
 
 .header > section > button:disabled {
-  display: none;
+  cursor: not-allowed;
+  opacity: 0.5;
 }

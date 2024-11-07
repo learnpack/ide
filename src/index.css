@@ -3,8 +3,6 @@
 @tailwind utilities; */
 
 :root {
-  --color-border: #b2b2b2;
-  --bg-color-gray: #eff1f4;
   --bg-color-dark-gray: #a1a1a1;
   --bg-color: #f9f9f9;
   --app-bg-color: white;
@@ -18,8 +16,8 @@
   --color-hovered: rgba(224, 224, 224, 0.311);
   --color-success: #21b761;
   --color-fail: #eb5757;
-  --bg-color-code: #2d3748;
-  --link-inactive-color: #a9a9a9;
+  --bg-color-code: #f1fcffd5;
+  --link-inactive-color: #c1c1c1;
   --backdrop-background: rgba(0, 0, 0, 0.7);
   --soft-green: #a4ffbd;
   --soft-red: #ffbebe;
@@ -36,8 +34,6 @@
 }
 
 :root:has(main.dark) {
-  --color-border: #b2b2b2;
-  --bg-color-gray: #eff1f4;
   --bg-color-dark-gray: #a1a1a1;
   --bg-color: #111f39;
   --app-bg-color: #00041a;
@@ -106,11 +102,10 @@ pre {
   overflow: auto;
 }
 code {
-  color: white;
+  color: var(--read-font-color);
   background-color: var(--bg-color-code);
 }
 code:not(pre code) {
-  border-left: 2px solid var(--color-active);
   padding: 2px 6px;
   border-radius: 5px;
 }
@@ -250,11 +245,6 @@ form input {
 }
 .bg-success {
   background-color: var(--color-success) !important;
-}
-
-.bg-grey,
-.bg-gray {
-  background-color: var(--bg-color-gray);
 }
 
 .dropdown {
@@ -524,4 +514,10 @@ form input {
 
 .text-blue {
   color: var(--color-active);
+}
+
+.circle-small {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
 }

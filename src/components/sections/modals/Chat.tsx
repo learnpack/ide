@@ -5,7 +5,7 @@ import { svgs } from "../../../assets/svgs";
 import { removeSpecialCharacters } from "../../../utils/lib";
 import { useTranslation } from "react-i18next";
 import TagManager from "react-gtm-module";
-import { Modal } from "../../mockups/Modal";
+import SimpleButton from "../../mockups/SimpleButton";
 
 type TAIInteraction = {
   student_message?: string;
@@ -22,7 +22,6 @@ export default function Chat() {
   const { t } = useTranslation();
 
   const {
-    setOpenedModals,
     currentExercisePosition,
     exerciseMessages,
     setExerciseMessages,
@@ -33,7 +32,7 @@ export default function Chat() {
     token,
     chatInitialMessage,
     startConversation,
-    isBuildable,
+
     isTesteable,
     runExerciseTests,
     compilerSocket,
@@ -44,6 +43,8 @@ export default function Chat() {
     user_id,
     openLink,
     bc_token,
+    isRigoOpened,
+    toggleRigo,
   } = useStore((state) => ({
     setOpenedModals: state.setOpenedModals,
     currentExercisePosition: state.currentExercisePosition,
@@ -65,9 +66,10 @@ export default function Chat() {
     setListeners: state.setListeners,
     getCurrentExercise: state.getCurrentExercise,
     user_id: state.user_id,
-
+    isRigoOpened: state.isRigoOpened,
     bc_token: state.bc_token,
     openLink: state.openLink,
+    toggleRigo: state.toggleRigo,
   }));
 
   const fakeMessages = [{ type: "bot", text: t(chatInitialMessage) }];
@@ -79,6 +81,7 @@ export default function Chat() {
   );
   const [userMessage, setUserMessage] = useState("");
   const [userMessageCache, setUserMessageCache] = useState("");
+  // const [chatIsOpen, setChatIsOpen] = useState(false);
 
   useEffect(() => {
     if (conversationIdsCache[Number(currentExercisePosition)] == undefined) {
@@ -192,32 +195,12 @@ export default function Chat() {
     });
   }, [waitingTestResult]);
 
-  const handleClickOutside = () => {
-    setOpenedModals({ chat: false });
-  };
-
   const trackUserMessage = (e: any) => {
     setUserMessage(e.target.value);
     setUserMessageCache(e.target.value);
   };
 
-  const addNoActionsMessage = () => {
-    setMessages((prev) => [...prev, { type: "user", text: userMessage }]);
-
-    setMessages((prev) => [
-      ...prev,
-      {
-        type: "bot",
-        text: "This exercise does not require any specific actions or code on your side, move to the next step whenever you are ready by clicking in the **next** button. [//]: # (next)",
-      },
-    ]);
-
-    setUserMessage("");
-  };
-
   const sendUserMessage = async () => {
-    console.log("sendUserMessage");
-
     if (Boolean(userMessage.trim() == "")) return;
     if (isGenerating) return;
 
@@ -258,20 +241,12 @@ export default function Chat() {
   };
 
   const handleSubmit = () => {
-    if (!isBuildable && !isTesteable) {
-      addNoActionsMessage();
-      return;
-    }
     sendUserMessage();
   };
 
   const handleKeyUp = (event: any) => {
     if (event.key === "Enter" && !event.ctrlKey) {
       event.preventDefault();
-      if (!isBuildable && !isTesteable) {
-        addNoActionsMessage();
-        return;
-      }
 
       sendUserMessage();
     }
@@ -301,35 +276,47 @@ export default function Chat() {
   };
 
   return (
-    <Modal extraClass="chat-container" outsideClickHandler={handleClickOutside}>
-      <div className="chat-modal">
-        <section className="chat-header">
-          <h3>{t("Rigobot AI-Tutor")}</h3>
-        </section>
-        <section className="chat-messages">
-          {messages.map((message, index) => (
-            <Message key={index} {...message} />
-          ))}
-        </section>
-        <section className="chat-input">
-          <textarea
-            ref={inputRef}
-            value={userMessage}
-            placeholder={t("Ask me something here")}
-            onChange={trackUserMessage}
-            onKeyUp={handleKeyUp}
-          />
-          <button onClick={handleSubmit}>{svgs.sendSvg}</button>
-        </section>
-        <section className="chat-footer">
-          <p>
-            {t(
-              "This AI, currently in beta, serves as an educational tutor. It is not a substitute for professional instruction. Use at your own risk and confirm details with authoritative educational resources."
-            )}
-          </p>
-        </section>
+    <>
+      <div onClick={toggleRigo} className="rigo-thumbnail">
+        {svgs.rigoSvg}
       </div>
-    </Modal>
+      {isRigoOpened && (
+        <div className="chat-modal chat-bubble">
+          <section className="chat-header">
+            <h3>{t("Rigobot AI-Tutor")}</h3>
+          </section>
+          <section className="chat-messages">
+            {messages.map((message, index) => (
+              <Message key={index} {...message} />
+            ))}
+          </section>
+          <section className="chat-input">
+            <textarea
+              ref={inputRef}
+              value={userMessage}
+              placeholder={t("Ask me something here")}
+              onChange={trackUserMessage}
+              onKeyUp={handleKeyUp}
+            />
+            <button onClick={handleSubmit}>{svgs.sendSvg}</button>
+          </section>
+          <section className="chat-footer">
+            <SimpleButton
+              extraClass="informative-opener bg-secondary d-flex justify-center align-center circle-small"
+              text={"?"}
+            />
+
+            <div className="informative-message">
+              <p>
+                {t(
+                  "This AI, currently in beta, serves as an educational tutor. It is not a substitute for professional instruction. Use at your own risk and confirm details with authoritative educational resources."
+                )}
+              </p>
+            </div>
+          </section>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -340,9 +327,9 @@ interface IMessage {
 }
 
 const Message = ({ type, text, extraClass }: IMessage) => {
-  const { setOpenedModals, currentExercisePosition, handlePositionChange } =
+  const { currentExercisePosition, handlePositionChange, toggleRigo } =
     useStore((state) => ({
-      setOpenedModals: state.setOpenedModals,
+      toggleRigo: state.toggleRigo,
       currentExercisePosition: state.currentExercisePosition,
       handlePositionChange: state.handlePositionChange,
     }));
@@ -357,7 +344,7 @@ const Message = ({ type, text, extraClass }: IMessage) => {
 
   const closeChatAndNext = () => {
     handlePositionChange(Number(currentExercisePosition) + 1);
-    setOpenedModals({ chat: false });
+    toggleRigo();
   };
 
   return (
