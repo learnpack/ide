@@ -93,7 +93,7 @@ i18n.use(initReactI18next).init({
 
         "you-must-login-title": "Oops! Looks like you're not logged in.",
         "you-must-login-message":
-          "To compile code on the web, please log in first!",
+          "To compile code on the web and use our AI mentor Rigobot, please log in first!",
         "execute-my-code": "Execute my code",
         "test-my-code": "Test my code",
         "display-another-tab": "Display in another tab",
@@ -204,7 +204,7 @@ i18n.use(initReactI18next).init({
         exercises: "Ejercicios",
         "you-must-login-title": "¡Ups! Parece que no has iniciado sesión.",
         "you-must-login-message":
-          "Para compilar código en la web, ¡por favor inicia sesión primero!",
+          "Para compilar código en la web y usar nuestro mentor AI Rigobot, ¡por favor inicia sesión primero!",
         "execute-my-code": "Ejecutar mi código",
         "test-my-code": "Testear mi código",
         "display-another-tab": "Mostrar en otra pestaña",

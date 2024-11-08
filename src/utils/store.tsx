@@ -1168,21 +1168,15 @@ ${currentContent}
     }
   },
   toggleRigo: () => {
-    set({ isRigoOpened: !get().isRigoOpened });
+    const { token, isRigoOpened, setOpenedModals } = get();
+    if (!token) {
+      setOpenedModals({ mustLogin: true });
+      return;
+    }
+    set({ isRigoOpened: !isRigoOpened });
   },
   test: async () => {
-    const { lastState } = get();
-    // disconnected();
-    // const session = await getSession(token, configObject.config.slug);
-    // LocalStorage.set("LEARNPACK_SESSION_KEY", session.key);
-    // console.log(session.key);
-    // await FetchManager.logout();
-    // set({ token: "somethatisnotatoken" });
-    if (lastState === "error") {
-      set({ lastState: "success" });
-    } else {
-      set({ lastState: "error" });
-    }
+    // const { lastState } = get();
     toast.success("Succesfully tested");
   },
 }));

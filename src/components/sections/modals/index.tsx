@@ -13,7 +13,7 @@ import { SessionModal } from "./ContinueSession";
 import { MustLoginModal } from "./MustLogin";
 
 export const ModalsContainer = () => {
-  const { openedModals, token } = useStore((state) => ({
+  const { openedModals } = useStore((state) => ({
     openedModals: state.openedModals,
     token: state.token,
   }));
@@ -22,7 +22,7 @@ export const ModalsContainer = () => {
       <SocketDisconnectionModal />
       <CheckVideo />
       {openedModals.login && <LoginModal />}
-      {openedModals.chat && token && <Chat />}
+      {openedModals.chat && <Chat />}
       {openedModals.rigobotInvite && <RigobotInviteModal />}
       {openedModals.solution && <SolutionModal />}
       {openedModals.reset && <ResetModal />}
