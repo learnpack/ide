@@ -33,7 +33,6 @@ export const FeedbackDropdown = ({
     token: state.token,
     setFeedbackButtonProps: state.setFeedbackButtonProps,
     fetchExercises: state.fetchExercises,
-    configObject: state.configObject,
     videoTutorial: state.videoTutorial,
     isTesteable: state.isTesteable,
     setOpenedModals: state.setOpenedModals,

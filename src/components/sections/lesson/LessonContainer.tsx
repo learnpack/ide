@@ -40,7 +40,7 @@ export default function LessonContainer({
 
   useEffect(() => {
     const current = getCurrentExercise();
-    if (current === undefined) return;
+    if (current === undefined || !configObject || !configObject.config) return;
 
     setAlerts((prevAlerts) => ({
       ...prevAlerts,

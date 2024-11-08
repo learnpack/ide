@@ -391,6 +391,8 @@ ${currentContent}
     try {
       const config = await FetchManager.getExercises();
 
+      if (!config) return;
+
       if (config.config.warnings.agent) {
         set({
           dialogData: { message: config.config.warnings.agent, format: "md" },
@@ -769,7 +771,7 @@ ${currentContent}
     console.log(exercise, "FETCH README EXERCISE");
 
     if (!exercise) return;
-    
+
     if (exercise.attributes.tutorial) {
       set({ videoTutorial: exercise.attributes.tutorial });
     } else if (exercise.attributes.intro) {

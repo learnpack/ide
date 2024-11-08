@@ -35,6 +35,7 @@ export default function LessonContent() {
     for (let anchor of anchors) {
       anchor.addEventListener("click", handleClick);
     }
+    
     for (let code of codes) {
       code.addEventListener("dblclick", handleCodeClick);
       code.title = t("double-click-to-copy");
