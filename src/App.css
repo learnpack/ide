@@ -50,6 +50,10 @@
   margin: 10px 0;
 }
 
+.lesson-content-component code {
+  cursor: pointer !important;
+}
+
 .simple-button-svg {
   max-height: 100% !important;
   display: flex;
@@ -188,7 +192,6 @@
   color: white;
 }
 
-
 .text-center {
   text-align: center;
 }
@@ -205,8 +208,6 @@
 .rounded {
   border-radius: var(--standard-border-radius);
 }
-
-
 
 .rigo-thumbnail {
   position: fixed;

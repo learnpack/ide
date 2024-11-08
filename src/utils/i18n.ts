@@ -99,6 +99,8 @@ i18n.use(initReactI18next).init({
         "display-another-tab": "Display in another tab",
         "close-tab": "Close tab",
         "redirecting-to-github": "Redirecting to GitHub...",
+        "code-copied": "Code copied to clipboard",
+        "double-click-to-copy": "Double click to copy this code",
       },
     },
     es: {
@@ -208,6 +210,8 @@ i18n.use(initReactI18next).init({
         "display-another-tab": "Mostrar en otra pestaña",
         "close-tab": "Cerrar pestaña",
         "redirecting-to-github": "Redirigiendo a GitHub...",
+        "code-copied": "Código copiado al portapapeles",
+        "double-click-to-copy": "Doble clic para copiar este código",
       },
     },
   },
