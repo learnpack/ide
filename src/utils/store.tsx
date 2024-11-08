@@ -766,6 +766,10 @@ ${currentContent}
 
     const exercise = await FetchManager.getReadme(slug, language);
 
+    console.log(exercise, "FETCH README EXERCISE");
+
+    if (!exercise) return;
+    
     if (exercise.attributes.tutorial) {
       set({ videoTutorial: exercise.attributes.tutorial });
     } else if (exercise.attributes.intro) {
