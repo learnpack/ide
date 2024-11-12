@@ -398,7 +398,9 @@ form input {
 #main-container {
   width: var(--app-width);
   background-color: var(--app-bg-color);
+
   margin-inline: auto;
+  height: 100vh;
 }
 
 #main-container.iframe-mode {
@@ -520,4 +522,10 @@ form input {
   width: 30px;
   height: 30px;
   border-radius: 50%;
+}
+.vh100 {
+  height: 100vh;
+}
+.overflow-y-hidden {
+  overflow-y: hidden;
 }

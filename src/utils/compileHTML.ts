@@ -21,3 +21,32 @@ export const compileHTML = (tabs: Tab[]) => {
 
   return finalHTML;
 };
+
+export const compileReactHTML = (tabs: Tab[]) => {
+  let jsCode = "";
+  let htmlCode = `
+    <div id="myDiv"></div>
+    <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+  `;
+
+  tabs.forEach((tab) => {
+    if (tab.name.endsWith(".js") || tab.name.endsWith(".jsx")) {
+      const filteredContent = tab.content
+        .split("\n")
+        .filter((line) => !line.trim().startsWith("import"))
+        .join("\n");
+
+      jsCode += `<script type="text/babel">${filteredContent}</script>`;
+    }
+
+    if (tab.name.endsWith(".html")) {
+      htmlCode += tab.content;
+    }
+  });
+
+  const finalHTML = htmlCode + jsCode;
+
+  return finalHTML;
+};

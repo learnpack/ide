@@ -1,4 +1,4 @@
-import { compileHTML } from "../utils/compileHTML";
+import { compileHTML, compileReactHTML } from "../utils/compileHTML";
 import {
   disconnected,
   getHost,
@@ -180,12 +180,31 @@ localStorageEventEmitter.on("build", async (data) => {
     }
 
     if (extensions.includes("html")) {
-      localStorage.setItem("htmlString", content);
+      const compiled = compileHTML(cachedEditorTabs);
+      localStorage.setItem("htmlString", compiled);
       
       const outputTab = {
         id: generateUUID(),
         name: "terminal",
-        content: compileHTML(cachedEditorTabs),
+        content: compiled,
+        isActive: false,
+        isHTML: true,
+      };
+      data.updateEditorTabs(outputTab);
+      localStorageEventEmitter.emitStatus("compiler-success", {
+        htmlString: content,
+      });
+      return;
+    }
+    
+    if (extensions.includes("jsx")) {
+      const compiled = compileReactHTML(cachedEditorTabs);
+      localStorage.setItem("htmlString", compiled);
+
+      const outputTab = {
+        id: generateUUID(),
+        name: "terminal",
+        content:compiled,
         isActive: false,
         isHTML: true,
       };

@@ -101,6 +101,7 @@ i18n.use(initReactI18next).init({
         "redirecting-to-github": "Redirecting to GitHub...",
         "code-copied": "Code copied to clipboard",
         "double-click-to-copy": "Double click to copy this code",
+        "model-solution": "Model Solution",
       },
     },
     es: {
@@ -212,6 +213,7 @@ i18n.use(initReactI18next).init({
         "redirecting-to-github": "Redirigiendo a GitHub...",
         "code-copied": "Código copiado al portapapeles",
         "double-click-to-copy": "Doble clic para copiar este código",
+        "model-solution": "Solución modelo",
       },
     },
   },

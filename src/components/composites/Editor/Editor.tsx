@@ -19,6 +19,7 @@ const languageMap: { [key: string]: string } = {
   ".py": "python",
   ".css": "css",
   ".html": "html",
+  ".jsx": "javascript",
   // Agrega más extensiones y lenguajes según sea necesario
 };
 
@@ -149,7 +150,9 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
       >
         {filteredTabs.map((tab) => (
           <div key={tab.id} className={`tab ${tab.isActive ? "active" : ""}`}>
-            <button onClick={() => handleTabClick(tab.id)}>{tab.name}</button>
+            <button onClick={() => handleTabClick(tab.id)}>
+              {tab.name.includes("solution.hide") ? t("model-solution") : tab.name}
+            </button>
           </div>
         ))}
       </div>
@@ -176,7 +179,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                       enabled: true,
                     },
                     cursorBlinking: "smooth",
-                    wordWrap: "on",
+                    wordWrap: "off",
                     padding: {
                       top: 10,
                       bottom: 0,
