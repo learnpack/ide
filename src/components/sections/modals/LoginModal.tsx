@@ -145,12 +145,20 @@ export default function LoginModal() {
             </div>
 
             <div>
-              <span>
+              <p>
                 {t("Don't have an account? ")}
                 <OpenWindowLink
                   callback={sendAnalytics}
                   text={t("Sign up here!")}
                   href="https://4geeks.com/pricing?plan=basic"
+                />{" "}
+              </p>
+              <span>
+                {t("forgot-password")}
+                <OpenWindowLink
+                  callback={sendAnalytics}
+                  text={t("recover-it-here")}
+                  href={`https://breathecode.herokuapp.com/v1/auth/password/reset?url=${getCurrentUrlWithQueryParams()}`}
                 />{" "}
               </span>
             </div>

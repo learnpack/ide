@@ -107,6 +107,8 @@ i18n.use(initReactI18next).init({
         "submit-quiz": "Submit quiz",
         "ask-rigo-for-a-hint": "Ask Rigobot for a hint",
         "can-you-give-me-a-hint": "Can you give me a hint?",
+        "forgot-password": "Forgot your password? ",
+        "recover-it-here": "Recover it here",
       },
     },
     es: {
@@ -224,6 +226,8 @@ i18n.use(initReactI18next).init({
         "submit-quiz": "Enviar cuestionario",
         "ask-rigo-for-a-hint": "Preguntar a Rigobot por una pista",
         "can-you-give-me-a-hint": "¿Puedes darme una pista?",
+        "forgot-password": "¿Olvidaste tu contraseña?",
+        "recover-it-here": "Recuperala aquí",
       },
     },
   },

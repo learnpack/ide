@@ -1254,6 +1254,7 @@ ${currentContent}
   },
   test: async () => {
     // Notifier.success("Succesfully tested");
+    FetchManager.logout();
   },
 }));
 
