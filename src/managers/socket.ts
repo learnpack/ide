@@ -156,6 +156,10 @@ export const getStatus = function (status = "initializing", language = "us") {
         getBadIcon(),
         `${bad(language)} ${messages[language].testingError}`,
       ];
+    case "quiz-success":
+      return [getGoodIcon(), good(language)];
+    case "quiz-error":
+      return [getBadIcon(), bad(language)];
     case "testing-success":
       return [getGoodIcon(), messages[language].testingSuccess];
     case "internal-error":

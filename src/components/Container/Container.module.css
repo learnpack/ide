@@ -9,7 +9,7 @@
   padding: 8px;
   /* height: 100%; */
   width: 100%;
-  max-height: 85vh;
+  max-height: 83vh;
   overflow: auto;
 }
 
@@ -17,11 +17,11 @@
   background-color: white;
 }
 
-.container h3 {
-  border-bottom: 3px solid var(--color-active);
+.container h3:first-child {
   text-align: center;
   font-family: monospace;
 }
+
 
 .appTabs {
   display: flex;
@@ -52,12 +52,11 @@
     display: flex;
     gap: 8px;
     flex-wrap: nowrap;
-    padding: 10px;
+    /* padding: 3px; */
   }
 
   .container > section {
     padding: 8px;
-
     width: 100%;
   }
   .appTabs {

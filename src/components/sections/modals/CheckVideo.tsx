@@ -1,6 +1,8 @@
-import VideoModal from "./VideoModal";
+// import VideoModal from "./VideoModal";
 import { useEffect, useState } from "react";
 import useStore from "../../../utils/store";
+// import { VideoPlayer } from "../../composites/VideoPlayer/VideoPlayer";
+import { CustomPictureInPicture } from "../../composites/CustomPictureInPicture/CustomPictureInPicture";
 
 export default function CheckVideo() {
   const [link, setLink] = useState(null as string | null);
@@ -40,8 +42,11 @@ export default function CheckVideo() {
   return (
     <>
       {showVideoTutorial && link ? (
-        <VideoModal link={link} hideModal={hideModal} />
+        // <VideoModal link={link} hideModal={hideModal} />
+        // <VideoPlayer link={link} />
+        <CustomPictureInPicture hide={hideModal} link={link} />
       ) : null}
     </>
   );
 }
+

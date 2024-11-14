@@ -11,47 +11,31 @@
   line-height: 1.5rem;
 }
 
-.lesson-content-component {
+.lesson-content {
   padding-bottom: 70px;
-  font-size: 16px;
+  font-size: 20px;
   line-height: 24px;
 }
 
-.lesson-content-component img {
+.lesson-content img {
   margin: 5px auto;
   max-width: 650px;
 }
 
-.lesson-content-component h1 {
-  font-size: 26px;
+.lesson-content h1 {
+  font-size: 32px;
 }
 
-.lesson-content-component h2 {
-  font-size: 22px;
+.lesson-content h2 {
+  font-size: 25px;
 }
 
-.lesson-content-component h3 {
-  font-size: 18px;
-}
-.lesson-content-component p {
-  line-height: 1.5rem;
+.lesson-content h3 {
+  font-size: 20px;
 }
 
-.lesson-content-component > h1,
-.lesson-content-component h2,
-.lesson-content-component h3,
-.lesson-content-component h4,
-.lesson-content-component h5,
-.lesson-content-component h6 {
-  margin: 15px 0px;
-}
-
-.lesson-content-component > pre {
-  margin: 10px 0;
-}
-
-.lesson-content-component code {
-  cursor: pointer !important;
+.lesson-content code {
+  cursor: pointer;
 }
 
 .simple-button-svg {
@@ -64,6 +48,7 @@
   transition: opacity 0.1s ease-in-out;
   border: 1px solid transparent;
 }
+
 .simple-button-svg:hover {
   opacity: 1;
 }
@@ -223,4 +208,22 @@
   align-items: center;
   z-index: 2;
   border: var(--read-font-color) 2px solid;
+}
+
+.quiz-buttons-container {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.quiz-button {
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--color-active);
+  width: fit-content;
+
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }

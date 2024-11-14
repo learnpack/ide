@@ -1,3 +1,4 @@
+import { TStepEvent } from "../managers/telemetry";
 import { Tab } from "../types/editor";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -27,6 +28,11 @@ type TTitle = {
   [key: string]: string;
 };
 
+type TTelemetryUrls = {
+  batch?: string;
+  stream?: string;
+};
+
 interface IConfig {
   slug: string;
   title: TTitle;
@@ -34,6 +40,7 @@ interface IConfig {
   editor: any;
   grading: string;
   warnings: TWarnings;
+  telemetry?: TTelemetryUrls;
 }
 
 type TWarnings = {
@@ -43,6 +50,7 @@ type TWarnings = {
 
 interface IConfigObject {
   config: IConfig;
+  exercises: TExercise[];
 }
 
 type IMessage = {
@@ -61,6 +69,8 @@ export type TExercise = {
   slug: string;
   translations: object;
   done: boolean;
+  graded: boolean;
+  position: number;
 };
 
 export type TNumberCache = {
@@ -124,7 +134,7 @@ export interface IStore {
   environment: "localhost" | "localStorage";
   dialogData: TDialog;
   lessonTitle: string;
-
+  lastStartedAt: Date | null;
   showFeedback: boolean;
   buildbuttonText: IBuildProps;
   feedbackbuttonProps: IBuildProps;
@@ -158,6 +168,8 @@ export interface IStore {
   theme: string;
   lastState: "success" | "error" | string;
   terminalShouldShow: boolean;
+  rigoContext: string;
+  setRigoContext: (context: string) => void;
   toggleRigo: () => void;
   setTerminalShouldShow: (shouldShow: boolean) => void;
   start: () => void;
@@ -177,7 +189,7 @@ export interface IStore {
   setExerciseMessages: (messages: IMessage[], position: number) => void;
   setShowVideoTutorial: (show: boolean) => void;
   setAllowedActions: (actions: string[]) => void;
-
+  registerTelemetryEvent: (event: TStepEvent, data: object) => void;
   setLanguage: (language: string, fetchExercise?: boolean) => void;
   checkLoggedStatus: (opts?: TCheckLoggedStatusOptions) => void;
   setToken: (newToken: string) => void;
@@ -188,6 +200,7 @@ export interface IStore {
   fetchExercises: () => void;
   getLessonTitle: () => void;
   updateEditorTabs: () => void;
+  startTelemetry: () => void;
   build: (buildText: string, submittedInputs?: string[]) => void;
   setPosition: (position: number) => void;
   handleNext: () => void;
@@ -219,6 +232,7 @@ export interface IStore {
 }
 
 type TEditorTab = {
+  from?: "build" | "test";
   id: number;
   name: string;
   content: string;

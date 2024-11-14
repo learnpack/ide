@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 import { compileHTML, compileReactHTML } from "../utils/compileHTML";
 import {
   disconnected,
@@ -68,25 +69,25 @@ function searchInputsForFile(filename: string, fileContent: string) {
   }
 }
 
-function extractAndParseResult(xmlString: string): any {
-  const resultTagStart = "<result>";
-  const resultTagEnd = "</result>";
+// function extractAndParseResult(xmlString: string): any {
+//   const resultTagStart = "<result>";
+//   const resultTagEnd = "</result>";
 
-  const startIndex = xmlString.indexOf(resultTagStart) + resultTagStart.length;
-  const endIndex = xmlString.indexOf(resultTagEnd);
+//   const startIndex = xmlString.indexOf(resultTagStart) + resultTagStart.length;
+//   const endIndex = xmlString.indexOf(resultTagEnd);
 
-  if (startIndex === -1 || endIndex === -1) {
-    throw new Error("Result tags not found in the provided string.");
-  }
+//   if (startIndex === -1 || endIndex === -1) {
+//     throw new Error("Result tags not found in the provided string.");
+//   }
 
-  const resultString = xmlString.substring(startIndex, endIndex).trim();
+//   const resultString = xmlString.substring(startIndex, endIndex).trim();
 
-  try {
-    return JSON.parse(resultString);
-  } catch (error) {
-    throw new Error("Failed to parse JSON from the result string.");
-  }
-}
+//   try {
+//     return JSON.parse(resultString);
+//   } catch (error) {
+//     throw new Error("Failed to parse JSON from the result string.");
+//   }
+// }
 
 let HOST = getHost();
 
@@ -182,7 +183,7 @@ localStorageEventEmitter.on("build", async (data) => {
     if (extensions.includes("html")) {
       const compiled = compileHTML(cachedEditorTabs);
       localStorage.setItem("htmlString", compiled);
-      
+
       const outputTab = {
         id: generateUUID(),
         name: "terminal",
@@ -192,11 +193,11 @@ localStorageEventEmitter.on("build", async (data) => {
       };
       data.updateEditorTabs(outputTab);
       localStorageEventEmitter.emitStatus("compiler-success", {
-        htmlString: content,
+        htmlString: compiled,
       });
       return;
     }
-    
+
     if (extensions.includes("jsx")) {
       const compiled = compileReactHTML(cachedEditorTabs);
       localStorage.setItem("htmlString", compiled);
@@ -204,13 +205,13 @@ localStorageEventEmitter.on("build", async (data) => {
       const outputTab = {
         id: generateUUID(),
         name: "terminal",
-        content:compiled,
+        content: compiled,
         isActive: false,
         isHTML: true,
       };
       data.updateEditorTabs(outputTab);
       localStorageEventEmitter.emitStatus("compiler-success", {
-        htmlString: content,
+        htmlString: compiled,
       });
       return;
     }
@@ -245,6 +246,7 @@ localStorageEventEmitter.on("build", async (data) => {
         content: terminalContent,
         name: "terminal",
         isActive: false,
+        from: "build",
       };
       data.updateEditorTabs(terminalTab);
     }
@@ -300,11 +302,13 @@ localStorageEventEmitter.on("test", async (data) => {
       }
 
       testContent += `
-\`\`\`FILE: ${f.name} ${
-        !f.hidden ? "(THIS FILE IS USER CODE)" : "(THIS FILE IS A TEST FILE)"
-      }
-
+\`\`\`<FILE name="${f.name}" file_context="${
+        !f.hidden
+          ? "THIS FILE IS CODE FROM THE USER, THIS  AND THE OTHER USER FILES WILL BE TESTED BY YOU"
+          : "THIS FILE IS A TEST FILE, YOU MUST MIMICK THE EXECUTION OF THIS TEST FILE AGAINST THE USER CODE"
+      }">  
 ${fileContent}
+</FILE>
 \`\`\`
       `;
     }
@@ -326,44 +330,57 @@ ${fileContent}
     const inputs = {
       code: testContent,
       inputs: JSON.stringify(inputsObject),
+      userLanguage: data.language,
     };
-    const dataRigobotReturns = await testRigo(data.token, inputs);
+    console.log(inputs, "INPUTS SENT TO RIGOBOT");
 
-    const json = extractAndParseResult(dataRigobotReturns);
+    const starting_at = new Date().getTime();
+    const json = await testRigo(data.token, inputs);
+    json.ended_at = new Date().getTime();
+    // const json = extractAndParseResult(dataRigobotReturns);
+    json.source_code = JSON.stringify(inputs);
+    json.starting_at = starting_at;
 
+    let terminalContent = "";
+
+    terminalContent += json.stdout + "\n";
+    terminalContent += json.stderr + "\n\n";
+    if (json.testResults) {
+      terminalContent += json.testResults + "\n\n";
+    }
+    if (json.message) {
+      const separator = "# Rigo Feedback \n\n";
+      terminalContent += separator + json.message + "\n\n";
+    }
+
+    if (json.reasoning) {
+      console.log("AI reasoning", json.reasoning);
+    }
+
+    const terminalTab = {
+      id: generateUUID(),
+      content: terminalContent,
+      name: "terminal",
+      isActive: false,
+      from: "test",
+    };
+    data.updateEditorTabs(terminalTab);
+
+    json.stdout = terminalContent;
     if (json.exitCode === 0) {
       localStorageEventEmitter.emitStatus("testing-success", {
-        ...dataRigobotReturns,
-        logs: [json.stdout],
+        result: json,
+        logs: [JSON.stringify(json)],
       });
     } else {
       localStorageEventEmitter.emitStatus("testing-error", {
-        ...dataRigobotReturns,
-        logs: [json.stdout],
+        ...json.stdout,
+        logs: [JSON.stringify(json)],
       });
-    }
-    let logs = [json];
-
-    if (logs !== null) {
-      let terminalContent = "";
-      logs.forEach((log: any) => {
-        terminalContent += log.stdout + "\n";
-        terminalContent += log.stderr + "\n\n";
-        if (log.testResults) {
-          terminalContent += log.testResults + "\n\n";
-        }
-      });
-
-      const terminalTab = {
-        id: generateUUID(),
-        content: terminalContent,
-        name: "terminal",
-        isActive: false,
-      };
-      data.updateEditorTabs(terminalTab);
     }
   } catch (e) {
-    console.log("ERROR TRYING TO TEST", e);
+    toast.error("ERROR TRYING TO TEST");
+    return;
     await FetchManager.logout();
   }
 });
@@ -402,7 +419,7 @@ const buildRigo = async (token: string, inputs: object) => {
   return json.answer;
 };
 const testRigo = async (token: string, inputs: object) => {
-  const result = await fetch(`${RIGOBOT_HOST}/v1/prompting/completion/58/`, {
+  const result = await fetch(`${RIGOBOT_HOST}/v1/prompting/completion/93/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -415,7 +432,8 @@ const testRigo = async (token: string, inputs: object) => {
     }),
   });
   const json = await result.json();
-  //   console.log(json);
 
-  return json.answer;
+  console.log(json, "Test completed successfully");
+
+  return json.parsed;
 };

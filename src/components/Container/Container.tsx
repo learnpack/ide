@@ -92,8 +92,8 @@ export const Container = () => {
     if (instructionsSectionRef.current) {
       instructionsSectionRef.current.scrollTo({
         top: 0,
-        behavior: 'smooth'
-    });
+        behavior: "smooth",
+      });
     }
   }, [editorTabs, terminalShouldShow]);
 
@@ -144,8 +144,14 @@ export const Container = () => {
         }}
       >
         <LessonContainer continueAction={handleLessonContinue}>
-          <h3 className={styles.hiddenOnMobile}> {t("instructions")} </h3>
+          <h3 className={"hiddenOnMobile " + "active-hr"}>
+            {" "}
+            {t("instructions")}{" "}
+          </h3>
         </LessonContainer>
+        {/* <div className={styles.continueReading}>
+          {t("continue-reading")}
+        </div> */}
       </section>
       {editorTabs.length > 0 && !(environment === "localhost") && (
         <section

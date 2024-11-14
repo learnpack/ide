@@ -8,11 +8,12 @@ import FeedbackButton from "../../sections/header/FeedbackButton";
 import ResetButton from "../../sections/header/ResetButton";
 
 import { useTranslation } from "react-i18next";
-import { debounce } from "../../../utils/lib";
+import { convertMarkdownToHTML, debounce } from "../../../utils/lib";
 import { Tab } from "../../../types/editor";
 import { CompileOptions } from "../../sections/header/CompileOptions";
 import SimpleButton from "../../mockups/SimpleButton";
 import { Preview } from "../Preview/Preview";
+import { AskForHint } from "../AskForHint/AskForHint";
 
 const languageMap: { [key: string]: string } = {
   ".js": "javascript",
@@ -58,6 +59,12 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
   }));
 
   const { t } = useTranslation();
+
+  const outputFromMessages = {
+    build: t("terminal"),
+    test: t("tests-feedback"),
+  };
+
   const [editorTheme, setEditorTheme] = useState("light");
   const [editorStatus, setEditorStatus] = useState<TEditorStatus>("UNMODIFIED");
   const [browserTabTitle, setBrowserTabTitle] = useState(
@@ -151,7 +158,9 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
         {filteredTabs.map((tab) => (
           <div key={tab.id} className={`tab ${tab.isActive ? "active" : ""}`}>
             <button onClick={() => handleTabClick(tab.id)}>
-              {tab.name.includes("solution.hide") ? t("model-solution") : tab.name}
+              {tab.name.includes("solution.hide")
+                ? t("model-solution")
+                : tab.name}
             </button>
           </div>
         ))}
@@ -202,12 +211,24 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
       {terminalTab && !terminalTab.isHTML && (
         <div className={`terminal ${terminal}`}>
           <h5 className="d-flex justify-between align-center">
-            <span>Terminal</span>{" "}
+            <span>
+              {terminalTab &&
+                terminalTab.from &&
+                outputFromMessages[terminalTab.from]}
+            </span>{" "}
             <button onClick={() => removeTab(terminalTab.id, terminalTab.name)}>
               &times;
             </button>
           </h5>
-          <pre>{terminalTab.content.trim()}</pre>
+          <div
+            dangerouslySetInnerHTML={{
+              __html: convertMarkdownToHTML(terminalTab.content, false),
+            }}
+          ></div>
+          {!getCurrentExercise().done && (
+            <AskForHint context={terminalTab.content} />
+          )}
+
           {terminal === "only" && getCurrentExercise().done && (
             <EditorFooter editorStatus={editorStatus} />
           )}

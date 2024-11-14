@@ -1,11 +1,10 @@
-import { Remarkable } from "remarkable";
-import { linkify } from "remarkable/linkify";
+// import { Remarkable } from "remarkable";
+import MarkdownIt from "markdown-it";
+// import { linkify } from "remarkable/linkify";
 import { TEnvironment } from "../managers/EventProxy";
 import { TPossibleParams } from "./storeTypes";
-
 // @ts-ignore
-// import katex from 'remarkable-katex'
-
+import TaskLists from "markdown-it-task-lists";
 export const DEV_MODE =false;
 
 //@ts-ignore
@@ -87,8 +86,18 @@ export const RIGOBOT_HOST = "https://rigobot.herokuapp.com";
  * @returns {string} - The HTML string.
  */
 
-export const convertMarkdownToHTML = (markdown: any) => {
-  const md = new Remarkable().use(linkify);
+export const convertMarkdownToHTML = (
+  markdown: any,
+  allowHTML: boolean = true
+) => {
+  const md = new MarkdownIt({
+    html: allowHTML,
+    linkify: true,
+    typographer: true,
+    // highlight: true,
+  }).use(TaskLists, { enabled: true });
+  // const rawMarkup = md.render(markdown);
+  // const md = new Remarkable().use(linkify);
   let html = md.render(markdown);
   html = replaceSrc(html);
   return html;
@@ -120,7 +129,6 @@ export const changeSidebarVisibility = () => {
 function replaceSrc(rawText: string) {
   // Use a regular expression to find all oc currences of src="../.."
   const regex = /src="\.\.\/\.\./g;
-  // Replace all occurrences with http://localhost:3000
 
   let host = getHost();
 
@@ -129,7 +137,6 @@ function replaceSrc(rawText: string) {
   }
   const modifiedText = rawText.replace(regex, `src="${host}`);
 
-  // Return the modified text
   return modifiedText;
 }
 
@@ -164,7 +171,6 @@ export const disconnected = () => {
   // const modal: HTMLElement | null = document.querySelector(
   //   "#socket-disconnected"
   // );
-
   // if (modal) {
   //   modal.style.display = "block";
   // }
@@ -244,3 +250,7 @@ export const setWindowHash = (params: TPossibleParams) => {
   // Set the window location hash
   window.location.hash = hashString;
 };
+
+export function randomInRange(min: number, max: number): number {
+  return Math.random() * (max - min) + min;
+}

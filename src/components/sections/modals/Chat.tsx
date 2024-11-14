@@ -4,8 +4,15 @@ import { convertMarkdownToHTML } from "../../../utils/lib";
 import { svgs } from "../../../assets/svgs";
 import { removeSpecialCharacters } from "../../../utils/lib";
 import { useTranslation } from "react-i18next";
-import TagManager from "react-gtm-module";
+// import TagManager from "react-gtm-module";
 import SimpleButton from "../../mockups/SimpleButton";
+
+function removeHiddenContent(text: string) {
+  // Use a regular expression to match and remove the hidden section
+  const regex = /<!--hide[\s\S]*?endhide-->/g;
+  const textWithoutHidden = text.replace(regex, "").trim();
+  return textWithoutHidden;
+}
 
 type TAIInteraction = {
   student_message?: string;
@@ -39,12 +46,13 @@ export default function Chat() {
     shouldBeTested,
     registerAIInteraction,
     setListeners,
-    getCurrentExercise,
-    user_id,
+
     openLink,
     bc_token,
     isRigoOpened,
     toggleRigo,
+    rigoContext,
+    setRigoContext,
   } = useStore((state) => ({
     setOpenedModals: state.setOpenedModals,
     currentExercisePosition: state.currentExercisePosition,
@@ -64,12 +72,12 @@ export default function Chat() {
     shouldBeTested: state.shouldBeTested,
     registerAIInteraction: state.registerAIInteraction,
     setListeners: state.setListeners,
-    getCurrentExercise: state.getCurrentExercise,
-    user_id: state.user_id,
     isRigoOpened: state.isRigoOpened,
     bc_token: state.bc_token,
     openLink: state.openLink,
     toggleRigo: state.toggleRigo,
+    rigoContext: state.rigoContext,
+    setRigoContext: state.setRigoContext,
   }));
 
   const fakeMessages = [{ type: "bot", text: t(chatInitialMessage) }];
@@ -81,7 +89,6 @@ export default function Chat() {
   );
   const [userMessage, setUserMessage] = useState("");
   const [userMessageCache, setUserMessageCache] = useState("");
-  // const [chatIsOpen, setChatIsOpen] = useState(false);
 
   useEffect(() => {
     if (conversationIdsCache[Number(currentExercisePosition)] == undefined) {
@@ -95,6 +102,29 @@ export default function Chat() {
     }
     return () => {};
   }, []);
+
+  useEffect(() => {
+    if (!rigoContext) return;
+
+    const askForHelp = t("can-you-give-me-a-hint");
+
+    const userMessageWithContext = `${askForHelp} \n<!--hide You must give a hint to the user based in the context provided below: \nCONTEXT\n ${rigoContext} \n
+
+    END_OF_CONTEXT: provide hints on failed answers or tests and provide a congratulations for correct ones. endhide-->`;
+
+    setUserMessageCache(userMessageWithContext);
+    setUserMessage(userMessageWithContext);
+    if (!isRigoOpened) {
+      toggleRigo();
+    }
+  }, [rigoContext]);
+
+  useEffect(() => {
+    if (!rigoContext || !userMessageCache || !userMessage) return;
+
+    sendUserMessage();
+    setRigoContext("");
+  }, [rigoContext, userMessageCache, userMessage]);
 
   useEffect(() => {
     // @ts-ignore
@@ -112,15 +142,6 @@ export default function Chat() {
         aiInteraction.ending_at = Date.now();
         aiInteraction.ai_response = messages[messages.length - 1].text;
         registerAIInteraction(Number(currentExercisePosition), aiInteraction);
-
-        TagManager.dataLayer({
-          dataLayer: {
-            event: "ai_interaction",
-            interaction: aiInteraction,
-            slug: getCurrentExercise().slug,
-            user_id: user_id,
-          },
-        });
 
         aiInteraction = {};
         setExerciseMessages(messages, Number(currentExercisePosition));
@@ -195,6 +216,12 @@ export default function Chat() {
     });
   }, [waitingTestResult]);
 
+  useEffect(() => {
+    setMessages(
+      exerciseMessages[Number(currentExercisePosition)] || fakeMessages
+    );
+  }, [currentExercisePosition]);
+
   const trackUserMessage = (e: any) => {
     setUserMessage(e.target.value);
     setUserMessageCache(e.target.value);
@@ -206,7 +233,10 @@ export default function Chat() {
 
     const isFirstInteraction = messages.length === 1;
 
-    setMessages((prev) => [...prev, { type: "user", text: userMessage }]);
+    setMessages((prev) => [
+      ...prev,
+      { type: "user", text: removeHiddenContent(userMessage) },
+    ]);
     setUserMessage("");
 
     if (isTesteable && (shouldBeTested || isFirstInteraction)) {
@@ -228,7 +258,7 @@ export default function Chat() {
     const messageData = await getMessageData();
 
     if (testResult) {
-      messageData.message.context += `\n${testResult}`;
+      messageData.message.context += `\n <test_result>${testResult}</test_result>`;
     }
 
     aiInteraction.starting_at = Date.now();

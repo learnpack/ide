@@ -23,6 +23,7 @@ import { DEV_MODE, RIGOBOT_HOST } from "./lib";
 import { EventProxy } from "../managers/EventProxy";
 import { FetchManager } from "../managers/fetchManager";
 import { createSession, getSession, updateSession } from "./apiCalls";
+import TelemetryManager from "../managers/telemetry";
 
 type TFile = {
   name: string;
@@ -70,7 +71,7 @@ const useStore = create<IStore>((set, get) => ({
     "Hello! I'm **Rigobot**, your friendly **AI Mentor**! \n\n I can help you if you feel stuck, ask me anything about this exercise!",
   conversationIdsCache: {},
   lessonTitle: "",
-
+  rigoContext: "",
   user_id: null,
   hasSolution: false,
   shouldBeTested: false,
@@ -104,6 +105,7 @@ const useStore = create<IStore>((set, get) => ({
       title: {},
       warnings: {},
     },
+    exercises: [],
   },
   terminalShouldShow: false,
   videoTutorial: "",
@@ -137,6 +139,7 @@ const useStore = create<IStore>((set, get) => ({
       checkLoggedStatus,
       setListeners,
       figureEnvironment,
+      // startTelemetry,
     } = get();
     figureEnvironment().then(() =>
       fetchExercises()
@@ -164,11 +167,19 @@ const useStore = create<IStore>((set, get) => ({
       toastFromStatus,
       setFeedbackButtonProps,
       setOpenedModals,
+      // lastStartedAt,
       setBuildButtonPrompt,
+      registerTelemetryEvent,
     } = get();
 
-    const debounceSuccess = debounce((data: any) => {
+    const debounceTestingSuccess = debounce((data: any) => {
+      console.log(data, "DATA IN DEBOUCE TEST SUCCESFF");
+      // Get the timestamp in milliseconds
+      // @ts-ignore
+
       const stdout = removeSpecialCharacters(data.logs[0]);
+
+      registerTelemetryEvent("test", data);
       setTestResult("successful", stdout);
       set({ lastState: "success", terminalShouldShow: true });
       toastFromStatus("testing-success");
@@ -186,6 +197,7 @@ const useStore = create<IStore>((set, get) => ({
       set({ lastState: "error", terminalShouldShow: true });
       toastFromStatus("testing-error");
 
+      registerTelemetryEvent("test", data);
       if (get().targetButtonForFeedback === "feedback") {
         setFeedbackButtonProps("Try again", "bg-fail text-white");
       } else {
@@ -203,6 +215,7 @@ const useStore = create<IStore>((set, get) => ({
       setBuildButtonPrompt("Try again", "bg-fail");
       const [icon, message] = getStatus("compiler-error");
       toast.error(message, { icon: icon });
+      registerTelemetryEvent("compile", data);
     }, 100);
 
     let compilerSuccessHandler = debounce((data: any) => {
@@ -211,9 +224,10 @@ const useStore = create<IStore>((set, get) => ({
       const [icon, message] = getStatus("compiler-success");
       toast.success(message, { icon: icon });
       setBuildButtonPrompt("Run", "bg-success");
+      registerTelemetryEvent("compile", data);
     }, 100);
 
-    compilerSocket.onStatus("testing-success", debounceSuccess);
+    compilerSocket.onStatus("testing-success", debounceTestingSuccess);
     compilerSocket.onStatus("testing-error", debounceError);
     compilerSocket.onStatus("compiler-error", compilerErrorHandler);
     compilerSocket.onStatus("compiler-success", compilerSuccessHandler);
@@ -290,6 +304,7 @@ const useStore = create<IStore>((set, get) => ({
       setOpenedModals,
       checkParams,
       getOrCreateActiveSession,
+      startTelemetry,
     } = get();
 
     const params = checkParams({ justReturn: true });
@@ -298,7 +313,7 @@ const useStore = create<IStore>((set, get) => ({
       if (params.token) {
         const json = await FetchManager.loginWithToken(params.token);
         set({ token: json.rigoToken });
-        set({ bc_token: json.payload.token });
+        set({ bc_token: params.token });
       } else {
         const json = await FetchManager.checkLoggedStatus();
         set({ token: json.rigoToken });
@@ -309,6 +324,7 @@ const useStore = create<IStore>((set, get) => ({
         startConversation(Number(currentExercisePosition));
       }
       getOrCreateActiveSession();
+      await startTelemetry();
     } catch (err) {
       console.log("ERROR WHILE TRYING TO CHECK LOGGED STATUS", err);
 
@@ -520,6 +536,7 @@ ${currentContent}
       setBuildButtonPrompt,
       setFeedbackButtonProps,
       checkParams,
+      registerTelemetryEvent,
     } = get();
 
     let params = checkParams({ justReturn: true });
@@ -532,7 +549,9 @@ ${currentContent}
     }
     setBuildButtonPrompt("execute-my-code", "");
     setFeedbackButtonProps("test-my-code", "");
+    // registerTelemetryEvent("open_step", )
     set({ lastState: "" });
+    registerTelemetryEvent("open_step", {});
     fetchReadme();
   },
   startConversation: async (exercisePosition) => {
@@ -768,8 +787,6 @@ ${currentContent}
 
     const exercise = await FetchManager.getReadme(slug, language);
 
-    console.log(exercise, "FETCH README EXERCISE");
-
     if (!exercise) return;
 
     if (exercise.attributes.tutorial) {
@@ -934,6 +951,7 @@ ${currentContent}
     };
 
     compilerSocket.emit("build", data);
+    set({ lastStartedAt: new Date() });
   },
   setEditorTabs: (tabs) => {
     set({ editorTabs: tabs });
@@ -948,6 +966,7 @@ ${currentContent}
       updateEditorTabs,
       setOpenedModals,
       editorTabs,
+      language,
     } = get();
 
     if (!Boolean(token)) {
@@ -961,6 +980,7 @@ ${currentContent}
       updateEditorTabs,
       editorTabs,
       submittedInputs,
+      language,
     };
     compilerSocket.emit("test", data);
 
@@ -981,8 +1001,16 @@ ${currentContent}
     if (opts && opts.toast) toastFromStatus("testing");
   },
   registerAIInteraction: (stepPosition, interaction) => {
-    const { compilerSocket, getCurrentExercise } = get();
+    const { compilerSocket, getCurrentExercise, user_id } = get();
 
+    TagManager.dataLayer({
+      dataLayer: {
+        event: "ai_interaction",
+        interaction: interaction,
+        slug: getCurrentExercise().slug,
+        user_id,
+      },
+    });
     const telemetryData = {
       exerciseSlug: getCurrentExercise().slug,
       stepPosition,
@@ -1099,7 +1127,7 @@ ${currentContent}
       }
     });
 
-    set({ exercises: newExercises });
+    set({ exercises: newExercises, lastState: "" });
 
     updateDBSession();
 
@@ -1181,9 +1209,51 @@ ${currentContent}
     }
     set({ isRigoOpened: !isRigoOpened });
   },
+  registerTelemetryEvent: (event, data) => {
+    const { currentExercisePosition } = get();
+    TelemetryManager.registerStepEvent(
+      Number(currentExercisePosition),
+      event,
+      data
+    );
+  },
+  startTelemetry: async () => {
+    const { configObject, bc_token } = get();
+    console.log(" starting telemetry", configObject, bc_token);
+    if (!bc_token || !configObject) {
+      console.log("No token or config found");
+      return;
+    }
+
+    if (configObject.exercises && configObject.exercises.length > 0) {
+      const steps = configObject.exercises.map((e, index) => ({
+        slug: e.slug,
+        position: e.position || index,
+        files: e.files,
+        ai_interactions: [],
+        compilations: [],
+        tests: [],
+        is_testeable: e.graded || false,
+      }));
+      const agent = configObject.config?.editor.agent || "";
+      const tutorialSlug = configObject.config?.slug || "";
+      const STORAGE_KEY = "TELEMETRY";
+
+      if (!configObject.config.telemetry) {
+        console.error("No telemetry urls found in config");
+        return;
+      }
+
+      TelemetryManager.urls = configObject.config.telemetry;
+      TelemetryManager.userToken = bc_token;
+      TelemetryManager.start(agent, steps, tutorialSlug, STORAGE_KEY);
+    }
+  },
+  setRigoContext: (context) => {
+    set({ rigoContext: context });
+  },
   test: async () => {
-    // const { lastState } = get();
-    toast.success("Succesfully tested");
+    // Notifier.success("Succesfully tested");
   },
 }));
 

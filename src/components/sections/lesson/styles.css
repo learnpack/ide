@@ -32,3 +32,55 @@
   gap: 6px;
   align-items: center;
 }
+
+.task-list-item {
+  padding: 10px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  border-radius: 50vh;
+  color: var(--read-font-color);
+  transition: all 0.3s ease;
+}
+.task-list-item:hover {
+  background-color: var(--color-blue-opaque);
+  cursor: pointer;
+}
+.task-list-item-checkbox {
+  width: 20px;
+  height: 20px;
+  margin-inline: 10px;
+  appearance: none;
+  background: var(--soft-blue-color) !important;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 1px solid var(--color-active);
+}
+.task-list-item .task-list-item-checkbox:checked {
+  background-color: var(--color-active) !important;
+}
+.task-list-item.bg-success {
+  color: white;
+  /* background-color: var(--soft-green) !important; */
+}
+.task-list-item.bg-fail {
+  color: white;
+  /* background-color: var(--soft-red) !important; */
+  animation: toSelected 0.5s ease forwards;
+}
+
+.task-list-item:has(.task-list-item-checkbox:checked) {
+  background-color: var(--color-blue-opaque);
+}
+
+
+/* 
+@keyframes toSelected {
+  from {
+    scale: 1;
+  }
+  to {
+    background: var(--color-blue-opaque) !important;
+    scale: 1.01;
+  }
+} */

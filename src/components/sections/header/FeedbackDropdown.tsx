@@ -27,7 +27,8 @@ export const FeedbackDropdown = ({
     getCurrentExercise,
     // currentExercisePosition,
     updateEditorTabs,
-    toggleRigo
+    toggleRigo,
+    setShowVideoTutorial
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     token: state.token,
@@ -48,6 +49,7 @@ export const FeedbackDropdown = ({
     currentExercisePosition: state.currentExercisePosition,
     updateEditorTabs: state.updateEditorTabs,
     toggleRigo: state.toggleRigo,
+    setShowVideoTutorial: state.setShowVideoTutorial,
   }));
 
   const { t } = useTranslation();
@@ -68,7 +70,8 @@ export const FeedbackDropdown = ({
   };
 
   const redirectToVideo = () => {
-    openLink(videoTutorial);
+    setShowVideoTutorial(true);
+    // openLink(videoTutorial);
     toggleFeedbackVisibility();
   };
 

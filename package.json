@@ -1,7 +1,7 @@
 {
   "name": "learnpack-ai",
   "private": true,
-  "version": "5.0.5",
+  "version": "5.0.6",
   "scripts": {
     "dev": "node src/utils/development.js --turn on && vite",
     "build": "node src/utils/checkDeleted.js && node src/utils/development.js --turn off && tsc && vite build && node bin/publish.js && node src/utils/createVersionsFile.js",
@@ -15,9 +15,12 @@
     "axios": "^1.7.7",
     "front-matter": "^4.0.2",
     "i18next": "^23.10.1",
+    "markdown-it": "^14.1.0",
+    "markdown-it-task-lists": "^2.1.1",
     "monaco-editor": "^0.50.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-draggable": "^4.4.6",
     "react-gtm-module": "^2.0.11",
     "react-hot-toast": "^2.4.1",
     "react-i18next": "^14.1.0",
@@ -31,6 +34,7 @@
     "zustand": "^4.4.1"
   },
   "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
     "@types/react-gtm-module": "^2.0.3",

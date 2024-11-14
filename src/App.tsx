@@ -12,18 +12,26 @@ import { Container } from "./components/Container/Container";
 import useStore from "./utils/store";
 
 export default function Home() {
-  const { start, handleEnvironmentChange, theme, isIframe } = useStore((s) => ({
-    environment: s.environment,
-    start: s.start,
-    handleEnvironmentChange: s.handleEnvironmentChange,
-    theme: s.theme,
-    isIframe: s.isIframe,
-  }));
+  const { start, handleEnvironmentChange, theme, isIframe } =
+    useStore((s) => ({
+      environment: s.environment,
+      start: s.start,
+      handleEnvironmentChange: s.handleEnvironmentChange,
+      theme: s.theme,
+      isIframe: s.isIframe,
+      // startTelemetry: s.startTelemetry,
+    }));
 
   useEffect(() => {
     start();
-
+    // startTelemetry();
     document.addEventListener("environment-change", handleEnvironmentChange);
+    return () => {
+      document.removeEventListener(
+        "environment-change",
+        handleEnvironmentChange
+      );
+    };
   }, []);
 
   return (

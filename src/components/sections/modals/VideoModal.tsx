@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import useStore from "../../../utils/store";
 import { svgs } from "../../../assets/svgs";
+import { VideoPlayer } from "../../composites/VideoPlayer/VideoPlayer";
 
 interface IVideoModalProps {
   link: string;
@@ -34,7 +35,7 @@ const VideoModal: React.FC<IVideoModalProps> = ({ link, hideModal }) => {
 
   const handleClickOutside = (event: any) => {
     if (modalRef.current == event.target) {
-      hideModal();
+      // hideModal();
     }
   };
 
@@ -64,6 +65,7 @@ const VideoModal: React.FC<IVideoModalProps> = ({ link, hideModal }) => {
           <span className="close" onClick={hideModal}>
             Close the video and start exercise
           </span>
+          <VideoPlayer link={link} />
         </div>
       </div>
     </section>
