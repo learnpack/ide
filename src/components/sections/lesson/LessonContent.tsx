@@ -119,7 +119,6 @@ export default function LessonContent() {
         const previousElement = group.previousElementSibling;
         const groupTitle = previousElement?.textContent?.trim();
 
-        toast.success(String(groupTitle));
         if (!groupTitle) return;
         const checkboxes = group.getElementsByClassName("task-list-item");
         const checkboxesArray = Array.from(checkboxes);
@@ -235,7 +234,6 @@ export default function LessonContent() {
       });
 
       if (counter === parents.length - 1) {
-
         // Get the last group parent element
         const lastGroupParent = group.parentElement;
 
