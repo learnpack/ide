@@ -119,6 +119,7 @@ export default function LessonContent() {
         const previousElement = group.previousElementSibling;
         const groupTitle = previousElement?.textContent?.trim();
 
+        toast.success(String(groupTitle));
         if (!groupTitle) return;
         const checkboxes = group.getElementsByClassName("task-list-item");
         const checkboxesArray = Array.from(checkboxes);
@@ -159,6 +160,7 @@ export default function LessonContent() {
 
     const handleCheckboxClick = (event: any) => {
       // encontrar el task-list-item
+
       const checkbox = event.target.closest(".task-list-item");
 
       const parent = event.target.closest(".contains-task-list");
@@ -232,9 +234,11 @@ export default function LessonContent() {
         }
       });
 
-      // If is the last one make a toast
       if (counter === parents.length - 1) {
-        const nextElement = group.nextElementSibling;
+
+        // Get the last group parent element
+        const lastGroupParent = group.parentElement;
+
         const quizButtonsContainer = document.createElement("div");
         quizButtonsContainer.className = "quiz-buttons-container";
         const quizButton = document.createElement("button");
@@ -255,13 +259,13 @@ export default function LessonContent() {
         rigoButton.className = "quiz-button my-2 active-on-hover";
         quizButton.addEventListener("click", handleSubmit);
         rigoButton.addEventListener("click", handleRigoClick);
-        quizButtonsContainer.appendChild(quizButton);
-        quizButtonsContainer.appendChild(rigoButton);
 
-        nextElement?.parentNode?.insertBefore(
-          quizButtonsContainer,
-          nextElement
-        );
+        // Append the buttons container after the last group
+        if (lastGroupParent) {
+          lastGroupParent.appendChild(quizButtonsContainer);
+          quizButtonsContainer.appendChild(quizButton);
+          quizButtonsContainer.appendChild(rigoButton);
+        }
       }
 
       counter++;
