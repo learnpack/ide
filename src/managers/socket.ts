@@ -121,7 +121,7 @@ export const getStatus = function (status = "initializing", language = "us") {
 
   const good = (lang = "us") => {
     const goodMessages = messages[lang].goodMessages;
-    return `${getGoodIcon()} ${
+    return `${
       goodMessages[Math.floor(Math.random() * goodMessages.length)]
     }`;
   };

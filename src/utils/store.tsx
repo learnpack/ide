@@ -44,7 +44,10 @@ const FASTAPI_HOST = "https://ai.4geeks.com";
 const chatSocket = io(`${FASTAPI_HOST}`);
 
 chatSocket.on("connect", () => {
-  console.log("connected to chat socket in ", FASTAPI_HOST);
+  console.log("connected to chat socket at ", FASTAPI_HOST);
+});
+chatSocket.on("disconnect", () => {
+  console.log("disconnected from chat socket at ", FASTAPI_HOST);
 });
 
 const defaultParams = getParamsObject() as TPossibleParams;
