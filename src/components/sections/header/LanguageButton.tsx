@@ -25,7 +25,7 @@ export default function LanguageButton() {
 
   return (
     <>
-      <div id="language-component"  className="language-component">
+      <div id="language-component" className="language-component">
         <SimpleButton
           action={toggleDrop}
           text={language}
@@ -60,15 +60,17 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
   };
 
   return (
-    <div className="language-dropdown">
-      {languages.map((l, index) =>
-        l !== language ? (
-          <button key={index} onClick={() => setLang(l)}>
-            {svgsLanguageMap[l]}
-            {l}
-          </button>
-        ) : null
-      )}
-    </div>
+    languages.length > 1 && (
+      <div className="language-dropdown">
+        {languages.map((l, index) =>
+          l !== language ? (
+            <button key={index} onClick={() => setLang(l)}>
+              {svgsLanguageMap[l]}
+              {l}
+            </button>
+          ) : null
+        )}
+      </div>
+    )
   );
 };

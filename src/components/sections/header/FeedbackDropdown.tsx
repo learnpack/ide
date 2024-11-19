@@ -14,27 +14,27 @@ export const FeedbackDropdown = ({
   direction,
 }: IFeedbackDropdown) => {
   const {
-    compilerSocket,
+    // compilerSocket,
     token,
-    videoTutorial,
+    // videoTutorial,
     isTesteable,
     setOpenedModals,
     runExerciseTests,
     bc_token,
     openLink,
     checkRigobotInvitation,
-    hasSolution,
-    getCurrentExercise,
+    // hasSolution,
+    // getCurrentExercise,
     // currentExercisePosition,
-    updateEditorTabs,
+    // updateEditorTabs,
     toggleRigo,
-    setShowVideoTutorial
+    // setShowVideoTutorial,
+    setListeners,
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     token: state.token,
     setFeedbackButtonProps: state.setFeedbackButtonProps,
     fetchExercises: state.fetchExercises,
-    videoTutorial: state.videoTutorial,
     isTesteable: state.isTesteable,
     setOpenedModals: state.setOpenedModals,
     runExerciseTests: state.runExerciseTests,
@@ -49,13 +49,16 @@ export const FeedbackDropdown = ({
     currentExercisePosition: state.currentExercisePosition,
     updateEditorTabs: state.updateEditorTabs,
     toggleRigo: state.toggleRigo,
+    videoTutorial: state.videoTutorial,
     setShowVideoTutorial: state.setShowVideoTutorial,
+    setListeners: state.setListeners,
   }));
 
   const { t } = useTranslation();
 
   const runTests = () => {
     toggleFeedbackVisibility();
+    setListeners();
     runExerciseTests({
       toast: true,
       setFeedbackButton: true,
@@ -69,11 +72,11 @@ export const FeedbackDropdown = ({
     toggleFeedbackVisibility();
   };
 
-  const redirectToVideo = () => {
-    setShowVideoTutorial(true);
-    // openLink(videoTutorial);
-    toggleFeedbackVisibility();
-  };
+  // const redirectToVideo = () => {
+  //   setShowVideoTutorial(true);
+  //   // openLink(videoTutorial);
+  //   toggleFeedbackVisibility();
+  // };
 
   const openLearnpackDocs = () => {
     const docsUrl = "https://4geeks.com/docs/learnpack";
@@ -91,20 +94,20 @@ export const FeedbackDropdown = ({
     checkRigobotInvitation();
   };
 
-  const openSolutionFile = () => {
-    // TODO: This should open ALL solution files
-    const solutionFile = getCurrentExercise().files.find((file: any) =>
-      file.name.includes("solution.hide")
-    );
+  // const openSolutionFile = () => {
+  //   // TODO: This should open ALL solution files
+  //   const solutionFile = getCurrentExercise().files.find((file: any) =>
+  //     file.name.includes("solution.hide")
+  //   );
 
-    const data = {
-      exerciseSlug: getCurrentExercise().slug,
-      files: [solutionFile.path],
-      solutionFileName: solutionFile.name,
-      updateEditorTabs: updateEditorTabs,
-    };
-    compilerSocket.emit("open", data);
-  };
+  //   const data = {
+  //     exerciseSlug: getCurrentExercise().slug,
+  //     files: [solutionFile.path],
+  //     solutionFileName: solutionFile.name,
+  //     updateEditorTabs: updateEditorTabs,
+  //   };
+  //   compilerSocket.emit("open", data);
+  // };
 
   return (
     <div className={`feedback-dropdown ${direction}`}>
@@ -134,11 +137,9 @@ export const FeedbackDropdown = ({
         svg={svgs.testIcon}
         text={isTesteable ? t("Run tests") : t("No tests available")}
         action={runTests}
-        disabled={
-          !isTesteable
-        }
+        disabled={!isTesteable}
       />
-
+      {/* 
       <SimpleButton
         text={
           hasSolution
@@ -148,20 +149,20 @@ export const FeedbackDropdown = ({
         svg={svgs.solutionIcon}
         disabled={!hasSolution}
         action={hasSolution ? openSolutionFile : () => {}}
-      />
-      <SimpleButton
+      /> */}
+      {/* <SimpleButton
         text={`Video tutorial ${videoTutorial ? "" : t("not available")}`}
         disabled={!videoTutorial}
         svg={svgs.videoIcon}
         action={redirectToVideo}
-      />
+      /> */}
       <SimpleButton
         text={t("About LearnPack")}
         svg={svgs.fourGeeksIcon}
         action={openLearnpackDocs}
       />
 
-      <p >
+      <p>
         {t("Feedback plays an important role when learning technical skills. ")}
         <OpenWindowLink
           text={t("Learn why")}

@@ -1084,7 +1084,7 @@ ${currentContent}
     );
   },
   updateFileContent: async (exerciseSlug, tab, updateTabs = false) => {
-    const { exercises, updateEditorTabs } = get();
+    const { exercises, updateEditorTabs, setShouldBeTested } = get();
 
     let newExercises = exercises.map((e) => {
       if (e.slug === exerciseSlug) {
@@ -1107,6 +1107,7 @@ ${currentContent}
 
     await FetchManager.saveFileContent(exerciseSlug, tab.name, tab.content);
     set({ exercises: newExercises });
+    setShouldBeTested(true);
     if (updateTabs) {
       updateEditorTabs();
     }
@@ -1204,10 +1205,19 @@ ${currentContent}
       set({ theme: "dark" });
     }
   },
-  toggleRigo: () => {
+  toggleRigo: (opts) => {
     const { token, isRigoOpened, setOpenedModals } = get();
     if (!token) {
       setOpenedModals({ mustLogin: true });
+      return;
+    }
+
+    if (opts && opts.ensure === "open") {
+      set({ isRigoOpened: true });
+      return;
+    }
+    if (opts && opts.ensure === "close") {
+      set({ isRigoOpened: false });
       return;
     }
     set({ isRigoOpened: !isRigoOpened });

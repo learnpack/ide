@@ -1,6 +1,9 @@
+import { useTranslation } from "react-i18next";
 import { svgs } from "../../assets/svgs";
 import { DEV_MODE } from "../../utils/lib";
 import useStore from "../../utils/store";
+import SimpleButton from "../mockups/SimpleButton";
+import { RigoToggler } from "../Rigobot/Rigobot";
 import LanguageButton from "../sections/header/LanguageButton";
 import Sidebar from "../sections/sidebar/Sidebar";
 import styles from "./NewHeader.module.css";
@@ -13,6 +16,12 @@ export const NewHeader = () => {
     test,
     isIframe,
     language,
+    hasSolution,
+    getCurrentExercise,
+    updateEditorTabs,
+    compilerSocket,
+    videoTutorial,
+    setShowVideoTutorial,
   } = useStore((state) => ({
     handlePositionChange: state.handlePositionChange,
     currentExercisePosition: state.currentExercisePosition,
@@ -20,7 +29,30 @@ export const NewHeader = () => {
     test: state.test,
     isIframe: state.isIframe,
     language: state.language,
+    hasSolution: state.hasSolution,
+    getCurrentExercise: state.getCurrentExercise,
+    updateEditorTabs: state.updateEditorTabs,
+    compilerSocket: state.compilerSocket,
+    videoTutorial: state.videoTutorial,
+    setShowVideoTutorial: state.setShowVideoTutorial,
   }));
+
+  const { t } = useTranslation();
+
+  const openSolutionFile = () => {
+    // TODO: This should open ALL solution files
+    const solutionFile = getCurrentExercise().files.find((file: any) =>
+      file.name.includes("solution.hide")
+    );
+
+    const data = {
+      exerciseSlug: getCurrentExercise().slug,
+      files: [solutionFile.path],
+      solutionFileName: solutionFile.name,
+      updateEditorTabs: updateEditorTabs,
+    };
+    compilerSocket.emit("open", data);
+  };
 
   return (
     <header className={styles.header}>
@@ -46,8 +78,30 @@ export const NewHeader = () => {
         {DEV_MODE && <button onClick={test}>TEST</button>}
       </section>
       <section>{svgs.learnpackLogo}</section>
-      <section>
+      <section >
         {!isIframe && language && <LanguageButton />}
+        {hasSolution && (
+          <SimpleButton
+            title={
+              hasSolution
+                ? t("Review model solution")
+                : t("Model solution not available")
+            }
+            svg={svgs.solution}
+            disabled={!hasSolution}
+            action={hasSolution ? openSolutionFile : () => {}}
+          />
+        )}
+        <SimpleButton
+          title={`Video tutorial ${videoTutorial ? "" : t("not available")}`}
+          disabled={!videoTutorial}
+          svg={svgs.video}
+          action={() => {
+            setShowVideoTutorial(true);
+          }}
+        />
+
+        <RigoToggler />
         <Sidebar />
       </section>
     </header>

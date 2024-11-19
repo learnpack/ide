@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Alert } from "../../composites/Alert/Alert";
 import { OpenWindowLink } from "../../composites/OpenWindowLink";
 import { ENVIRONMENT } from "../../../utils/lib";
+import { EditorFooter } from "../../composites/Editor/Editor";
 
 interface Alerts {
   incrementalTest: boolean;
@@ -80,6 +81,19 @@ export default function LessonContainer({
       {children}
       <LessonContent />
       {ENVIRONMENT === "localStorage" && continueAction && (
+        <div
+          onClick={continueAction}
+          className={`badge bg-blue ${
+            editorTabs.length > 0 ? "hide-continue-button" : ""
+          }`}
+        >
+          {t("continue")}
+        </div>
+      )}
+      {ENVIRONMENT === "localhost" && editorTabs.length > 0 && (
+        <EditorFooter editorStatus="MODIFIED" />
+      )}
+      {ENVIRONMENT === "localhost" && editorTabs.length === 0 && (
         <div
           onClick={continueAction}
           className={`badge bg-blue ${

@@ -1,4 +1,4 @@
-import Chat from "./Chat";
+// import Chat from "./Chat";
 import CheckVideo from "./CheckVideo";
 import LoginModal from "./LoginModal";
 import SocketDisconnectionModal from "./SocketDisconnectionModal";
@@ -22,7 +22,7 @@ export const ModalsContainer = () => {
       <SocketDisconnectionModal />
       <CheckVideo />
       {openedModals.login && <LoginModal />}
-      {openedModals.chat && <Chat />}
+      {/* {openedModals.chat && <Chat />} */}
       {openedModals.rigobotInvite && <RigobotInviteModal />}
       {openedModals.solution && <SolutionModal />}
       {openedModals.reset && <ResetModal />}

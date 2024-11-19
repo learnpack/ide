@@ -6,13 +6,15 @@ import { useTranslation } from "react-i18next";
 export const AskForHint: React.FC<{
   context: string;
 }> = ({ context }) => {
-  const { setRigoContext } = useStore((state) => ({
+  const { setRigoContext, toggleRigo } = useStore((state) => ({
     setRigoContext: state.setRigoContext,
+    toggleRigo: state.toggleRigo,
   }));
   const { t } = useTranslation();
 
   const handleClick = () => {
     setRigoContext(context);
+    toggleRigo({ensure: "open"});
   };
   return (
     <div className="ask-for-hint">

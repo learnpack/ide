@@ -1,7 +1,9 @@
 .header {
   display: flex;
   justify-content: space-between;
-  padding: 10px;
+  /* padding: 10px; */
+  padding-inline: 10px;
+  padding-block: 10px;
   align-items: center;
   background-color: transparent;
 }
@@ -9,6 +11,10 @@
 .header > section {
   display: flex;
   gap: 8px;
+}
+.header > section:last-child {
+  display: flex;
+  gap: 15px;
 }
 
 .header > section > button:disabled {

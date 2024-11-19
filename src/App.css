@@ -200,7 +200,7 @@
   bottom: 20px;
   cursor: pointer;
   right: 10px;
-  background-color: var(--color-active);
+  background-color: var(--color-blue-rigo);
   border-radius: 50%;
   width: 50px;
   height: 50px;
@@ -227,4 +227,24 @@
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.rigo-toggle {
+  cursor: pointer;
+  /* background-color: var(--color-active); */
+  /* border-radius: 50%; */
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  border-radius: var(--standard-border-radius);
+}
+@media only screen and (min-width: 768px) {
+  .rigo-toggle {
+    border-radius: 0px;
+    border-top-left-radius: var(--standard-border-radius);
+    border-top-right-radius: var(--standard-border-radius);
+  }
 }

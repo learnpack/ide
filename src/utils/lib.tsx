@@ -5,6 +5,7 @@ import { TEnvironment } from "../managers/EventProxy";
 import { TPossibleParams } from "./storeTypes";
 // @ts-ignore
 import TaskLists from "markdown-it-task-lists";
+// import toast from "react-hot-toast";
 export const DEV_MODE =false;
 
 //@ts-ignore
@@ -191,17 +192,17 @@ function fixParams(str: string) {
 }
 
 export const getParamsObject = (): TPossibleParams => {
-  let params = window.location.hash.substring(1);
-  params = fixParams(params);
-  if (!params) {
-    const url = window.location.href;
-    const urlObj = new URL(url);
-    params = urlObj.search;
-    params = fixParams(params);
+  let hashParams = window.location.hash.substring(1);
+  hashParams = fixParams(hashParams);
+  const url = window.location.href;
+  const urlObj = new URL(url);
+  const searchParams = urlObj.search;
+  if (searchParams) {
+    hashParams += fixParams(searchParams);
   }
-  params = fixParams(params);
+  hashParams = fixParams(hashParams);
 
-  const paramsUrlSearch = new URLSearchParams(params);
+  const paramsUrlSearch = new URLSearchParams(hashParams);
 
   let paramsObject: Record<string, string> = {};
   for (const [key, value] of paramsUrlSearch.entries()) {

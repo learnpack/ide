@@ -296,7 +296,7 @@ type EditorFooterProps = {
   editorStatus: TEditorStatus;
 };
 
-const EditorFooter = ({ editorStatus }: EditorFooterProps) => {
+export const EditorFooter = ({ editorStatus }: EditorFooterProps) => {
   const { t } = useTranslation();
   const { lastState, getCurrentExercise } = useStore((state) => ({
     lastState: state.lastState,

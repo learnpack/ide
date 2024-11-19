@@ -123,6 +123,10 @@ type TRefreshData = {
   newBCToken: string;
 };
 
+type ToggleRigoOpts = {
+  ensure: "open" | "close";
+};
+
 export interface IStore {
   exercises: any[];
   chatInitialMessage: string;
@@ -170,7 +174,7 @@ export interface IStore {
   terminalShouldShow: boolean;
   rigoContext: string;
   setRigoContext: (context: string) => void;
-  toggleRigo: () => void;
+  toggleRigo: (opts?: ToggleRigoOpts) => void;
   setTerminalShouldShow: (shouldShow: boolean) => void;
   start: () => void;
   handleEnvironmentChange: (event: any) => void;

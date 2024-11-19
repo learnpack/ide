@@ -11,9 +11,13 @@
   --opaque-blue-editor: #a5d9f8;
   --soft-blue-color: #eef9fe;
   --color-blue-opaque: #eef9fe;
+
   --color-blue: #c1dfed;
+  --soft-blue: #eef9fe;
+  --color-blue-rigo: #0084ff;
   --tabs-bg-color: #f4faff;
   --color-hovered: rgba(224, 224, 224, 0.665);
+  --light-grey: #dadada;
   --color-success: #21b761;
   --color-fail: #eb5757;
   --bg-color-code: #f1fcffd5;
@@ -43,6 +47,7 @@
   --4geeks-yellow: #ffd900;
   --opaque-blue-editor: #a5d9f8;
   --soft-blue-color: #eef9fe;
+  --soft-blue: #eef9fe;
   --color-blue-opaque: #003b5a77;
   --color-hovered: rgba(95, 95, 95, 0.311);
   --color-success: #21b761;
@@ -205,9 +210,6 @@ form input {
 .bg-blue {
   background-color: var(--color-active) !important;
   color: white;
-}
-.bg-blue > svg {
-  stroke: white;
 }
 
 .border-blue {
@@ -397,7 +399,7 @@ form input {
   border: 1px solid var(--bg-color-dark-gray);
 }
 .w-100 {
-  width: 100%;
+  width: 100% !important;
 }
 
 .btn-dark:hover {
@@ -554,12 +556,7 @@ form input {
 .active-hr {
   border-bottom: 2px solid var(--color-active);
 }
-@media only screen and (min-width: 768px) {
-  .hiddenOnMobile {
-    display: block;
-    text-align: center;
-  }
-}
+
 .inline-auto {
   margin-inline: auto;
 }
@@ -574,10 +571,36 @@ form input {
   transition: all 0.3s ease;
 }
 .active-on-hover:hover {
-  background-color: var(--color-active);
+  background-color: var(--color-blue-rigo);
   color: white;
   scale: 1.05;
 }
 .active-on-hover:active {
   scale: 0.99;
+}
+.m-0 {
+  margin: 0;
+}
+.bg-rigo {
+  background-color: var(--color-blue-rigo);
+}
+.conector-blue {
+  position: relative;
+}
+
+@media only screen and (min-width: 768px) {
+  .hiddenOnMobile {
+    display: block;
+    text-align: center;
+  }
+  .conector-blue::after {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: var(--color-blue-rigo);
+    left: 50%;
+    transform: translateX(-50%);
+    top: 95%;
+  }
 }
