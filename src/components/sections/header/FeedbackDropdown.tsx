@@ -14,22 +14,22 @@ export const FeedbackDropdown = ({
   direction,
 }: IFeedbackDropdown) => {
   const {
-    // compilerSocket,
+    compilerSocket,
     token,
-    // videoTutorial,
-    isTesteable,
+    videoTutorial,
+    // isTesteable,
     setOpenedModals,
-    runExerciseTests,
+    // runExerciseTests,
     bc_token,
     openLink,
     checkRigobotInvitation,
-    // hasSolution,
-    // getCurrentExercise,
+    hasSolution,
+    getCurrentExercise,
     // currentExercisePosition,
-    // updateEditorTabs,
+    updateEditorTabs,
     toggleRigo,
-    // setShowVideoTutorial,
-    setListeners,
+    setShowVideoTutorial,
+    // setListeners,
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     token: state.token,
@@ -56,27 +56,27 @@ export const FeedbackDropdown = ({
 
   const { t } = useTranslation();
 
-  const runTests = () => {
-    toggleFeedbackVisibility();
-    setListeners();
-    runExerciseTests({
-      toast: true,
-      setFeedbackButton: true,
-      feedbackButtonText: t("Running..."),
-      targetButton: "feedback",
-    });
-  };
+  // const runTests = () => {
+  //   toggleFeedbackVisibility();
+  //   setListeners();
+  //   runExerciseTests({
+  //     toast: true,
+  //     setFeedbackButton: true,
+  //     feedbackButtonText: t("Running..."),
+  //     targetButton: "feedback",
+  //   });
+  // };
 
   const openLoginModal = () => {
     setOpenedModals({ login: true });
     toggleFeedbackVisibility();
   };
 
-  // const redirectToVideo = () => {
-  //   setShowVideoTutorial(true);
-  //   // openLink(videoTutorial);
-  //   toggleFeedbackVisibility();
-  // };
+  const redirectToVideo = () => {
+    setShowVideoTutorial(true);
+    // openLink(videoTutorial);
+    toggleFeedbackVisibility();
+  };
 
   const openLearnpackDocs = () => {
     const docsUrl = "https://4geeks.com/docs/learnpack";
@@ -94,20 +94,20 @@ export const FeedbackDropdown = ({
     checkRigobotInvitation();
   };
 
-  // const openSolutionFile = () => {
-  //   // TODO: This should open ALL solution files
-  //   const solutionFile = getCurrentExercise().files.find((file: any) =>
-  //     file.name.includes("solution.hide")
-  //   );
+  const openSolutionFile = () => {
+    // TODO: This should open ALL solution files
+    const solutionFile = getCurrentExercise().files.find((file: any) =>
+      file.name.includes("solution.hide")
+    );
 
-  //   const data = {
-  //     exerciseSlug: getCurrentExercise().slug,
-  //     files: [solutionFile.path],
-  //     solutionFileName: solutionFile.name,
-  //     updateEditorTabs: updateEditorTabs,
-  //   };
-  //   compilerSocket.emit("open", data);
-  // };
+    const data = {
+      exerciseSlug: getCurrentExercise().slug,
+      files: [solutionFile.path],
+      solutionFileName: solutionFile.name,
+      updateEditorTabs: updateEditorTabs,
+    };
+    compilerSocket.emit("open", data);
+  };
 
   return (
     <div className={`feedback-dropdown ${direction}`}>
@@ -133,13 +133,13 @@ export const FeedbackDropdown = ({
         />
       )}
 
-      <SimpleButton
+      {/* <SimpleButton
         svg={svgs.testIcon}
         text={isTesteable ? t("Run tests") : t("No tests available")}
         action={runTests}
         disabled={!isTesteable}
-      />
-      {/* 
+      /> */}
+      
       <SimpleButton
         text={
           hasSolution
@@ -149,13 +149,13 @@ export const FeedbackDropdown = ({
         svg={svgs.solutionIcon}
         disabled={!hasSolution}
         action={hasSolution ? openSolutionFile : () => {}}
-      /> */}
-      {/* <SimpleButton
+      />
+      <SimpleButton
         text={`Video tutorial ${videoTutorial ? "" : t("not available")}`}
         disabled={!videoTutorial}
         svg={svgs.videoIcon}
         action={redirectToVideo}
-      /> */}
+      />
       <SimpleButton
         text={t("About LearnPack")}
         svg={svgs.fourGeeksIcon}
