@@ -238,9 +238,9 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
         <div className={`terminal ${terminal} html browser`}>
           <div className="d-flex justify-between align-center browser-header">
             <div className="padding-big browser-tab">{browserTabTitle}</div>
-            <div className="d-flex">
+            <div className="d-flex padding-medium">
               <SimpleButton
-                title={t("display-another-tab padding-medium")}
+                title={t("display-another-tab ")}
                 size="mini"
                 svg={svgs.newTab}
                 extraClass="hover rounded"

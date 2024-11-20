@@ -92,20 +92,12 @@
 .chat-tab {
   background-color: white;
   overflow-y: auto;
-
   border-radius: 10px;
-  /* bottom: 80px; */
-  height: 570px;
+  height: min(570px, 100vh - 50px);
   display: flex;
   flex-direction: column;
-  /* border: var(--opaque-blue-editor) 2px solid; */
   width: min(100vw - 5px, 460px) !important;
-  /* align-self: flex-end; */
-
   margin-inline: auto;
-  /* width: 600px !important; */
-  /* width: 600px !important; */
-  /* right: 10px; */
 }
 
 .chat-tab-header {

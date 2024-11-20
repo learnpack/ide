@@ -460,7 +460,7 @@ form input {
 }
 
 .browser {
-  position: relative;
+  height: max-content !important;
   background-color: rgba(203, 203, 203, 0.168);
 }
 .browser-tab {
@@ -477,15 +477,9 @@ form input {
 .browser-header {
   background-color: #06758b2f;
   border-radius: 5px;
-  padding: 2px;
-  position: absolute;
-  width: calc(100% - 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  top: 10px;
+  width: calc(100%);
 }
 .browser-body {
-  margin-top: 40px;
   background-color: white;
   overflow-y: auto;
   height: calc(100% - 40px);
