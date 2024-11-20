@@ -107,6 +107,19 @@ type TAIInteraction = {
   ending_at: number;
 };
 
+type TQuizSelection = {
+  question: string;
+  answer: string;
+  isCorrect: boolean;
+};
+
+type TQuizSubmission = {
+  // TODO: Build from the concatenated question labels
+  quiz_hash: string;
+  selections: TQuizSelection[];
+  submitted_at: number;
+};
+
 export type TStep = {
   slug: string;
   position: number;
@@ -117,6 +130,7 @@ export type TStep = {
   compilations: TCompilationAttempt[]; // Everytime the user tries to compile the code
   tests: TTestAttempt[]; // Everytime the user tries to run the tests
   ai_interactions: TAIInteraction[]; // Everytime the user interacts with the AI
+  quiz_submissions: TQuizSubmission[];
 };
 
 type TWorkoutSession = {
@@ -142,7 +156,12 @@ export interface ITelemetryJSONSchema {
   // number and start another session
 }
 
-export type TStepEvent = "compile" | "test" | "ai_interaction" | "open_step";
+export type TStepEvent =
+  | "compile"
+  | "test"
+  | "ai_interaction"
+  | "open_step"
+  | "quiz_submission";
 
 export type TTelemetryUrls = {
   streaming?: string;
@@ -335,6 +354,15 @@ const TelemetryManager: ITelemetryManager = {
         this.submit();
         break;
       }
+      // case "quiz_submission": {
+      //   const now = Date.now();
+
+      //   if (!step.completed_at) {
+      //     step.completed_at = now;
+      //     this.current.steps[stepPosition] = step;
+      //   }
+      // this.submit();
+      // }
 
       default:
         throw new Error(`Event type ${event} is not supported`);

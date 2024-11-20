@@ -167,6 +167,7 @@ export const Container = () => {
           <section
             ref={instructionsSectionRef}
             style={{
+              background: "var(--app-bg-color)",
               display:
                 visibleTab === "instructions" || visibleTab === "all"
                   ? "block"
@@ -183,9 +184,6 @@ export const Container = () => {
                 {t("instructions")}{" "}
               </h3>
             </LessonContainer>
-            {/* <div className={styles.continueReading}>
-          {t("continue-reading")}
-        </div> */}
           </section>
           {editorTabs.length > 0 && !(environment === "localhost") && (
             <section

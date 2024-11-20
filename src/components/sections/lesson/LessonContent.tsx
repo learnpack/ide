@@ -45,6 +45,30 @@ const rigoSvgString = `
 
 const currentQuiz = {
   lastExecution: null,
+  // attemps: [
+  //   {
+  //     correctAnswers: 3,
+  //     percentage: 100,
+  // submittedAt: new Date()
+  //     selections: [
+  //       {
+  //         question: "What is the capital of France?",
+  //         label: "Paris",
+  //         isCorrect: true,
+  //       },
+  //       {
+  //         question: "What is the capital of Spain?",
+  //         label: "Madrid",
+  //         isCorrect: true,
+  //       },
+  //       {
+  //         question: "What is the capital of Germany?",
+  //         label: "Berlin",
+  //         isCorrect: true,
+  //       },
+  //     ],
+  //   },
+  // ],
 };
 
 export default function LessonContent() {
@@ -102,6 +126,7 @@ export default function LessonContent() {
 
     const handleSubmit = () => {
       const quiz = Object.values(currentQuiz);
+      console.log("quiz", quiz);
 
       let anyIncorrect = false;
       let correctAnswers = 0;

@@ -1,12 +1,13 @@
 .container {
   display: flex;
   gap: 8px;
-  background-color: var(--container-bg-color);
+  background-color: var(--bg-color);
   flex-wrap: nowrap;
+  min-height:calc( 100dvh - 103px);
 }
 
 .container > div {
-  width: 50%;
+  width: 100%;
 }
 .container > div:only-child {
   width: 100%;

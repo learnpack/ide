@@ -97,6 +97,9 @@ const useStore = create<IStore>((set, get) => ({
     text: "execute-my-code",
     className: "",
   },
+  assessmentConfig: {
+    maxRetries: 3,
+  },
   configObject: {
     config: {
       intro: "",
@@ -170,7 +173,6 @@ const useStore = create<IStore>((set, get) => ({
       toastFromStatus,
       setFeedbackButtonProps,
       setOpenedModals,
-      // lastStartedAt,
       setBuildButtonPrompt,
       registerTelemetryEvent,
     } = get();
@@ -1247,6 +1249,7 @@ ${currentContent}
         compilations: [],
         tests: [],
         is_testeable: e.graded || false,
+        assessments: [],
       }));
       const agent = configObject.config?.editor.agent || "";
       const tutorialSlug = configObject.config?.slug || "";
@@ -1259,6 +1262,7 @@ ${currentContent}
 
       TelemetryManager.urls = configObject.config.telemetry;
       TelemetryManager.userToken = bc_token;
+      // @ts-ignore
       TelemetryManager.start(agent, steps, tutorialSlug, STORAGE_KEY);
     }
   },

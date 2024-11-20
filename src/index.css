@@ -14,7 +14,7 @@
 
   --color-blue: #c1dfed;
   --soft-blue: #eef9fe;
-  --soft-green: #DFFFE8;
+  --soft-green: #dfffe8;
   --color-blue-rigo: #0084ff;
   --tabs-bg-color: #f4faff;
   --color-hovered: rgba(224, 224, 224, 0.665);
@@ -42,7 +42,8 @@
   font-size: 16px;
   --bg-color-dark-gray: #a1a1a1;
   --bg-color: #111f39;
-  --app-bg-color: #00041a;
+  /* --app-bg-color: #00041a; */
+  --app-bg-color: #111f39;
   --app-bg-color-opaque: #00041a38;
   --color-active: #02a9ea;
   --4geeks-yellow: #ffd900;

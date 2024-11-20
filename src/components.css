@@ -93,7 +93,8 @@
   background-color: white;
   overflow-y: auto;
   border-radius: 10px;
-  height: min(570px, 100vh - 50px);
+  /* height: min(570px, 100vh - 50px); */
+
   display: flex;
   flex-direction: column;
   width: min(100vw - 5px, 460px) !important;
@@ -126,7 +127,7 @@
 
 .chat-messages {
   overflow-y: scroll;
-  height: 100%;
+  min-height: 450px;
   padding: 10px;
 }
 

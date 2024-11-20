@@ -127,6 +127,10 @@ type ToggleRigoOpts = {
   ensure: "open" | "close";
 };
 
+type TAssessmentConfig = {
+  maxRetries: number;
+};
+
 export interface IStore {
   exercises: any[];
   chatInitialMessage: string;
@@ -146,6 +150,7 @@ export interface IStore {
   user_id: number | null;
   token: string;
   bc_token: string;
+  assessmentConfig: TAssessmentConfig;
   languageMap: ILanguageMap;
   configObject: IConfigObject;
   allowedActions: string[];
