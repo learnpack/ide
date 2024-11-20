@@ -38,7 +38,7 @@
   display: flex;
   gap: 10px;
   align-items: center;
-  border-radius: 50vh;
+  border-radius: 7px;
   color: var(--read-font-color);
   transition: all 0.3s ease;
 }
@@ -51,30 +51,59 @@
   height: 20px;
   margin-inline: 10px;
   appearance: none;
-  background: var(--soft-blue-color) !important;
+  background: transparent; /* Cambia a transparente */
   border-radius: 50%;
   cursor: pointer;
-  border: 1px solid var(--color-active);
+  border: 2px solid var(--color-active); /* Aumenta el grosor del borde */
+  position: relative; /* Añade posición relativa */
 }
-.task-list-item .task-list-item-checkbox:checked {
-  background-color: var(--color-active) !important;
+
+.task-list-item-checkbox:checked {
+  background: var(--soft-blue-color); /* Color de fondo cuando está marcado */
 }
-.task-list-item.bg-success {
-  color: white;
-  /* background-color: var(--soft-green) !important; */
+
+.task-list-item-checkbox:checked::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px; /* Ajusta el tamaño del círculo interior */
+  height: 12px;
+  background: var(--color-active); /* Color del círculo interior */
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
 }
-.task-list-item.bg-fail {
-  color: white;
-  /* background-color: var(--soft-red) !important; */
+
+.task-list-item.success {
+  color: black;
+  background-color: var(--soft-green) !important;
+  transition: background-color 0.3s ease;
+}
+
+.task-list-item.fail {
+  color: black;
+  background-color: var(--soft-red) !important;
   animation: toSelected 0.5s ease forwards;
+}
+/* The checkbox should have the same colors */
+.task-list-item.fail .task-list-item-checkbox {
+  border: 2px solid var(--color-fail);
+}
+.task-list-item.fail .task-list-item-checkbox:checked::after {
+  background-color: var(--color-fail);
+}
+/* The same for the success state */
+.task-list-item.success .task-list-item-checkbox {
+  border: 2px solid var(--color-success);
+}
+.task-list-item.success .task-list-item-checkbox:checked::after {
+  background-color: var(--color-success);
 }
 
 .task-list-item:has(.task-list-item-checkbox:checked) {
   background-color: var(--color-blue-opaque);
 }
 
-
-/* 
 @keyframes toSelected {
   from {
     scale: 1;
@@ -83,4 +112,4 @@
     background: var(--color-blue-opaque) !important;
     scale: 1.01;
   }
-} */
+}

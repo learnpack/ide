@@ -6,6 +6,12 @@ import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { Notifier } from "../../../managers/Notifier";
 
+// const failSvgString = `
+// <svg width="10" height="11" viewBox="0 0 10 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+// <path d="M5.875 5.14453L9.8125 1.20703C10.0625 0.957031 10.0625 0.582031 9.8125 0.332031C9.5625 0.0820313 9.1875 0.0820313 8.9375 0.332031L5 4.26953L1.0625 0.332031C0.8125 0.0820313 0.4375 0.0820313 0.1875 0.332031C-0.0624999 0.582031 -0.0624999 0.957031 0.1875 1.20703L4.125 5.14453L0.1875 9.08203C0.0625001 9.20703 0 9.33203 0 9.51953C0 9.89453 0.25 10.1445 0.625 10.1445C0.8125 10.1445 0.9375 10.082 1.0625 9.95703L5 6.01953L8.9375 9.95703C9.0625 10.082 9.1875 10.1445 9.375 10.1445C9.5625 10.1445 9.6875 10.082 9.8125 9.95703C10.0625 9.70703 10.0625 9.33203 9.8125 9.08203L5.875 5.14453Z" fill="#EB5757"/>
+// </svg>
+// `;
+
 const rigoSvgString = `
 <svg
       width="30"
@@ -42,13 +48,21 @@ const currentQuiz = {
 };
 
 export default function LessonContent() {
-  const { currentContent, openLink, toastFromStatus, setRigoContext } =
-    useStore((state) => ({
-      currentContent: state.currentContent,
-      openLink: state.openLink,
-      toastFromStatus: state.toastFromStatus,
-      setRigoContext: state.setRigoContext,
-    }));
+  const {
+    currentContent,
+    openLink,
+    toastFromStatus,
+    setRigoContext,
+    toggleRigo,
+    isRigoOpened,
+  } = useStore((state) => ({
+    currentContent: state.currentContent,
+    openLink: state.openLink,
+    toastFromStatus: state.toastFromStatus,
+    setRigoContext: state.setRigoContext,
+    toggleRigo: state.toggleRigo,
+    isRigoOpened: state.isRigoOpened,
+  }));
 
   const { t } = useTranslation();
   const lessonContentRef = useRef<HTMLDivElement>(null);
@@ -81,6 +95,9 @@ export default function LessonContent() {
       const quizJson = JSON.stringify(currentQuiz, null, 2);
       // navigator.clipboard.writeText(quizJson);
       setRigoContext(quizJson);
+      if (!isRigoOpened) {
+        toggleRigo();
+      }
     };
 
     const handleSubmit = () => {
@@ -126,8 +143,8 @@ export default function LessonContent() {
           const inputElement = checkbox.querySelector("input[type='checkbox']");
           const isChecked = inputElement ? inputElement.checked : false;
           if (!isChecked) {
-            checkbox.classList.remove("bg-success");
-            checkbox.classList.remove("bg-fail");
+            checkbox.classList.remove("success");
+            checkbox.classList.remove("fail");
             return;
           }
 
@@ -137,10 +154,12 @@ export default function LessonContent() {
             checkbox.textContent.trim();
 
           if (isCorrect) {
-            checkbox.classList.add("bg-success");
-            console.log("correctAnswer", checkbox.textContent.trim());
+            checkbox.classList.add("success");
+            // Add an svg inside the checkbox
+
+            // console.log("correctAnswer", checkbox.textContent.trim());
           } else {
-            checkbox.classList.add("bg-fail");
+            checkbox.classList.add("fail");
             console.log("wrong", checkbox.textContent.trim());
           }
         });
@@ -172,8 +191,8 @@ export default function LessonContent() {
       const checkboxes = parent.getElementsByClassName("task-list-item");
       // Uncheck all checkboxes
       for (let checkbox of checkboxes) {
-        checkbox.classList.remove("bg-success");
-        checkbox.classList.remove("bg-fail");
+        checkbox.classList.remove("success");
+        checkbox.classList.remove("fail");
         const inputElement = checkbox.querySelector("input[type='checkbox']");
         if (inputElement) {
           inputElement.checked = false;
@@ -258,11 +277,10 @@ export default function LessonContent() {
         quizButton.addEventListener("click", handleSubmit);
         rigoButton.addEventListener("click", handleRigoClick);
 
-        // Append the buttons container after the last group
         if (lastGroupParent) {
-          lastGroupParent.appendChild(quizButtonsContainer);
           quizButtonsContainer.appendChild(quizButton);
           quizButtonsContainer.appendChild(rigoButton);
+          group.insertAdjacentElement("afterend", quizButtonsContainer);
         }
       }
 

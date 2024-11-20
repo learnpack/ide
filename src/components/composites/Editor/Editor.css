@@ -48,7 +48,6 @@
   border-radius: 5px;
   border-top-left-radius: 0;
   position: relative;
-  
 }
 
 .editor-monaco .view-lines,
@@ -60,11 +59,10 @@
   border: 8px solid #a5d9f8;
   margin-top: -8px;
   padding: 8px;
-  height: 300px;
+  height: fit-content;
   overflow-y: auto;
   position: relative;
 
-  /* padding-bottom: 20px; */
 }
 .terminal.html {
   height: min(400px, fit-content);
