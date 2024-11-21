@@ -93,10 +93,9 @@
   background-color: white;
   overflow-y: auto;
   border-radius: 10px;
-  /* height: min(570px, 100vh - 50px); */
-
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   width: min(100vw - 5px, 460px) !important;
   margin-inline: auto;
 }

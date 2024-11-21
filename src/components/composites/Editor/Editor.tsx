@@ -56,6 +56,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     theme: state.theme,
     updateDBSession: state.updateDBSession,
     setTabs: state.setEditorTabs,
+    isIframe: state.isIframe,
   }));
 
   const { t } = useTranslation();
@@ -143,6 +144,23 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
   const foundPreviewTitle = (title: string) => {
     if (!title) return;
     setBrowserTabTitle(title);
+  };
+
+  const openTabAndSendMessage = () => {
+    const newTab = window.open(
+      `/preview?slug=${getCurrentExercise().slug}`,
+      "__blank"
+    );
+
+    if (newTab) {
+      const htmlString = LocalStorage.get(`htmlString`, false);
+      // Wait for the new tab to load
+      newTab.onload = () => {
+        newTab.postMessage({ htmlString }, "*"); 
+      };
+    } else {
+      console.error("Failed to open new tab.");
+    }
   };
 
   const terminalTab = tabs.find((tab) => tab.name === "terminal");
@@ -237,19 +255,14 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
       {terminalTab && terminalTab.isHTML && (
         <div className={`terminal ${terminal} html browser`}>
           <div className="d-flex justify-between align-center browser-header">
-            <div className="padding-big browser-tab">{browserTabTitle}</div>
-            <div className="d-flex padding-medium">
+            <div className=" browser-tab">{browserTabTitle}</div>
+            <div className="d-flex ">
               <SimpleButton
                 title={t("display-another-tab ")}
                 size="mini"
                 svg={svgs.newTab}
                 extraClass="hover rounded"
-                action={() => {
-                  window.open(
-                    `/preview?slug=${getCurrentExercise().slug}`,
-                    "__blank"
-                  );
-                }}
+                action={openTabAndSendMessage}
               />
               <SimpleButton
                 title={t("close-tab")}

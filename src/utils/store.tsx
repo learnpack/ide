@@ -865,6 +865,11 @@ ${currentContent}
       runExerciseTests,
     } = get();
 
+    if (!configObject || !configObject.config) {
+      console.log("Impossible to continue, the configuration is not ready!");
+      return;
+    }
+
     const gradingMode = configObject.config.grading;
     const lastExercise = exercises.length - 1;
 

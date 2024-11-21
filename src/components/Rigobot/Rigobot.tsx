@@ -216,7 +216,6 @@ export const ChatTab = () => {
     });
   };
 
-
   useEffect(() => {
     setMessages(
       exerciseMessages[Number(currentExercisePosition)] || fakeMessages
@@ -309,6 +308,7 @@ export const ChatTab = () => {
   return (
     isRigoOpened && (
       <div className="chat-tab">
+        <div>
         <section className="chat-tab-header">
           <p className="m-0 text-white">{t("Rigobot")}</p>
 
@@ -323,6 +323,7 @@ export const ChatTab = () => {
             <Message key={index} {...message} />
           ))}
         </section>
+        </div>
 
         <section className="chat-footer">
           <section className="chat-input">
@@ -360,25 +361,11 @@ interface IMessage {
 }
 
 const Message = ({ type, text, extraClass }: IMessage) => {
-  const { currentExercisePosition, handlePositionChange, toggleRigo } =
-    useStore((state) => ({
-      toggleRigo: state.toggleRigo,
-      currentExercisePosition: state.currentExercisePosition,
-      handlePositionChange: state.handlePositionChange,
-    }));
-
-  const [showNext, setShowNext] = useState(false);
   const [messageText, setMessageText] = useState("");
 
-  if (text.includes("[//]: # (next)") && !showNext) {
-    setShowNext(true);
+  if (text.includes("[//]: # (next)")) {
     setMessageText(text.replace("[//]: # (next)", ""));
   }
-
-  const closeChatAndNext = () => {
-    handlePositionChange(Number(currentExercisePosition) + 1);
-    toggleRigo();
-  };
 
   return (
     <>
@@ -389,11 +376,6 @@ const Message = ({ type, text, extraClass }: IMessage) => {
           }}
         ></div>
       </div>
-      {showNext && (
-        <button onClick={closeChatAndNext} className="next-button">
-          Next
-        </button>
-      )}
     </>
   );
 };
