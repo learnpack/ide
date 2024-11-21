@@ -98,6 +98,7 @@
   justify-content: space-between;
   width: min(100vw - 5px, 460px) !important;
   margin-inline: auto;
+
 }
 
 .chat-tab-header {
@@ -128,6 +129,7 @@
   overflow-y: scroll;
   min-height: min(450px, 50vh);
   padding: 10px;
+  max-height: calc(100dvh - 200px) !important;
 }
 
 .chat-input {
