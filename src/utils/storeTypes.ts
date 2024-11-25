@@ -131,6 +131,13 @@ type TAssessmentConfig = {
   maxRetries: number;
 };
 
+export type TUser = {
+  id: number;
+  // email: string;
+  first_name: string;
+  // last_name: string;
+};
+
 export interface IStore {
   exercises: any[];
   chatInitialMessage: string;
@@ -148,6 +155,7 @@ export interface IStore {
   feedbackbuttonProps: IBuildProps;
   compilerSocket: any;
   user_id: number | null;
+  user: TUser;
   token: string;
   bc_token: string;
   assessmentConfig: TAssessmentConfig;

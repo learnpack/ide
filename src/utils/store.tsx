@@ -15,6 +15,7 @@ import {
   ENVIRONMENT,
   getEnvironment,
   setWindowHash,
+  MissingRigobotAccountError,
 } from "./lib";
 import { IStore, TParamsActions, TPossibleParams } from "./storeTypes";
 import toast from "react-hot-toast";
@@ -29,13 +30,6 @@ type TFile = {
   name: string;
   hidden: boolean;
 };
-
-class MissingRigobotAccountError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "MissingRigobotAccountError";
-  }
-}
 
 const HOST = getHost();
 
@@ -316,13 +310,15 @@ const useStore = create<IStore>((set, get) => ({
 
     try {
       if (params.token) {
+        set({ bc_token: params.token });
         const json = await FetchManager.loginWithToken(params.token);
         set({ token: json.rigoToken });
-        set({ bc_token: params.token });
+        set({ user: json.user });
       } else {
         const json = await FetchManager.checkLoggedStatus();
         set({ token: json.rigoToken });
         set({ bc_token: json.payload.token });
+        set({ user: json.user });
       }
 
       if (opts && opts.startConversation) {
@@ -331,6 +327,10 @@ const useStore = create<IStore>((set, get) => ({
       getOrCreateActiveSession();
       await startTelemetry();
     } catch (err) {
+      if (err instanceof MissingRigobotAccountError) {
+        setOpenedModals({ login: false, rigobotInvite: true });
+        return false;
+      }
       console.log("ERROR WHILE TRYING TO CHECK LOGGED STATUS", err);
 
       set({ token: "" });
@@ -609,7 +609,11 @@ ${currentContent}
     try {
       const json = await FetchManager.login(loginInfo);
 
-      set({ bc_token: json.token, user_id: json.user_id });
+      set({
+        bc_token: json.token,
+        user_id: json.user_id,
+        user: json.user,
+      });
 
       if (json.rigobot == null) {
         throw new MissingRigobotAccountError(
@@ -618,7 +622,9 @@ ${currentContent}
       }
       setToken(json.rigobot.key);
 
-      toast.success("Successfully logged in");
+      toast.success("Successfully logged in", {
+        icon: "✅",
+      });
     } catch (error) {
       if (error instanceof MissingRigobotAccountError) {
         setOpenedModals({ login: false, rigobotInvite: true });

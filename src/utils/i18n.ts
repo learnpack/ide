@@ -1,6 +1,8 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
+const browserLanguage = navigator.language.split("-")[0];
+
 i18n.use(initReactI18next).init({
   resources: {
     en: {
@@ -103,12 +105,18 @@ i18n.use(initReactI18next).init({
         "double-click-to-copy": "Double click to copy this code",
         "model-solution": "Model Solution",
         "tests-feedback": "Tests Feedback",
-        "terminal": "Terminal",
+        terminal: "Terminal",
         "submit-quiz": "Submit answers",
         "ask-rigo-for-a-hint": "Get help",
         "can-you-give-me-a-hint": "Can you give me a hint?",
         "forgot-password": "Forgot your password? ",
         "recover-it-here": "Recover it here",
+        "chat-initial-message":
+          "Hello **{userName}**, I see you are in the step **{stepSlug}**, I already have access to your code. How can I help you today?",
+        "missing-rigobot-user": "Missing Rigobot user",
+        "missing-rigobot-user-text":
+          "It appears that you didn't accept Rigobot's invitation yet. Learnpack uses Rigobot AI under the hood, if you want to use the fabulous Learnpack Tutor, please accept Rigobot invitation!",
+        "accept-now": "Accept now",
       },
     },
     es: {
@@ -222,16 +230,24 @@ i18n.use(initReactI18next).init({
         "double-click-to-copy": "Doble clic para copiar este código",
         "model-solution": "Solución modelo",
         "tests-feedback": "Resultados de los tests",
-        "terminal": "Terminal",
+        terminal: "Terminal",
         "submit-quiz": "Enviar respuestas",
         "ask-rigo-for-a-hint": "Pedir ayuda",
         "can-you-give-me-a-hint": "¿Puedes darme una pista?",
         "forgot-password": "¿Olvidaste tu contraseña?",
         "recover-it-here": "Recuperala aquí",
+        "chat-initial-message":
+          "Hola **{userName}**, veo que estás en el paso **{stepSlug}**, ya tengo acceso a tu código. ¿Cómo te puedo ayudar?",
       },
+      "continue-here": "Continuar acá",
+      "start-again": "Empezar de nuevo",
+      "missing-rigobot-user": "Falta usuario de Rigobot",
+      "missing-rigobot-user-text":
+        "Parece que no has aceptado la invitación de Rigobot todavía. Learnpack usa Rigobot AI bajo el capó, si quieres usar Tutor de Learnpack, ¡por favor acepta la invitación de Rigobot!",
+      "accept-now": "Aceptar ahora",
     },
   },
-  lng: "en",
+  lng: browserLanguage ? browserLanguage : "en",
   fallbackLng: "en",
   interpolation: {
     escapeValue: false,

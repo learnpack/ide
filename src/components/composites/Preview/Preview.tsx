@@ -11,7 +11,6 @@ export const Preview: React.FC<{
 }> = ({ html, onTitleRevealed }) => {
   // const iframeRef = useRef<HTMLIFrameElement>(null);
 
-
   useEffect(() => {
     const title = getTitleFromHTMLString(html);
     onTitleRevealed(title ?? window.location.host + "/preview");
@@ -26,7 +25,7 @@ export const Preview: React.FC<{
     //   onLoad={handleLoad}
     // />
     <div
-      style={{ width: "100%", height: "100%", border: "none", marginTop: "100px" }}
+      style={{ width: "100%", height: "100%", border: "none" }}
       dangerouslySetInnerHTML={{ __html: html }}
     ></div>
   );

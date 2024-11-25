@@ -1,6 +1,7 @@
 import {
   getExercise,
   getParamsObject,
+  MissingRigobotAccountError,
   RIGOBOT_HOST,
   setWindowHash,
 } from "../utils/lib";
@@ -130,8 +131,6 @@ export const FetchManager = {
         if (!session) throw Error("The user is not logged in");
         const user = await validateUser(session.token);
 
-        // console.log(user);
-
         if (!user) {
           LocalStorage.remove("session");
           throw Error("The token is invalid or inactive!");
@@ -140,6 +139,7 @@ export const FetchManager = {
         const loggedFormat = {
           payload: { ...session },
           rigoToken: session.rigobot.key,
+          user,
         };
         return loggedFormat;
       },
@@ -155,7 +155,7 @@ export const FetchManager = {
           FetchManager.logout();
           throw Error("The user session is expired!");
         }
-        return json;
+        return { ...json, user };
       },
     };
 
@@ -297,7 +297,7 @@ export const FetchManager = {
     const rigoResp = await fetch(rigoUrl);
 
     if (!rigoResp.ok) {
-      throw Error("Unable to obtain Rigobot token");
+      throw new MissingRigobotAccountError("Unable to obtain Rigobot token");
     }
 
     const rigobotJson = await rigoResp.json();
@@ -307,6 +307,7 @@ export const FetchManager = {
     const loggedFormat = {
       payload: { ...returns },
       rigoToken: returns.rigobot.key,
+      user,
     };
 
     if (FetchManager.ENVIRONMENT === "localhost") {

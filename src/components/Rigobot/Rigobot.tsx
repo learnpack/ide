@@ -7,7 +7,9 @@ import {
   removeSpecialCharacters,
 } from "../../utils/lib";
 import { svgs } from "../../assets/svgs";
+
 import useStore from "../../utils/store";
+import { TUser } from "../../utils/storeTypes";
 // import TagManager from "react-gtm-module";
 
 function removeHiddenContent(text: string) {
@@ -27,6 +29,27 @@ type TAIInteraction = {
 
 let aiInteraction: TAIInteraction = {};
 
+const formatInitialMessage = (
+  message: string,
+  user: TUser,
+  stepSlug: string,
+  fallbackMessage: string
+) => {
+  if (!message) return fallbackMessage;
+  if (!user || !user.first_name || !stepSlug || !message) return message;
+  return message
+    .replace("{userName}", user.first_name)
+    .replace("{stepSlug}", stepSlug);
+};
+
+const slugToTitle = (slug: string) => {
+  // Replace all - and _ with spaces and capitalize the first letter of each word
+  return slug
+    .replace(/-/g, " ")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
 export const ChatTab = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { t } = useTranslation();
@@ -40,7 +63,7 @@ export const ChatTab = () => {
     getContextFilesContent,
     learnpackPurposeId,
     token,
-    chatInitialMessage,
+
     startConversation,
 
     isTesteable,
@@ -56,6 +79,9 @@ export const ChatTab = () => {
     toggleRigo,
     rigoContext,
     setRigoContext,
+    user,
+    getCurrentExercise,
+    chatInitialMessage,
   } = useStore((state) => ({
     setOpenedModals: state.setOpenedModals,
     currentExercisePosition: state.currentExercisePosition,
@@ -81,13 +107,25 @@ export const ChatTab = () => {
     toggleRigo: state.toggleRigo,
     rigoContext: state.rigoContext,
     setRigoContext: state.setRigoContext,
+    user: state.user,
+    getCurrentExercise: state.getCurrentExercise,
   }));
 
-  const fakeMessages = [{ type: "bot", text: t(chatInitialMessage) }];
+  const initialMessages = [
+    {
+      type: "bot",
+      text: formatInitialMessage(
+        t("chat-initial-message"),
+        user,
+        slugToTitle(getCurrentExercise().slug),
+        chatInitialMessage
+      ),
+    },
+  ];
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [messages, setMessages] = useState(
-    exerciseMessages[Number(currentExercisePosition)] || fakeMessages
+    exerciseMessages[Number(currentExercisePosition)] || initialMessages
   );
   const [userMessage, setUserMessage] = useState("");
   const [userMessageCache, setUserMessageCache] = useState("");
@@ -218,7 +256,7 @@ export const ChatTab = () => {
 
   useEffect(() => {
     setMessages(
-      exerciseMessages[Number(currentExercisePosition)] || fakeMessages
+      exerciseMessages[Number(currentExercisePosition)] || initialMessages
     );
   }, [currentExercisePosition]);
 
@@ -309,20 +347,20 @@ export const ChatTab = () => {
     isRigoOpened && (
       <div className="chat-tab">
         <div>
-        <section className="chat-tab-header">
-          <p className="m-0 text-white">{t("Rigobot")}</p>
+          <section className="chat-tab-header">
+            <p className="m-0 text-white">{t("Rigobot")}</p>
 
-          <SimpleButton
-            extraClass="text-white"
-            action={toggleRigo}
-            svg={svgs.cancel}
-          />
-        </section>
-        <section className="chat-messages">
-          {messages.map((message, index) => (
-            <Message key={index} {...message} />
-          ))}
-        </section>
+            <SimpleButton
+              extraClass="text-white"
+              action={toggleRigo}
+              svg={svgs.cancel}
+            />
+          </section>
+          <section className="chat-messages">
+            {messages.map((message, index) => (
+              <Message key={index} {...message} />
+            ))}
+          </section>
         </div>
 
         <section className="chat-footer">

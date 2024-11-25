@@ -255,3 +255,11 @@ export const setWindowHash = (params: TPossibleParams) => {
 export function randomInRange(min: number, max: number): number {
   return Math.random() * (max - min) + min;
 }
+
+
+export class MissingRigobotAccountError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "MissingRigobotAccountError";
+  }
+}

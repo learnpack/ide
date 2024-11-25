@@ -31,15 +31,14 @@ export const SessionModal = () => {
       <p>{t("prev-session")}</p>
 
       <div className="d-flex justify-center gap-big">
-        {" "}
         <SimpleButton
           extraClass="pill bg-blue"
-          text={"Continue here"}
+          text={t("continue-here")}
           action={handleContinue}
         />
         <SimpleButton
           extraClass="pill btn-dark"
-          text={"Start again"}
+          text={t("start-again")}
           action={handleNew}
         />
       </div>
