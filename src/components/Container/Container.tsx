@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import { ChatTab } from "../Rigobot/Rigobot";
 import Chat from "../sections/modals/Chat";
+import Sidebar from "../sections/sidebar/Sidebar";
 
 type TPossibleTabs = "instructions" | "terminal" | "all" | "code";
 
@@ -26,6 +27,7 @@ export const Container = () => {
     terminalShouldShow,
     setTerminalShouldShow,
     isRigoOpened,
+    showSidebar,
   } = useStore((s) => ({
     editorTabs: s.editorTabs,
     handleNext: s.handleNext,
@@ -34,6 +36,7 @@ export const Container = () => {
     terminalShouldShow: s.terminalShouldShow,
     setTerminalShouldShow: s.setTerminalShouldShow,
     isRigoOpened: s.isRigoOpened,
+    showSidebar: s.showSidebar,
   }));
 
   const { t } = useTranslation();
@@ -106,15 +109,15 @@ export const Container = () => {
   }, [editorTabs, terminalShouldShow]);
 
   useEffect(() => {
-    if (isRigoOpened) {
+    if (isRigoOpened || showSidebar) {
       if (visibleTab === "all") {
         setVisibleTab("instructions");
       }
     }
-    if (!isMobile && !isRigoOpened) {
+    if (!isMobile && !isRigoOpened && !showSidebar) {
       setVisibleTab("all");
     }
-  }, [isRigoOpened]);
+  }, [isRigoOpened, showSidebar]);
 
   const handleLessonContinue = () => {
     if (isMobile && editorTabs.length > 0) {
@@ -133,12 +136,15 @@ export const Container = () => {
       <main className={styles.container}>
         <div
           style={{
-            paddingTop: isRigoOpened || isMobile ? "40px" : "0",
+            paddingTop: isRigoOpened || isMobile || showSidebar ? "40px" : "0",
           }}
           className={styles.content}
         >
           <div
-            style={{ display: isRigoOpened || isMobile ? "flex" : "none" }}
+            style={{
+              display:
+                isRigoOpened || isMobile || showSidebar ? "flex" : "none",
+            }}
             className={styles.appTabs}
           >
             <div
@@ -177,7 +183,10 @@ export const Container = () => {
             <LessonContainer continueAction={handleLessonContinue}>
               <h3
                 style={{
-                  display: !isRigoOpened && !isMobile ? "block" : "none",
+                  display:
+                    !isMobile && (!isRigoOpened && !showSidebar)
+                      ? "block"
+                      : "none",
                 }}
                 className={"hiddenOnMobile " + "active-hr"}
               >
@@ -210,6 +219,7 @@ export const Container = () => {
             </section>
           )}
         </div>
+        {showSidebar && <Sidebar />}
         {isRigoOpened && window.innerWidth > 768 && <ChatTab />}
       </main>
     </>

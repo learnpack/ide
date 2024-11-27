@@ -61,7 +61,7 @@ function ExerciseCard({
       }}
     >
       <div>
-        <button className="blue-circle">
+        <button className={`exercise-circle ${done ? "done" : ""}`}>
           <span>{title.split("-")[0]}</span>
         </button>
         <span>{getNameWithoutNumber(title)}</span>

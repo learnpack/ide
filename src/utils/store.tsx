@@ -69,6 +69,7 @@ const useStore = create<IStore>((set, get) => ({
   conversationIdsCache: {},
   lessonTitle: "",
   rigoContext: "",
+  showSidebar: false,
   user_id: null,
   hasSolution: false,
   shouldBeTested: false,
@@ -946,11 +947,22 @@ ${currentContent}
       token,
       updateEditorTabs,
       setOpenedModals,
+      setEditorTabs,
     } = get();
 
     if (!Boolean(token)) {
       setOpenedModals({ mustLogin: true });
       return;
+    }
+
+    if (editorTabs.find((tab) => tab.name === "terminal")) {
+      // change the  content of the terminal tab to a empty string
+      setEditorTabs(
+        editorTabs.map((tab) =>
+          tab.name === "terminal" ? { ...tab, content: "" } : tab
+        )
+      );
+      // return;
     }
 
     setBuildButtonPrompt(buildText, "");
@@ -983,11 +995,22 @@ ${currentContent}
       setOpenedModals,
       editorTabs,
       language,
+      setEditorTabs,
     } = get();
 
     if (!Boolean(token)) {
       setOpenedModals({ mustLogin: true });
       return;
+    }
+
+    if (editorTabs.find((tab) => tab.name === "terminal")) {
+      // change the  content of the terminal tab to a empty string
+      setEditorTabs(
+        editorTabs.map((tab) =>
+          tab.name === "terminal" ? { ...tab, content: "" } : tab
+        )
+      );
+      // return;
     }
 
     const data = {
@@ -1126,8 +1149,18 @@ ${currentContent}
     }
   },
   resetExercise: ({ exerciseSlug }) => {
-    const { updateEditorTabs, exercises, compilerSocket, updateDBSession } =
-      get();
+    const {
+      updateEditorTabs,
+      exercises,
+      compilerSocket,
+      updateDBSession,
+      setEditorTabs,
+      editorTabs,
+    } = get();
+
+    if (editorTabs.find((tab) => tab.name === "terminal")) {
+      setEditorTabs(editorTabs.filter((tab) => tab.name !== "terminal"));
+    }
 
     let newExercises = exercises.map((e) => {
       if (e.slug === exerciseSlug) {
@@ -1219,12 +1252,21 @@ ${currentContent}
     }
   },
   toggleRigo: (opts) => {
-    const { token, isRigoOpened, setOpenedModals } = get();
+    const {
+      token,
+      isRigoOpened,
+      setOpenedModals,
+      showSidebar,
+      setShowSidebar,
+    } = get();
     if (!token) {
       setOpenedModals({ mustLogin: true });
       return;
     }
 
+    if (showSidebar) {
+      setShowSidebar(false);
+    }
     if (opts && opts.ensure === "open") {
       set({ isRigoOpened: true });
       return;
@@ -1279,6 +1321,13 @@ ${currentContent}
   },
   setRigoContext: (context) => {
     set({ rigoContext: context });
+  },
+  setShowSidebar: (show) => {
+    const { isRigoOpened, toggleRigo } = get();
+    if (isRigoOpened) {
+      toggleRigo({ ensure: "close" });
+    }
+    set({ showSidebar: show });
   },
   test: async () => {
     // Notifier.success("Succesfully tested");

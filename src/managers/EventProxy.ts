@@ -288,13 +288,21 @@ localStorageEventEmitter.on("test", async (data) => {
     const userRequiredInputs: string[] = [];
 
     for (const f of exe.files) {
-      if (f.name.includes("solution") || f.name.includes("README")) continue;
+      if (f.name.includes("solution")) continue;
 
       const { fileContent } = await FetchManager.getFileContent(
         data.exerciseSlug,
         f.name,
         { cached: true }
       );
+
+      if (f.name.includes("README")) {
+        testContent += `
+\`\`\`INSTRUCTIONS FILE: ${f.name}. This is what the user needs to do to pass the exercise.
+${fileContent}
+\`\`\`
+      `;
+      }
 
       const inputs = searchInputsForFile(f.name, fileContent);
       if (inputs) {

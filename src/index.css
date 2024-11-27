@@ -7,6 +7,7 @@
   --bg-color: #f9f9f9;
   --app-bg-color: white;
   --color-active: #02a9ea;
+  
   --4geeks-yellow: #ffd900;
   --opaque-blue-editor: #a5d9f8;
   --soft-blue-color: #eef9fe;
@@ -480,7 +481,6 @@ form input {
   background-color: #06758b2f;
   border-radius: 5px;
   width: calc(100%);
-  
 }
 .browser-body {
   background-color: white;
@@ -583,6 +583,7 @@ form input {
 }
 .conector-blue {
   position: relative;
+  
 }
 
 @media only screen and (min-width: 768px) {
@@ -600,4 +601,7 @@ form input {
     transform: translateX(-50%);
     top: 95%;
   }
+}
+.svg-white .set-stroke > path {
+  stroke: white;
 }

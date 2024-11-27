@@ -3,10 +3,10 @@ import SimpleButton from "../../mockups/SimpleButton";
 import ExercisesList from "./ExercisesList";
 import useStore from "../../../utils/store";
 import { svgs } from "../../../assets/svgs";
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
+// import { useEffect, useState } from "react";
+// import { createPortal } from "react-dom";
 import packageInfo from "../../../../package.json";
-import { useTranslation } from "react-i18next";
+// import { useTranslation } from "react-i18next";
 import "./styles.css";
 // import { DEV_MODE } from "../../../utils/lib";
 
@@ -14,7 +14,7 @@ const version = packageInfo.version;
 let versionSections = version.split(".");
 versionSections[2] = String(parseInt(versionSections[2]) + 1);
 
-function drawCircle(percentage: number) {
+export function drawCircle(percentage: number) {
   const canvas = document.getElementById(
     "percentageCanvas"
   ) as HTMLCanvasElement;
@@ -52,38 +52,48 @@ function drawCircle(percentage: number) {
 }
 
 export default function Sidebar() {
-  const { t } = useTranslation();
-  const { configObject, language, lessonTitle, theme, toggleTheme, exercises } =
-    useStore((state) => ({
-      configObject: state.configObject,
-      language: state.language,
-      lessonTitle: state.lessonTitle,
-      theme: state.theme,
-      toggleTheme: state.toggleTheme,
-      exercises: state.exercises,
-    }));
-  const [showSidebar, setShowSidebar] = useState(false);
-  const [progress, setProgress] = useState({
-    solved:
-      exercises && exercises.filter
-        ? exercises.filter((e: any) => e.done === true).length
-        : 0,
-    graded:
-      exercises && exercises.filter
-        ? exercises.filter((e: any) => e.graded).length
-        : 0,
-  });
+  // const { t } = useTranslation();
+  const {
+    // configObject,
+    // language,
+    // lessonTitle,
+    theme,
+    toggleTheme,
+    // exercises,
+    showSidebar,
+    setShowSidebar,
+  } = useStore((state) => ({
+    // configObject: state.configObject,
+    // language: state.language,
+    // lessonTitle: state.lessonTitle,
+    theme: state.theme,
+    toggleTheme: state.toggleTheme,
+    // exercises: state.exercises,
+    showSidebar: state.showSidebar,
+    setShowSidebar: state.setShowSidebar,
+  }));
 
-  let title = lessonTitle;
-  if (
-    configObject &&
-    configObject.config &&
-    typeof configObject.config.title === "object"
-  ) {
-    if (Object.keys(configObject.config.title).includes(language)) {
-      title = configObject.config.title[language];
-    }
-  }
+  // const [progress, setProgress] = useState({
+  //   solved:
+  //     exercises && exercises.filter
+  //       ? exercises.filter((e: any) => e.done === true).length
+  //       : 0,
+  //   graded:
+  //     exercises && exercises.filter
+  //       ? exercises.filter((e: any) => e.graded).length
+  //       : 0,
+  // });
+
+  // let title = lessonTitle;
+  // if (
+  //   configObject &&
+  //   configObject.config &&
+  //   typeof configObject.config.title === "object"
+  // ) {
+  //   if (Object.keys(configObject.config.title).includes(language)) {
+  //     title = configObject.config.title[language];
+  //   }
+  // }
 
   const closeSidebar = () => {
     const sidebar: HTMLElement | null =
@@ -94,71 +104,49 @@ export default function Sidebar() {
     });
   };
 
-  useEffect(() => {
-    const _progress = {
-      solved: exercises.filter((e: any) => e.done === true).length,
-      graded: exercises.filter((e: any) => e.graded).length,
-    };
-    setProgress(_progress);
-    const percentage = _progress.solved / _progress.graded;
-    drawCircle(percentage);
-  }, [showSidebar]);
+  // useEffect(() => {
+  // const _progress = {
+  //   solved: exercises.filter((e: any) => e.done === true).length,
+  //   graded: exercises.filter((e: any) => e.graded).length,
+  // };
+  // setProgress(_progress);
+  // const percentage = _progress.solved / _progress.graded;
+  // drawCircle(percentage);
+  // }, [showSidebar]);
 
   return (
     <>
-      {showSidebar &&
-        createPortal(
-          <>
-            <div className="sidebar-component">
-              <section>
-                <h2>{title}</h2>
-              </section>
-              <section className="min-width">
-                <p className="d-flex align-center gap-small">
-                  <canvas
-                    width={"50"}
-                    height={"50"}
-                    id="percentageCanvas"
-                  ></canvas>
-                  <span>
-                    {progress.solved}/{progress.graded} {t("solved")}
-                  </span>
-                </p>
+      {showSidebar && (
+        <div className="sidebar-component">
+          <section>{/* <h2>{title}</h2> */}</section>
+          <section className="d-flex gap-small align-center justify-between min-width bg-rigo padding-medium rounded text-white ">
+            <span>Menu</span>
+            <SimpleButton
+              action={toggleTheme}
+              extraClass="pill svg-white"
+              svg={theme === "dark" ? svgs.sun : svgs.moon}
+            />
+          </section>
+          {/* <section className="min-width">
+            <p className="d-flex align-center gap-small">
+            <canvas width={"50"} height={"50"} id="percentageCanvas"></canvas>
+            <span>
+            {progress.solved}/{progress.graded} {t("solved")}
+            </span>
+            </p>
+            
+            </section> */}
 
-                <SimpleButton action={closeSidebar} svg={svgs.closeIcon} />
-              </section>
-              <ExercisesList closeSidebar={closeSidebar} />
+          <ExercisesList closeSidebar={closeSidebar} />
 
-              <section className="footer">
-                <BugButton />
-                <span>
-                  <strong>v{versionSections.join(".")}</strong>
-                </span>
-                <SimpleButton
-                  text={t("theme")}
-                  action={toggleTheme}
-                  extraClass="clickeable pill"
-                  svg={theme === "dark" ? svgs.sun : svgs.moon}
-                />
-                {/* {DEV_MODE && (
-                  <SimpleButton
-                    action={devLogout}
-                    extraClass="btn-dark pill"
-                    text={"logout"}
-                  />
-                )} */}
-              </section>
-            </div>
-          </>,
-          document.body
-        )}
-      <SimpleButton
-        svg={svgs.dropdownButton}
-        id="sidebar-toggle"
-        action={() => {
-          setShowSidebar(true);
-        }}
-      />
+          <section className="footer">
+            <BugButton />
+            <span>
+              <strong>v{versionSections.join(".")}</strong>
+            </span>
+          </section>
+        </div>
+      )}
     </>
   );
 }

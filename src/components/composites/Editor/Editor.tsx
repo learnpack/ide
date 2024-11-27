@@ -14,6 +14,7 @@ import { CompileOptions } from "../../sections/header/CompileOptions";
 import SimpleButton from "../../mockups/SimpleButton";
 import { Preview } from "../Preview/Preview";
 import { AskForHint } from "../AskForHint/AskForHint";
+import { Loader } from "../Loader/Loader";
 
 const languageMap: { [key: string]: string } = {
   ".js": "javascript",
@@ -66,7 +67,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     test: t("tests-feedback"),
   };
 
-  const [editorTheme, setEditorTheme] = useState("light");
+  const [editorTheme, setEditorTheme] = useState("vs-dark");
   const [editorStatus, setEditorStatus] = useState<TEditorStatus>("UNMODIFIED");
   const [browserTabTitle, setBrowserTabTitle] = useState(
     window.location.host + "/preview"
@@ -156,7 +157,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
       const htmlString = LocalStorage.get(`htmlString`, false);
       // Wait for the new tab to load
       newTab.onload = () => {
-        newTab.postMessage({ htmlString }, "*"); 
+        newTab.postMessage({ htmlString }, "*");
       };
     } else {
       console.error("Failed to open new tab.");
@@ -238,11 +239,16 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
               &times;
             </button>
           </h5>
-          <div
-            dangerouslySetInnerHTML={{
-              __html: convertMarkdownToHTML(terminalTab.content, false),
-            }}
-          ></div>
+
+          {terminalTab.content ? (
+            <div
+              dangerouslySetInnerHTML={{
+                __html: convertMarkdownToHTML(terminalTab.content, false),
+              }}
+            ></div>
+          ) : (
+            <Loader svg={svgs.blueRigoSvg} text={t("thinking...")} />
+          )}
           {!getCurrentExercise().done && (
             <AskForHint context={terminalTab.content} />
           )}
@@ -274,10 +280,14 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
             </div>
           </div>
           <div className="browser-body">
-            <Preview
-              onTitleRevealed={foundPreviewTitle}
-              html={terminalTab.content}
-            />
+            {terminalTab.content ? (
+              <Preview
+                onTitleRevealed={foundPreviewTitle}
+                html={terminalTab.content}
+              />
+            ) : (
+              <Loader svg={svgs.blueRigoSvg} text={t("thinking...")} />
+            )}
           </div>
         </div>
       )}

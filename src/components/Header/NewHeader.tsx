@@ -5,8 +5,8 @@ import useStore from "../../utils/store";
 import SimpleButton from "../mockups/SimpleButton";
 import { RigoToggler } from "../Rigobot/Rigobot";
 import LanguageButton from "../sections/header/LanguageButton";
-import Sidebar from "../sections/sidebar/Sidebar";
 import styles from "./NewHeader.module.css";
+import { ToggleSidebar } from "../sections/sidebar/ToggleSidebar";
 
 export const NewHeader = () => {
   const {
@@ -102,7 +102,8 @@ export const NewHeader = () => {
         />
 
         <RigoToggler />
-        <Sidebar />
+        <ToggleSidebar />
+        
       </section>
     </header>
   );

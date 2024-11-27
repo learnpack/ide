@@ -186,6 +186,8 @@ export interface IStore {
   lastState: "success" | "error" | string;
   terminalShouldShow: boolean;
   rigoContext: string;
+  showSidebar: boolean;
+  setShowSidebar: (show: boolean) => void;
   setRigoContext: (context: string) => void;
   toggleRigo: (opts?: ToggleRigoOpts) => void;
   setTerminalShouldShow: (shouldShow: boolean) => void;

@@ -62,7 +62,6 @@
   height: fit-content;
   overflow-y: auto;
   position: relative;
-
 }
 .terminal.html {
   height: min(400px, fit-content);
@@ -102,7 +101,7 @@
   word-wrap: break-word;
 }
 .editor-footer {
-  background-color: var(--bg-color);
+  background-color: var(--app-bg-color);
   position: absolute;
   bottom: 8px;
   padding: 8px;
