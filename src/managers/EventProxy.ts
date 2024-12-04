@@ -194,6 +194,10 @@ localStorageEventEmitter.on("build", async (data) => {
       data.updateEditorTabs(outputTab);
       localStorageEventEmitter.emitStatus("compiler-success", {
         htmlString: compiled,
+        source_code: content,
+        stdout: "",
+        stderr: "",
+        ai_required: false,
       });
       return;
     }
@@ -212,6 +216,10 @@ localStorageEventEmitter.on("build", async (data) => {
       data.updateEditorTabs(outputTab);
       localStorageEventEmitter.emitStatus("compiler-success", {
         htmlString: compiled,
+        source_code: content,
+        stdout: "",
+        stderr: "",
+        ai_required: false,
       });
       return;
     }
@@ -223,7 +231,7 @@ localStorageEventEmitter.on("build", async (data) => {
     const dataRigobotReturns = await buildRigo(data.token, inputs);
 
     const json = JSON.parse(removeTripleBackticks(dataRigobotReturns));
-
+    json.ai_required = true;
     if (json.exitCode > 0) {
       localStorageEventEmitter.emitStatus("compiler-error", json);
     } else {
@@ -378,15 +386,18 @@ ${fileContent}
     if (json.exitCode === 0) {
       localStorageEventEmitter.emitStatus("testing-success", {
         result: json,
+        ai_required: true,
         logs: [JSON.stringify(json)],
       });
     } else {
       localStorageEventEmitter.emitStatus("testing-error", {
-        ...json.stdout,
+        result: json,
+        ai_required: true,
         logs: [JSON.stringify(json)],
       });
     }
   } catch (e) {
+    console.log(e);
     toast.error("ERROR TRYING TO TEST");
     return;
     await FetchManager.logout();

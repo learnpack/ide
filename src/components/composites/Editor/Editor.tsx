@@ -128,11 +128,12 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
   };
 
   useEffect(() => {
-    if (theme === "light") {
-      setEditorTheme("light");
-    } else if (theme === "dark") {
-      setEditorTheme("vs-dark");
-    }
+    // if (theme === "light") {
+    //   setEditorTheme("light");
+    // } else if (theme === "dark") {
+    //   setEditorTheme("vs-dark");
+    // }
+    setEditorTheme("vs-dark");
   }, [theme]);
 
   useEffect(() => {

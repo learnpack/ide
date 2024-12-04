@@ -1,4 +1,5 @@
 import {
+  BREATHECODE_HOST,
   getExercise,
   getParamsObject,
   MissingRigobotAccountError,
@@ -9,7 +10,6 @@ import { TEnvironment } from "./EventProxy";
 import frontMatter from "front-matter";
 import { LocalStorage } from "./localStorage";
 import { v4 as uuidv4 } from "uuid";
-const BREATHECODE_HOST = "https://breathecode.herokuapp.com";
 
 // Correct the type definition for TMethods
 type TMethods = {

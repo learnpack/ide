@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { RIGOBOT_HOST } from "./lib";
+import axios from "axios";
+import { RIGOBOT_HOST, BREATHECODE_HOST } from "./lib";
 
 export const getSession = async (token: string, slug: string) => {
   const url = `${RIGOBOT_HOST}/v1/learnpack/session/?slug=${slug}`;
@@ -43,7 +43,7 @@ export const updateSession = async (
     });
 
     console.log("Session updated!");
-    
+
     return response.data;
   } catch (error) {
     console.error("Error updating session:", error);
@@ -79,3 +79,49 @@ export const createSession = async (
     throw error; // Rethrow the error for further handling
   }
 };
+
+export async function getConsumables(token: string): Promise<any> {
+  const url = `${BREATHECODE_HOST}/v1/payments/me/service/consumable?virtual=true`;
+
+  const headers = {
+    Authorization: `Token ${token}`,
+  };
+
+  try {
+    const response = await axios.get(url, { headers });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching consumables:", error);
+    throw error;
+  }
+}
+
+export async function consumeAIInteraction(
+  breathecodeToken: string,
+  consumableSlug:
+    | "ai-conversation-message"
+    | "ai-compilation" = "ai-conversation-message"
+): Promise<boolean> {
+  const url = `${BREATHECODE_HOST}/v1/payments/me/service/${consumableSlug}/consumptionsession`;
+
+  const headers = {
+    Authorization: `Token ${breathecodeToken}`,
+  };
+
+  try {
+    const response = await axios.put(url, {}, { headers });
+
+    if (response.status >= 200 && response.status < 300) {
+      console.log(response.data);
+      console.log(`Successfully consumed ${consumableSlug}`);
+      return true;
+    } else {
+      console.error(`Request failed with status code: ${response.status}`);
+      console.error(`Response: ${response.data}`);
+      return false;
+    }
+  } catch (error) {
+    console.error("Error consuming AI interaction:", error);
+    return false;
+  }
+}

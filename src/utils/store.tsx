@@ -16,6 +16,7 @@ import {
   getEnvironment,
   setWindowHash,
   MissingRigobotAccountError,
+  countConsumables,
 } from "./lib";
 import { IStore, TParamsActions, TPossibleParams } from "./storeTypes";
 import toast from "react-hot-toast";
@@ -23,7 +24,13 @@ import { getStatus } from "../managers/socket";
 import { DEV_MODE, RIGOBOT_HOST } from "./lib";
 import { EventProxy } from "../managers/EventProxy";
 import { FetchManager } from "../managers/fetchManager";
-import { createSession, getSession, updateSession } from "./apiCalls";
+import {
+  consumeAIInteraction,
+  createSession,
+  getConsumables,
+  getSession,
+  updateSession,
+} from "./apiCalls";
 import TelemetryManager from "../managers/telemetry";
 
 type TFile = {
@@ -61,6 +68,11 @@ const useStore = create<IStore>((set, get) => ({
   dialogData: {
     message: "",
     format: "md" as "md",
+  },
+  maxQuizRetries: 3,
+  userConsumables: {
+    ai_compilation: 0,
+    ai_conversation_message: 0,
   },
   chatSocket: chatSocket,
   currentExercisePosition: defaultParams.currentExercise || 0,
@@ -140,6 +152,7 @@ const useStore = create<IStore>((set, get) => ({
       checkLoggedStatus,
       setListeners,
       figureEnvironment,
+      getUserConsumables,
       // startTelemetry,
     } = get();
     figureEnvironment().then(() =>
@@ -159,6 +172,9 @@ const useStore = create<IStore>((set, get) => ({
         .then(() => {
           setListeners();
         })
+        .then(() => {
+          getUserConsumables();
+        })
     );
   },
   setListeners: () => {
@@ -170,19 +186,24 @@ const useStore = create<IStore>((set, get) => ({
       setOpenedModals,
       setBuildButtonPrompt,
       registerTelemetryEvent,
+      environment,
+      bc_token,
+      userConsumables,
     } = get();
 
     const debounceTestingSuccess = debounce((data: any) => {
-      console.log(data, "DATA IN DEBOUCE TEST SUCCESFF");
-      // Get the timestamp in milliseconds
-      // @ts-ignore
-
       const stdout = removeSpecialCharacters(data.logs[0]);
 
-      registerTelemetryEvent("test", data);
       setTestResult("successful", stdout);
       set({ lastState: "success", terminalShouldShow: true });
       toastFromStatus("testing-success");
+
+      if (environment === "localStorage") {
+        registerTelemetryEvent("test", data.result);
+      }
+      if (data.ai_required && userConsumables.ai_compilation !== -1) {
+        consumeAIInteraction(bc_token, "ai-compilation");
+      }
 
       if (get().targetButtonForFeedback === "feedback") {
         setFeedbackButtonProps("Succeded", "bg-success text-white");
@@ -197,7 +218,13 @@ const useStore = create<IStore>((set, get) => ({
       set({ lastState: "error", terminalShouldShow: true });
       toastFromStatus("testing-error");
 
-      registerTelemetryEvent("test", data);
+      if (environment === "localStorage") {
+        registerTelemetryEvent("test", data.result);
+      }
+      if (data.ai_required && userConsumables.ai_compilation !== -1) {
+        consumeAIInteraction(bc_token, "ai-compilation");
+      }
+
       if (get().targetButtonForFeedback === "feedback") {
         setFeedbackButtonProps("Try again", "bg-fail text-white");
       } else {
@@ -215,7 +242,12 @@ const useStore = create<IStore>((set, get) => ({
       setBuildButtonPrompt("Try again", "bg-fail");
       const [icon, message] = getStatus("compiler-error");
       toast.error(message, { icon: icon });
-      registerTelemetryEvent("compile", data);
+      if (environment === "localStorage") {
+        registerTelemetryEvent("compile", data);
+      }
+      if (data.ai_required && userConsumables.ai_compilation !== -1) {
+        consumeAIInteraction(bc_token, "ai-compilation");
+      }
     }, 100);
 
     let compilerSuccessHandler = debounce((data: any) => {
@@ -224,7 +256,12 @@ const useStore = create<IStore>((set, get) => ({
       const [icon, message] = getStatus("compiler-success");
       toast.success(message, { icon: icon });
       setBuildButtonPrompt("Run", "bg-success");
-      registerTelemetryEvent("compile", data);
+      if (environment === "localStorage") {
+        registerTelemetryEvent("compile", data);
+      }
+      if (data.ai_required && userConsumables.ai_compilation !== -1) {
+        consumeAIInteraction(bc_token, "ai-compilation");
+      }
     }, 100);
 
     compilerSocket.onStatus("testing-success", debounceTestingSuccess);
@@ -415,6 +452,12 @@ ${currentContent}
 
       if (!config) return;
 
+      console.log(config.config.assessment, "ASSESSMENT");
+
+      if (config.config.assessment && config.config.assessment.maxQuizRetries) {
+        set({ maxQuizRetries: config.config.assessment.maxQuizRetries });
+      }
+
       if (config.config.warnings.agent) {
         set({
           dialogData: { message: config.config.warnings.agent, format: "md" },
@@ -555,7 +598,6 @@ ${currentContent}
     }
     setBuildButtonPrompt("execute-my-code", "");
     setFeedbackButtonProps("test-my-code", "");
-    // registerTelemetryEvent("open_step", )
     set({ lastState: "" });
     registerTelemetryEvent("open_step", {});
     fetchReadme();
@@ -923,8 +965,7 @@ ${currentContent}
   },
 
   setTestResult: (status, logs) => {
-    console.log(logs);
-
+    logs;
     const { exercises, currentExercisePosition, updateDBSession } = get();
     const copy = [...exercises];
 
@@ -938,7 +979,7 @@ ${currentContent}
   setShouldBeTested: (value) => {
     set({ shouldBeTested: value });
   },
-  build: (buildText, submittedInputs = []) => {
+  build: async (buildText, submittedInputs = []) => {
     const {
       setBuildButtonPrompt,
       compilerSocket,
@@ -948,10 +989,25 @@ ${currentContent}
       updateEditorTabs,
       setOpenedModals,
       setEditorTabs,
+      environment,
+      userConsumables,
+      bc_token,
     } = get();
 
-    if (!Boolean(token)) {
+    if (!Boolean(token) || !Boolean(bc_token)) {
       setOpenedModals({ mustLogin: true });
+      return;
+    }
+
+    // Count the number of AI compilatios if the environment is localStorage
+    if (
+      environment === "localStorage" &&
+      !(
+        userConsumables.ai_compilation > 0 ||
+        userConsumables.ai_compilation === -1
+      )
+    ) {
+      toast.error("You have reached the limit of AI compilations");
       return;
     }
 
@@ -962,7 +1018,6 @@ ${currentContent}
           tab.name === "terminal" ? { ...tab, content: "" } : tab
         )
       );
-      // return;
     }
 
     setBuildButtonPrompt(buildText, "");
@@ -984,7 +1039,7 @@ ${currentContent}
   setEditorTabs: (tabs) => {
     set({ editorTabs: tabs });
   },
-  runExerciseTests: (opts, submittedInputs = []) => {
+  runExerciseTests: async (opts, submittedInputs = []) => {
     const {
       compilerSocket,
       getCurrentExercise,
@@ -996,10 +1051,24 @@ ${currentContent}
       editorTabs,
       language,
       setEditorTabs,
+      bc_token,
+      environment,
+      userConsumables,
     } = get();
 
-    if (!Boolean(token)) {
+    if (!Boolean(token) || !Boolean(bc_token)) {
       setOpenedModals({ mustLogin: true });
+      return;
+    }
+
+    if (
+      environment === "localStorage" &&
+      !(
+        userConsumables.ai_compilation > 0 ||
+        userConsumables.ai_compilation === -1
+      )
+    ) {
+      toast.error("You have reached the limit of AI compilations");
       return;
     }
 
@@ -1010,7 +1079,6 @@ ${currentContent}
           tab.name === "terminal" ? { ...tab, content: "" } : tab
         )
       );
-      // return;
     }
 
     const data = {
@@ -1099,6 +1167,7 @@ ${currentContent}
         updateEditorTabs();
       }
     } catch (e) {
+      console.error(e);
       console.log("Error trying to get session");
     }
   },
@@ -1279,6 +1348,11 @@ ${currentContent}
   },
   registerTelemetryEvent: (event, data) => {
     const { currentExercisePosition } = get();
+
+    if (!TelemetryManager.started) {
+      return;
+    }
+
     TelemetryManager.registerStepEvent(
       Number(currentExercisePosition),
       event,
@@ -1287,9 +1361,8 @@ ${currentContent}
   },
   startTelemetry: async () => {
     const { configObject, bc_token } = get();
-    console.log(" starting telemetry", configObject, bc_token);
     if (!bc_token || !configObject) {
-      console.log("No token or config found");
+      console.error("No token or config found, impossible to start telemetry");
       return;
     }
 
@@ -1329,8 +1402,19 @@ ${currentContent}
     }
     set({ showSidebar: show });
   },
+  getUserConsumables: async () => {
+    const { bc_token } = get();
+    const consumables = await getConsumables(bc_token);
+    const ai_compilation = countConsumables(consumables, "ai-compilation");
+    const ai_conversation_message = countConsumables(
+      consumables,
+      "ai-conversation-message"
+    );
+    set({ userConsumables: { ai_compilation, ai_conversation_message } });
+  },
   test: async () => {
     // Notifier.success("Succesfully tested");
+    // const { bc_token } = get();
     FetchManager.logout();
   },
 }));

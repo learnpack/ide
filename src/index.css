@@ -7,7 +7,7 @@
   --bg-color: #f9f9f9;
   --app-bg-color: white;
   --color-active: #02a9ea;
-  
+
   --4geeks-yellow: #ffd900;
   --opaque-blue-editor: #a5d9f8;
   --soft-blue-color: #eef9fe;
@@ -411,10 +411,8 @@ form input {
 
 #main-container {
   width: var(--app-width);
-  background-color: var(--app-bg-color);
-
   margin-inline: auto;
-  height: 100vh;
+  height: 99dvh;
 }
 
 #main-container.iframe-mode {
@@ -583,7 +581,6 @@ form input {
 }
 .conector-blue {
   position: relative;
-  
 }
 
 @media only screen and (min-width: 768px) {
@@ -604,4 +601,20 @@ form input {
 }
 .svg-white .set-stroke > path {
   stroke: white;
+}
+
+.continue-button {
+  visibility: hidden;
+  display: none;
+  animation: show-continue-button 1s ease-in-out forwards;
+}
+
+@keyframes show-continue-button {
+  from {
+    visibility: hidden;
+  }
+  to {
+    visibility: visible;
+    display: block;
+  }
 }

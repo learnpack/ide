@@ -138,6 +138,11 @@ export type TUser = {
   // last_name: string;
 };
 
+type TUserConsumables = {
+  ai_compilation: number;
+  ai_conversation_message: number;
+};
+
 export interface IStore {
   exercises: any[];
   chatInitialMessage: string;
@@ -187,6 +192,9 @@ export interface IStore {
   terminalShouldShow: boolean;
   rigoContext: string;
   showSidebar: boolean;
+  userConsumables: TUserConsumables;
+  maxQuizRetries: number; 
+  getUserConsumables: () => Promise<any>;
   setShowSidebar: (show: boolean) => void;
   setRigoContext: (context: string) => void;
   toggleRigo: (opts?: ToggleRigoOpts) => void;

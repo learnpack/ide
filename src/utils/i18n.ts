@@ -116,6 +116,8 @@ i18n.use(initReactI18next).init({
           "It appears that you didn't accept Rigobot's invitation yet. Learnpack uses Rigobot AI under the hood, if you want to use the fabulous Learnpack Tutor, please accept Rigobot invitation!",
         "accept-now": "Accept now",
         "thinking...": "Thinking...",
+        "video-introduction": "Video introduction",
+        "video-solution": "Video solution",
       },
     },
     es: {
@@ -245,6 +247,8 @@ i18n.use(initReactI18next).init({
         "Parece que no has aceptado la invitación de Rigobot todavía. Learnpack usa Rigobot AI bajo el capó, si quieres usar Tutor de Learnpack, ¡por favor acepta la invitación de Rigobot!",
       "accept-now": "Aceptar ahora",
       "thinking...": "Pensando...",
+      "video-introduction": "Video introducción",
+      "video-solution": "Video solución",
     },
   },
   lng: "en",

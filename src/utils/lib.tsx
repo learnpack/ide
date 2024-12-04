@@ -79,6 +79,7 @@ export const getEnvironment = async () => {
 getEnvironment();
 
 export const RIGOBOT_HOST = "https://rigobot.herokuapp.com";
+export const BREATHECODE_HOST = "https://breathecode.herokuapp.com";
 // export const RIGOBOT_HOST = "https://8000-charlytoc-rigobot-bmwdeam7cev.ws-us116.gitpod.io";
 
 /**
@@ -256,10 +257,44 @@ export function randomInRange(min: number, max: number): number {
   return Math.random() * (max - min) + min;
 }
 
-
 export class MissingRigobotAccountError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "MissingRigobotAccountError";
   }
+}
+
+export const countConsumables = (
+  consumables: any,
+  consumableSlug:
+    | "ai-conversation-message"
+    | "ai-compilation" = "ai-conversation-message"
+) => {
+  // Find the void that matches the consumableSlug
+  // @ts-ignore
+  const consumable = consumables.voids.find(
+    (voidItem: any) => voidItem.slug === consumableSlug
+  );
+
+  // Return the available units or 0 if not found
+  return consumable ? consumable.balance.unit : 0;
+};
+
+export function hashText(text: string, callback: (hash: string) => void) {
+  const encoder = new TextEncoder(); // Create a new TextEncoder instance
+  const data = encoder.encode(text);
+
+  crypto.subtle
+    .digest("SHA-256", data) // Hash the data
+    .then((hashBuffer) => {
+      const hashArray = Array.from(new Uint8Array(hashBuffer)); // Convert the buffer to an array
+      const hashHex = hashArray
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join(""); // Convert bytes to hex string
+
+      callback(hashHex); // Call the callback function with the hashed text
+    })
+    .catch((err) => {
+      console.error("Hashing failed:", err); // Handle any errors
+    });
 }

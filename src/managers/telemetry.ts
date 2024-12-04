@@ -30,14 +30,11 @@ const sendBatchTelemetry = async function (
     const response: AxiosResponse<any> = await axios.post(url, body, {
       headers,
     });
-    // toast.success("Telemetry sent successfully");
-    console.log(response);
 
     return response.data;
   } catch (error) {
     console.error("Error while sending batch telemetry", error);
-    toast.error("Error while sending telemetry");
-    // Verificamos si el error tiene una respuesta para obtener más información
+
     if (axios.isAxiosError(error) && error.response) {
       console.error("Response data:", error.response.data);
       console.error("Response status:", error.response.status);
@@ -80,7 +77,11 @@ function createUUID(): string {
 }
 
 function stringToBase64(input: string): string {
-  return Buffer.from(input).toString("base64");
+  if (typeof input !== "string") {
+    throw new TypeError("Input must be a string");
+  }
+
+  return btoa(encodeURIComponent(input));
 }
 
 type TCompilationAttempt = {
@@ -171,6 +172,7 @@ export type TTelemetryUrls = {
 interface ITelemetryManager {
   current: ITelemetryJSONSchema | null;
   //   configPath: string | null;
+  started: boolean;
   userToken: string;
   telemetryKey: string;
   urls: TTelemetryUrls;
@@ -181,6 +183,7 @@ interface ITelemetryManager {
     tutorialSlug: string,
     storageKey: string
   ) => void;
+  tutorialSlug: string;
   prevStep?: number;
   registerStepEvent: (
     stepPosition: number,
@@ -200,12 +203,15 @@ const TelemetryManager: ITelemetryManager = {
   urls: {},
   telemetryKey: "",
   userToken: "",
+  tutorialSlug: "",
+  started: false,
   salute: (message) => {
     console.log(message);
   },
 
   start: function (agent, steps, tutorialSlug, storageKey) {
     this.telemetryKey = storageKey;
+    this.tutorialSlug = tutorialSlug;
     if (!this.current) {
       this.retrieve()
         .then((prevTelemetry) => {
@@ -229,6 +235,7 @@ const TelemetryManager: ITelemetryManager = {
 
           this.save();
           this.submit();
+          this.started = true;
         })
         .catch((error) => {
           console.log("ERROR: There was a problem starting the Telemetry");
@@ -374,7 +381,7 @@ const TelemetryManager: ITelemetryManager = {
   },
   retrieve: function () {
     const saved = LocalStorage.get(this.telemetryKey);
-    if (saved) {
+    if (saved && saved.slug === this.tutorialSlug) {
       return Promise.resolve(saved);
     } else {
       return Promise.resolve(null);
@@ -382,8 +389,7 @@ const TelemetryManager: ITelemetryManager = {
   },
 
   submit: async function () {
-    console.log(this.current, this.userToken);
-
+    console.log("Submitting telemetry", this.current, this.userToken);
     if (!this.current || !this.userToken) {
       toast.error("Telemetry and user token are required to send telemetry");
       return Promise.resolve();
@@ -399,7 +405,10 @@ const TelemetryManager: ITelemetryManager = {
 
     try {
       await sendBatchTelemetry(url, body, this.userToken);
-    } catch (error) {}
+      console.log("Telemetry submitted successfully");
+    } catch (error) {
+      console.error("Error submitting telemetry", error);
+    }
   },
   save: function () {
     LocalStorage.set(this.telemetryKey, this.current);

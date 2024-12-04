@@ -84,7 +84,17 @@ export default function LessonContainer({
         <div
           onClick={continueAction}
           className={`badge bg-blue ${
-            editorTabs.length > 0 ? "hide-continue-button" : ""
+            editorTabs.length > 0 ? "hide-continue-button" : "continue-button"
+          }`}
+        >
+          {t("continue")}
+        </div>
+      )}
+      {ENVIRONMENT === "localhost" && editorTabs.length === 0 && (
+        <div
+          onClick={continueAction}
+          className={`badge bg-blue ${
+            editorTabs.length > 0 ? "hide-continue-button" : "continue-button"
           }`}
         >
           {t("continue")}
@@ -92,16 +102,6 @@ export default function LessonContainer({
       )}
       {ENVIRONMENT === "localhost" && editorTabs.length > 0 && (
         <EditorFooter editorStatus="MODIFIED" />
-      )}
-      {ENVIRONMENT === "localhost" && editorTabs.length === 0 && (
-        <div
-          onClick={continueAction}
-          className={`badge bg-blue ${
-            editorTabs.length > 0 ? "hide-continue-button" : ""
-          }`}
-        >
-          {t("continue")}
-        </div>
       )}
     </div>
   );

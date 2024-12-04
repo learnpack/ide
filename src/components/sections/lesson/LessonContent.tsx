@@ -1,6 +1,6 @@
 import useStore from "../../../utils/store";
-import { useEffect, useRef } from "react";
-import { convertMarkdownToHTML } from "../../../utils/lib";
+import { useEffect, useRef, useState } from "react";
+import { convertMarkdownToHTML, hashText } from "../../../utils/lib";
 import toast from "react-hot-toast";
 
 import { useTranslation } from "react-i18next";
@@ -53,7 +53,7 @@ const currentQuiz = {
   //     selections: [
   //       {
   //         question: "What is the capital of France?",
-  //         label: "Paris",
+  //         answer: "Paris",
   //         isCorrect: true,
   //       },
   //       {
@@ -69,6 +69,25 @@ const currentQuiz = {
   //     ],
   //   },
   // ],
+};
+
+type TQuizAttemptSelection = {
+  question: string;
+  answer: string;
+  isCorrect: boolean;
+};
+
+type TQuizAttempt = {
+  correctAnswers: number;
+  percentage: number;
+  submittedAt: Date;
+  selections: TQuizAttemptSelection[];
+};
+
+type TQuiz = {
+  hash: string;
+  attempts: TQuizAttempt[];
+  [key: string]: any;
 };
 
 export default function LessonContent() {
@@ -89,21 +108,158 @@ export default function LessonContent() {
   }));
 
   const { t } = useTranslation();
+  const [quizzes, setQuizzes] = useState<TQuiz[]>([]);
+  const quizzesRef = useRef<TQuiz[]>([]); // Create a ref to store quizzes
   const lessonContentRef = useRef<HTMLDivElement>(null);
+
+  // Update quizzes ref whenever quizzes state changes
+  useEffect(() => {
+    quizzesRef.current = quizzes;
+    console.log(quizzesRef.current);
+  }, [quizzes]);
+
+  const handleCheckboxClick = (event: any) => {
+    const checkbox = event.target.closest(".task-list-item");
+    const parent = event.target.closest(".contains-task-list");
+    const previousElement = parent.previousElementSibling;
+    const groupTitle = previousElement?.textContent?.trim();
+
+    // Access the latest quizzes from the ref
+    const quiz = quizzesRef.current.find((q) => q[groupTitle]);
+    if (!quiz) return;
+
+    // Update the selected answer
+    quiz[groupTitle].currentSelection = checkbox.textContent.trim();
+    setQuizzes(quizzesRef.current);
+    const checkboxes = parent.getElementsByClassName("task-list-item");
+
+    // Uncheck all checkboxes
+    for (let checkbox of checkboxes) {
+      checkbox.classList.remove("success");
+      checkbox.classList.remove("fail");
+      const inputElement = checkbox.querySelector("input[type='checkbox']");
+      if (inputElement) {
+        inputElement.checked = false;
+      }
+    }
+
+    // Check the clicked checkbox
+    const inputElement = checkbox.querySelector("input[type='checkbox']");
+    if (inputElement) {
+      inputElement.checked = true;
+    }
+  };
+
+  const handleSubmit = (position: number) => {
+    const listsContainingTasks = lessonContentRef.current?.querySelectorAll(
+      "ul:has(.contains-task-list), ol:has(.contains-task-list)"
+    );
+    if (!listsContainingTasks) return;
+
+    const list = listsContainingTasks[position];
+    const quizQuestions = Object.values(quizzesRef.current[position]);
+    const currentQuiz = quizzesRef.current[position];
+
+    console.log(currentQuiz);
+
+    let anyIncorrect = false;
+    let correctAnswers = 0;
+
+    const selections = quizQuestions
+      // @ts-ignore
+      .filter((q) => Boolean(q && q.title))
+      .map((q: any) => {
+        const isCorrect = q.currentSelection === q.correctAnswer;
+        if (!isCorrect) {
+          anyIncorrect = true;
+        } else {
+          correctAnswers++;
+        }
+        return {
+          question: q.title,
+          answer: q.currentSelection,
+          isCorrect,
+        };
+      });
+    toast.success(`${selections.length}`);
+
+    const totalQuestions = selections.length;
+
+    const percentage = (correctAnswers / totalQuestions) * 100;
+    const evaluation = {
+      status: anyIncorrect ? "ERROR" : "SUCCESS",
+      // correctAnswers,
+      percentage,
+      selections,
+    };
+
+    const quizQuestionParents =
+      list.getElementsByClassName("contains-task-list");
+
+    for (let group of quizQuestionParents) {
+      const previousElement = group.previousElementSibling;
+      const groupTitle = previousElement?.textContent?.trim();
+
+      if (!groupTitle) return;
+      const checkboxes = group.getElementsByClassName("task-list-item");
+      const checkboxesArray = Array.from(checkboxes);
+      checkboxesArray.forEach((checkbox: any) => {
+        const inputElement = checkbox.querySelector("input[type='checkbox']");
+        const isChecked = inputElement ? inputElement.checked : false;
+        if (!isChecked) {
+          checkbox.classList.remove("success");
+          checkbox.classList.remove("fail");
+          return;
+        }
+
+        const isCorrect =
+          // @ts-ignore
+          currentQuiz[groupTitle].correctAnswer === checkbox.textContent.trim();
+
+        if (isCorrect) {
+          checkbox.classList.add("success");
+          // Add an svg inside the checkbox
+
+          // console.log("correctAnswer", checkbox.textContent.trim());
+        } else {
+          checkbox.classList.add("fail");
+        }
+      });
+    }
+
+    // @ts-ignore
+    quizzesRef.current[position].lastExecution = { ...evaluation };
+    setQuizzes(quizzesRef.current);
+    if (anyIncorrect) {
+      toastFromStatus("quiz-error");
+      return;
+    }
+    toastFromStatus("quiz-success");
+
+    Notifier.confetti();
+  };
 
   useEffect(() => {
     const lessonContentDiv = lessonContentRef.current;
     if (!lessonContentDiv) return;
 
-    const parents =
-      lessonContentDiv.getElementsByClassName("contains-task-list");
+    // const quizQuestionParents =
+    //   lessonContentDiv.getElementsByClassName("contains-task-list");
+
+    const listsContainingTasks = lessonContentDiv.querySelectorAll(
+      "ul:has(.contains-task-list), ol:has(.contains-task-list)"
+    );
+    console.log(
+      "Number of found lists of questions:",
+      listsContainingTasks.length
+    );
 
     const anchors = lessonContentDiv.getElementsByTagName("a");
     const codes = lessonContentDiv.getElementsByTagName("code");
     // const checkboxes =
     // lessonContentDiv.getElementsByClassName("task-list-item");
 
-    const handleClick = (event: any) => {
+    const handleArchorClick = (event: any) => {
       event.preventDefault();
       openLink(event.target.href);
     };
@@ -124,115 +280,8 @@ export default function LessonContent() {
       }
     };
 
-    const handleSubmit = () => {
-      const quiz = Object.values(currentQuiz);
-      console.log("quiz", quiz);
-
-      let anyIncorrect = false;
-      let correctAnswers = 0;
-
-      const selections = quiz
-        // @ts-ignore
-        .filter((q) => Boolean(q && q.title))
-        .map((q: any) => {
-          const isCorrect = q.currentSelection === q.correctAnswer;
-          if (!isCorrect) {
-            anyIncorrect = true;
-          } else {
-            correctAnswers++;
-          }
-          return {
-            question: q.title,
-            answer: q.currentSelection,
-            isCorrect,
-          };
-        });
-      const totalQuestions = selections.length;
-
-      const percentage = (correctAnswers / totalQuestions) * 100;
-      const evaluation = {
-        status: anyIncorrect ? "ERROR" : "SUCCESS",
-        // correctAnswers,
-        percentage,
-        selections,
-      };
-      // Add the classname bg-success to the right answers task-list-items and the class bg-danger to the wrong ones
-      for (let group of parents) {
-        const previousElement = group.previousElementSibling;
-        const groupTitle = previousElement?.textContent?.trim();
-
-        if (!groupTitle) return;
-        const checkboxes = group.getElementsByClassName("task-list-item");
-        const checkboxesArray = Array.from(checkboxes);
-        checkboxesArray.forEach((checkbox: any) => {
-          const inputElement = checkbox.querySelector("input[type='checkbox']");
-          const isChecked = inputElement ? inputElement.checked : false;
-          if (!isChecked) {
-            checkbox.classList.remove("success");
-            checkbox.classList.remove("fail");
-            return;
-          }
-
-          const isCorrect =
-            // @ts-ignore
-            currentQuiz[groupTitle].correctAnswer ===
-            checkbox.textContent.trim();
-
-          if (isCorrect) {
-            checkbox.classList.add("success");
-            // Add an svg inside the checkbox
-
-            // console.log("correctAnswer", checkbox.textContent.trim());
-          } else {
-            checkbox.classList.add("fail");
-            console.log("wrong", checkbox.textContent.trim());
-          }
-        });
-      }
-
-      // @ts-ignore
-      currentQuiz.lastExecution = { ...evaluation };
-      if (anyIncorrect) {
-        toastFromStatus("quiz-error");
-        return;
-      }
-      toastFromStatus("quiz-success");
-
-      Notifier.confetti();
-    };
-
-    const handleCheckboxClick = (event: any) => {
-      // encontrar el task-list-item
-
-      const checkbox = event.target.closest(".task-list-item");
-
-      const parent = event.target.closest(".contains-task-list");
-      const previousElement = parent.previousElementSibling;
-      const groupTitle = previousElement?.textContent?.trim();
-      // console.log(currentQuiz[groupTitle], "currentQuiz");
-      // @ts-ignore
-      currentQuiz[groupTitle].currentSelection = checkbox.textContent.trim();
-      // Find all the checkboxes in the parent
-      const checkboxes = parent.getElementsByClassName("task-list-item");
-      // Uncheck all checkboxes
-      for (let checkbox of checkboxes) {
-        checkbox.classList.remove("success");
-        checkbox.classList.remove("fail");
-        const inputElement = checkbox.querySelector("input[type='checkbox']");
-        if (inputElement) {
-          inputElement.checked = false;
-        }
-      }
-
-      // Check the clicked checkbox
-      const inputElement = checkbox.querySelector("input[type='checkbox']");
-      if (inputElement) {
-        inputElement.checked = true;
-      }
-    };
-
     for (let anchor of anchors) {
-      anchor.addEventListener("click", handleClick);
+      anchor.addEventListener("click", handleArchorClick);
     }
 
     for (let code of codes) {
@@ -240,89 +289,113 @@ export default function LessonContent() {
       code.title = t("double-click-to-copy");
     }
 
-    let counter = 0;
-    for (let group of parents) {
-      const checkboxes = group.getElementsByClassName("task-list-item");
-      const previousElement = group.previousElementSibling;
-      const groupTitle = previousElement?.textContent?.trim();
-
-      const checkboxesArray = Array.from(checkboxes);
-      let correctAnswer = "";
-
-      // @ts-ignore
-      currentQuiz[groupTitle] = {
-        title: groupTitle,
-        totalQuestions: checkboxes.length,
-        checkboxes: checkboxesArray.map((checkbox: any) => {
-          const inputElement = checkbox.querySelector("input[type='checkbox']");
-          const isChecked = inputElement ? inputElement.checked : false;
-          if (isChecked) {
-            correctAnswer = checkbox.textContent.trim();
-          }
-          inputElement.cheched = false;
-          return {
-            text: checkbox.textContent.trim(),
-            isCorrect: inputElement ? inputElement.checked : false,
-          };
-        }),
-        correctAnswer: correctAnswer,
+    let _quizzes: TQuiz[] = [];
+    for (let list of listsContainingTasks) {
+      const listPosition = Array.from(listsContainingTasks).indexOf(list);
+      let quiz: TQuiz = {
+        hash: "",
+        attempts: [],
       };
+      let counter = 0;
+      const quizQuestionParents =
+        list.getElementsByClassName("contains-task-list");
 
-      // Uncheck all checkboxes for the current group
-      checkboxesArray.forEach((checkbox: any) => {
-        const inputElement = checkbox.querySelector("input[type='checkbox']");
-        checkbox.addEventListener("click", handleCheckboxClick);
-        if (inputElement) {
-          inputElement.checked = false;
-        }
-      });
+      let concatenatedTitles = "";
+      for (let group of quizQuestionParents) {
+        const checkboxes = group.getElementsByClassName("task-list-item");
+        const previousElement = group.previousElementSibling;
+        const groupTitle = previousElement?.textContent?.trim();
+        concatenatedTitles += groupTitle;
+        const checkboxesArray = Array.from(checkboxes);
+        let correctAnswer = "";
 
-      if (counter === parents.length - 1) {
-        // Get the last group parent element
-        const lastGroupParent = group.parentElement;
-
-        const quizButtonsContainer = document.createElement("div");
-        quizButtonsContainer.className = "quiz-buttons-container";
-        const quizButton = document.createElement("button");
-        const rigoButton = document.createElement("button");
-
-        const textSpan = document.createElement("span");
-        textSpan.textContent = t("ask-rigo-for-a-hint");
-
-        const svgSpan = document.createElement("span");
         // @ts-ignore
-        svgSpan.innerHTML = rigoSvgString;
+        quiz[groupTitle] = {
+          title: groupTitle,
+          checkboxes: checkboxesArray.map((checkbox: any) => {
+            const inputElement = checkbox.querySelector(
+              "input[type='checkbox']"
+            );
+            const isChecked = inputElement ? inputElement.checked : false;
+            if (isChecked) {
+              correctAnswer = checkbox.textContent.trim();
+            }
+            inputElement.cheched = false;
+            return {
+              text: checkbox.textContent.trim(),
+              isCorrect: inputElement ? inputElement.checked : false,
+            };
+          }),
+          correctAnswer: correctAnswer,
+        };
 
-        rigoButton.appendChild(textSpan);
-        rigoButton.appendChild(svgSpan);
-        quizButton.textContent = t("submit-quiz");
+        // Uncheck all checkboxes for the current group
+        checkboxesArray.forEach((checkbox: any) => {
+          const inputElement = checkbox.querySelector("input[type='checkbox']");
+          checkbox.addEventListener("click", handleCheckboxClick);
+          if (inputElement) {
+            inputElement.checked = false;
+          }
+        });
 
-        quizButton.className = "quiz-button my-2 active-on-hover";
-        rigoButton.className = "quiz-button my-2 active-on-hover";
-        quizButton.addEventListener("click", handleSubmit);
-        rigoButton.addEventListener("click", handleRigoClick);
+        if (counter === quizQuestionParents.length - 1) {
+          // Get the last group parent element
+          const lastGroupParent = group.parentElement;
 
-        if (lastGroupParent) {
-          quizButtonsContainer.appendChild(quizButton);
-          quizButtonsContainer.appendChild(rigoButton);
-          group.insertAdjacentElement("afterend", quizButtonsContainer);
+          const quizButtonsContainer = document.createElement("div");
+          quizButtonsContainer.className = "quiz-buttons-container";
+          const quizButton = document.createElement("button");
+          const rigoButton = document.createElement("button");
+
+          const textSpan = document.createElement("span");
+          textSpan.textContent = t("ask-rigo-for-a-hint");
+
+          const svgSpan = document.createElement("span");
+          // @ts-ignore
+          svgSpan.innerHTML = rigoSvgString;
+
+          rigoButton.appendChild(textSpan);
+          rigoButton.appendChild(svgSpan);
+          quizButton.textContent = t("submit-quiz");
+
+          quizButton.className = "quiz-button my-2 active-on-hover";
+          rigoButton.className = "quiz-button my-2 active-on-hover";
+          quizButton.addEventListener("click", () =>
+            handleSubmit(listPosition)
+          );
+          rigoButton.addEventListener("click", handleRigoClick);
+
+          if (lastGroupParent) {
+            quizButtonsContainer.appendChild(quizButton);
+            quizButtonsContainer.appendChild(rigoButton);
+            group.insertAdjacentElement("afterend", quizButtonsContainer);
+          }
         }
-      }
 
-      counter++;
+        counter++;
+      }
+      hashText(concatenatedTitles, (hash) => {
+        quiz.hash = hash;
+        _quizzes.push(quiz);
+      });
     }
+    setQuizzes(_quizzes);
 
     return () => {
       for (let anchor of anchors) {
-        anchor.removeEventListener("click", handleClick);
+        anchor.removeEventListener("click", handleArchorClick);
       }
       for (let code of codes) {
         code.removeEventListener("dblclick", handleCodeClick);
       }
-      for (let group of parents) {
-        const checkboxes = group.getElementsByClassName("task-list-item");
-        for (let checkbox of checkboxes) {
-          checkbox.removeEventListener("click", handleCheckboxClick);
+      for (let list of listsContainingTasks) {
+        const quizQuestionParents =
+          list.getElementsByClassName("contains-task-list");
+        for (let group of quizQuestionParents) {
+          const checkboxes = group.getElementsByClassName("task-list-item");
+          for (let checkbox of checkboxes) {
+            checkbox.removeEventListener("click", handleCheckboxClick);
+          }
         }
       }
       Object.keys(currentQuiz).forEach((key) => {
@@ -339,6 +412,10 @@ export default function LessonContent() {
       }
     };
   }, [currentContent]);
+
+  useEffect(() => {
+    console.log(quizzes);
+  }, [quizzes]);
 
   return (
     <div

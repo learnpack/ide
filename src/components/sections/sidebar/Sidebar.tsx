@@ -14,42 +14,42 @@ const version = packageInfo.version;
 let versionSections = version.split(".");
 versionSections[2] = String(parseInt(versionSections[2]) + 1);
 
-export function drawCircle(percentage: number) {
-  const canvas = document.getElementById(
-    "percentageCanvas"
-  ) as HTMLCanvasElement;
+// export function drawCircle(percentage: number) {
+//   const canvas = document.getElementById(
+//     "percentageCanvas"
+//   ) as HTMLCanvasElement;
 
-  if (!canvas) return;
+//   if (!canvas) return;
 
-  const ctx = canvas.getContext("2d");
-  const radius = 20;
-  const centerX = canvas.width / 2;
-  const centerY = canvas.height / 2;
+//   const ctx = canvas.getContext("2d");
+//   const radius = 20;
+//   const centerX = canvas.width / 2;
+//   const centerY = canvas.height / 2;
 
-  if (!ctx) return;
-  // Clear the canvas
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+//   if (!ctx) return;
+//   // Clear the canvas
+//   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Draw the background circle
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(224, 224, 224, 0.311)"; // Background color
-  ctx.fill();
+//   // Draw the background circle
+//   ctx.beginPath();
+//   ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+//   ctx.fillStyle = "rgba(224, 224, 224, 0.311)"; // Background color
+//   ctx.fill();
 
-  // Draw the progress circle
-  ctx.beginPath();
-  ctx.moveTo(centerX, centerY);
-  ctx.arc(
-    centerX,
-    centerY,
-    radius,
-    -Math.PI / 2,
-    Math.PI * 2 * percentage - Math.PI / 2
-  );
-  ctx.closePath();
-  ctx.fillStyle = "#21b761"; // Progress color
-  ctx.fill();
-}
+//   // Draw the progress circle
+//   ctx.beginPath();
+//   ctx.moveTo(centerX, centerY);
+//   ctx.arc(
+//     centerX,
+//     centerY,
+//     radius,
+//     -Math.PI / 2,
+//     Math.PI * 2 * percentage - Math.PI / 2
+//   );
+//   ctx.closePath();
+//   ctx.fillStyle = "#21b761"; // Progress color
+//   ctx.fill();
+// }
 
 export default function Sidebar() {
   // const { t } = useTranslation();

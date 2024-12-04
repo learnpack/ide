@@ -3,7 +3,7 @@
   gap: 8px;
   background-color: var(--bg-color);
   flex-wrap: nowrap;
-  min-height:calc( 100dvh - 103px);
+  min-height: calc(100dvh - 100px);
 }
 
 .container > div {
@@ -20,7 +20,7 @@
   padding: 8px;
   /* height: 100%; */
   width: 100%;
-  max-height: 83vh;
+  max-height: 90vh;
   overflow: auto;
 }
 

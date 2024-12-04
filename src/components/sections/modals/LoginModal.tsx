@@ -7,6 +7,7 @@ import TagManager from "react-gtm-module";
 import { Modal } from "../../mockups/Modal";
 import { svgs } from "../../../assets/svgs";
 import toast from "react-hot-toast";
+import { BREATHECODE_HOST } from "../../../utils/lib";
 
 export default function LoginModal() {
   const { setOpenedModals, loginToRigo, openLink } = useStore((state) => ({
@@ -72,9 +73,7 @@ export default function LoginModal() {
 
     toast.success(t("redirecting-to-github"));
     openLink(
-      `https://breathecode.herokuapp.com/v1/auth/github/?url=${stringToBase64(
-        currentUrl
-      )}`,
+      `${BREATHECODE_HOST}/v1/auth/github/?url=${stringToBase64(currentUrl)}`,
       { redirect: true }
     );
   };
@@ -158,7 +157,7 @@ export default function LoginModal() {
                 <OpenWindowLink
                   callback={sendAnalytics}
                   text={t("recover-it-here")}
-                  href={`https://breathecode.herokuapp.com/v1/auth/password/reset?url=${getCurrentUrlWithQueryParams()}`}
+                  href={`${BREATHECODE_HOST}/v1/auth/password/reset?url=${getCurrentUrlWithQueryParams()}`}
                 />{" "}
               </span>
             </div>
