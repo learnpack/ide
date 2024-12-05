@@ -164,21 +164,21 @@ const useStore = create<IStore>((set, get) => ({
         })
         .then((params: TPossibleParams) => {
           if (!params.currentExercise) {
-            fetchReadme();
+            return fetchReadme();
           }
         })
         .then(() => {
-          checkLoggedStatus({ startConversation: true });
+          return checkLoggedStatus({ startConversation: true });
         })
         .then(() => {
-          setListeners();
+          return setListeners();
         })
         .then(() => {
           getUserConsumables();
         })
     );
   },
-  setListeners: () => {
+  setListeners: async () => {
     const {
       compilerSocket,
       setTestResult,
@@ -277,6 +277,8 @@ const useStore = create<IStore>((set, get) => ({
       set({ dialogData: data.data });
       setOpenedModals({ dialog: true });
     });
+
+    return true;
   },
 
   figureEnvironment: async () => {
@@ -366,6 +368,8 @@ const useStore = create<IStore>((set, get) => ({
       }
       getOrCreateActiveSession();
       await startTelemetry();
+      
+      return true;
     } catch (err) {
       if (err instanceof MissingRigobotAccountError) {
         setOpenedModals({ login: false, rigobotInvite: true });
@@ -375,6 +379,7 @@ const useStore = create<IStore>((set, get) => ({
 
       set({ token: "" });
       setOpenedModals({ login: true });
+      return false;
     }
   },
   getContextFilesContent: async () => {
@@ -489,8 +494,11 @@ ${currentContent}
 
       set({ lessonTitle: config.config.title.us });
       set({ configObject: config });
+
+      return true;
     } catch (err) {
       disconnected();
+      return false;
     }
   },
   checkParams: ({ justReturn }) => {
@@ -876,6 +884,7 @@ ${currentContent}
     // @ts-ignore
     fetchSingleExerciseInfo(currentExercisePosition);
     updateEditorTabs();
+    return true;
   },
 
   toggleSidebar: () => {
