@@ -115,7 +115,7 @@ export default function LessonContent() {
   // Update quizzes ref whenever quizzes state changes
   useEffect(() => {
     quizzesRef.current = quizzes;
-    console.log(quizzesRef.current);
+    // console.log(quizzesRef.current);
   }, [quizzes]);
 
   const handleCheckboxClick = (event: any) => {
@@ -181,7 +181,7 @@ export default function LessonContent() {
           isCorrect,
         };
       });
-    toast.success(`${selections.length}`);
+    // toast.success(`${selections.length}`);
 
     const totalQuestions = selections.length;
 
@@ -413,9 +413,6 @@ export default function LessonContent() {
     };
   }, [currentContent]);
 
-  useEffect(() => {
-    console.log(quizzes);
-  }, [quizzes]);
 
   return (
     <div

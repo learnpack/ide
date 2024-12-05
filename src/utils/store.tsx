@@ -1406,6 +1406,11 @@ ${currentContent}
   },
   getUserConsumables: async () => {
     const { bc_token } = get();
+
+    if (!bc_token) {
+      return;
+    }
+
     const consumables = await getConsumables(bc_token);
     const ai_compilation = countConsumables(consumables, "ai-compilation");
     const ai_conversation_message = countConsumables(
