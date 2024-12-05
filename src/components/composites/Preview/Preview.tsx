@@ -29,6 +29,7 @@ export const Preview: React.FC<{
       srcDoc={html}
       title="HTML Preview"
       onLoad={handleLoad}
+      style={{width: "100%"}}
     />
   ) : (
     <div
