@@ -193,7 +193,7 @@ export interface IStore {
   rigoContext: string;
   showSidebar: boolean;
   userConsumables: TUserConsumables;
-  maxQuizRetries: number; 
+  maxQuizRetries: number;
   getUserConsumables: () => Promise<any>;
   setShowSidebar: (show: boolean) => void;
   setRigoContext: (context: string) => void;
@@ -265,6 +265,7 @@ type TEditorTab = {
   content: string;
   isActive: boolean;
   isHTML?: boolean;
+  isReact?: boolean;
 };
 
 export type TDialog = {

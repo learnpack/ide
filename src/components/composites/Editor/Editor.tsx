@@ -288,6 +288,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
               <Preview
                 onTitleRevealed={foundPreviewTitle}
                 html={terminalTab.content}
+                useIframe={terminalTab.isReact}
               />
             ) : (
               <Loader svg={svgs.blueRigoSvg} text={t("thinking...")} />

@@ -389,7 +389,6 @@ const TelemetryManager: ITelemetryManager = {
   },
 
   submit: async function () {
-    console.log("Submitting telemetry", this.current, this.userToken);
     if (!this.current || !this.userToken) {
       toast.error("Telemetry and user token are required to send telemetry");
       return Promise.resolve();

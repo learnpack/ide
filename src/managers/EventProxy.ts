@@ -190,6 +190,7 @@ localStorageEventEmitter.on("build", async (data) => {
         content: compiled,
         isActive: false,
         isHTML: true,
+        isReact: false
       };
       data.updateEditorTabs(outputTab);
       localStorageEventEmitter.emitStatus("compiler-success", {
@@ -212,12 +213,14 @@ localStorageEventEmitter.on("build", async (data) => {
         content: compiled,
         isActive: false,
         isHTML: true,
+        isReact: true,
       };
       data.updateEditorTabs(outputTab);
+
       localStorageEventEmitter.emitStatus("compiler-success", {
         htmlString: compiled,
         source_code: content,
-        stdout: "",
+        stdout: compiled,
         stderr: "",
         ai_required: false,
       });
@@ -286,48 +289,50 @@ localStorageEventEmitter.on("open", async (data) => {
   data.updateEditorTabs(solutionTab);
 });
 
+const createTestContext = async (files: any[], exerciseSlug: string) => {
+  let testContent = "";
+  const userRequiredInputs: string[] = [];
+
+  for (const f of files) {
+    if (
+      f.name.includes("solution") ||
+      f.name.includes("test") ||
+      f.name.includes("pycache") ||
+      f.name.includes("README")
+    )
+      continue;
+
+    const { fileContent } = await FetchManager.getFileContent(
+      exerciseSlug,
+      f.name,
+      { cached: true }
+    );
+
+    const inputs = searchInputsForFile(f.name, fileContent);
+    if (inputs) {
+      userRequiredInputs.push(...inputs);
+    }
+
+    testContent += `
+<USERCODE file_name="${f.name}" file_context="This is the code of the user, you must test if it pass the instructions or not. ">  
+${fileContent}
+</USERCODE>
+
+    `;
+  }
+
+  return { testContent, userRequiredInputs };
+};
+
 localStorageEventEmitter.on("test", async (data) => {
   try {
     const exe = await FetchManager.getExerciseInfo(data.exerciseSlug);
 
-    let testContent = "";
+    const { testContent, userRequiredInputs } = await createTestContext(
+      exe.files,
+      data.exerciseSlug
+    );
     const inputsObject: Record<string, string> = {};
-
-    const userRequiredInputs: string[] = [];
-
-    for (const f of exe.files) {
-      if (f.name.includes("solution")) continue;
-
-      const { fileContent } = await FetchManager.getFileContent(
-        data.exerciseSlug,
-        f.name,
-        { cached: true }
-      );
-
-      if (f.name.includes("README")) {
-        testContent += `
-\`\`\`INSTRUCTIONS FILE: ${f.name}. This is what the user needs to do to pass the exercise.
-${fileContent}
-\`\`\`
-      `;
-      }
-
-      const inputs = searchInputsForFile(f.name, fileContent);
-      if (inputs) {
-        userRequiredInputs.push(...inputs);
-      }
-
-      testContent += `
-\`\`\`<FILE name="${f.name}" file_context="${
-        !f.hidden
-          ? "THIS FILE IS CODE FROM THE USER, THIS  AND THE OTHER USER FILES WILL BE TESTED BY YOU"
-          : "THIS FILE IS A TEST FILE, YOU MUST MIMICK THE EXECUTION OF THIS TEST FILE AGAINST THE USER CODE"
-      }">  
-${fileContent}
-</FILE>
-\`\`\`
-      `;
-    }
 
     if (userRequiredInputs.length > 0 && data.submittedInputs.length === 0) {
       localStorageEventEmitter.emit("ask", {
@@ -346,6 +351,7 @@ ${fileContent}
     const inputs = {
       code: testContent,
       inputs: JSON.stringify(inputsObject),
+      instructions: data.instructions,
       userLanguage: data.language,
     };
     console.log(inputs, "INPUTS SENT TO RIGOBOT");
@@ -438,7 +444,7 @@ const buildRigo = async (token: string, inputs: object) => {
   return json.answer;
 };
 const testRigo = async (token: string, inputs: object) => {
-  const result = await fetch(`${RIGOBOT_HOST}/v1/prompting/completion/93/`, {
+  const result = await fetch(`${RIGOBOT_HOST}/v1/prompting/completion/126/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

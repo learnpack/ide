@@ -99,7 +99,7 @@ export default function LessonContent() {
     toggleRigo,
     isRigoOpened,
   } = useStore((state) => ({
-    currentContent: state.currentContent,
+  currentContent: state.currentContent,
     openLink: state.openLink,
     toastFromStatus: state.toastFromStatus,
     setRigoContext: state.setRigoContext,
@@ -249,10 +249,10 @@ export default function LessonContent() {
     const listsContainingTasks = lessonContentDiv.querySelectorAll(
       "ul:has(.contains-task-list), ol:has(.contains-task-list)"
     );
-    console.log(
-      "Number of found lists of questions:",
-      listsContainingTasks.length
-    );
+    // console.log(
+    //   "Number of found lists of questions:",
+    //   listsContainingTasks.length
+    // );
 
     const anchors = lessonContentDiv.getElementsByTagName("a");
     const codes = lessonContentDiv.getElementsByTagName("code");

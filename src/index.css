@@ -627,3 +627,6 @@ a {
     display: block;
   }
 }
+.opaque-blue-on-hover:hover {
+  background-color: var(--color-blue-opaque);
+}

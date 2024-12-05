@@ -96,7 +96,7 @@ export async function getConsumables(token: string): Promise<any> {
   }
 }
 
-export async function consumeAIInteraction(
+export async function useConsumable(
   breathecodeToken: string,
   consumableSlug:
     | "ai-conversation-message"
@@ -121,7 +121,7 @@ export async function consumeAIInteraction(
       return false;
     }
   } catch (error) {
-    console.error("Error consuming AI interaction:", error);
+    console.error(`Error consuming ${consumableSlug}:`, error);
     return false;
   }
 }

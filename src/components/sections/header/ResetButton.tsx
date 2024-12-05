@@ -12,7 +12,7 @@ export default function ResetButton() {
 
   return (
     <SimpleButton
-      extraClass="pill color-blue editor-footer-child"
+      extraClass="pill color-blue editor-footer-child opaque-blue-on-hover"
       svg={svgs.resetIcon}
       text={t("Reset")}
       id="reset-button"

@@ -26,7 +26,7 @@ import { DEV_MODE, RIGOBOT_HOST } from "./lib";
 import { EventProxy } from "../managers/EventProxy";
 import { FetchManager } from "../managers/fetchManager";
 import {
-  consumeAIInteraction,
+  useConsumable,
   createSession,
   getConsumables,
   getSession,
@@ -202,8 +202,8 @@ const useStore = create<IStore>((set, get) => ({
       if (environment === "localStorage") {
         registerTelemetryEvent("test", data.result);
       }
-      if (data.ai_required && userConsumables.ai_compilation !== -1) {
-        consumeAIInteraction(bc_token, "ai-compilation");
+      if (data.ai_required && userConsumables.ai_compilation > 0) {
+        useConsumable(bc_token, "ai-compilation");
       }
 
       if (get().targetButtonForFeedback === "feedback") {
@@ -213,7 +213,7 @@ const useStore = create<IStore>((set, get) => ({
       }
     }, 100);
 
-    const debounceError = debounce((data: any) => {
+    const debounceTestingError = debounce((data: any) => {
       const stdout = removeSpecialCharacters(data.logs[0]);
       setTestResult("failed", stdout);
       set({ lastState: "error", terminalShouldShow: true });
@@ -222,8 +222,8 @@ const useStore = create<IStore>((set, get) => ({
       if (environment === "localStorage") {
         registerTelemetryEvent("test", data.result);
       }
-      if (data.ai_required && userConsumables.ai_compilation !== -1) {
-        consumeAIInteraction(bc_token, "ai-compilation");
+      if (data.ai_required && userConsumables.ai_compilation > 0) {
+        useConsumable(bc_token, "ai-compilation");
       }
 
       if (get().targetButtonForFeedback === "feedback") {
@@ -246,8 +246,8 @@ const useStore = create<IStore>((set, get) => ({
       if (environment === "localStorage") {
         registerTelemetryEvent("compile", data);
       }
-      if (data.ai_required && userConsumables.ai_compilation !== -1) {
-        consumeAIInteraction(bc_token, "ai-compilation");
+      if (data.ai_required && userConsumables.ai_compilation > 0) {
+        useConsumable(bc_token, "ai-compilation");
       }
     }, 100);
 
@@ -260,13 +260,13 @@ const useStore = create<IStore>((set, get) => ({
       if (environment === "localStorage") {
         registerTelemetryEvent("compile", data);
       }
-      if (data.ai_required && userConsumables.ai_compilation !== -1) {
-        consumeAIInteraction(bc_token, "ai-compilation");
+      if (data.ai_required && userConsumables.ai_compilation > 0) {
+        useConsumable(bc_token, "ai-compilation");
       }
     }, 100);
 
     compilerSocket.onStatus("testing-success", debounceTestingSuccess);
-    compilerSocket.onStatus("testing-error", debounceError);
+    compilerSocket.onStatus("testing-error", debounceTestingError);
     compilerSocket.onStatus("compiler-error", compilerErrorHandler);
     compilerSocket.onStatus("compiler-success", compilerSuccessHandler);
 
@@ -368,7 +368,7 @@ const useStore = create<IStore>((set, get) => ({
       }
       getOrCreateActiveSession();
       await startTelemetry();
-      
+
       return true;
     } catch (err) {
       if (err instanceof MissingRigobotAccountError) {
@@ -1065,6 +1065,7 @@ ${currentContent}
       bc_token,
       environment,
       userConsumables,
+      currentContent,
     } = get();
 
     if (!Boolean(token) || !Boolean(bc_token)) {
@@ -1099,6 +1100,7 @@ ${currentContent}
       editorTabs,
       submittedInputs,
       language,
+      instructions: currentContent,
     };
     compilerSocket.emit("test", data);
 
@@ -1426,6 +1428,7 @@ ${currentContent}
       consumables,
       "ai-conversation-message"
     );
+    console.table({ ai_compilation, ai_conversation_message });
     set({ userConsumables: { ai_compilation, ai_conversation_message } });
   },
   test: async () => {
