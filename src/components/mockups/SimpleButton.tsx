@@ -27,8 +27,8 @@ export default function SimpleButton({
       onClick={action}
       title={title}
     >
-      {svg}
-      {text && <span>{text}</span>}
+      {svg && <span className="d-flex align-center">{svg}</span>}
+      {text && <span className="d-flex align-center">{text}</span>}
     </button>
   );
 }

@@ -22,8 +22,6 @@ export const CustomPictureInPicture: React.FC<CustomPictureInPictureProps> = ({
   }));
   const { t } = useTranslation();
 
-  
-
   return (
     <>
       <Draggable cancel=".no-drag">
@@ -44,11 +42,7 @@ export const CustomPictureInPicture: React.FC<CustomPictureInPictureProps> = ({
           }}
         >
           <div className="flex-x justify-between">
-            <SimpleButton
-            // extraClass="no-drag"
-            // action={hide}
-            // svg={svgs.closeX}
-            />
+            <SimpleButton />
 
             <span className="padding-small">
               {currentExercisePosition === 0

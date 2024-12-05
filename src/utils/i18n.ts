@@ -240,6 +240,8 @@ i18n.use(initReactI18next).init({
         "chat-initial-message":
           "Hola **{userName}**, veo que estás en el paso **{stepSlug}**, ya tengo acceso a tu código. ¿Cómo te puedo ayudar?",
       },
+      "video-introduction": "Video introducción",
+      "video-solution": "Video solución",
       "continue-here": "Continuar acá",
       "start-again": "Empezar de nuevo",
       "missing-rigobot-user": "Falta usuario de Rigobot",
@@ -247,8 +249,6 @@ i18n.use(initReactI18next).init({
         "Parece que no has aceptado la invitación de Rigobot todavía. Learnpack usa Rigobot AI bajo el capó, si quieres usar Tutor de Learnpack, ¡por favor acepta la invitación de Rigobot!",
       "accept-now": "Aceptar ahora",
       "thinking...": "Pensando...",
-      "video-introduction": "Video introducción",
-      "video-solution": "Video solución",
     },
   },
   lng: "en",

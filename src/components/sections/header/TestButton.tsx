@@ -22,7 +22,7 @@ export const TestButton = () => {
 
   return (
     <SimpleButton
-      extraClass={`rounded big w-100 border-blue color-active ${feedbackbuttonProps.className}`}
+      extraClass={`rounded big w-100 border-blue color-blue ${feedbackbuttonProps.className}`}
       svg={svgs.testIcon}
       text={isTesteable ? t(feedbackbuttonProps.text) : t("No tests available")}
       action={runTests}

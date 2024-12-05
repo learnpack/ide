@@ -129,6 +129,8 @@ export const FetchManager = {
       localStorage: async () => {
         const session = LocalStorage.get("session");
         if (!session) throw Error("The user is not logged in");
+        console.log(session, "SESSION FROM LS");
+
         const user = await validateUser(session.token);
 
         if (!user) {
@@ -301,7 +303,12 @@ export const FetchManager = {
     }
 
     const rigobotJson = await rigoResp.json();
-    const returns = { ...user, rigobot: { ...rigobotJson } };
+    const returns = {
+      ...user,
+      rigobot: { ...rigobotJson },
+      token: breathecodeToken,
+    };
+
     LocalStorage.set("session", returns);
 
     const loggedFormat = {
@@ -394,6 +401,7 @@ const loginLocalhost = async (loginInfo: any, host: string) => {
   };
   const res = await fetch(host + "/login", config);
   const json = await res.json();
+
   return json;
 };
 

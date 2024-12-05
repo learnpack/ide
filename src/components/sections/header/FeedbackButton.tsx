@@ -38,7 +38,7 @@ export default function FeedbackButton({
       <SimpleButton
         text={t("Get feedback")}
         svg={svgs.feedbackIcon}
-        extraClass={`pill color-blue row-reverse`}
+        extraClass={`pill color-blue row-reverse editor-footer-child`}
         action={toggleFeedback}
       />
       {showFeedback && (

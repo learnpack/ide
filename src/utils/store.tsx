@@ -17,6 +17,7 @@ import {
   setWindowHash,
   MissingRigobotAccountError,
   countConsumables,
+  removeParam,
 } from "./lib";
 import { IStore, TParamsActions, TPossibleParams } from "./storeTypes";
 import toast from "react-hot-toast";
@@ -352,6 +353,7 @@ const useStore = create<IStore>((set, get) => ({
         const json = await FetchManager.loginWithToken(params.token);
         set({ token: json.rigoToken });
         set({ user: json.user });
+        removeParam("token");
       } else {
         const json = await FetchManager.checkLoggedStatus();
         set({ token: json.rigoToken });

@@ -236,9 +236,10 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                 terminalTab.from &&
                 outputFromMessages[terminalTab.from]}
             </span>{" "}
-            <button onClick={() => removeTab(terminalTab.id, terminalTab.name)}>
-              &times;
-            </button>
+            <SimpleButton
+              action={() => removeTab(terminalTab.id, terminalTab.name)}
+              svg={svgs.redClose}
+            />
           </h5>
 
           {terminalTab.content ? (
@@ -262,7 +263,9 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
       {terminalTab && terminalTab.isHTML && (
         <div className={`terminal ${terminal} html browser`}>
           <div className="d-flex justify-between align-center browser-header">
-            <div className=" browser-tab">{browserTabTitle}</div>
+            <div title={browserTabTitle} className=" browser-tab">
+              {browserTabTitle}
+            </div>
             <div className="d-flex ">
               <SimpleButton
                 title={t("display-another-tab ")}

@@ -14,6 +14,7 @@
   --color-blue-opaque: #eef9fe;
 
   --color-blue: #c1dfed;
+
   --soft-blue: #eef9fe;
   --soft-green: #dfffe8;
   --color-blue-rigo: #0084ff;
@@ -183,6 +184,9 @@ form input {
   padding: 10px;
   width: 100%;
 }
+a {
+  word-break: break-all;
+}
 
 /* This will affect the entire webpage */
 ::-webkit-scrollbar {
@@ -256,6 +260,10 @@ form input {
 
 .bg-fail {
   background-color: var(--color-fail) !important;
+
+  & .set-path-fill path {
+    fill: white;
+  }
 }
 .bg-success {
   background-color: var(--color-success) !important;
@@ -462,26 +470,27 @@ form input {
 
 .browser {
   height: max-content !important;
-  background-color: rgba(203, 203, 203, 0.168);
+  background-color: var(--opaque-blue-editor);
 }
 .browser-tab {
   padding: 4px 20px;
   border-radius: 5px;
   background-color: var(--soft-blue-color);
   color: var(--color-active);
-  max-width: 300px;
+  max-width: 100%;
   text-overflow: ellipsis;
   overflow-x: hidden;
   white-space: nowrap;
 }
 
 .browser-header {
-  background-color: #06758b2f;
+  background-color: #8585852f;
   border-radius: 5px;
   width: calc(100%);
+  padding: 2px;
 }
 .browser-body {
-  background-color: white;
+  background-color: var(--app-bg-color);
   overflow-y: auto;
   height: calc(100% - 40px);
 }

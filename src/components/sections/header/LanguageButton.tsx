@@ -1,7 +1,7 @@
 import SimpleButton from "../../mockups/SimpleButton";
 import useStore from "../../../utils/store";
 import { svgs } from "../../../assets/svgs";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import i18n from "../../../utils/i18n";
 
 const svgsLanguageMap: any = {
@@ -14,9 +14,7 @@ export default function LanguageButton() {
     language: state.language,
   }));
 
-  useEffect(() => {
-    i18n.changeLanguage(language);
-  }, []);
+
   const [showDrop, setShowDropdown] = useState(false);
 
   const toggleDrop = () => {

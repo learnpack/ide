@@ -8,17 +8,11 @@
   background-color: var(--bg-color);
   border-top-right-radius: 6px;
   border-top-left-radius: 6px;
-}
-
-.tabs button {
-  padding: 5px 6px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  padding: 5px 6px;
 }
 
-.tab .close-tab {
-  color: black !important;
-}
 .tab.active {
   background-color: var(--opaque-blue-editor);
 }
@@ -27,39 +21,23 @@
   color: var(--color-active);
 }
 
-.tabs button.add-tab {
-  color: rgb(0, 0, 0);
-  border: none;
-}
-
-.theme-selector {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  display: none;
-}
-.theme-selector select {
-  border-radius: 8px;
-  padding: 3px;
-}
-
 .editor {
-  border: 7px solid #a5d9f8;
-  border-radius: 5px;
-  border-top-left-radius: 0;
+  border: 7px solid var(--opaque-blue-editor);
+  border-radius: 0px;
+  border-top-right-radius: 5px;
   position: relative;
 }
 
 .editor-monaco .view-lines,
 .editor-monaco .margin-view-overlays {
-  height: min(300px, fit-content) !important;
+  height: min(400px, fit-content) !important;
 }
+
 .terminal {
-  border-radius: 5px;
-  border: 8px solid #a5d9f8;
-  margin-top: -8px;
+  border: 8px solid var(--opaque-blue-editor);
+  border-top: 0;
   padding: 8px;
-  height: fit-content;
+  /* height: fit-content; */
   overflow-y: auto;
   position: relative;
 }
@@ -72,7 +50,7 @@
 .terminal.only {
   margin-top: 0;
   border: 0;
-  max-height: 500px;
+  max-height: 70vh;
   & .editor-footer {
     margin-top: 20px;
     display: block;
@@ -87,6 +65,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin: 0;
+  font-size: 16px;
 }
 
 .terminal > pre {
@@ -109,6 +89,14 @@
   left: 8px;
   border-radius: 8px;
   font-size: 12px;
+
+  & .compiler {
+    background-color: var(--color-active);
+    color: white !important;
+    & .set-stroke path {
+      stroke: white;
+    }
+  }
 }
 
 .editor-footer.UNMODIFIED {
@@ -184,6 +172,17 @@
   & .footer-actions > div > button {
     color: black;
   }
+  & .editor-footer-child .set-path-fill path {
+    fill: var(--color-success);
+  }
+  & .compiler {
+    background-color: var(--color-success);
+    color: white !important;
+
+    & .set-path-fill path {
+      stroke: white;
+    }
+  }
 }
 .editor-footer.error {
   background-color: var(--soft-red);
@@ -203,24 +202,22 @@
   & .footer-actions > div {
     color: var(--color-fail);
   }
+
+  & .editor-footer-child .set-path-fill path {
+    fill: var(--color-fail);
+  }
+
+  & .compiler {
+    background-color: var(--color-fail);
+    color: white !important;
+
+    & .set-path-fill path {
+      stroke: white;
+    }
+  }
 }
 
 .footer-actions button {
   font-size: 15px !important;
 }
-.editor-footer .footer-actions > button svg,
-.editor-footer .footer-actions > div svg {
-  height: 15px;
-}
-.editor-footer .footer-actions > button svg path,
-.editor-footer .footer-actions > div > button > svg path {
-  stroke: var(--color-active);
-}
 
-.editor-footer .footer-actions button.active {
-  background-color: var(--color-active);
-  color: white;
-}
-.editor-footer .footer-actions button.active svg path {
-  stroke: white;
-}

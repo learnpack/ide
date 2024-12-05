@@ -298,3 +298,26 @@ export function hashText(text: string, callback: (hash: string) => void) {
       console.error("Hashing failed:", err); // Handle any errors
     });
 }
+
+
+export const removeParam = (param: string) => {
+  // Retrieve the current URL
+  const url = new URL(window.location.href);
+
+  // Remove the specified query parameter
+  url.searchParams.delete(param);
+
+  // Remove the specified hash parameter
+  const hashParams = new URLSearchParams(url.hash.slice(1)); // Exclude the leading '#'
+  hashParams.delete(param);
+
+  // Update the URL hash if there were hash parameters removed
+  if (hashParams.toString()) {
+    url.hash = `#${hashParams.toString()}`;
+  } else {
+    url.hash = ''; // Clear the hash if there are no parameters left
+  }
+
+  // Update the URL without reloading the page
+  window.history.replaceState({}, '', url.toString());
+};

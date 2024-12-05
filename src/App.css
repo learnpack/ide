@@ -50,11 +50,13 @@
   border: 1px solid transparent;
 }
 
+
+
 .simple-button-svg:hover {
   opacity: 1;
 }
 .simple-button-svg.big {
-  padding: 10px 30px !important;
+  padding: 10px 20px !important;
 }
 
 .simple-button-svg.bg-success svg path {
@@ -71,7 +73,7 @@
 .simple-button-svg.mini {
   padding: 0px;
 }
-.simple-button-svg.mini > svg {
+.simple-button-svg.mini svg {
   max-height: 20px !important;
   max-width: 20px !important;
 }
@@ -81,12 +83,12 @@
   cursor: not-allowed;
 }
 
-.simple-button-svg > svg {
+.simple-button-svg svg {
   max-height: 30px !important;
   max-width: 30px !important;
 }
 
-.simple-button-svg > img {
+.simple-button-svg img {
   max-height: 18px !important;
   max-width: 18px !important;
   filter: saturate(90%);
