@@ -62,11 +62,11 @@ export const Container = () => {
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth > 768 && !isRigoOpened) {
+      if (window.innerWidth > 768 && !isRigoOpened && !showSidebar) {
         setVisibleTab("all");
         setIsMobile(false);
       }
-      if (window.innerWidth > 768 && isRigoOpened) {
+      if (window.innerWidth > 768 && isRigoOpened && !showSidebar) {
         setVisibleTab("instructions");
         setIsMobile(false);
       }
@@ -133,6 +133,7 @@ export const Container = () => {
   return (
     <>
       {isRigoOpened && window.innerWidth < 768 && <Chat />}
+      {showSidebar && window.innerWidth < 768 && <Sidebar />}
       <main className={styles.container}>
         <div
           style={{
@@ -184,7 +185,7 @@ export const Container = () => {
               <h3
                 style={{
                   display:
-                    !isMobile && (!isRigoOpened && !showSidebar)
+                    !isMobile && !isRigoOpened && !showSidebar
                       ? "block"
                       : "none",
                 }}
@@ -219,8 +220,9 @@ export const Container = () => {
             </section>
           )}
         </div>
-        {showSidebar && <Sidebar />}
+
         {isRigoOpened && window.innerWidth > 768 && <ChatTab />}
+        {showSidebar && window.innerWidth > 768 && <Sidebar />}
       </main>
     </>
   );

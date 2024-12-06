@@ -14,86 +14,17 @@ const version = packageInfo.version;
 let versionSections = version.split(".");
 versionSections[2] = String(parseInt(versionSections[2]) + 1);
 
-// export function drawCircle(percentage: number) {
-//   const canvas = document.getElementById(
-//     "percentageCanvas"
-//   ) as HTMLCanvasElement;
-
-//   if (!canvas) return;
-
-//   const ctx = canvas.getContext("2d");
-//   const radius = 20;
-//   const centerX = canvas.width / 2;
-//   const centerY = canvas.height / 2;
-
-//   if (!ctx) return;
-//   // Clear the canvas
-//   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-//   // Draw the background circle
-//   ctx.beginPath();
-//   ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-//   ctx.fillStyle = "rgba(224, 224, 224, 0.311)"; // Background color
-//   ctx.fill();
-
-//   // Draw the progress circle
-//   ctx.beginPath();
-//   ctx.moveTo(centerX, centerY);
-//   ctx.arc(
-//     centerX,
-//     centerY,
-//     radius,
-//     -Math.PI / 2,
-//     Math.PI * 2 * percentage - Math.PI / 2
-//   );
-//   ctx.closePath();
-//   ctx.fillStyle = "#21b761"; // Progress color
-//   ctx.fill();
-// }
 
 export default function Sidebar() {
-  // const { t } = useTranslation();
-  const {
-    // configObject,
-    // language,
-    // lessonTitle,
-    theme,
-    toggleTheme,
-    // exercises,
-    showSidebar,
-    setShowSidebar,
-  } = useStore((state) => ({
-    // configObject: state.configObject,
-    // language: state.language,
-    // lessonTitle: state.lessonTitle,
-    theme: state.theme,
-    toggleTheme: state.toggleTheme,
-    // exercises: state.exercises,
-    showSidebar: state.showSidebar,
-    setShowSidebar: state.setShowSidebar,
-  }));
+  const { theme, toggleTheme, showSidebar, setShowSidebar } = useStore(
+    (state) => ({
+      theme: state.theme,
+      toggleTheme: state.toggleTheme,
+      showSidebar: state.showSidebar,
+      setShowSidebar: state.setShowSidebar,
+    })
+  );
 
-  // const [progress, setProgress] = useState({
-  //   solved:
-  //     exercises && exercises.filter
-  //       ? exercises.filter((e: any) => e.done === true).length
-  //       : 0,
-  //   graded:
-  //     exercises && exercises.filter
-  //       ? exercises.filter((e: any) => e.graded).length
-  //       : 0,
-  // });
-
-  // let title = lessonTitle;
-  // if (
-  //   configObject &&
-  //   configObject.config &&
-  //   typeof configObject.config.title === "object"
-  // ) {
-  //   if (Object.keys(configObject.config.title).includes(language)) {
-  //     title = configObject.config.title[language];
-  //   }
-  // }
 
   const closeSidebar = () => {
     const sidebar: HTMLElement | null =
@@ -104,21 +35,11 @@ export default function Sidebar() {
     });
   };
 
-  // useEffect(() => {
-  // const _progress = {
-  //   solved: exercises.filter((e: any) => e.done === true).length,
-  //   graded: exercises.filter((e: any) => e.graded).length,
-  // };
-  // setProgress(_progress);
-  // const percentage = _progress.solved / _progress.graded;
-  // drawCircle(percentage);
-  // }, [showSidebar]);
 
   return (
     <>
       {showSidebar && (
         <div className="sidebar-component">
-          <section>{/* <h2>{title}</h2> */}</section>
           <section className="d-flex gap-small align-center justify-between min-width bg-rigo padding-medium rounded text-white ">
             <span>Menu</span>
             <SimpleButton
@@ -127,15 +48,6 @@ export default function Sidebar() {
               svg={theme === "dark" ? svgs.sun : svgs.moon}
             />
           </section>
-          {/* <section className="min-width">
-            <p className="d-flex align-center gap-small">
-            <canvas width={"50"} height={"50"} id="percentageCanvas"></canvas>
-            <span>
-            {progress.solved}/{progress.graded} {t("solved")}
-            </span>
-            </p>
-            
-            </section> */}
 
           <ExercisesList closeSidebar={closeSidebar} />
 

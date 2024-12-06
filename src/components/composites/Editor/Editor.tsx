@@ -148,17 +148,15 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     setBrowserTabTitle(title);
   };
 
-  const openTabAndSendMessage = () => {
+  const openTabAndSendMessage = (html: string, isReact: boolean) => {
     const newTab = window.open(
       `/preview?slug=${getCurrentExercise().slug}`,
       "__blank"
     );
 
     if (newTab) {
-      const htmlString = LocalStorage.get(`htmlString`, false);
-      // Wait for the new tab to load
       newTab.onload = () => {
-        newTab.postMessage({ htmlString }, "*");
+        newTab.postMessage({ html, isReact }, "*");
       };
     } else {
       console.error("Failed to open new tab.");
@@ -272,7 +270,12 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                 size="mini"
                 svg={svgs.newTab}
                 extraClass="hover rounded"
-                action={openTabAndSendMessage}
+                action={() =>
+                  openTabAndSendMessage(
+                    terminalTab.content,
+                    terminalTab.isReact || false
+                  )
+                }
               />
               <SimpleButton
                 title={t("close-tab")}

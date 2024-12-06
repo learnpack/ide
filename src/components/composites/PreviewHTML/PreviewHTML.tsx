@@ -15,6 +15,7 @@ export const PreviewHTMLPage: React.FC = () => {
   //   htmlString: string;
   // };
   const [htmlString, setHtmlString] = useState("");
+  const [isReact, setIsReact] = useState(false);
 
   const [previewTitle, setPreviewTitle] = useState("");
 
@@ -30,8 +31,11 @@ export const PreviewHTMLPage: React.FC = () => {
     console.log("Event from window.opener", event);
 
     const data = event.data;
-    if (data.htmlString) {
-      setHtmlString(data.htmlString);
+    if (data.html) {
+      setHtmlString(data.html);
+    }
+    if (data.isReact) {
+      setIsReact(data.isReact);
     }
   };
 
@@ -49,7 +53,11 @@ export const PreviewHTMLPage: React.FC = () => {
 
   return (
     <main className="vh100 overflow-y-hidden">
-      <Preview onTitleRevealed={foundPreviewTitle} html={htmlString} />
+      <Preview
+        onTitleRevealed={foundPreviewTitle}
+        html={htmlString}
+        useIframe={isReact}
+      />
     </main>
   );
 };
