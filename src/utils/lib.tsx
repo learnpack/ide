@@ -194,6 +194,7 @@ function fixParams(str: string) {
 
 export const getParamsObject = (): TPossibleParams => {
   let hashParams = window.location.hash.substring(1);
+
   hashParams = fixParams(hashParams);
   const url = window.location.href;
   const urlObj = new URL(url);
@@ -202,6 +203,14 @@ export const getParamsObject = (): TPossibleParams => {
     hashParams += fixParams(searchParams);
   }
   hashParams = fixParams(hashParams);
+
+  if (hashParams.includes("%3F")) {
+    hashParams = hashParams.replace(/%3F/g, "&");
+  }
+
+  if (hashParams.includes("%3D")) {
+    hashParams = hashParams.replace(/%3D/g, "=");
+  }
 
   const decodedHashParams = decodeURIComponent(hashParams);
   const paramsUrlSearch = new URLSearchParams(decodedHashParams);

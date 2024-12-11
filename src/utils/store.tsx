@@ -1151,9 +1151,20 @@ ${currentContent}
   // Leave this empty for development purposes
   displayTestButton: DEV_MODE,
   getOrCreateActiveSession: async () => {
-    const { token, configObject, setOpenedModals, updateEditorTabs, tabHash } =
-      get();
+    const {
+      token,
+      configObject,
+      setOpenedModals,
+      updateEditorTabs,
+      tabHash,
+      checkParams,
+    } = get();
     let storedTabHash = tabHash;
+    let params = checkParams({ justReturn: true });
+
+    if (params.autoclose) {
+      return;
+    }
 
     if (!token) return;
 

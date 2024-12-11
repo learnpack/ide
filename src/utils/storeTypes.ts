@@ -14,6 +14,7 @@ export type TPossibleParams = {
   currentExercise?: string;
   theme?: string;
   purpose?: string;
+  autoclose?: string;
 };
 
 export type TParamsActions = {
