@@ -19,6 +19,7 @@ export function SocketHandler() {
     updateDBSession,
     build,
     runExerciseTests,
+    setUser,
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     exercises: state.exercises,
@@ -31,6 +32,7 @@ export function SocketHandler() {
     updateDBSession: state.updateDBSession,
     build: state.build,
     runExerciseTests: state.runExerciseTests,
+    setUser: state.setUser,
   }));
 
   const [inputsResponses, setInputsResponses] = useState([] as string[]);
@@ -82,6 +84,7 @@ export function SocketHandler() {
         newTabHash: _session.tabHash,
         newBCToken: _session.token,
       });
+      setUser(_session);
     });
   }, []);
 

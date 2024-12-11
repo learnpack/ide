@@ -194,6 +194,7 @@ export interface IStore {
   showSidebar: boolean;
   userConsumables: TUserConsumables;
   maxQuizRetries: number;
+  setUser: (user: TUser) => void;
   getUserConsumables: () => Promise<any>;
   setShowSidebar: (show: boolean) => void;
   setRigoContext: (context: string) => void;

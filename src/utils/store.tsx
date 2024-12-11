@@ -1415,6 +1415,9 @@ ${currentContent}
     }
     set({ showSidebar: show });
   },
+  setUser: (user) => {
+    set({ user });
+  },
   getUserConsumables: async () => {
     const { bc_token } = get();
 
