@@ -547,7 +547,7 @@ ${currentContent}
       if (key in paramsActions) {
         paramsActions[key](value);
       } else {
-        console.error(`Unknown param: ${key}`);
+        console.error(`Unknown param passed: ${key}`);
       }
     }
 
