@@ -120,7 +120,7 @@ i18n.use(initReactI18next).init({
         "video-solution": "Video solution",
         "close-window-title": "Ready to start learning!",
         "close-window-description":
-          "You have been logged in! Return to LearnPack in the other tab and close this tab.",
+          "You have been logged in! Return to LearnPack and close this tab.",
         "close-window-button": "Close Window",
       },
     },
@@ -255,7 +255,7 @@ i18n.use(initReactI18next).init({
       "thinking...": "Pensando...",
       "close-window-title": "¡Listo para empezar a aprender!",
       "close-window-description":
-        "¡Has iniciado sesión! Regresa a LearnPack en la otra pestaña y cierra esta pestaña.",
+        "¡Has iniciado sesión! Regresa a LearnPack y cierra esta pestaña.",
       "close-window-button": "Cerrar ventana",
     },
   },
