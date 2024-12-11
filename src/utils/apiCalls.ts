@@ -15,7 +15,7 @@ export const getSession = async (token: string, slug: string) => {
     return response.data;
   } catch (error) {
     console.error("Error fetching session:", error);
-    throw error; // Rethrow the error for further handling
+    throw error;
   }
 };
 
