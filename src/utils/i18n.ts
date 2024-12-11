@@ -122,6 +122,8 @@ i18n.use(initReactI18next).init({
         "close-window-description":
           "You have been logged in! Return to LearnPack and close this tab.",
         "close-window-button": "Close Window",
+        "max-quiz-retries-reached":
+          "You have reached the maximum number of retries for this quiz 👀",
       },
     },
     es: {
@@ -257,6 +259,8 @@ i18n.use(initReactI18next).init({
       "close-window-description":
         "¡Has iniciado sesión! Regresa a LearnPack y cierra esta pestaña.",
       "close-window-button": "Cerrar ventana",
+      "max-quiz-retries-reached":
+        "Has alcanzado el máximo de intentos para este quiz 👀",
     },
   },
   lng: "en",

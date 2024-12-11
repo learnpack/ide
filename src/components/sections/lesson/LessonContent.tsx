@@ -1,5 +1,5 @@
 import useStore from "../../../utils/store";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { convertMarkdownToHTML, hashText } from "../../../utils/lib";
 import toast from "react-hot-toast";
 
@@ -43,50 +43,20 @@ const rigoSvgString = `
     </svg>
 `;
 
-const currentQuiz = {
-  lastExecution: null,
-  // attemps: [
-  //   {
-  //     correctAnswers: 3,
-  //     percentage: 100,
-  // submittedAt: new Date()
-  //     selections: [
-  //       {
-  //         question: "What is the capital of France?",
-  //         answer: "Paris",
-  //         isCorrect: true,
-  //       },
-  //       {
-  //         question: "What is the capital of Spain?",
-  //         label: "Madrid",
-  //         isCorrect: true,
-  //       },
-  //       {
-  //         question: "What is the capital of Germany?",
-  //         label: "Berlin",
-  //         isCorrect: true,
-  //       },
-  //     ],
-  //   },
-  // ],
-};
-
-type TQuizAttemptSelection = {
+type TQuizSubmissionSelection = {
   question: string;
   answer: string;
   isCorrect: boolean;
 };
 
-type TQuizAttempt = {
-  correctAnswers: number;
-  percentage: number;
-  submittedAt: Date;
-  selections: TQuizAttemptSelection[];
+type TQuizSubmission = {
+  submittedAt: number;
+  selections: TQuizSubmissionSelection[];
 };
 
 type TQuiz = {
   hash: string;
-  attempts: TQuizAttempt[];
+  attempts: TQuizSubmission[];
   [key: string]: any;
 };
 
@@ -98,25 +68,23 @@ export default function LessonContent() {
     setRigoContext,
     toggleRigo,
     isRigoOpened,
+    maxQuizRetries,
+    registerTelemetryEvent,
   } = useStore((state) => ({
-  currentContent: state.currentContent,
+    currentContent: state.currentContent,
     openLink: state.openLink,
     toastFromStatus: state.toastFromStatus,
     setRigoContext: state.setRigoContext,
     toggleRigo: state.toggleRigo,
     isRigoOpened: state.isRigoOpened,
+    maxQuizRetries: state.maxQuizRetries,
+    registerTelemetryEvent: state.registerTelemetryEvent,
   }));
 
   const { t } = useTranslation();
-  const [quizzes, setQuizzes] = useState<TQuiz[]>([]);
-  const quizzesRef = useRef<TQuiz[]>([]); // Create a ref to store quizzes
-  const lessonContentRef = useRef<HTMLDivElement>(null);
 
-  // Update quizzes ref whenever quizzes state changes
-  useEffect(() => {
-    quizzesRef.current = quizzes;
-    // console.log(quizzesRef.current);
-  }, [quizzes]);
+  const quizzesRef = useRef<TQuiz[]>([]);
+  const lessonContentRef = useRef<HTMLDivElement>(null);
 
   const handleCheckboxClick = (event: any) => {
     const checkbox = event.target.closest(".task-list-item");
@@ -124,13 +92,17 @@ export default function LessonContent() {
     const previousElement = parent.previousElementSibling;
     const groupTitle = previousElement?.textContent?.trim();
 
-    // Access the latest quizzes from the ref
     const quiz = quizzesRef.current.find((q) => q[groupTitle]);
+
     if (!quiz) return;
+
+    if (quiz.attempts.length >= maxQuizRetries) {
+      toast.error(t("max-quiz-retries-reached"));
+      return;
+    }
 
     // Update the selected answer
     quiz[groupTitle].currentSelection = checkbox.textContent.trim();
-    setQuizzes(quizzesRef.current);
     const checkboxes = parent.getElementsByClassName("task-list-item");
 
     // Uncheck all checkboxes
@@ -157,41 +129,48 @@ export default function LessonContent() {
     if (!listsContainingTasks) return;
 
     const list = listsContainingTasks[position];
-    const quizQuestions = Object.values(quizzesRef.current[position]);
     const currentQuiz = quizzesRef.current[position];
 
-    console.log(currentQuiz);
+    // Number of attempts
+    const attempts = currentQuiz.attempts.length;
+    if (attempts >= maxQuizRetries) {
+      toast.error(t("max-quiz-retries-reached"));
+      return;
+    }
+
+    const quizQuestions = Object.values(currentQuiz);
 
     let anyIncorrect = false;
     let correctAnswers = 0;
 
     const selections = quizQuestions
       // @ts-ignore
-      .filter((q) => Boolean(q && q.title))
-      .map((q: any) => {
-        const isCorrect = q.currentSelection === q.correctAnswer;
+      .filter((question) => Boolean(question && question.title))
+      .map((question: any) => {
+        const isCorrect = question.currentSelection === question.correctAnswer;
         if (!isCorrect) {
           anyIncorrect = true;
         } else {
           correctAnswers++;
         }
         return {
-          question: q.title,
-          answer: q.currentSelection,
+          question: question.title,
+          answer: question.currentSelection,
           isCorrect,
         };
       });
-    // toast.success(`${selections.length}`);
 
     const totalQuestions = selections.length;
 
     const percentage = (correctAnswers / totalQuestions) * 100;
     const evaluation = {
       status: anyIncorrect ? "ERROR" : "SUCCESS",
-      // correctAnswers,
       percentage,
       selections,
+      quizHash: currentQuiz.hash,
+      submittedAt: new Date().getTime(),
     };
+    registerTelemetryEvent("quiz_submission", evaluation);
 
     const quizQuestionParents =
       list.getElementsByClassName("contains-task-list");
@@ -229,7 +208,7 @@ export default function LessonContent() {
 
     // @ts-ignore
     quizzesRef.current[position].lastExecution = { ...evaluation };
-    setQuizzes(quizzesRef.current);
+    quizzesRef.current[position].attempts.push(evaluation);
     if (anyIncorrect) {
       toastFromStatus("quiz-error");
       return;
@@ -239,46 +218,37 @@ export default function LessonContent() {
     Notifier.confetti();
   };
 
+  const handleArchorClick = (event: any) => {
+    event.preventDefault();
+    openLink(event.target.href);
+  };
+
+  const handleCodeClick = (event: any) => {
+    // Copy code text to clipboard
+    const codeText = event.target.textContent;
+    navigator.clipboard.writeText(codeText);
+    toast.success(t("code-copied"));
+  };
+
+  const handleRigoClick = (position: number) => {
+    const quizJson = JSON.stringify(quizzesRef.current[position], null, 2);
+
+    setRigoContext(quizJson);
+    if (!isRigoOpened) {
+      toggleRigo();
+    }
+  };
+
   useEffect(() => {
     const lessonContentDiv = lessonContentRef.current;
     if (!lessonContentDiv) return;
 
-    // const quizQuestionParents =
-    //   lessonContentDiv.getElementsByClassName("contains-task-list");
-
     const listsContainingTasks = lessonContentDiv.querySelectorAll(
       "ul:has(.contains-task-list), ol:has(.contains-task-list)"
     );
-    // console.log(
-    //   "Number of found lists of questions:",
-    //   listsContainingTasks.length
-    // );
 
     const anchors = lessonContentDiv.getElementsByTagName("a");
     const codes = lessonContentDiv.getElementsByTagName("code");
-    // const checkboxes =
-    // lessonContentDiv.getElementsByClassName("task-list-item");
-
-    const handleArchorClick = (event: any) => {
-      event.preventDefault();
-      openLink(event.target.href);
-    };
-
-    const handleCodeClick = (event: any) => {
-      // Copy code text to clipboard
-      const codeText = event.target.textContent;
-      navigator.clipboard.writeText(codeText);
-      toast.success(t("code-copied"));
-    };
-
-    const handleRigoClick = () => {
-      const quizJson = JSON.stringify(currentQuiz, null, 2);
-      // navigator.clipboard.writeText(quizJson);
-      setRigoContext(quizJson);
-      if (!isRigoOpened) {
-        toggleRigo();
-      }
-    };
 
     for (let anchor of anchors) {
       anchor.addEventListener("click", handleArchorClick);
@@ -305,6 +275,10 @@ export default function LessonContent() {
         const checkboxes = group.getElementsByClassName("task-list-item");
         const previousElement = group.previousElementSibling;
         const groupTitle = previousElement?.textContent?.trim();
+        if (!groupTitle) {
+          console.log("No group title found for group", group);
+          continue;
+        }
         concatenatedTitles += groupTitle;
         const checkboxesArray = Array.from(checkboxes);
         let correctAnswer = "";
@@ -363,7 +337,9 @@ export default function LessonContent() {
           quizButton.addEventListener("click", () =>
             handleSubmit(listPosition)
           );
-          rigoButton.addEventListener("click", handleRigoClick);
+          rigoButton.addEventListener("click", () =>
+            handleRigoClick(listPosition)
+          );
 
           if (lastGroupParent) {
             quizButtonsContainer.appendChild(quizButton);
@@ -379,7 +355,7 @@ export default function LessonContent() {
         _quizzes.push(quiz);
       });
     }
-    setQuizzes(_quizzes);
+    quizzesRef.current = _quizzes;
 
     return () => {
       for (let anchor of anchors) {
@@ -398,10 +374,6 @@ export default function LessonContent() {
           }
         }
       }
-      Object.keys(currentQuiz).forEach((key) => {
-        // @ts-ignore
-        delete currentQuiz[key];
-      });
 
       // Remove the quiz-button if it exists
       const quizButtonsContainer = document.querySelector(
@@ -412,7 +384,6 @@ export default function LessonContent() {
       }
     };
   }, [currentContent]);
-
 
   return (
     <div

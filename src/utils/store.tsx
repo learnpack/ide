@@ -1414,6 +1414,8 @@ ${currentContent}
       const tutorialSlug = configObject.config?.slug || "";
       const STORAGE_KEY = "TELEMETRY";
 
+      console.log(configObject.config);
+
       if (!configObject.config.telemetry) {
         console.error("No telemetry urls found in config");
         return;
@@ -1423,6 +1425,7 @@ ${currentContent}
       TelemetryManager.userToken = bc_token;
       // @ts-ignore
       TelemetryManager.start(agent, steps, tutorialSlug, STORAGE_KEY);
+      console.log("Telemetry started successfully!");
     }
   },
   setRigoContext: (context) => {
@@ -1457,7 +1460,8 @@ ${currentContent}
   test: async () => {
     // Notifier.success("Succesfully tested");
     // const { bc_token } = get();
-    FetchManager.logout();
+    // FetchManager.logout();
+    console.log(TelemetryManager.current);
   },
 }));
 

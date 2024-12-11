@@ -28,6 +28,7 @@ export const Container = () => {
     setTerminalShouldShow,
     isRigoOpened,
     showSidebar,
+    currentContent,
   } = useStore((s) => ({
     editorTabs: s.editorTabs,
     handleNext: s.handleNext,
@@ -37,6 +38,7 @@ export const Container = () => {
     setTerminalShouldShow: s.setTerminalShouldShow,
     isRigoOpened: s.isRigoOpened,
     showSidebar: s.showSidebar,
+    currentContent: s.currentContent,
   }));
 
   const { t } = useTranslation();
@@ -99,13 +101,6 @@ export const Container = () => {
         setVisibleTab("instructions");
       }
     }
-
-    if (instructionsSectionRef.current) {
-      instructionsSectionRef.current.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
-    }
   }, [editorTabs, terminalShouldShow]);
 
   useEffect(() => {
@@ -129,6 +124,15 @@ export const Container = () => {
       handleNext();
     }
   };
+
+  useEffect(() => {
+    if (instructionsSectionRef.current) {
+      instructionsSectionRef.current.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
+  }, [currentContent]);
 
   return (
     <>

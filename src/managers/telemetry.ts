@@ -339,6 +339,15 @@ const TelemetryManager: ITelemetryManager = {
 
         step.ai_interactions.push(data);
         break;
+
+      case "quiz_submission": {
+        if (!step.quiz_submissions) {
+          step.quiz_submissions = [];
+        }
+
+        step.quiz_submissions.push(data);
+        break;
+      }
       case "open_step": {
         // NOTE: data is not used here
         const now = Date.now();
