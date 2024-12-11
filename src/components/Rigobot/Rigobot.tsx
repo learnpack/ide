@@ -10,6 +10,7 @@ import { svgs } from "../../assets/svgs";
 
 import useStore from "../../utils/store";
 import { TUser } from "../../utils/storeTypes";
+import toast from "react-hot-toast";
 // import TagManager from "react-gtm-module";
 
 function removeHiddenContent(text: string) {
@@ -36,6 +37,9 @@ const formatInitialMessage = (
   fallbackMessage: string
 ) => {
   if (!message) return fallbackMessage;
+
+  toast.loading(JSON.stringify(user));
+
   if (!user || !user.first_name || !stepSlug || !message) return message;
   return message
     .replace("{userName}", user.first_name)

@@ -309,8 +309,6 @@ export const FetchManager = {
       token: breathecodeToken,
     };
 
-    LocalStorage.set("session", returns);
-
     const loggedFormat = {
       payload: { ...returns },
       rigoToken: returns.rigobot.key,
@@ -324,6 +322,8 @@ export const FetchManager = {
         token: breathecodeToken,
         tabHash: tabHash,
       });
+    } else {
+      LocalStorage.set("session", returns);
     }
 
     return loggedFormat;
