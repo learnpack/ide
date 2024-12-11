@@ -502,7 +502,7 @@ ${currentContent}
     }
   },
   checkParams: ({ justReturn }) => {
-    const { setLanguage, setPosition, language } = get();
+    const { setLanguage, setPosition, language, setOpenedModals } = get();
 
     let paramsObject = getParamsObject();
 
@@ -533,12 +533,21 @@ ${currentContent}
           set({ theme: value });
         }
       },
+      autoclose: (value: string) => {
+        if (value.toLowerCase() === "true") {
+          // Close the tab
+          setOpenedModals({ closeWindow: true });
+        }
+      },
     };
 
     const entries = Object.entries(paramsObject);
+    
     for (let [key, value] of entries) {
       if (key in paramsActions) {
         paramsActions[key](value);
+      } else {
+        toast.error(`Unknown param: ${key}`);
       }
     }
 

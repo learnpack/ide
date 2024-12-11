@@ -118,6 +118,10 @@ i18n.use(initReactI18next).init({
         "thinking...": "Thinking...",
         "video-introduction": "Video introduction",
         "video-solution": "Video solution",
+        "close-window-title": "Ready to start learning!",
+        "close-window-description":
+          "You have been logged in! Return to LearnPack in the other tab and close this tab.",
+        "close-window-button": "Close Window",
       },
     },
     es: {
@@ -249,6 +253,10 @@ i18n.use(initReactI18next).init({
         "Parece que no has aceptado la invitación de Rigobot todavía. Learnpack usa Rigobot AI bajo el capó, si quieres usar Tutor de Learnpack, ¡por favor acepta la invitación de Rigobot!",
       "accept-now": "Aceptar ahora",
       "thinking...": "Pensando...",
+      "close-window-title": "¡Listo para empezar a aprender!",
+      "close-window-description":
+        "¡Has iniciado sesión! Regresa a LearnPack en la otra pestaña y cierra esta pestaña.",
+      "close-window-button": "Cerrar ventana",
     },
   },
   lng: "en",

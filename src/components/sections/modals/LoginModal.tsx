@@ -10,11 +10,14 @@ import toast from "react-hot-toast";
 import { BREATHECODE_HOST } from "../../../utils/lib";
 
 export default function LoginModal() {
-  const { setOpenedModals, loginToRigo, openLink } = useStore((state) => ({
-    setOpenedModals: state.setOpenedModals,
-    loginToRigo: state.loginToRigo,
-    openLink: state.openLink,
-  }));
+  const { setOpenedModals, loginToRigo, openLink, environment } = useStore(
+    (state) => ({
+      setOpenedModals: state.setOpenedModals,
+      loginToRigo: state.loginToRigo,
+      openLink: state.openLink,
+      environment: state.environment,
+    })
+  );
 
   const { t } = useTranslation();
   const backdropRef = useRef<HTMLDivElement>(null);
@@ -65,6 +68,13 @@ export default function LoginModal() {
 
   function getCurrentUrlWithQueryParams() {
     const currentUrl = window.location.href;
+    if (environment === "localhost") {
+      // detech if the url has hash params
+      if (currentUrl.includes("#")) {
+        return `${currentUrl}&autoclose=true`;
+      }
+      return `${currentUrl}?autoclose=true`;
+    }
     return currentUrl;
   }
 

@@ -11,6 +11,7 @@ import { DialogModal } from "./DialogModal";
 import "./modals.css";
 import { SessionModal } from "./ContinueSession";
 import { MustLoginModal } from "./MustLogin";
+import { CloseWindow } from "./CloseWindow";
 
 export const ModalsContainer = () => {
   const { openedModals } = useStore((state) => ({
@@ -30,6 +31,7 @@ export const ModalsContainer = () => {
       {openedModals.dialog && <DialogModal />}
       {openedModals.session && <SessionModal />}
       {openedModals.mustLogin && <MustLoginModal />}
+      {openedModals.closeWindow && <CloseWindow />}
     </>
   );
 };
