@@ -38,7 +38,7 @@ const formatInitialMessage = (
 ) => {
   if (!message) return fallbackMessage;
 
-  toast.loading(JSON.stringify(user));
+  toast.loading(`USER: ${JSON.stringify(user)}`);
 
   if (!user || !user.first_name || !stepSlug || !message) return message;
   return message
