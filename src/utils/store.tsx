@@ -542,12 +542,12 @@ ${currentContent}
     };
 
     const entries = Object.entries(paramsObject);
-    
+
     for (let [key, value] of entries) {
       if (key in paramsActions) {
         paramsActions[key](value);
       } else {
-        toast.error(`Unknown param: ${key}`);
+        console.error(`Unknown param: ${key}`);
       }
     }
 

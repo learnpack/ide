@@ -203,7 +203,8 @@ export const getParamsObject = (): TPossibleParams => {
   }
   hashParams = fixParams(hashParams);
 
-  const paramsUrlSearch = new URLSearchParams(hashParams);
+  const decodedHashParams = decodeURIComponent(hashParams);
+  const paramsUrlSearch = new URLSearchParams(decodedHashParams);
 
   let paramsObject: Record<string, string> = {};
   for (const [key, value] of paramsUrlSearch.entries()) {
@@ -299,7 +300,6 @@ export function hashText(text: string, callback: (hash: string) => void) {
     });
 }
 
-
 export const removeParam = (param: string) => {
   // Retrieve the current URL
   const url = new URL(window.location.href);
@@ -315,9 +315,9 @@ export const removeParam = (param: string) => {
   if (hashParams.toString()) {
     url.hash = `#${hashParams.toString()}`;
   } else {
-    url.hash = ''; // Clear the hash if there are no parameters left
+    url.hash = ""; // Clear the hash if there are no parameters left
   }
 
   // Update the URL without reloading the page
-  window.history.replaceState({}, '', url.toString());
+  window.history.replaceState({}, "", url.toString());
 };

@@ -63,7 +63,7 @@ export default function LoginModal() {
   };
 
   function stringToBase64(str: string) {
-    return btoa(unescape(encodeURIComponent(str))); // Convierte la cadena a Base64
+    return btoa(unescape(encodeURIComponent(str)));
   }
 
   function getCurrentUrlWithQueryParams() {
