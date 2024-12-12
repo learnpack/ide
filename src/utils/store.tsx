@@ -345,6 +345,7 @@ const useStore = create<IStore>((set, get) => ({
       checkParams,
       getOrCreateActiveSession,
       startTelemetry,
+      environment,
     } = get();
 
     const params = checkParams({ justReturn: true });
@@ -367,7 +368,10 @@ const useStore = create<IStore>((set, get) => ({
         startConversation(Number(currentExercisePosition));
       }
       getOrCreateActiveSession();
-      await startTelemetry();
+
+      if (environment === "localStorage") {
+        await startTelemetry();
+      }
 
       return true;
     } catch (err) {

@@ -1,20 +1,20 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react-swc";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  
   build: {
-    minify: false,
+    minify: true,
     rollupOptions: {
       output: {
-        sourcemap:  true,
-        format: 'iife', 
-        assetFileNames: '[name][extname]',
-        chunkFileNames: '[name].js',
-        entryFileNames: '[name].js'
+        sourcemap: false,
+        format: "iife",
+        entryFileNames: "app[hash].js",
+        assetFileNames: "[name][hash][extname]",
+        // chunkFileNames: "[name].js",
       },
     },
+    cssCodeSplit: false,
   },
   plugins: [react()],
-})
+});
