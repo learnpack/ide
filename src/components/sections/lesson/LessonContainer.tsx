@@ -80,17 +80,8 @@ export default function LessonContainer({
       )}
       {children}
       <LessonContent />
-      {ENVIRONMENT === "localStorage" && continueAction && (
-        <div
-          onClick={continueAction}
-          className={`badge bg-blue ${
-            editorTabs.length > 0 ? "hide-continue-button" : "continue-button"
-          }`}
-        >
-          {t("continue")}
-        </div>
-      )}
-      {ENVIRONMENT === "localhost" && editorTabs.length === 0 && (
+
+      {continueAction && editorTabs.length === 0 && (
         <div
           onClick={continueAction}
           className={`badge bg-blue ${

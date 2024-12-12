@@ -613,8 +613,8 @@ a {
 }
 
 .continue-button {
-  visibility: hidden;
-  display: none;
+  /* visibility: hidden;
+  display: none; */
   animation: show-continue-button 1s ease-in-out forwards;
 }
 
