@@ -1,7 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 
-// https://vitejs.dev/config/
 export default defineConfig({
   build: {
     minify: true,
@@ -9,9 +8,13 @@ export default defineConfig({
       output: {
         sourcemap: false,
         format: "iife",
-        entryFileNames: "app[hash].js",
-        assetFileNames: "[name][hash][extname]",
-        // chunkFileNames: "[name].js",
+        entryFileNames: "app.js",
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name.endsWith('.css')) {
+            return 'app.css';
+          }
+          return '[name][hash][extname]';
+        },
       },
     },
     cssCodeSplit: false,

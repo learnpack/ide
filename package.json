@@ -1,10 +1,10 @@
 {
   "name": "learnpack-ai",
   "private": true,
-  "version": "5.0.39",
+  "version": "5.0.40",
   "scripts": {
     "dev": "node src/utils/development.js --turn on && vite",
-    "build": "node src/utils/development.js --turn off && tsc && vite build && node bin/publish.js && node src/utils/createVersionsFile.js",
+    "build": "node src/utils/development.js --turn off && tsc && vite build && node src/utils/uploadLearnpack.js && node bin/publish.js && node src/utils/createVersionsFile.js ",
     "dev-build": "node src/utils/development.js --turn on && tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
@@ -34,6 +34,7 @@
     "zustand": "^4.4.1"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.709.0",
     "@types/markdown-it": "^14.1.2",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
@@ -45,6 +46,7 @@
     "@typescript-eslint/parser": "^6.0.0",
     "@vitejs/plugin-react-swc": "^3.3.2",
     "archiver": "^6.0.1",
+    "dotenv": "^16.4.7",
     "eslint": "^8.45.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
