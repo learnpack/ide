@@ -124,6 +124,7 @@ i18n.use(initReactI18next).init({
         "close-window-button": "Close Window",
         "max-quiz-retries-reached":
           "You have reached the maximum number of retries for this quiz 👀",
+        "you-must-login-to-continue": "You must login to continue",
       },
     },
     es: {
@@ -261,6 +262,7 @@ i18n.use(initReactI18next).init({
       "close-window-button": "Cerrar ventana",
       "max-quiz-retries-reached":
         "Has alcanzado el máximo de intentos para este quiz 👀",
+        "you-must-login-to-continue": "Debes iniciar sesión para continuar",
     },
   },
   lng: "en",

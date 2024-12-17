@@ -189,6 +189,9 @@ export interface IStore {
   isIframe: boolean;
   isRigoOpened: boolean;
   theme: string;
+  authentication: {
+    mandatory: boolean;
+  };
   lastState: "success" | "error" | string;
   terminalShouldShow: boolean;
   rigoContext: string;

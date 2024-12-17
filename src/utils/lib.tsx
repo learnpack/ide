@@ -170,12 +170,12 @@ export const startChat = async (purpose_id: string | number, token: string) => {
 };
 
 export const disconnected = () => {
-  // const modal: HTMLElement | null = document.querySelector(
-  //   "#socket-disconnected"
-  // );
-  // if (modal) {
-  //   modal.style.display = "block";
-  // }
+  const modal: HTMLElement | null = document.querySelector(
+    "#socket-disconnected"
+  );
+  if (modal) {
+    modal.style.display = "block";
+  }
 };
 
 export const onConnectCli = () => {

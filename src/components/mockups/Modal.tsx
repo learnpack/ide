@@ -23,8 +23,9 @@ export const Modal = ({
   const handleClickOutside = (event: any) => {
     if (
       modalRef.current === event.target ||
-      (event.target.classList &&
-        event.target.classList.includes("modal-closer"))
+      (typeof event.target.classList === "function" &&
+        event.target.classList &&
+        event.target.classList.contains("modal-closer"))
     ) {
       outsideClickHandler();
     }

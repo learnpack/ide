@@ -10,14 +10,19 @@ import toast from "react-hot-toast";
 import { BREATHECODE_HOST } from "../../../utils/lib";
 
 export default function LoginModal() {
-  const { setOpenedModals, loginToRigo, openLink, environment } = useStore(
-    (state) => ({
-      setOpenedModals: state.setOpenedModals,
-      loginToRigo: state.loginToRigo,
-      openLink: state.openLink,
-      environment: state.environment,
-    })
-  );
+  const {
+    setOpenedModals,
+    loginToRigo,
+    openLink,
+    environment,
+    authentication,
+  } = useStore((state) => ({
+    setOpenedModals: state.setOpenedModals,
+    loginToRigo: state.loginToRigo,
+    openLink: state.openLink,
+    environment: state.environment,
+    authentication: state.authentication,
+  }));
 
   const { t } = useTranslation();
   const backdropRef = useRef<HTMLDivElement>(null);
@@ -88,13 +93,21 @@ export default function LoginModal() {
     );
   };
 
+  const handleExit = () => {
+    if (!authentication.mandatory) {
+      setOpenedModals({ login: false });
+    } else {
+      toast.success(t("you-must-login-to-continue"), {
+        icon: "🔒",
+      });
+    }
+  }
+
   return (
     <>
       <Modal
         extraClass="login-modal"
-        outsideClickHandler={() => {
-          setOpenedModals({ login: false });
-        }}
+        outsideClickHandler={handleExit}
       >
         <div className="modal-content">
           <h2>{t("login")}</h2>
@@ -111,7 +124,7 @@ export default function LoginModal() {
               action={redirectGithub}
             />
           </div>
-          <form action="">
+          <form action="" onSubmit={(e)=>e.preventDefault()}>
             <div className="separator">
               <div></div>
               <h4>{t("or")}</h4>
@@ -146,9 +159,7 @@ export default function LoginModal() {
               />
               <SimpleButton
                 extraClass="btn-dark big rounded"
-                action={() => {
-                  setOpenedModals({ login: false });
-                }}
+                action={handleExit}
                 text={t("skip")}
               />
             </div>

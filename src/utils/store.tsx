@@ -141,6 +141,9 @@ const useStore = create<IStore>((set, get) => ({
     status: "",
     logs: "",
   },
+  authentication: {
+    mandatory: false,
+  },
   // @ts-ignore
   environment: "localhost",
 
@@ -463,7 +466,15 @@ ${currentContent}
 
       if (!config) return;
 
-      console.log(config.config.assessment, "ASSESSMENT");
+      // console.log(config.config.assessment, "ASSESSMENT");
+      console.log(config.config.authentication, "AUTHENTICATION");
+
+      if (
+        config.config.authentication &&
+        config.config.authentication.mandatory
+      ) {
+        set({ authentication: { mandatory: true } });
+      }
 
       if (config.config.assessment && config.config.assessment.maxQuizRetries) {
         set({ maxQuizRetries: config.config.assessment.maxQuizRetries });

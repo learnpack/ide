@@ -6,6 +6,7 @@
   padding-block: 10px;
   align-items: center;
   background-color: var(--app-bg-color);
+  /* background-color: red; */
 }
 
 .header > section {
