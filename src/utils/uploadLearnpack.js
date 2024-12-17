@@ -3,6 +3,11 @@ const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const fs = require('fs');
 const path = require('path');
 
+// Get the version from the package.json
+let version = require('../../package.json').version;
+// Kepp only the first part of the version
+version = version.split('.')[0];
+
 // Initialize S3 Client
 const s3Client = new S3Client({
     region: process.env.AWS_REGION,
@@ -57,7 +62,7 @@ async function uploadToS3(filePath, fileName, contentType) {
 
         const uploadParams = {
             Bucket: process.env.BUCKET_NAME,
-            Key: `learnpack/${fileName}`,
+            Key: `learnpack/v${version}/${fileName}`,
             Body: fileContent,
             ContentType: contentType,
             Metadata: {
@@ -74,7 +79,7 @@ async function uploadToS3(filePath, fileName, contentType) {
         const command = new PutObjectCommand(uploadParams);
         await s3Client.send(command);
 
-        const fileUrl = `https://${process.env.BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/learnpack/${fileName}`;
+        const fileUrl = `https://${process.env.BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/learnpack/v${version}/${fileName}`;
         console.log(`✅ File ${fileName} uploaded successfully`);
         console.log(`📂 URL: ${fileUrl}`);
 
