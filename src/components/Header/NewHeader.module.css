@@ -5,8 +5,7 @@
   padding-inline: 10px;
   padding-block: 10px;
   align-items: center;
-  /* background-color: var(--app-bg-color); */
-  background-color: red;
+  background-color: var(--app-bg-color);
 }
 
 .header > section {
