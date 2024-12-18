@@ -37,7 +37,6 @@ const formatInitialMessage = (
 ) => {
   if (!message) return fallbackMessage;
 
-
   if (!user || !user.first_name || !stepSlug || !message) return message;
   return message
     .replace("{userName}", user.first_name)
@@ -46,6 +45,8 @@ const formatInitialMessage = (
 
 const slugToTitle = (slug: string) => {
   // Replace all - and _ with spaces and capitalize the first letter of each word
+
+  if (!slug) return "";
   return slug
     .replace(/-/g, " ")
     .replace(/_/g, " ")
