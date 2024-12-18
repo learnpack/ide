@@ -521,6 +521,8 @@ ${currentContent}
 
     let paramsObject = getParamsObject();
 
+    console.log(paramsObject, "PARAMS OBJECT FROM QUERY PARAMS");
+    
     if (justReturn) {
       return paramsObject;
     }
@@ -1034,7 +1036,6 @@ ${currentContent}
       return;
     }
 
-    // Count the number of AI compilatios if the environment is localStorage
     if (
       environment === "localStorage" &&
       !(
@@ -1042,7 +1043,7 @@ ${currentContent}
         userConsumables.ai_compilation === -1
       )
     ) {
-      toast.error("You have reached the limit of AI compilations");
+      setOpenedModals({ limitReached: true });
       return;
     }
 
@@ -1104,7 +1105,7 @@ ${currentContent}
         userConsumables.ai_compilation === -1
       )
     ) {
-      toast.error("You have reached the limit of AI compilations");
+      setOpenedModals({ limitReached: true });
       return;
     }
 

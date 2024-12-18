@@ -6,22 +6,23 @@ Quizzes are a great way to test the knowledge of the user. They are a great way 
 
 ### Rules
 
-1. Each group of question should have a title
-2. Each group of questions must have an unique correct answer
+1. Each group of options should have a question title separated by an empty line from the options.
+2. Each group of options must have an unique correct answer
 3. Each option should be a checkbox indented by 3 to 6 spaces, this is important for the parsing from markdown to HTML. In general, depending of the editor you're using, you can simply `tab` to indent the options.
-4. It must be an empty line between the title of the question and the options. This is important for the parsing from markdown to HTML.
+4. It must be an empty line between the question title and the options. This is important for the parsing from markdown to HTML.
 
 ##### First Example:
 
 ```md
 1. Question number 1 (This is the title for the group of questions)
+   <!-- Each group of options should have an empty line between the question title and the options -->
 
    - [ ] Incorrect option
    - [ ] Incorrect option
    - [x] Correct option (This is the correct answer)
 
 2. Question number 2
-
+   <!-- Each group of options should have an empty line between the question title and the options -->
    - [ ] Incorrect option
    - [x] Correct option
    - [ ] Incorrect option

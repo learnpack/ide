@@ -12,6 +12,7 @@ import "./modals.css";
 import { SessionModal } from "./ContinueSession";
 import { MustLoginModal } from "./MustLogin";
 import { CloseWindow } from "./CloseWindow";
+import { LimitAiCompilations } from "./LimitAiCompilations";
 
 export const ModalsContainer = () => {
   const { openedModals } = useStore((state) => ({
@@ -32,6 +33,7 @@ export const ModalsContainer = () => {
       {openedModals.session && <SessionModal />}
       {openedModals.mustLogin && <MustLoginModal />}
       {openedModals.closeWindow && <CloseWindow />}
+      {openedModals.limitReached && <LimitAiCompilations />}
     </>
   );
 };
