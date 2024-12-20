@@ -12,7 +12,7 @@ export const CompileOptions = () => {
     <Dropdown
       className="up"
       openingElement={
-        <SimpleButton extraClass="compiler " svg={svgs.run} text={t("Run")} />
+        <SimpleButton extraClass="compiler rounded padding-small" svg={svgs.run} text={t("Run")} />
       }
     >
       <BuildButton extraClass=" active big w-100" />

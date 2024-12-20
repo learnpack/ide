@@ -1475,9 +1475,10 @@ ${currentContent}
   },
   test: async () => {
     // Notifier.success("Succesfully tested");
-    // const { bc_token } = get();
+    const { setOpenedModals } = get();
     // FetchManager.logout();
     console.log(TelemetryManager.current);
+    setOpenedModals({ limitReached: true });
   },
 }));
 

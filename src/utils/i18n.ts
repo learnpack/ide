@@ -125,6 +125,10 @@ i18n.use(initReactI18next).init({
         "max-quiz-retries-reached":
           "You have reached the maximum number of retries for this quiz 👀",
         "you-must-login-to-continue": "You must login to continue",
+        "limit-ai-compilations": "Insufficient AI compilations",
+        "limit-ai-compilations-description":
+          "You need to **upgrade your plan** or **buy more compilations** to continue using the LearnPack services",
+        "upgrade-now": "Upgrade now",
       },
     },
     es: {
@@ -262,7 +266,11 @@ i18n.use(initReactI18next).init({
       "close-window-button": "Cerrar ventana",
       "max-quiz-retries-reached":
         "Has alcanzado el máximo de intentos para este quiz 👀",
-        "you-must-login-to-continue": "Debes iniciar sesión para continuar",
+      "you-must-login-to-continue": "Debes iniciar sesión para continuar",
+      "limit-ai-compilations": "Compilaciones insuficientes",
+      "limit-ai-compilations-description":
+        "Necesitas **actualizar tu plan** o **comprar más compilaciones** para continuar usando los servicios de LearnPack",
+      "upgrade-now": "Actualizar ahora",
     },
   },
   lng: "en",
