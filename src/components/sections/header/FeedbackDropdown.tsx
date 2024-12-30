@@ -91,7 +91,10 @@ export const FeedbackDropdown = ({
   };
 
   const rigoAccepted = async () => {
-    checkRigobotInvitation();
+    const messages = {
+      error: t("rigo-not-yet-accepted"),
+    };
+    checkRigobotInvitation(messages);
   };
 
   const openSolutionFile = () => {
@@ -139,7 +142,7 @@ export const FeedbackDropdown = ({
         action={runTests}
         disabled={!isTesteable}
       /> */}
-      
+
       <SimpleButton
         text={
           hasSolution

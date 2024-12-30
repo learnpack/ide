@@ -244,8 +244,7 @@ const useStore = create<IStore>((set, get) => ({
         toast.error(data.recommendations);
       }
       setBuildButtonPrompt("Try again", "bg-fail");
-      const [icon, message] = getStatus("compiler-error");
-      toast.error(message, { icon: icon });
+      toastFromStatus("compiler-error");
       if (environment === "localStorage") {
         registerTelemetryEvent("compile", data);
       }
@@ -257,8 +256,8 @@ const useStore = create<IStore>((set, get) => ({
     let compilerSuccessHandler = debounce((data: any) => {
       data;
       set({ lastState: "success", terminalShouldShow: true });
-      const [icon, message] = getStatus("compiler-success");
-      toast.success(message, { icon: icon });
+
+      toastFromStatus("compiler-success");
       setBuildButtonPrompt("Run", "bg-success");
       if (environment === "localStorage") {
         registerTelemetryEvent("compile", data);
@@ -522,7 +521,7 @@ ${currentContent}
     let paramsObject = getParamsObject();
 
     console.log(paramsObject, "PARAMS OBJECT FROM QUERY PARAMS");
-    
+
     if (justReturn) {
       return paramsObject;
     }
@@ -701,7 +700,7 @@ ${currentContent}
       }
       setToken(json.rigobot.key);
 
-      toast.success("Successfully logged in", {
+      toast.success(loginInfo.messages.success, {
         icon: "✅",
       });
     } catch (error) {
@@ -709,8 +708,7 @@ ${currentContent}
         setOpenedModals({ login: false, rigobotInvite: true });
         return false;
       } else {
-        const errorMessage = `It appears that something was wrong with your 4Geeks credentials, please try again`;
-        toast.error(errorMessage);
+        toast.error(loginInfo.messages.error);
         return false;
       }
     }
@@ -721,12 +719,12 @@ ${currentContent}
     return true;
   },
 
-  checkRigobotInvitation: async () => {
+  checkRigobotInvitation: async (messages) => {
     const { bc_token, setToken, openLink } = get();
     const rigoAcceptedUrl = `${RIGOBOT_HOST}/v1/auth/me/token?breathecode_token=${bc_token}`;
     const res = await fetch(rigoAcceptedUrl);
     if (res.status != 200) {
-      toast.error("You have not accepted Rigobot's invitation yet!");
+      toast.error(messages.error);
       openLink(
         "https://rigobot.herokuapp.com/invite?referer=4geeks&token=" + bc_token,
         { redirect: false }
@@ -1029,6 +1027,7 @@ ${currentContent}
       environment,
       userConsumables,
       bc_token,
+      toastFromStatus,
     } = get();
 
     if (!Boolean(token) || !Boolean(bc_token)) {
@@ -1058,8 +1057,7 @@ ${currentContent}
 
     setBuildButtonPrompt(buildText, "");
 
-    const [icon, message] = getStatus("compiling");
-    toast.success(message, { icon: icon });
+    toastFromStatus("compiling");
 
     const data = {
       exerciseSlug: getCurrentExercise().slug,
@@ -1475,10 +1473,10 @@ ${currentContent}
   },
   test: async () => {
     // Notifier.success("Succesfully tested");
-    const { setOpenedModals } = get();
-    // FetchManager.logout();
-    console.log(TelemetryManager.current);
-    setOpenedModals({ limitReached: true });
+    // const { setOpenedModals } = get();
+    FetchManager.logout();
+    // console.log(TelemetryManager.current);
+    // setOpenedModals({ limitReached: true });
   },
 }));
 

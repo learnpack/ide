@@ -93,6 +93,10 @@ type TCheckLoggedStatusOptions = {
 type TLoginInfo = {
   email: string;
   password: string;
+  messages: {
+    error: string;
+    success: string;
+  };
 };
 type TTestStatus = "successful" | "failed" | "";
 
@@ -207,7 +211,9 @@ export interface IStore {
   start: () => void;
   handleEnvironmentChange: (event: any) => void;
   setListeners: () => void;
-  checkRigobotInvitation: () => void;
+  checkRigobotInvitation: (messages: {
+    error: string;
+  }) => void;
   openLink: (url: string, opts?: TOpenLinkOptions) => void;
   setTestResult: (status: TTestStatus, logs: string) => void;
   checkParams: (opts: TCheckParamsOptions) => TPossibleParams;

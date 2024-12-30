@@ -53,6 +53,10 @@ export default function LoginModal() {
     const isLoggedId = await loginToRigo({
       email: email,
       password: password,
+      messages: {
+        error: t("login-credentials-error"),
+        success: t("login-success"),
+      },
     });
     if (!isLoggedId) {
       setIsLoading(false);
@@ -101,14 +105,11 @@ export default function LoginModal() {
         icon: "🔒",
       });
     }
-  }
+  };
 
   return (
     <>
-      <Modal
-        extraClass="login-modal"
-        outsideClickHandler={handleExit}
-      >
+      <Modal extraClass="login-modal" outsideClickHandler={handleExit}>
         <div className="modal-content">
           <h2>{t("login")}</h2>
 
@@ -124,7 +125,7 @@ export default function LoginModal() {
               action={redirectGithub}
             />
           </div>
-          <form action="" onSubmit={(e)=>e.preventDefault()}>
+          <form action="" onSubmit={(e) => e.preventDefault()}>
             <div className="separator">
               <div></div>
               <h4>{t("or")}</h4>
