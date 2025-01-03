@@ -100,5 +100,7 @@
     "upgrade-now": "Upgrade now",
     "login-credentials-error": "It appears that something was wrong with your 4Geeks credentials, please try again",
     "login-success": "Successfully logged in",
-    "rigo-not-yet-accepted": "You have not accepted Rigobot's invitation yet!"
+    "rigo-not-yet-accepted": "You have not accepted Rigobot's invitation yet!",
+    "terminalOutput": "Terminal Output",
+    "terminalInfo": "As a coder, you have the ability to print anything you want on the terminal. This is one of the **best** ways to understand how an algorithm is running and to debug your code effectively.\n\nEvery programming language has a different method for printing. For example, you can use `print` in Python, `console.log` in JavaScript, and so on. [Click here to learn more](https://www.google.com/search?q=print+functions)"
 }

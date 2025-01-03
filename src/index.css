@@ -630,3 +630,45 @@ a {
 .opaque-blue-on-hover:hover {
   background-color: var(--color-blue-opaque);
 }
+
+.info-bubble-container {
+  position: relative;
+  width: fit-content;
+  overflow: visible;
+}
+.info-bubble-message {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  background-color: var(--color-blue-rigo);
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.info-bubble-opener:hover + .info-bubble-message {
+  display: block;
+}
+.info-bubble-message:hover {
+  display: block;
+}
+
+.pointer {
+  cursor: pointer;
+}
+.text-small {
+  font-size: 12px;
+}
+.margin-children-none > * {
+  margin: 0 !important;
+}
+
+.padding-mini {
+  padding: 3px;
+}
+.circle {
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+}

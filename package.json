@@ -1,7 +1,7 @@
 {
   "name": "learnpack-ai",
   "private": true,
-  "version": "5.0.51",
+  "version": "5.0.52",
   "scripts": {
     "dev": "node src/utils/development.js --turn on && vite",
     "build": "node src/utils/development.js --turn off && tsc && vite build && node src/utils/uploadLearnpack.js && node bin/publish.js && node src/utils/createVersionsFile.js ",
@@ -24,8 +24,10 @@
     "react-gtm-module": "^2.0.11",
     "react-hot-toast": "^2.4.1",
     "react-i18next": "^14.1.0",
+    "react-markdown": "^9.0.1",
     "react-monaco-editor": "^0.56.1",
     "react-router-dom": "^6.27.0",
+    "remark-gfm": "^4.0.0",
     "remarkable": "^2.0.1",
     "remarkable-katex": "^1.2.1",
     "socket.io": "^4.7.2",

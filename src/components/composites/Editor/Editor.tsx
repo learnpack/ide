@@ -15,6 +15,8 @@ import SimpleButton from "../../mockups/SimpleButton";
 import { Preview } from "../Preview/Preview";
 import { AskForHint } from "../AskForHint/AskForHint";
 import { Loader } from "../Loader/Loader";
+import { TEditorTab } from "../../../utils/storeTypes";
+import { Markdowner } from "../Markdowner/Markdowner";
 
 const languageMap: { [key: string]: string } = {
   ".js": "javascript",
@@ -51,27 +53,18 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     updateDBSession,
   } = useStore((state) => ({
     tabs: state.editorTabs,
+    setTabs: state.setEditorTabs,
     getCurrentExercise: state.getCurrentExercise,
     updateFileContent: state.updateFileContent,
     cleanTerminal: state.cleanTerminal,
     theme: state.theme,
     updateDBSession: state.updateDBSession,
-    setTabs: state.setEditorTabs,
-    isIframe: state.isIframe,
   }));
 
   const { t } = useTranslation();
 
-  const outputFromMessages = {
-    build: t("terminal"),
-    test: t("tests-feedback"),
-  };
-
   const [editorTheme, setEditorTheme] = useState("vs-dark");
   const [editorStatus, setEditorStatus] = useState<TEditorStatus>("UNMODIFIED");
-  const [browserTabTitle, setBrowserTabTitle] = useState(
-    window.location.host + "/preview"
-  );
 
   const debouncedStore = useCallback(
     debounce(() => {
@@ -128,11 +121,6 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
   };
 
   useEffect(() => {
-    // if (theme === "light") {
-    //   setEditorTheme("light");
-    // } else if (theme === "dark") {
-    //   setEditorTheme("vs-dark");
-    // }
     setEditorTheme("vs-dark");
   }, [theme]);
 
@@ -142,26 +130,6 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
       setEditorStatus("MODIFIED");
     }
   }, [tabs]);
-
-  const foundPreviewTitle = (title: string) => {
-    if (!title) return;
-    setBrowserTabTitle(title);
-  };
-
-  const openTabAndSendMessage = (html: string, isReact: boolean) => {
-    const newTab = window.open(
-      `/preview?slug=${getCurrentExercise().slug}`,
-      "__blank"
-    );
-
-    if (newTab) {
-      newTab.onload = () => {
-        newTab.postMessage({ html, isReact }, "*");
-      };
-    } else {
-      console.error("Failed to open new tab.");
-    }
-  };
 
   const terminalTab = tabs.find((tab) => tab.name === "terminal");
 
@@ -226,19 +194,95 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
           <EditorFooter editorStatus={editorStatus} />
         </div>
       )}
+
+      {terminalTab && (
+        <Terminal
+          terminalTab={terminalTab}
+          terminal={terminal}
+          removeTab={removeTab}
+          editorStatus={editorStatus}
+        />
+      )}
+    </div>
+  );
+};
+
+const Terminal = ({
+  terminalTab,
+  terminal,
+  removeTab,
+  editorStatus,
+}: {
+  terminalTab: TEditorTab;
+  terminal: string;
+  removeTab: (id: number, name: string) => void;
+  editorStatus: TEditorStatus;
+}) => {
+  const { t } = useTranslation();
+  const { getCurrentExercise, lastState } = useStore((state) => ({
+    getCurrentExercise: state.getCurrentExercise,
+    lastState: state.lastState,
+    // editorStatus: state.editorStatus,
+  }));
+
+  const [showInfo, setShowInfo] = useState(false);
+
+  const [browserTabTitle, setBrowserTabTitle] = useState(
+    window.location.host + "/preview"
+  );
+
+  const outputFromMessages = {
+    build: t("terminalOutput"),
+    test: t("tests-feedback"),
+  };
+
+  const foundPreviewTitle = (title: string) => {
+    if (!title) return;
+    setBrowserTabTitle(title);
+  };
+
+  const openTabAndSendMessage = (html: string, isReact: boolean) => {
+    const newTab = window.open(
+      `/preview?slug=${getCurrentExercise().slug}`,
+      "__blank"
+    );
+
+    if (newTab) {
+      newTab.onload = () => {
+        newTab.postMessage({ html, isReact }, "*");
+      };
+    } else {
+      console.error("Failed to open new tab.");
+    }
+  };
+
+  return (
+    <>
       {terminalTab && !terminalTab.isHTML && (
         <div className={`terminal ${terminal}`}>
           <h5 className="d-flex justify-between align-center">
-            <span>
+            <span className="d-flex align-center gap-small">
               {terminalTab &&
                 terminalTab.from &&
                 outputFromMessages[terminalTab.from]}
-            </span>{" "}
+              <span
+                onClick={() => setShowInfo(!showInfo)}
+                className="circle bg-secondary padding-small d-flex align-center justify-center pointer"
+              >
+                ?
+              </span>
+            </span>
             <SimpleButton
               action={() => removeTab(terminalTab.id, terminalTab.name)}
               svg={svgs.redClose}
             />
           </h5>
+
+          {showInfo && (
+            <div className="text-small bg-secondary padding-small rounded margin-children-none">
+              <Markdowner markdown={t("terminalInfo")} />
+            </div>
+          )}
 
           {terminalTab.content ? (
             <div
@@ -249,7 +293,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
           ) : (
             <Loader svg={svgs.blueRigoSvg} text={t("thinking...")} />
           )}
-          {!getCurrentExercise().done && (
+          {!getCurrentExercise().done && lastState === "error" && (
             <AskForHint context={terminalTab.content} />
           )}
 
@@ -299,7 +343,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

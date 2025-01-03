@@ -14,7 +14,6 @@ export default function LanguageButton() {
     language: state.language,
   }));
 
-
   const [showDrop, setShowDropdown] = useState(false);
 
   const toggleDrop = () => {
@@ -49,8 +48,13 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
   const languages = Object.keys(getCurrentExercise().translations);
 
   const changeLanguage = (lang: string) => {
-    i18n.changeLanguage(lang);
+    if (lang === "us") {
+      i18n.changeLanguage("en");
+    } else {
+      i18n.changeLanguage(lang);
+    }
   };
+
   const setLang = (lang: string) => {
     setLanguage(lang);
     changeLanguage(lang);

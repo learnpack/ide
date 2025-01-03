@@ -211,9 +211,7 @@ export interface IStore {
   start: () => void;
   handleEnvironmentChange: (event: any) => void;
   setListeners: () => void;
-  checkRigobotInvitation: (messages: {
-    error: string;
-  }) => void;
+  checkRigobotInvitation: (messages: { error: string }) => void;
   openLink: (url: string, opts?: TOpenLinkOptions) => void;
   setTestResult: (status: TTestStatus, logs: string) => void;
   checkParams: (opts: TCheckParamsOptions) => TPossibleParams;
@@ -269,7 +267,7 @@ export interface IStore {
   setEditorTabs: (tabs: TEditorTab[]) => void;
 }
 
-type TEditorTab = {
+export type TEditorTab = {
   from?: "build" | "test";
   id: number;
   name: string;

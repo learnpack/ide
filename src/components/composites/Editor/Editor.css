@@ -37,7 +37,6 @@
   border: 8px solid var(--opaque-blue-editor);
   border-top: 0;
   padding: 8px;
-  /* height: fit-content; */
   overflow-y: auto;
   position: relative;
 }
