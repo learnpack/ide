@@ -353,14 +353,15 @@ const useStore = create<IStore>((set, get) => ({
     const params = checkParams({ justReturn: true });
 
     try {
+      let json = null;
       if (params.token) {
         set({ bc_token: params.token });
-        const json = await FetchManager.loginWithToken(params.token);
+        json = await FetchManager.loginWithToken(params.token);
         set({ token: json.rigoToken });
         set({ user: json.user });
         removeParam("token");
       } else {
-        const json = await FetchManager.checkLoggedStatus();
+        json = await FetchManager.checkLoggedStatus();
         set({ token: json.rigoToken });
         set({ bc_token: json.payload.token });
         set({ user: json.user });
@@ -372,6 +373,8 @@ const useStore = create<IStore>((set, get) => ({
       getOrCreateActiveSession();
 
       if (environment === "localStorage") {
+        console.log("Starting telemetry, JSON TO START WITH", json);
+
         await startTelemetry();
       }
 
@@ -1407,9 +1410,15 @@ ${currentContent}
     );
   },
   startTelemetry: async () => {
-    const { configObject, bc_token } = get();
+    const { configObject, bc_token, user } = get();
     if (!bc_token || !configObject) {
       console.error("No token or config found, impossible to start telemetry");
+      return;
+    }
+
+    if (!user || !user.id) {
+      console.error("No user found, impossible to start telemetry");
+      console.log(user, "User");
       return;
     }
 
@@ -1428,8 +1437,6 @@ ${currentContent}
       const tutorialSlug = configObject.config?.slug || "";
       const STORAGE_KEY = "TELEMETRY";
 
-      console.log(configObject.config);
-
       if (!configObject.config.telemetry) {
         console.error("No telemetry urls found in config");
         return;
@@ -1437,6 +1444,8 @@ ${currentContent}
 
       TelemetryManager.urls = configObject.config.telemetry;
       TelemetryManager.userToken = bc_token;
+      TelemetryManager.userID = user.id;
+
       // @ts-ignore
       TelemetryManager.start(agent, steps, tutorialSlug, STORAGE_KEY);
       console.log("Telemetry started successfully!");

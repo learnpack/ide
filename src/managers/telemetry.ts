@@ -17,6 +17,7 @@ const sendBatchTelemetry = async function (
     console.error("URL and token are required");
     return;
   }
+  console.log(body, "Body of Telemetry");
 
   token = token.trim();
   console.log("Sending batch telemetry", url, body, token);
@@ -147,7 +148,7 @@ type TStudent = {
 
 export interface ITelemetryJSONSchema {
   telemetry_id?: string;
-  user_id?: number | string;
+  user_id?: number | string | null;
   slug: string;
   agent?: string;
   tutorial_started_at?: number;
@@ -174,6 +175,7 @@ interface ITelemetryManager {
   //   configPath: string | null;
   started: boolean;
   userToken: string;
+  userID: number | null;
   telemetryKey: string;
   urls: TTelemetryUrls;
   salute: (message: string) => void;
@@ -203,6 +205,7 @@ const TelemetryManager: ITelemetryManager = {
   urls: {},
   telemetryKey: "",
   userToken: "",
+  userID: null,
   tutorialSlug: "",
   started: false,
   salute: (message) => {
@@ -233,7 +236,9 @@ const TelemetryManager: ITelemetryManager = {
             };
           }
 
+          this.current.user_id = this.userID;
           this.save();
+
           this.submit();
           this.started = true;
         })
@@ -410,6 +415,11 @@ const TelemetryManager: ITelemetryManager = {
     }
 
     const body = this.current;
+
+    if (!body.user_id && !this.userID) {
+      console.error("No user ID found, impossible to submit telemetry");
+      return;
+    }
 
     try {
       await sendBatchTelemetry(url, body, this.userToken);
