@@ -32,8 +32,6 @@ export default function BuildButton({
   const runTests = () => {
     setBuildButtonPrompt(t("Running..."), "bg-blue");
 
-
-
     runExerciseTests({
       toast: true,
       setFeedbackButton: false,
@@ -42,7 +40,8 @@ export default function BuildButton({
     });
   };
 
-  const changeToTest = !isBuildable && isTesteable;
+  // const changeToTest = !isBuildable && isTesteable;
+  const changeToTest = false;
 
   return (
     <SimpleButton

@@ -81,19 +81,20 @@ export default function LessonContainer({
       {children}
       <LessonContent />
 
-      {continueAction && editorTabs.length === 0 && (
-        <div
-          onClick={continueAction}
-          className={`badge bg-blue ${
-            editorTabs.length > 0 ? "hide-continue-button" : "continue-button"
-          }`}
-        >
-          {t("continue")}
-        </div>
-      )}
-      {ENVIRONMENT === "localhost" && editorTabs.length > 0 && (
-        <EditorFooter editorStatus="MODIFIED" />
-      )}
+      {continueAction &&
+        editorTabs.length === 0 &&
+        !(ENVIRONMENT === "localhost") && (
+          <div
+            onClick={continueAction}
+            className={`badge bg-blue ${
+              editorTabs.length > 0 ? "hide-continue-button" : "continue-button"
+            }`}
+          >
+            {t("continue")}
+          </div>
+        )}
+      {/* {ENVIRONMENT === "localhost" && editorTabs.length > 0 && ( */}
+      {ENVIRONMENT === "localhost" && <EditorFooter editorStatus="MODIFIED" />}
     </div>
   );
 }
