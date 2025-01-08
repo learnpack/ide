@@ -94,6 +94,14 @@ export const Container = () => {
       setVisibleTab("terminal");
     }
 
+    const hasSolution = editorTabs.some((t) =>
+      t.name.includes("solution.hide")
+    );
+    
+    if (hasSolution && !terminalShouldShow && (isMobile || isRigoOpened)) {
+      setVisibleTab("code");
+    }
+
     if (editorTabs.length === 0) {
       if (window.innerWidth > 768 && !isRigoOpened) {
         setVisibleTab("all");
