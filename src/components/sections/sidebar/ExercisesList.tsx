@@ -11,6 +11,8 @@ export default function ExercisesList({ closeSidebar }: IExerciseList) {
     exercises: state.exercises,
   }));
 
+  if (!exercises || exercises.length === 0) return null;
+
   return (
     <ul className="exercise-list">
       {exercises.map((item, index) => (

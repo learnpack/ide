@@ -507,7 +507,9 @@ ${currentContent}
           user_id: user_id,
         },
       });
-      set({ exercises: config.exercises });
+      if (config.exercises && config.exercises.length > 0) {
+        set({ exercises: config.exercises });
+      }
 
       set({ lessonTitle: config.config.title.us });
       set({ configObject: config });
@@ -1193,6 +1195,8 @@ ${currentContent}
     try {
       const session = await getSession(token, configObject.config.slug);
 
+      console.log(session, "session given by Rigo");
+
       if (!session.tab_hash) {
         await updateSession(
           token,
@@ -1337,9 +1341,14 @@ ${currentContent}
 
       set({
         configObject: session.config_json,
-        exercises: session.config_json.exercises,
         sessionKey: session.key,
       });
+      if (
+        session.config_json.exercises &&
+        session.config_json.exercises.length > 0
+      ) {
+        set({ exercises: session.config_json.exercises });
+      }
       await FetchManager.setSessionKey(session.key);
       updateEditorTabs();
     }
