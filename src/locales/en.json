@@ -102,5 +102,7 @@
     "login-success": "Successfully logged in",
     "rigo-not-yet-accepted": "You have not accepted Rigobot's invitation yet!",
     "terminalOutput": "Terminal Output",
-    "terminalInfo": "As a coder, you have the ability to print anything you want on the terminal. This is one of the **best** ways to understand how an algorithm is running and to debug your code effectively.\n\nEvery programming language has a different method for printing. For example, you can use `print` in Python, `console.log` in JavaScript, and so on. [Click here to learn more](https://www.google.com/search?q=print+functions)"
+    "terminalInfo": "As a coder, you have the ability to print anything you want on the terminal. This is one of the **best** ways to understand how an algorithm is running and to debug your code effectively.\n\nEvery programming language has a different method for printing. For example, you can use `print` in Python, `console.log` in JavaScript, and so on. [Click here to learn more](https://www.google.com/search?q=print+functions)",
+    "sync-your-user-with-rigobot": "Sync your user with Rigobot",
+    "sync-your-user-with-rigobot-text": "Rigobot is our internal AI trained to help you at every moment of your learning. To use Rigobot in your LearnPack exercises, you must accept the invitation by clicking the button below."
 }

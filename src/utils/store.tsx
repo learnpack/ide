@@ -134,6 +134,7 @@ const useStore = create<IStore>((set, get) => ({
     video: false,
     reset: false,
     session: false,
+    rigobotInvite: false,
   },
   activeTab: 0,
   lastTestResult: {
