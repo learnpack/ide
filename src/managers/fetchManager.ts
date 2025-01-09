@@ -402,7 +402,9 @@ const loginLocalhost = async (loginInfo: any, host: string) => {
   const res = await fetch(host + "/login", config);
   const json = await res.json();
 
-  return json;
+  const user = await validateUser(json.token);
+
+  return { ...json, user };
 };
 
 const loginLocalStorage = async (loginInfo: any) => {

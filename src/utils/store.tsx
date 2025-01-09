@@ -526,8 +526,6 @@ ${currentContent}
 
     let paramsObject = getParamsObject();
 
-    console.log(paramsObject, "PARAMS OBJECT FROM QUERY PARAMS");
-
     if (justReturn) {
       return paramsObject;
     }
