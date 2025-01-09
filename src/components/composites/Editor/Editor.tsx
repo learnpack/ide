@@ -157,38 +157,54 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
           {tabs.map(
             (tab) =>
               tab.isActive && (
-                <MonacoEditor
-                  className="editor-monaco"
-                  key={tab.id}
-                  height="400px"
-                  language={getLanguageFromExtension(tab.name)}
-                  theme={editorTheme}
-                  value={tab.content}
-                  onChange={(value) => updateContent(tab.id, value || "")}
-                  options={{
-                    minimap: {
-                      enabled: false,
-                    },
-                    fontSize: 16,
-                    bracketPairColorization: {
-                      enabled: true,
-                    },
-                    cursorBlinking: "smooth",
-                    wordWrap: "off",
-                    padding: {
-                      top: 10,
-                      bottom: 0,
-                    },
-                    scrollbar: {
-                      vertical: "hidden",
-                      horizontal: "hidden",
-                    },
-                    lineNumbersMinChars: 3,
-                    readOnly:
-                      tab.name === "terminal" ||
-                      tab.name.includes("solution.hide"),
-                  }}
-                />
+                <>
+                  {tab.name.includes("solution.hide") && (
+                    <div className=" padding-small margin-children-none text-small">
+                      <Markdowner
+                        markdown={t("solution-tab-not-editable", {
+                          switchTo:
+                            filteredTabs.filter(
+                              (t) => !t.name.includes("solution")
+                            ).length > 1
+                              ? t("another-tab")
+                              : filteredTabs[0].name,
+                        })}
+                      />
+                    </div>
+                  )}
+                  <MonacoEditor
+                    className="editor-monaco"
+                    key={tab.id}
+                    height="400px"
+                    language={getLanguageFromExtension(tab.name)}
+                    theme={editorTheme}
+                    value={tab.content}
+                    onChange={(value) => updateContent(tab.id, value || "")}
+                    options={{
+                      minimap: {
+                        enabled: false,
+                      },
+                      fontSize: 16,
+                      bracketPairColorization: {
+                        enabled: true,
+                      },
+                      cursorBlinking: "smooth",
+                      wordWrap: "off",
+                      padding: {
+                        top: 10,
+                        bottom: 0,
+                      },
+                      scrollbar: {
+                        vertical: "hidden",
+                        horizontal: "hidden",
+                      },
+                      lineNumbersMinChars: 3,
+                      readOnly:
+                        tab.name === "terminal" ||
+                        tab.name.includes("solution.hide"),
+                    }}
+                  />
+                </>
               )
           )}
           <EditorFooter editorStatus={editorStatus} />
