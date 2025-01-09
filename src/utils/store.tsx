@@ -19,7 +19,12 @@ import {
   countConsumables,
   removeParam,
 } from "./lib";
-import { IStore, TParamsActions, TPossibleParams } from "./storeTypes";
+import {
+  IStore,
+  TExercise,
+  TParamsActions,
+  TPossibleParams,
+} from "./storeTypes";
 import toast from "react-hot-toast";
 import { getStatus } from "../managers/socket";
 import { DEV_MODE, RIGOBOT_HOST } from "./lib";
@@ -469,9 +474,6 @@ ${currentContent}
 
       if (!config) return;
 
-      // console.log(config.config.assessment, "ASSESSMENT");
-      console.log(config.config.authentication, "AUTHENTICATION");
-
       if (
         config.config.authentication &&
         config.config.authentication.mandatory
@@ -510,6 +512,15 @@ ${currentContent}
       });
       if (config.exercises && config.exercises.length > 0) {
         set({ exercises: config.exercises });
+      }
+
+      if (config.currentExercise) {
+        const foundExercise = config.exercises.findIndex(
+          (exercise: TExercise) => exercise.slug === config.currentExercise
+        );
+        if (foundExercise) {
+          set({ currentExercisePosition: foundExercise });
+        }
       }
 
       set({ lessonTitle: config.config.title.us });
