@@ -5,8 +5,9 @@ import SimpleButton from "../../mockups/SimpleButton";
 import { convertMarkdownToHTML } from "../../../utils/lib";
 
 export const LimitAiCompilations = () => {
-  const { setOpenedModals } = useStore((state) => ({
+  const { setOpenedModals, bc_token } = useStore((state) => ({
     setOpenedModals: state.setOpenedModals,
+    bc_token: state.bc_token,
   }));
 
   const { t } = useTranslation();
@@ -16,7 +17,10 @@ export const LimitAiCompilations = () => {
   };
 
   const handleUpgrade = () => {
-    window.open("https://4geeks.com/profile/subscriptions", "_blank");
+    window.open(
+      `https://4geeks.com/profile/subscriptions?token=${bc_token}`,
+      "_blank"
+    );
   };
 
   return (
