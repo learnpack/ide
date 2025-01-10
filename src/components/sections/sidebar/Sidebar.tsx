@@ -14,17 +14,15 @@ const version = packageInfo.version;
 let versionSections = version.split(".");
 versionSections[2] = String(parseInt(versionSections[2]) + 1);
 
-
 export default function Sidebar() {
-  const { theme, toggleTheme, showSidebar, setShowSidebar } = useStore(
-    (state) => ({
+  const { theme, toggleTheme, showSidebar, setShowSidebar, userConsumables } =
+    useStore((state) => ({
       theme: state.theme,
       toggleTheme: state.toggleTheme,
       showSidebar: state.showSidebar,
       setShowSidebar: state.setShowSidebar,
-    })
-  );
-
+      userConsumables: state.userConsumables,
+    }));
 
   const closeSidebar = () => {
     const sidebar: HTMLElement | null =
@@ -34,7 +32,6 @@ export default function Sidebar() {
       setShowSidebar(false);
     });
   };
-
 
   return (
     <>
@@ -53,6 +50,22 @@ export default function Sidebar() {
 
           <section className="footer">
             <BugButton />
+            <div className="hidden">
+              <table>
+                <tr>
+                  <td>
+                    <strong>AI Compilation: </strong>
+                  </td>
+                  <td>{userConsumables.ai_compilation}</td>
+                </tr>
+                <tr>
+                  <td>
+                    <strong>AI Conversation Message: </strong>
+                  </td>
+                  <td>{userConsumables.ai_conversation_message}</td>
+                </tr>
+              </table>
+            </div>
             <span>
               <strong>v{versionSections.join(".")}</strong>
             </span>

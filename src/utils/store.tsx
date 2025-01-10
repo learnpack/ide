@@ -570,6 +570,9 @@ ${currentContent}
           setOpenedModals({ closeWindow: true });
         }
       },
+      // token: (value: string) => {
+      //   set({ token: value });
+      // },
     };
 
     const entries = Object.entries(paramsObject);
@@ -1205,8 +1208,6 @@ ${currentContent}
     try {
       const session = await getSession(token, configObject.config.slug);
 
-      console.log(session, "session given by Rigo");
-
       if (!session.tab_hash) {
         await updateSession(
           token,
@@ -1489,6 +1490,7 @@ ${currentContent}
     if (!bc_token) {
       return;
     }
+    console.log("Getting consumables");
 
     const consumables = await getConsumables(bc_token);
     const ai_compilation = countConsumables(consumables, "ai-compilation");

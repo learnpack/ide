@@ -160,7 +160,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
           {tabs.map(
             (tab) =>
               tab.isActive && (
-                <>
+                <div key={tab.id}>
                   {tab.name.includes("solution.hide") && (
                     <div className=" padding-small margin-children-none text-small">
                       <Markdowner
@@ -207,7 +207,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                         tab.name.includes("solution.hide"),
                     }}
                   />
-                </>
+                </div>
               )
           )}
           <EditorFooter editorStatus={editorStatus} />
