@@ -702,6 +702,8 @@ ${currentContent}
       getOrCreateActiveSession,
     } = get();
 
+    console.log("loginToRigo");
+    
     try {
       const json = await FetchManager.login(loginInfo);
 

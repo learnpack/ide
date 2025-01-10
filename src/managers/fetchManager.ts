@@ -428,7 +428,8 @@ const loginLocalStorage = async (loginInfo: any) => {
   const rigoResp = await fetch(rigoUrl);
 
   const rigobotJson = await rigoResp.json();
-  const returns = { ...json, rigobot: { ...rigobotJson } };
+  const user = await validateUser(json.token);
+  const returns = { ...json, rigobot: { ...rigobotJson }, user };
 
   LocalStorage.set("session", returns);
 
