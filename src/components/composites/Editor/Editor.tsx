@@ -142,7 +142,10 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
         style={{ display: terminal === "only" ? "none" : "flex" }}
       >
         {filteredTabs.map((tab) => (
-          <div key={tab.id} className={`tab ${tab.isActive ? "active" : ""}`}>
+          <div
+            key={tab.id + tab.name}
+            className={`tab ${tab.isActive ? "active" : ""}`}
+          >
             <button onClick={() => handleTabClick(tab.id)}>
               {tab.name.includes("solution.hide")
                 ? t("model-solution")

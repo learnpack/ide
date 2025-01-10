@@ -19,6 +19,7 @@ export const Container = () => {
     window.innerWidth <= 768 ? "instructions" : ("all" as TPossibleTabs)
   );
   const instructionsSectionRef = useRef<HTMLDivElement>(null);
+  const codeSectionRef = useRef<HTMLDivElement>(null);
 
   const {
     editorTabs,
@@ -29,6 +30,7 @@ export const Container = () => {
     isRigoOpened,
     showSidebar,
     currentContent,
+    lastState,
   } = useStore((s) => ({
     editorTabs: s.editorTabs,
     handleNext: s.handleNext,
@@ -39,6 +41,7 @@ export const Container = () => {
     isRigoOpened: s.isRigoOpened,
     showSidebar: s.showSidebar,
     currentContent: s.currentContent,
+    lastState: s.lastState,
   }));
 
   const { t } = useTranslation();
@@ -97,7 +100,7 @@ export const Container = () => {
     const hasSolution = editorTabs.some((t) =>
       t.name.includes("solution.hide")
     );
-    
+
     if (hasSolution && !terminalShouldShow && (isMobile || isRigoOpened)) {
       setVisibleTab("code");
     }
@@ -110,6 +113,18 @@ export const Container = () => {
       }
     }
   }, [editorTabs, terminalShouldShow]);
+
+  useEffect(() => {
+    if (
+      (visibleTab === "code" || visibleTab === "all") &&
+      codeSectionRef.current
+    ) {
+      codeSectionRef.current?.scrollTo({
+        top: codeSectionRef.current?.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [lastState]);
 
   useEffect(() => {
     if (isRigoOpened || showSidebar) {
@@ -209,6 +224,7 @@ export const Container = () => {
           </section>
           {editorTabs.length > 0 && !(environment === "localhost") && (
             <section
+              ref={codeSectionRef}
               className="w-100 "
               style={{
                 display:

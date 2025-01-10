@@ -190,7 +190,7 @@ localStorageEventEmitter.on("build", async (data) => {
         content: compiled,
         isActive: false,
         isHTML: true,
-        isReact: false
+        isReact: false,
       };
       data.updateEditorTabs(outputTab);
       localStorageEventEmitter.emitStatus("compiler-success", {
@@ -354,7 +354,7 @@ localStorageEventEmitter.on("test", async (data) => {
       instructions: data.instructions,
       userLanguage: data.language,
     };
-    console.log(inputs, "INPUTS SENT TO RIGOBOT");
+    // console.log(inputs, "INPUTS SENT TO RIGOBOT");
 
     const starting_at = new Date().getTime();
     const json = await testRigo(data.token, inputs);

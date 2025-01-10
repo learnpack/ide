@@ -132,19 +132,29 @@ export const ChatTab = () => {
   );
   const [userMessage, setUserMessage] = useState("");
   const [userMessageCache, setUserMessageCache] = useState("");
+  const [autoScroll, setAutoScroll] = useState(true);
+  const messagesRef = useRef<HTMLDivElement>(null);
+  const scrollPosition = useRef(0);
 
   useEffect(() => {
     if (conversationIdsCache[Number(currentExercisePosition)] == undefined) {
       startConversation(Number(currentExercisePosition));
     }
 
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    scrollPosition.current = messagesRef.current?.scrollTop || 0;
+
+    window.scrollTo({ top: scrollPosition.current, behavior: "smooth" });
 
     if (inputRef.current) {
       inputRef.current.focus();
     }
     return () => {};
   }, []);
+
+  useEffect(() => {
+    if (!messagesRef.current || !autoScroll) return;
+    messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
+  }, [messages, autoScroll]);
 
   useEffect(() => {
     if (!rigoContext) return;
@@ -191,13 +201,8 @@ export const ChatTab = () => {
       }
     });
 
-    const chatMessagesContainer = document.querySelector(".chat-messages");
-    if (chatMessagesContainer) {
-      chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
-    }
-
-    if (!chatMessagesContainer) return;
-    const anchors = chatMessagesContainer.getElementsByTagName("a");
+    if (!messagesRef.current) return;
+    const anchors = messagesRef.current.getElementsByTagName("a");
 
     const handleClick = (event: any) => {
       event.preventDefault();
@@ -212,7 +217,7 @@ export const ChatTab = () => {
       chatSocket.off("response");
       chatSocket.off("responseFinished");
 
-      if (!chatMessagesContainer) return;
+      if (!messagesRef.current) return;
       for (let anchor of anchors) {
         anchor.removeEventListener("click", handleClick);
       }
@@ -271,6 +276,7 @@ export const ChatTab = () => {
   const sendUserMessage = async () => {
     if (Boolean(userMessage.trim() == "")) return;
     if (isGenerating) return;
+    setAutoScroll(true);
 
     const isFirstInteraction = messages.length === 1;
 
@@ -346,6 +352,24 @@ export const ChatTab = () => {
     return data;
   };
 
+  const handleScroll = () => {
+
+    if (
+      messagesRef.current?.scrollTop &&
+      messagesRef.current?.scrollTop < scrollPosition.current
+    ) {
+      setAutoScroll(false);
+    } else if (
+      messagesRef.current?.scrollTop &&
+      messagesRef.current?.scrollTop > scrollPosition.current
+    ) {
+      scrollPosition.current = messagesRef.current?.scrollTop || 0;
+      if (!autoScroll) {
+        setAutoScroll(true);
+      }
+    }
+  };
+
   return (
     isRigoOpened && (
       <div className="chat-tab">
@@ -359,7 +383,11 @@ export const ChatTab = () => {
               svg={svgs.cancel}
             />
           </section>
-          <section className="chat-messages">
+          <section
+            onScroll={handleScroll}
+            className="chat-messages"
+            ref={messagesRef}
+          >
             {messages.map((message, index) => (
               <Message key={index} {...message} />
             ))}
