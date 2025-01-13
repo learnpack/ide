@@ -250,6 +250,7 @@ const useStore = create<IStore>((set, get) => ({
         toast.error(data.recommendations);
       }
       setBuildButtonPrompt("Try again", "bg-fail");
+      setFeedbackButtonProps("Try again", "bg-fail text-white");
       toastFromStatus("compiler-error");
       if (environment === "localStorage") {
         registerTelemetryEvent("compile", data);
@@ -703,7 +704,7 @@ ${currentContent}
     } = get();
 
     console.log("loginToRigo");
-    
+
     try {
       const json = await FetchManager.login(loginInfo);
 
@@ -778,7 +779,8 @@ ${currentContent}
     compilerSocket.openWindow(data);
   },
   updateEditorTabs: (newTab = null) => {
-    const { getCurrentExercise, editorTabs } = get();
+    const { getCurrentExercise, editorTabs, setAllowedActions, environment } =
+      get();
 
     const exercise = getCurrentExercise();
     // @ts-ignore
@@ -868,6 +870,10 @@ ${currentContent}
         editorTabsCopy[0].isActive = true;
       }
       set({ editorTabs: [...editorTabsCopy] });
+
+      if (editorTabsCopy.length > 0 && environment === "localStorage") {
+        setAllowedActions(["tutorial", "test", "build"]);
+      }
     };
     updateTabs();
   },
@@ -1492,8 +1498,6 @@ ${currentContent}
     if (!bc_token) {
       return;
     }
-    console.log("Getting consumables");
-
     const consumables = await getConsumables(bc_token);
     const ai_compilation = countConsumables(consumables, "ai-compilation");
     const ai_conversation_message = countConsumables(

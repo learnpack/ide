@@ -1,6 +1,6 @@
 // @ts-nocheck
 import io from "socket.io-client";
-// TODOs: add dialog event ,
+
 const messages = {
   us: {
     testing: "Testing your code...",
@@ -121,9 +121,7 @@ export const getStatus = function (status = "initializing", language = "us") {
 
   const good = (lang = "us") => {
     const goodMessages = messages[lang].goodMessages;
-    return `${
-      goodMessages[Math.floor(Math.random() * goodMessages.length)]
-    }`;
+    return `${goodMessages[Math.floor(Math.random() * goodMessages.length)]}`;
   };
   const bad = (lang = "us") => {
     const badMessage = messages[lang].badMessages;
@@ -269,7 +267,6 @@ export default {
     };
 
     this.socket.on(scopeName, (data) => {
-
       if (data.logs) {
         scope.logs = scope.logs.concat(data.logs);
       }

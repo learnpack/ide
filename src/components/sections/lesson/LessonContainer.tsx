@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Alert } from "../../composites/Alert/Alert";
 import { OpenWindowLink } from "../../composites/OpenWindowLink";
 import { ENVIRONMENT } from "../../../utils/lib";
-import { EditorFooter } from "../../composites/Editor/Editor";
+import { Toolbar } from "../../composites/Editor/Editor";
 
 interface Alerts {
   incrementalTest: boolean;
@@ -94,7 +94,7 @@ export default function LessonContainer({
           </div>
         )}
       {/* {ENVIRONMENT === "localhost" && editorTabs.length > 0 && ( */}
-      {ENVIRONMENT === "localhost" && <EditorFooter editorStatus="MODIFIED" />}
+      {ENVIRONMENT === "localhost" && <Toolbar editorStatus="MODIFIED" />}
     </div>
   );
 }

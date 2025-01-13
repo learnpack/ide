@@ -210,7 +210,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                 </div>
               )
           )}
-          <EditorFooter editorStatus={editorStatus} />
+          <Toolbar editorStatus={editorStatus} />
         </div>
       )}
 
@@ -317,7 +317,7 @@ const Terminal = ({
           )}
 
           {terminal === "only" && getCurrentExercise().done && (
-            <EditorFooter editorStatus={editorStatus} />
+            <Toolbar editorStatus={editorStatus} />
           )}
         </div>
       )}
@@ -390,17 +390,32 @@ type EditorFooterProps = {
   editorStatus: TEditorStatus;
 };
 
-export const EditorFooter = ({ editorStatus }: EditorFooterProps) => {
+export const Toolbar = ({ editorStatus }: EditorFooterProps) => {
   const { t } = useTranslation();
-  const { lastState, getCurrentExercise } = useStore((state) => ({
+  const {
+    lastState,
+    getCurrentExercise,
+    allowedActions,
+    isBuildable,
+    isTesteable,
+    handlePositionChange,
+    currentExercisePosition,
+  } = useStore((state) => ({
     lastState: state.lastState,
     getCurrentExercise: state.getCurrentExercise,
+    allowedActions: state.allowedActions,
+    isBuildable: state.isBuildable,
+    isTesteable: state.isTesteable,
+    handlePositionChange: state.handlePositionChange,
+    currentExercisePosition: state.currentExercisePosition,
   }));
 
   const ex = getCurrentExercise();
 
   let letPass =
     lastState === "success" && ex.done && editorStatus === "MODIFIED";
+
+  const onlyContinue = !isBuildable && !isTesteable;
 
   return (
     <div className={`editor-footer ${editorStatus} ${lastState}`}>
@@ -423,9 +438,21 @@ export const EditorFooter = ({ editorStatus }: EditorFooterProps) => {
 
       {editorStatus === "MODIFIED" && !letPass && (
         <div className="footer-actions">
-          <CompileOptions />
-          <ResetButton />
-          <FeedbackButton direction="up" />
+          {onlyContinue ? (
+            <SimpleButton
+              text={t("Continue")}
+              extraClass="w-100 bg-blue text-white big"
+              action={() =>
+                handlePositionChange(Number(currentExercisePosition) + 1)
+              }
+            />
+          ) : (
+            <>
+              <CompileOptions allowedActions={allowedActions} />
+              <ResetButton />
+              <FeedbackButton direction="up" />
+            </>
+          )}
         </div>
       )}
     </div>

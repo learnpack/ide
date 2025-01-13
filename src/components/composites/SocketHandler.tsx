@@ -20,6 +20,7 @@ export function SocketHandler() {
     build,
     runExerciseTests,
     setUser,
+    setAllowedActions,
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     exercises: state.exercises,
@@ -33,6 +34,7 @@ export function SocketHandler() {
     build: state.build,
     runExerciseTests: state.runExerciseTests,
     setUser: state.setUser,
+    setAllowedActions: state.setAllowedActions,
   }));
 
   const [inputsResponses, setInputsResponses] = useState([] as string[]);
@@ -85,6 +87,13 @@ export function SocketHandler() {
         newBCToken: _session.token,
       });
       setUser(_session);
+    });
+
+    compilerSocket.onStatus("ready", (data: any) => {
+      if (data.allowed) {
+        console.log("allowed", data.allowed);
+        setAllowedActions(data.allowed);
+      }
     });
   }, []);
 

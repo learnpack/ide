@@ -5,18 +5,28 @@ import { TestButton } from "./TestButton";
 import SimpleButton from "../../mockups/SimpleButton";
 import { svgs } from "../../../assets/svgs";
 
-export const CompileOptions = () => {
+export const CompileOptions = ({
+  allowedActions,
+}: {
+  allowedActions: string[];
+}) => {
   const { t } = useTranslation();
 
   return (
     <Dropdown
       className="up"
       openingElement={
-        <SimpleButton extraClass="compiler rounded padding-small" svg={svgs.run} text={t("Run")} />
+        <SimpleButton
+          extraClass="compiler rounded padding-small"
+          svg={svgs.run}
+          text={t("Run")}
+        />
       }
     >
-      <BuildButton extraClass=" active big w-100" />
-      <TestButton />
+      {allowedActions.includes("build") && (
+        <BuildButton extraClass=" active big w-100" />
+      )}
+      {allowedActions.includes("test") && <TestButton />}
     </Dropdown>
   );
 };
