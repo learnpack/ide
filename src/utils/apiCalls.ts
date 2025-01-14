@@ -41,9 +41,6 @@ export const updateSession = async (
         "Content-Type": "application/json",
       },
     });
-
-    console.log("Session updated!");
-
     return response.data;
   } catch (error) {
     console.error("Error updating session:", error);

@@ -17,10 +17,8 @@ const sendBatchTelemetry = async function (
     console.error("URL and token are required");
     return;
   }
-  console.log(body, "Body of Telemetry");
 
   token = token.trim();
-  console.log("Sending batch telemetry", url, body, token);
 
   const headers = {
     "Content-Type": "application/json",

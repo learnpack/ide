@@ -15,14 +15,21 @@ let versionSections = version.split(".");
 versionSections[2] = String(parseInt(versionSections[2]) + 1);
 
 export default function Sidebar() {
-  const { theme, toggleTheme, showSidebar, setShowSidebar, userConsumables } =
-    useStore((state) => ({
-      theme: state.theme,
-      toggleTheme: state.toggleTheme,
-      showSidebar: state.showSidebar,
-      setShowSidebar: state.setShowSidebar,
-      userConsumables: state.userConsumables,
-    }));
+  const {
+    theme,
+    toggleTheme,
+    showSidebar,
+    setShowSidebar,
+    userConsumables,
+    isIframe,
+  } = useStore((state) => ({
+    theme: state.theme,
+    toggleTheme: state.toggleTheme,
+    showSidebar: state.showSidebar,
+    setShowSidebar: state.setShowSidebar,
+    userConsumables: state.userConsumables,
+    isIframe: state.isIframe,
+  }));
 
   const closeSidebar = () => {
     const sidebar: HTMLElement | null =
@@ -37,13 +44,15 @@ export default function Sidebar() {
     <>
       {showSidebar && (
         <div className="sidebar-component">
-          <section className="d-flex gap-small align-center justify-between min-width bg-rigo padding-medium rounded text-white ">
-            <span>Menu</span>
-            <SimpleButton
-              action={toggleTheme}
-              extraClass="pill svg-white"
-              svg={theme === "dark" ? svgs.sun : svgs.moon}
-            />
+          <section className="d-flex gap-small align-center justify-between  bg-rigo  rounded text-white w-100">
+            <p className="margin-0 padding-small">Menu</p>
+            {!isIframe && (
+              <SimpleButton
+                action={toggleTheme}
+                extraClass="pill svg-white"
+                svg={theme === "dark" ? svgs.sun : svgs.moon}
+              />
+            )}
           </section>
 
           <ExercisesList closeSidebar={closeSidebar} />

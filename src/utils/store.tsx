@@ -114,6 +114,7 @@ const useStore = create<IStore>((set, get) => ({
     maxRetries: 3,
   },
   configObject: {
+    currentExercise: "",
     config: {
       intro: "",
       grading: "",
@@ -190,8 +191,8 @@ const useStore = create<IStore>((set, get) => ({
   setListeners: async () => {
     const {
       compilerSocket,
-      setTestResult,
       toastFromStatus,
+      setTestResult,
       setFeedbackButtonProps,
       setOpenedModals,
       setBuildButtonPrompt,
@@ -380,7 +381,7 @@ const useStore = create<IStore>((set, get) => ({
       getOrCreateActiveSession();
 
       if (environment === "localStorage") {
-        console.log("Starting telemetry, JSON TO START WITH", json);
+        // console.log("Starting telemetry, JSON TO START WITH", json);
 
         await startTelemetry();
       }
@@ -640,6 +641,8 @@ ${currentContent}
       setFeedbackButtonProps,
       checkParams,
       registerTelemetryEvent,
+      exercises,
+      configObject,
     } = get();
 
     let params = checkParams({ justReturn: true });
@@ -655,6 +658,9 @@ ${currentContent}
     set({ lastState: "" });
     registerTelemetryEvent("open_step", {});
     fetchReadme();
+
+    const exercise = exercises[newPosition];
+    set({ configObject: { ...configObject, currentExercise: exercise.slug } });
   },
   startConversation: async (exercisePosition) => {
     const { token, learnpackPurposeId, conversationIdsCache } = get();
@@ -1215,7 +1221,6 @@ ${currentContent}
 
     try {
       const session = await getSession(token, configObject.config.slug);
-
       if (!session.tab_hash) {
         await updateSession(
           token,
@@ -1245,9 +1250,21 @@ ${currentContent}
     }
   },
   updateDBSession: async () => {
-    const { configObject, exercises, token, tabHash, sessionKey } = get();
+    const {
+      configObject,
+      exercises,
+      token,
+      tabHash,
+      sessionKey,
+      currentExercisePosition,
+    } = get();
 
-    const configCopy = { ...configObject, exercises };
+    const exercise = exercises[Number(currentExercisePosition)];
+    const configCopy = {
+      ...configObject,
+      exercises,
+      currentExercise: exercise.slug,
+    };
 
     let cachedSessionKey = "";
     if (!sessionKey) {
@@ -1330,7 +1347,13 @@ ${currentContent}
     compilerSocket.emit("reset", data);
   },
   sessionActions: async ({ action = "new" }) => {
-    const { configObject, token, updateEditorTabs, tabHash } = get();
+    const {
+      configObject,
+      token,
+      updateEditorTabs,
+      tabHash,
+      handlePositionChange,
+    } = get();
     let storedTabHash = tabHash;
     if (!storedTabHash) {
       storedTabHash = await FetchManager.getTabHash();
@@ -1367,6 +1390,13 @@ ${currentContent}
         session.config_json.exercises.length > 0
       ) {
         set({ exercises: session.config_json.exercises });
+
+        if (session.config_json.currentExercise) {
+          const exIndex = session.config_json.exercises.findIndex(
+            (e: TExercise) => e.slug === session.config_json.currentExercise
+          );
+          handlePositionChange(exIndex);
+        }
       }
       await FetchManager.setSessionKey(session.key);
       updateEditorTabs();
@@ -1498,15 +1528,30 @@ ${currentContent}
       return false;
     }
 
-    console.log(userConsumables, "userConsumables at the moment of consuming");
+    const consumableKey =
+      consumableSlug === "ai-conversation-message"
+        ? "ai_conversation_message"
+        : "ai_compilation";
+
+    if (userConsumables[consumableKey] === 0) {
+      return false;
+    }
+
+    if (userConsumables[consumableKey] === undefined) {
+      return false;
+    }
+
+    if (userConsumables[consumableKey] < 0) {
+      console.log(
+        "User consumable is less than 0, it should be a bootcamp student"
+      );
+
+      return false;
+    }
 
     const result = await useConsumableCall(bc_token, consumableSlug);
 
     if (result) {
-      const consumableKey =
-        consumableSlug === "ai-conversation-message"
-          ? "ai_conversation_message"
-          : "ai_compilation";
       set({
         userConsumables: {
           ...userConsumables,
@@ -1529,6 +1574,7 @@ ${currentContent}
       "ai-conversation-message"
     );
     set({ userConsumables: { ai_compilation, ai_conversation_message } });
+    console.log("---User consumables---");
     console.table({ ai_compilation, ai_conversation_message });
     return { ai_compilation, ai_conversation_message };
   },

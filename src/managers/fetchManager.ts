@@ -129,7 +129,6 @@ export const FetchManager = {
       localStorage: async () => {
         const session = LocalStorage.get("session");
         if (!session) throw Error("The user is not logged in");
-        console.log(session, "SESSION FROM LS");
 
         const user = await validateUser(session.token);
 

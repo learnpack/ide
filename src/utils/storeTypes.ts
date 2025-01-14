@@ -52,6 +52,7 @@ type TWarnings = {
 interface IConfigObject {
   config: IConfig;
   exercises: TExercise[];
+  currentExercise: string;
 }
 
 type IMessage = {
