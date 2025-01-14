@@ -96,7 +96,7 @@ export async function getConsumables(token: string): Promise<any> {
   }
 }
 
-export async function useConsumable(
+export async function useConsumableCall(
   breathecodeToken: string,
   consumableSlug:
     | "ai-conversation-message"

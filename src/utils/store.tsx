@@ -31,7 +31,7 @@ import { DEV_MODE, RIGOBOT_HOST } from "./lib";
 import { EventProxy } from "../managers/EventProxy";
 import { FetchManager } from "../managers/fetchManager";
 import {
-  useConsumable,
+  useConsumableCall,
   createSession,
   getConsumables,
   getSession,
@@ -197,8 +197,7 @@ const useStore = create<IStore>((set, get) => ({
       setBuildButtonPrompt,
       registerTelemetryEvent,
       environment,
-      bc_token,
-      userConsumables,
+      useConsumable,
     } = get();
 
     const debounceTestingSuccess = debounce((data: any) => {
@@ -211,8 +210,9 @@ const useStore = create<IStore>((set, get) => ({
       if (environment === "localStorage") {
         registerTelemetryEvent("test", data.result);
       }
-      if (data.ai_required && userConsumables.ai_compilation > 0) {
-        useConsumable(bc_token, "ai-compilation");
+
+      if (data.ai_required) {
+        useConsumable("ai-compilation");
       }
 
       if (get().targetButtonForFeedback === "feedback") {
@@ -231,8 +231,8 @@ const useStore = create<IStore>((set, get) => ({
       if (environment === "localStorage") {
         registerTelemetryEvent("test", data.result);
       }
-      if (data.ai_required && userConsumables.ai_compilation > 0) {
-        useConsumable(bc_token, "ai-compilation");
+      if (data.ai_required) {
+        useConsumable("ai-compilation");
       }
 
       if (get().targetButtonForFeedback === "feedback") {
@@ -242,7 +242,7 @@ const useStore = create<IStore>((set, get) => ({
       }
     }, 100);
 
-    let compilerErrorHandler = debounce((data: any) => {
+    let compilerErrorHandler = debounce(async (data: any) => {
       data;
 
       set({ lastState: "error", terminalShouldShow: true });
@@ -255,12 +255,12 @@ const useStore = create<IStore>((set, get) => ({
       if (environment === "localStorage") {
         registerTelemetryEvent("compile", data);
       }
-      if (data.ai_required && userConsumables.ai_compilation > 0) {
-        useConsumable(bc_token, "ai-compilation");
+      if (data.ai_required) {
+        useConsumable("ai-compilation");
       }
     }, 100);
 
-    let compilerSuccessHandler = debounce((data: any) => {
+    let compilerSuccessHandler = debounce(async (data: any) => {
       data;
       set({ lastState: "success", terminalShouldShow: true });
 
@@ -269,8 +269,8 @@ const useStore = create<IStore>((set, get) => ({
       if (environment === "localStorage") {
         registerTelemetryEvent("compile", data);
       }
-      if (data.ai_required && userConsumables.ai_compilation > 0) {
-        useConsumable(bc_token, "ai-compilation");
+      if (data.ai_required) {
+        useConsumable("ai-compilation");
       }
     }, 100);
 
@@ -1492,6 +1492,30 @@ ${currentContent}
   setUser: (user) => {
     set({ user });
   },
+  useConsumable: async (consumableSlug): Promise<boolean> => {
+    const { bc_token, userConsumables } = get();
+    if (!bc_token) {
+      return false;
+    }
+
+    console.log(userConsumables, "userConsumables at the moment of consuming");
+
+    const result = await useConsumableCall(bc_token, consumableSlug);
+
+    if (result) {
+      const consumableKey =
+        consumableSlug === "ai-conversation-message"
+          ? "ai_conversation_message"
+          : "ai_compilation";
+      set({
+        userConsumables: {
+          ...userConsumables,
+          [consumableKey]: userConsumables[consumableKey] - 1,
+        },
+      });
+    }
+    return result;
+  },
   getUserConsumables: async () => {
     const { bc_token } = get();
 
@@ -1504,8 +1528,9 @@ ${currentContent}
       consumables,
       "ai-conversation-message"
     );
-    console.table({ ai_compilation, ai_conversation_message });
     set({ userConsumables: { ai_compilation, ai_conversation_message } });
+    console.table({ ai_compilation, ai_conversation_message });
+    return { ai_compilation, ai_conversation_message };
   },
   test: async () => {
     // Notifier.success("Succesfully tested");

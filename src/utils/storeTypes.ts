@@ -202,6 +202,9 @@ export interface IStore {
   showSidebar: boolean;
   userConsumables: TUserConsumables;
   maxQuizRetries: number;
+  useConsumable: (
+    consumableSlug: "ai-conversation-message" | "ai-compilation"
+  ) => Promise<boolean>;
   setUser: (user: TUser) => void;
   getUserConsumables: () => Promise<any>;
   setShowSidebar: (show: boolean) => void;
