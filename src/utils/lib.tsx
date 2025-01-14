@@ -1,6 +1,5 @@
-// import { Remarkable } from "remarkable";
 import MarkdownIt from "markdown-it";
-// import { linkify } from "remarkable/linkify";
+import hljs from "highlight.js";
 import { TEnvironment } from "../managers/EventProxy";
 import { TPossibleParams } from "./storeTypes";
 // @ts-ignore
@@ -96,10 +95,17 @@ export const convertMarkdownToHTML = (
     html: allowHTML,
     linkify: true,
     typographer: true,
-    // highlight: true,
+    highlight: function (str, lang) {
+      if (lang && hljs.getLanguage(lang)) {
+        try {
+          return hljs.highlight(str, { language: lang }).value;
+        } catch (__) {}
+      }
+
+      return ""; // use external default escaping
+    },
   }).use(TaskLists, { enabled: true });
-  // const rawMarkup = md.render(markdown);
-  // const md = new Remarkable().use(linkify);
+
   let html = md.render(markdown);
   html = replaceSrc(html);
   return html;

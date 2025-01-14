@@ -1,7 +1,7 @@
 {
   "name": "learnpack-ai",
   "private": true,
-  "version": "5.0.67",
+  "version": "5.0.68",
   "scripts": {
     "dev": "node src/utils/development.js --turn on && vite",
     "build": "node src/utils/development.js --turn off && tsc && vite build && node src/utils/uploadLearnpack.js && node bin/publish.js && node src/utils/createVersionsFile.js ",
@@ -14,6 +14,7 @@
     "@monaco-editor/react": "^4.6.0",
     "axios": "^1.7.7",
     "front-matter": "^4.0.2",
+    "highlight.js": "^11.11.1",
     "i18next": "^23.10.1",
     "markdown-it": "^14.1.0",
     "markdown-it-task-lists": "^2.1.1",

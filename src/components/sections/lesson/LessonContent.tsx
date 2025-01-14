@@ -1,5 +1,7 @@
 import useStore from "../../../utils/store";
+import "highlight.js/styles/atom-one-dark.css";
 import { useEffect, useRef } from "react";
+import hljs from "highlight.js";
 import { convertMarkdownToHTML, hashText } from "../../../utils/lib";
 import toast from "react-hot-toast";
 
@@ -357,6 +359,10 @@ export default function LessonContent() {
     }
     quizzesRef.current = _quizzes;
 
+    setTimeout(() => {
+      // console.log("quizzesRef.current", quizzesRef.current);
+      hljs.highlightAll();
+    }, 50);
     return () => {
       for (let anchor of anchors) {
         anchor.removeEventListener("click", handleArchorClick);
