@@ -4,6 +4,7 @@ import { TEnvironment } from "../managers/EventProxy";
 import { TPossibleParams } from "./storeTypes";
 // @ts-ignore
 import TaskLists from "markdown-it-task-lists";
+import TagManager from "react-gtm-module";
 // import toast from "react-hot-toast";
 export const DEV_MODE =false;
 
@@ -335,4 +336,19 @@ export const removeParam = (param: string) => {
 
   // Update the URL without reloading the page
   window.history.replaceState({}, "", url.toString());
+};
+
+type TDataLayer = {
+  event: string;
+  [key: string]: any;
+};
+
+type TDataLayerPayload = {
+  dataLayer: TDataLayer;
+};
+
+export const reportDataLayer = (payload: TDataLayerPayload) => {
+  console.log(`Reporting data layer`, payload.dataLayer.event);
+  console.log(payload);
+  TagManager.dataLayer(payload);
 };

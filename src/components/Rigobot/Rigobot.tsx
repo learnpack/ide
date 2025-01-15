@@ -85,6 +85,8 @@ export const ChatTab = () => {
     user,
     getCurrentExercise,
     chatInitialMessage,
+
+    reportEnrichDataLayer,
   } = useStore((state) => ({
     setOpenedModals: state.setOpenedModals,
     currentExercisePosition: state.currentExercisePosition,
@@ -112,6 +114,7 @@ export const ChatTab = () => {
     setRigoContext: state.setRigoContext,
     user: state.user,
     getCurrentExercise: state.getCurrentExercise,
+    reportEnrichDataLayer: state.reportEnrichDataLayer,
   }));
 
   const initialMessages = [
@@ -144,6 +147,8 @@ export const ChatTab = () => {
     scrollPosition.current = messagesRef.current?.scrollTop || 0;
 
     window.scrollTo({ top: scrollPosition.current, behavior: "smooth" });
+
+    reportEnrichDataLayer("rigobot_open_bubble", {});
 
     if (inputRef.current) {
       inputRef.current.focus();
@@ -313,6 +318,7 @@ export const ChatTab = () => {
     aiInteraction.context = messageData.message.context;
 
     chatSocket.emit("message", messageData);
+    reportEnrichDataLayer("rigobot_send_message", {});
     // setUserMessage("");
     setIsGenerating(true);
   };
@@ -353,7 +359,6 @@ export const ChatTab = () => {
   };
 
   const handleScroll = () => {
-
     if (
       messagesRef.current?.scrollTop &&
       messagesRef.current?.scrollTop < scrollPosition.current

@@ -18,6 +18,7 @@ import {
   MissingRigobotAccountError,
   countConsumables,
   removeParam,
+  reportDataLayer,
 } from "./lib";
 import {
   IStore,
@@ -92,6 +93,7 @@ const useStore = create<IStore>((set, get) => ({
   hasSolution: false,
   shouldBeTested: false,
   status: "",
+  agent: "vscode",
   showFeedback: false,
   token: "",
   bc_token: "",
@@ -295,7 +297,11 @@ const useStore = create<IStore>((set, get) => ({
     const env = await getEnvironment();
 
     set({ compilerSocket: EventProxy.getEmitter(env) });
-    FetchManager.init(env, HOST);
+    if (env === "localStorage") {
+      set({ agent: "cloud" });
+    } else {
+      set({ agent: "vscode" });
+    }
 
     return { message: "Environment figured out!" };
   },
@@ -706,10 +712,9 @@ ${currentContent}
       startConversation,
       currentExercisePosition,
       setOpenedModals,
+      language,
       getOrCreateActiveSession,
     } = get();
-
-    console.log("loginToRigo");
 
     try {
       const json = await FetchManager.login(loginInfo);
@@ -729,6 +734,18 @@ ${currentContent}
 
       toast.success(loginInfo.messages.success, {
         icon: "✅",
+      });
+      reportDataLayer({
+        dataLayer: {
+          event: "session_load",
+          method: "native",
+          user_id: json.user_id,
+          email: json.user.email,
+          first_name: json.user.first_name,
+          last_name: json.user.last_name,
+          language: language,
+          path: window.location.href,
+        },
       });
     } catch (error) {
       if (error instanceof MissingRigobotAccountError) {
@@ -1060,6 +1077,7 @@ ${currentContent}
       userConsumables,
       bc_token,
       toastFromStatus,
+      reportEnrichDataLayer,
     } = get();
 
     if (!Boolean(token) || !Boolean(bc_token)) {
@@ -1075,6 +1093,9 @@ ${currentContent}
       )
     ) {
       setOpenedModals({ limitReached: true });
+      reportEnrichDataLayer("learnpack_consumable_depleted ", {
+        service_slug: "ai_compilation",
+      });
       return;
     }
 
@@ -1101,6 +1122,7 @@ ${currentContent}
 
     compilerSocket.emit("build", data);
     set({ lastStartedAt: new Date() });
+    reportEnrichDataLayer("learnpack_run", {});
   },
   setEditorTabs: (tabs) => {
     set({ editorTabs: tabs });
@@ -1315,6 +1337,7 @@ ${currentContent}
       updateDBSession,
       setEditorTabs,
       editorTabs,
+      reportEnrichDataLayer,
     } = get();
 
     if (editorTabs.find((tab) => tab.name === "terminal")) {
@@ -1345,6 +1368,7 @@ ${currentContent}
       updateEditorTabs: updateEditorTabs,
     };
     compilerSocket.emit("reset", data);
+    reportEnrichDataLayer("learnpack_reset", {});
   },
   sessionActions: async ({ action = "new" }) => {
     const {
@@ -1577,6 +1601,33 @@ ${currentContent}
     console.log("---User consumables---");
     console.table({ ai_compilation, ai_conversation_message });
     return { ai_compilation, ai_conversation_message };
+  },
+  reportEnrichDataLayer: (event: string, extraData: object) => {
+    const {
+      configObject,
+      agent,
+      isIframe,
+      user,
+      language,
+      currentExercisePosition,
+      getCurrentExercise,
+    } = get();
+    reportDataLayer({
+      dataLayer: {
+        event,
+        method: "learnpack",
+        asset_slug: configObject.config.slug,
+        path: window.location.href,
+        iframe: isIframe,
+        user_id: user.id,
+        content_type: "exercise",
+        current_step_index: Number(currentExercisePosition),
+        current_step_slug: getCurrentExercise().slug,
+        agent,
+        language,
+        ...extraData,
+      },
+    });
   },
   test: async () => {
     // Notifier.success("Succesfully tested");

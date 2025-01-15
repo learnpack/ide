@@ -155,6 +155,7 @@ export interface IStore {
   currentContent: string;
   currentExercisePosition: number | string;
   language: string;
+  agent: "vscode" | "cloud";
   learnpackPurposeId: number | string;
   status: string;
   environment: "localhost" | "localStorage";
@@ -240,7 +241,7 @@ export interface IStore {
   fetchExercises: () => void;
   getLessonTitle: () => void;
   updateEditorTabs: () => void;
-  startTelemetry: () => void;
+  startTelemetry: () => Promise<void>;
   build: (buildText: string, submittedInputs?: string[]) => void;
   setPosition: (position: number) => void;
   handleNext: () => void;
@@ -269,6 +270,7 @@ export interface IStore {
   figureEnvironment: () => Promise<object>;
   cleanTerminal: () => void;
   setEditorTabs: (tabs: TEditorTab[]) => void;
+  reportEnrichDataLayer: (event: string, extraData: object) => void;
 }
 
 export type TEditorTab = {

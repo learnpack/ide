@@ -406,7 +406,7 @@ localStorageEventEmitter.on("test", async (data) => {
     console.log(e);
     toast.error("ERROR TRYING TO TEST");
     return;
-    await FetchManager.logout();
+    
   }
 });
 

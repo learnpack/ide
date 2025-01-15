@@ -39,10 +39,16 @@ interface ILanguageDropdown {
 }
 
 const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
-  const { language, setLanguage, getCurrentExercise } = useStore((state) => ({
+  const {
+    language,
+    setLanguage,
+    getCurrentExercise,
+    reportEnrichDataLayer,
+  } = useStore((state) => ({
     language: state.language,
     setLanguage: state.setLanguage,
     getCurrentExercise: state.getCurrentExercise,
+    reportEnrichDataLayer: state.reportEnrichDataLayer,
   }));
 
   const languages = Object.keys(getCurrentExercise().translations);
@@ -59,6 +65,9 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
     setLanguage(lang);
     changeLanguage(lang);
     toggleDrop();
+    reportEnrichDataLayer("learnpack_language_change", {
+      language: lang,
+    });
   };
 
   return (

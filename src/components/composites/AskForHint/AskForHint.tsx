@@ -5,16 +5,26 @@ import { useTranslation } from "react-i18next";
 
 export const AskForHint: React.FC<{
   context: string;
-}> = ({ context }) => {
-  const { setRigoContext, toggleRigo } = useStore((state) => ({
+  from: "test" | "quiz";
+}> = ({ context, from }) => {
+  const {
+    setRigoContext,
+    toggleRigo,
+    reportEnrichDataLayer,
+
+  } = useStore((state) => ({
     setRigoContext: state.setRigoContext,
     toggleRigo: state.toggleRigo,
+    reportEnrichDataLayer: state.reportEnrichDataLayer,
   }));
   const { t } = useTranslation();
 
   const handleClick = () => {
     setRigoContext(context);
-    toggleRigo({ensure: "open"});
+    toggleRigo({ ensure: "open" });
+    reportEnrichDataLayer(`learnpack_${from}_help`, {
+      context,
+    });
   };
   return (
     <div className="ask-for-hint">

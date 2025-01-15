@@ -3,11 +3,10 @@ import useStore from "../../../utils/store";
 import { useState, useRef, useEffect } from "react";
 import { OpenWindowLink } from "../../composites/OpenWindowLink";
 import { useTranslation } from "react-i18next";
-import TagManager from "react-gtm-module";
 import { Modal } from "../../mockups/Modal";
 import { svgs } from "../../../assets/svgs";
 import toast from "react-hot-toast";
-import { BREATHECODE_HOST } from "../../../utils/lib";
+import { BREATHECODE_HOST, reportDataLayer } from "../../../utils/lib";
 
 export default function LoginModal() {
   const {
@@ -16,12 +15,16 @@ export default function LoginModal() {
     openLink,
     environment,
     authentication,
+    language,
+    isIframe,
   } = useStore((state) => ({
     setOpenedModals: state.setOpenedModals,
     loginToRigo: state.loginToRigo,
     openLink: state.openLink,
     environment: state.environment,
     authentication: state.authentication,
+    language: state.language,
+    isIframe: state.isIframe,
   }));
 
   const { t } = useTranslation();
@@ -58,13 +61,34 @@ export default function LoginModal() {
         success: t("login-success"),
       },
     });
+
+    const agent = environment === "localStorage" ? "browser" : "vscode";
+
+    reportDataLayer({
+      dataLayer: {
+        event: "login",
+        method: "native",
+        path: window.location.href,
+        language,
+        agent,
+        iframe: isIframe,
+      },
+    });
     if (!isLoggedId) {
       setIsLoading(false);
     }
   };
 
-  const sendAnalytics = () => {
-    TagManager.dataLayer({
+  const reportPasswordRecoveryAttempt = () => {
+    reportDataLayer({
+      dataLayer: {
+        event: "tries_recover_password",
+      },
+    });
+  };
+
+  const reportSignUpAttempt = () => {
+    reportDataLayer({
       dataLayer: {
         event: "sign_up_attempt",
       },
@@ -169,7 +193,7 @@ export default function LoginModal() {
               <p>
                 {t("Don't have an account? ")}
                 <OpenWindowLink
-                  callback={sendAnalytics}
+                  callback={reportSignUpAttempt}
                   text={t("Sign up here!")}
                   href="https://4geeks.com/pricing?plan=basic"
                 />{" "}
@@ -177,7 +201,7 @@ export default function LoginModal() {
               <span>
                 {t("forgot-password")}
                 <OpenWindowLink
-                  callback={sendAnalytics}
+                  callback={reportPasswordRecoveryAttempt}
                   text={t("recover-it-here")}
                   href={`${BREATHECODE_HOST}/v1/auth/password/reset?url=${getCurrentUrlWithQueryParams()}`}
                 />{" "}

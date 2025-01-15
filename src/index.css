@@ -9,6 +9,7 @@
   --color-active: #02a9ea;
 
   --4geeks-yellow: #ffd900;
+  --color-warning: #ffd900;
   --opaque-blue-editor: #a5d9f8;
   --soft-blue-color: #eef9fe;
   --color-blue-opaque: #eef9fe;
@@ -672,4 +673,8 @@ a {
 }
 .margin-0 {
   margin: 0;
+}
+
+.bg-warning {
+  background-color: var(--color-warning);
 }

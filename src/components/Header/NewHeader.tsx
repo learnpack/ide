@@ -22,6 +22,7 @@ export const NewHeader = () => {
     compilerSocket,
     videoTutorial,
     setShowVideoTutorial,
+    reportEnrichDataLayer,
   } = useStore((state) => ({
     handlePositionChange: state.handlePositionChange,
     currentExercisePosition: state.currentExercisePosition,
@@ -35,6 +36,7 @@ export const NewHeader = () => {
     compilerSocket: state.compilerSocket,
     videoTutorial: state.videoTutorial,
     setShowVideoTutorial: state.setShowVideoTutorial,
+    reportEnrichDataLayer: state.reportEnrichDataLayer,
   }));
 
   const { t } = useTranslation();
@@ -52,6 +54,8 @@ export const NewHeader = () => {
       updateEditorTabs: updateEditorTabs,
     };
     compilerSocket.emit("open", data);
+    reportEnrichDataLayer("learnpack_open_solution", {
+    });
   };
 
   return (
@@ -59,9 +63,11 @@ export const NewHeader = () => {
       <section>
         <button
           disabled={currentExercisePosition == 0}
-          onClick={() =>
-            handlePositionChange(Number(currentExercisePosition) - 1)
-          }
+          onClick={() => {
+            handlePositionChange(Number(currentExercisePosition) - 1);
+            reportEnrichDataLayer("learnpack_previous_step", {
+            });
+          }}
         >
           {svgs.prevArrowButton}
         </button>
@@ -69,16 +75,19 @@ export const NewHeader = () => {
           disabled={
             exercises && currentExercisePosition === exercises.length - 1
           }
-          onClick={() =>
-            handlePositionChange(Number(currentExercisePosition) + 1)
-          }
+          onClick={() => {
+            handlePositionChange(Number(currentExercisePosition) + 1);
+            reportEnrichDataLayer("learnpack_next_step", {
+
+            });
+          }}
         >
           {svgs.nextArrowButton}
         </button>
         {DEV_MODE && <button onClick={test}>TEST</button>}
       </section>
       <section>{svgs.learnpackLogo}</section>
-      <section >
+      <section>
         {!isIframe && language && <LanguageButton />}
         {hasSolution && (
           <SimpleButton
@@ -98,12 +107,14 @@ export const NewHeader = () => {
           svg={svgs.video}
           action={() => {
             setShowVideoTutorial(true);
+            reportEnrichDataLayer("learnpack_open_video", {
+     
+            });
           }}
         />
 
         <RigoToggler />
         <ToggleSidebar />
-        
       </section>
     </header>
   );
