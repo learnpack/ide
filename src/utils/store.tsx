@@ -306,7 +306,6 @@ const useStore = create<IStore>((set, get) => ({
     return { message: "Environment figured out!" };
   },
   handleEnvironmentChange: (event: any) => {
-    console.log(event, "EVENT");
     set({ environment: event.detail.environment });
   },
 
@@ -478,7 +477,6 @@ ${currentContent}
 
     try {
       const config = await FetchManager.getExercises();
-      console.log(config, "CONFIG");
 
       if (!config) return;
 
@@ -1262,7 +1260,8 @@ ${currentContent}
 
       if (session.tab_hash && session.tab_hash !== storedTabHash) {
         setOpenedModals({ session: true });
-      } else {
+        return;
+      } else if (session.tab_hash && session.tab_hash === storedTabHash) {
         set({
           configObject: session.config_json,
           exercises: session.config_json.exercises,
@@ -1271,6 +1270,11 @@ ${currentContent}
 
         await FetchManager.setSessionKey(session.key);
         updateEditorTabs();
+      } else {
+        console.log("NO SESSION ACTIVE PREVIOUSLY");
+
+        set({ sessionKey: session.key });
+        return;
       }
     } catch (e) {
       console.error(e);

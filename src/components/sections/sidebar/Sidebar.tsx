@@ -61,18 +61,19 @@ export default function Sidebar() {
             <BugButton />
             <div className="hidden">
               <table>
-                <tr>
-                  <td>
-                    <strong>AI Compilation: </strong>
-                  </td>
-                  <td>{userConsumables.ai_compilation}</td>
-                </tr>
-                <tr>
-                  <td>
-                    <strong>AI Conversation Message: </strong>
-                  </td>
-                  <td>{userConsumables.ai_conversation_message}</td>
-                </tr>
+                <thead>
+                  <tr>
+                    <th>AI Conversation Message</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <strong>AI Conversation Message: </strong>
+                    </td>
+                    <td>{userConsumables.ai_conversation_message}</td>
+                  </tr>
+                </tbody>
               </table>
             </div>
             <span>

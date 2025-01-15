@@ -94,7 +94,7 @@ export const convertMarkdownToHTML = (
 ) => {
   const md = new MarkdownIt({
     html: allowHTML,
-    linkify: true,
+    linkify: false,
     typographer: true,
     highlight: function (str, lang) {
       if (lang && hljs.getLanguage(lang)) {
