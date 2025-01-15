@@ -98,7 +98,7 @@ const useStore = create<IStore>((set, get) => ({
   token: "",
   bc_token: "",
   buildbuttonText: {
-    text: "Run",
+    text: "execute-my-code",
     className: "",
   },
   theme: "light",
@@ -219,9 +219,9 @@ const useStore = create<IStore>((set, get) => ({
       }
 
       if (get().targetButtonForFeedback === "feedback") {
-        setFeedbackButtonProps("Succeded", "bg-success text-white");
+        setFeedbackButtonProps("test-my-code", "bg-success text-white");
       } else {
-        setBuildButtonPrompt("Succeded", "bg-success text-white");
+        setBuildButtonPrompt("execute-my-code", "bg-success text-white");
       }
     }, 100);
 
@@ -252,8 +252,8 @@ const useStore = create<IStore>((set, get) => ({
       if (data.recommendations) {
         toast.error(data.recommendations);
       }
-      setBuildButtonPrompt("Try again", "bg-fail");
-      setFeedbackButtonProps("Try again", "bg-fail text-white");
+      setBuildButtonPrompt("try-again", "bg-fail");
+      setFeedbackButtonProps("test-my-code", "bg-white ");
       toastFromStatus("compiler-error");
       if (environment === "localStorage") {
         registerTelemetryEvent("compile", data);
@@ -268,7 +268,7 @@ const useStore = create<IStore>((set, get) => ({
       set({ lastState: "success", terminalShouldShow: true });
 
       toastFromStatus("compiler-success");
-      setBuildButtonPrompt("Run", "bg-success");
+      setBuildButtonPrompt("execute-my-code", "bg-success");
       if (environment === "localStorage") {
         registerTelemetryEvent("compile", data);
       }
@@ -295,7 +295,7 @@ const useStore = create<IStore>((set, get) => ({
 
   figureEnvironment: async () => {
     const env = await getEnvironment();
-
+    FetchManager.init(env, HOST);
     set({ compilerSocket: EventProxy.getEmitter(env) });
     if (env === "localStorage") {
       set({ agent: "cloud" });
@@ -306,6 +306,7 @@ const useStore = create<IStore>((set, get) => ({
     return { message: "Environment figured out!" };
   },
   handleEnvironmentChange: (event: any) => {
+    console.log(event, "EVENT");
     set({ environment: event.detail.environment });
   },
 
@@ -387,8 +388,6 @@ const useStore = create<IStore>((set, get) => ({
       getOrCreateActiveSession();
 
       if (environment === "localStorage") {
-        // console.log("Starting telemetry, JSON TO START WITH", json);
-
         await startTelemetry();
       }
 
@@ -479,6 +478,7 @@ ${currentContent}
 
     try {
       const config = await FetchManager.getExercises();
+      console.log(config, "CONFIG");
 
       if (!config) return;
 
@@ -536,6 +536,7 @@ ${currentContent}
 
       return true;
     } catch (err) {
+      console.log(err, "ERROR");
       disconnected();
       return false;
     }
@@ -647,8 +648,8 @@ ${currentContent}
       setFeedbackButtonProps,
       checkParams,
       registerTelemetryEvent,
-      exercises,
-      configObject,
+
+      // configObject,
     } = get();
 
     let params = checkParams({ justReturn: true });
@@ -665,8 +666,13 @@ ${currentContent}
     registerTelemetryEvent("open_step", {});
     fetchReadme();
 
-    const exercise = exercises[newPosition];
-    set({ configObject: { ...configObject, currentExercise: exercise.slug } });
+    // set({ configObject: { ...configObject } });
+
+    // if (exercise) {
+    //   set({
+    //     configObject: { ...configObject, currentExercise: exercise.slug },
+    //   });
+    // }
   },
   startConversation: async (exercisePosition) => {
     const { token, learnpackPurposeId, conversationIdsCache } = get();

@@ -106,5 +106,6 @@
     "sync-your-user-with-rigobot": "Sync your user with Rigobot",
     "sync-your-user-with-rigobot-text": "Rigobot is our internal AI trained to help you at every moment of your learning. To use Rigobot in your LearnPack exercises, you must accept the invitation by clicking the button below.",
     "solution-tab-not-editable": "You are looking at a model solution, this is not your code, in order to continue editing your solution, switch to the **{{switchTo}}** tab.",
-    "another-tab": "another tab"
+    "another-tab": "another tab",
+    "try-again": "Try again"
 }

@@ -271,6 +271,8 @@ export default {
         scope.logs = scope.logs.concat(data.logs);
       }
 
+      console.log(data, "RECEIVED IN SOCKET");
+
       if (data.status) {
         scope.status = {
           code: data.status,
