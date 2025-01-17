@@ -473,12 +473,14 @@ ${currentContent}
   },
 
   fetchExercises: async () => {
-    const { user_id, setOpenedModals } = get();
+    const { user_id, setOpenedModals, environment } = get();
 
     try {
       const config = await FetchManager.getExercises();
 
       if (!config) return;
+
+      console.log(config.config.authentication);
 
       if (
         config.config.authentication &&
@@ -491,7 +493,7 @@ ${currentContent}
         set({ maxQuizRetries: config.config.assessment.maxQuizRetries });
       }
 
-      if (config.config.warnings.agent) {
+      if (config.config.warnings.agent && environment !== "localStorage") {
         set({
           dialogData: { message: config.config.warnings.agent, format: "md" },
         });
