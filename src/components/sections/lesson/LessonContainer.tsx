@@ -31,12 +31,14 @@ export default function LessonContainer({
     configObject,
     isTesteable,
     editorTabs,
+    environment,
   } = useStore((state) => ({
     getCurrentExercise: state.getCurrentExercise,
     exercises: state.exercises,
     configObject: state.configObject,
     isTesteable: state.isTesteable,
     editorTabs: state.editorTabs,
+    environment: state.environment,
   }));
 
   useEffect(() => {
@@ -64,10 +66,12 @@ export default function LessonContainer({
       {alerts.incrementalTest && (
         <blockquote>{t("incremental-test-alert")}</blockquote>
       )}
-      {configObject?.config?.warnings?.agent && alerts.agent && (
-        <Alert>
-          <div className="d-flex space-between">
-            <p>
+      {configObject?.config?.warnings?.agent &&
+        alerts.agent &&
+        environment !== "localStorage" && (
+          <Alert>
+            <div className="d-flex space-between">
+              <p>
               {t("agent-mismatch-error")}{" "}
               <OpenWindowLink
                 href="https://4geeks.com/lesson/agent-vs-mode"
