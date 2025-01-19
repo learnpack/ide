@@ -101,7 +101,7 @@ export const Container = () => {
       t.name.includes("solution.hide")
     );
 
-    if (hasSolution && !terminalShouldShow && (isMobile || isRigoOpened)) {
+    if (hasSolution && !terminalShouldShow && (isMobile || isRigoOpened || showSidebar)) {
       setVisibleTab("code");
     }
 

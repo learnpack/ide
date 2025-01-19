@@ -680,3 +680,6 @@ a {
 .bg-warning {
   background-color: var(--color-warning);
 }
+.text-black {
+  color: black !important;
+}
