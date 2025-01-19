@@ -196,7 +196,6 @@ export const ChatTab = () => {
     // @ts-ignore
     chatSocket.on("responseFinished", (data) => {
       if (data.status == "ok") {
-        setIsGenerating(false);
         aiInteraction.ending_at = Date.now();
         aiInteraction.ai_response = messages[messages.length - 1].text;
         registerAIInteraction(Number(currentExercisePosition), aiInteraction);
@@ -204,6 +203,19 @@ export const ChatTab = () => {
         aiInteraction = {};
         setExerciseMessages(messages, Number(currentExercisePosition));
       }
+      if (data.finish_reason == "not_enough_ai_interactions") {
+        setMessages((prev) => {
+          let messages = [...prev];
+          messages[
+            messages.length - 1
+          ].text = `**You have used all your AI interactions** Upgrade your subscription to continue using Rigobot AI tutor [click here to review your subscription](https://4geeks.com/checkout?plan=4geeks-plus&token=${bc_token})`;
+          return messages;
+        });
+        reportEnrichDataLayer("learnpack_consumable_depleted", {
+          service_slug: "ai_interaction",
+        });
+      }
+      setIsGenerating(false);
     });
 
     if (!messagesRef.current) return;
