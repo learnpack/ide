@@ -10,6 +10,7 @@ import { svgs } from "../../assets/svgs";
 
 import useStore from "../../utils/store";
 import { TUser } from "../../utils/storeTypes";
+import { Loader } from "../composites/Loader/Loader";
 // import TagManager from "react-gtm-module";
 
 function removeHiddenContent(text: string) {
@@ -247,9 +248,15 @@ export const ChatTab = () => {
 
       setMessages((prev) => {
         let messages = [...prev];
-        messages[messages.length - 1].text = "**Tests passed!**";
-        messages[messages.length - 1].extraClass = "bg-success text-white";
-        return messages;
+        const filtered = messages.filter(
+          (message) => message.type !== "loader"
+        );
+        // filtered.push({
+        //   type: "bot",
+        //   text: "**Tests passed!**",
+        //   extraClass: "bg-success text-white",
+        // });
+        return filtered;
       });
 
       emitUserMessage(
@@ -264,9 +271,15 @@ export const ChatTab = () => {
     compilerSocket.onStatus("testing-error", (data: any) => {
       setMessages((prev) => {
         let messages = [...prev];
-        messages[messages.length - 1].text = "**Tests failed**";
-        messages[messages.length - 1].extraClass = "bg-fail text-white";
-        return messages;
+        const filtered = messages.filter(
+          (message) => message.type !== "loader"
+        );
+        // filtered.push({
+        //   type: "bot",
+        //   text: "**Tests failed**",
+        //   extraClass: "bg-fail text-white",
+        // });
+        return filtered;
       });
 
       emitUserMessage(
@@ -304,10 +317,7 @@ export const ChatTab = () => {
     setUserMessage("");
 
     if (isTesteable && (shouldBeTested || isFirstInteraction)) {
-      setMessages((prev) => [
-        ...prev,
-        { type: "bot", text: "**Wait while I'm testing your code...**" },
-      ]);
+      setMessages((prev) => [...prev, { type: "loader", text: t("thinking") }]);
       setChatListeners();
       runExerciseTests();
       return;
@@ -451,6 +461,10 @@ const Message = ({ type, text, extraClass }: IMessage) => {
 
   if (text.includes("[//]: # (next)")) {
     setMessageText(text.replace("[//]: # (next)", ""));
+  }
+
+  if (type === "loader") {
+    return <Loader text={text} svg={svgs.rigoSvg} />;
   }
 
   return (
