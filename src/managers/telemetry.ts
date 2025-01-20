@@ -239,6 +239,7 @@ const TelemetryManager: ITelemetryManager = {
 
           this.submit();
           this.started = true;
+          console.log("Telemetry started successfully!");
         })
         .catch((error) => {
           console.log("ERROR: There was a problem starting the Telemetry");
@@ -408,7 +409,7 @@ const TelemetryManager: ITelemetryManager = {
 
     const url = this.urls.batch;
     if (!url) {
-      //   toast.error("URL is required to send telemetry");
+      console.error("Batch URL is required to send telemetry");
       return;
     }
 

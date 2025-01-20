@@ -11,7 +11,6 @@ import { svgs } from "../../assets/svgs";
 import useStore from "../../utils/store";
 import { TUser } from "../../utils/storeTypes";
 import { Loader } from "../composites/Loader/Loader";
-// import TagManager from "react-gtm-module";
 
 function removeHiddenContent(text: string) {
   // Use a regular expression to match and remove the hidden section
@@ -86,6 +85,8 @@ export const ChatTab = () => {
     user,
     getCurrentExercise,
     chatInitialMessage,
+    hasSolution,
+    videoTutorial,
 
     reportEnrichDataLayer,
   } = useStore((state) => ({
@@ -116,6 +117,8 @@ export const ChatTab = () => {
     user: state.user,
     getCurrentExercise: state.getCurrentExercise,
     reportEnrichDataLayer: state.reportEnrichDataLayer,
+    hasSolution: state.hasSolution,
+    videoTutorial: state.videoTutorial,
   }));
 
   const initialMessages = [
@@ -333,6 +336,14 @@ export const ChatTab = () => {
 
     if (testResult) {
       messageData.message.context += `\n <test_result>${testResult}</test_result>`;
+    }
+
+    if (hasSolution) {
+      messageData.message.context += `\n This exercise has solution file, the user can click the solution button at the top of LearnPack near Rigobot icon to see the solution`;
+    }
+
+    if (videoTutorial) {
+      messageData.message.context += `\n This exercise has a video tutorial, the user can click the video button at the top of LearnPack near Rigobot icon to see the video`;
     }
 
     aiInteraction.starting_at = Date.now();

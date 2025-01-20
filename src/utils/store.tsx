@@ -1504,7 +1504,7 @@ ${currentContent}
     );
   },
   startTelemetry: async () => {
-    const { configObject, bc_token, user } = get();
+    const { configObject, bc_token, user, registerTelemetryEvent } = get();
     if (!bc_token || !configObject) {
       console.error("No token or config found, impossible to start telemetry");
       return;
@@ -1536,13 +1536,22 @@ ${currentContent}
         return;
       }
 
+      if (!steps || steps.length === 0) {
+        console.error("No steps found in config, telemetry will not start");
+        return;
+      }
+
       TelemetryManager.urls = configObject.config.telemetry;
       TelemetryManager.userToken = bc_token;
       TelemetryManager.userID = user.id;
 
       // @ts-ignore
       TelemetryManager.start(agent, steps, tutorialSlug, STORAGE_KEY);
-      console.log("Telemetry started successfully!");
+
+      registerTelemetryEvent("open_step", {
+        step_slug: steps[0].slug,
+        step_position: steps[0].position,
+      });
     }
   },
   setRigoContext: (context) => {
