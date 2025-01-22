@@ -4,6 +4,7 @@ import {
   disconnected,
   getHost,
   onConnectCli,
+  reportDataLayer,
   RIGOBOT_HOST,
 } from "../utils/lib";
 import { FetchManager } from "./fetchManager";
@@ -69,34 +70,9 @@ function searchInputsForFile(filename: string, fileContent: string) {
   }
 }
 
-// function extractAndParseResult(xmlString: string): any {
-//   const resultTagStart = "<result>";
-//   const resultTagEnd = "</result>";
-
-//   const startIndex = xmlString.indexOf(resultTagStart) + resultTagStart.length;
-//   const endIndex = xmlString.indexOf(resultTagEnd);
-
-//   if (startIndex === -1 || endIndex === -1) {
-//     throw new Error("Result tags not found in the provided string.");
-//   }
-
-//   const resultString = xmlString.substring(startIndex, endIndex).trim();
-
-//   try {
-//     return JSON.parse(resultString);
-//   } catch (error) {
-//     throw new Error("Failed to parse JSON from the result string.");
-//   }
-// }
 
 let HOST = getHost();
 
-function removeTripleBackticks(input: string): string {
-  if (input.startsWith("```json") && input.endsWith("```")) {
-    return input.slice(7, -3);
-  }
-  return input;
-}
 
 const localStorageEventEmitter = {
   events: {} as Record<string, EventCallback[]>,
@@ -231,24 +207,26 @@ localStorageEventEmitter.on("build", async (data) => {
       code: content,
       inputs: JSON.stringify(inputsObject),
     };
-    const dataRigobotReturns = await buildRigo(data.token, inputs);
 
-    const json = JSON.parse(removeTripleBackticks(dataRigobotReturns));
+    const json = await buildRigo(data.token, inputs);
     json.ai_required = true;
-    if (json.exitCode > 0) {
+    if (json.exit_code > 0) {
       localStorageEventEmitter.emitStatus("compiler-error", json);
     } else {
       localStorageEventEmitter.emitStatus("compiler-success", json);
     }
     let logs = [json];
 
+    if (json.reasoning) {
+      console.log("RIGOBOT REASONING:", json.reasoning);
+    }
+
     if (logs !== null) {
-      let terminalContent = "";
+      let terminalContent = ``;
       logs.forEach((log: any) => {
-        terminalContent += log.stdout + "\n";
-        terminalContent += log.stderr + "\n\n";
-        if (log.testResults) {
-          terminalContent += log.testResults + "\n\n";
+        terminalContent += `\`\`\`stdout\n${log.stdout}\n\`\`\`\n`;
+        if (log.stderr) {
+          terminalContent += `\`\`\`stderr\n${log.stderr}\n\`\`\`\n`;
         }
       });
 
@@ -265,7 +243,17 @@ localStorageEventEmitter.on("build", async (data) => {
     console.table({
       "Something unexpected happened in the build event": e,
     });
-    await FetchManager.logout();
+    toast.error("Something unexpected happened in the build event");
+    const errorDatalayer = {
+      dataLayer: {
+        event: "learnpack_unexpected_error",
+        origin: "cloud_build",
+        agent: "cloud",
+        error: e,
+      },
+    };
+    reportDataLayer(errorDatalayer);
+    // await FetchManager.logout();
   }
 });
 
@@ -406,7 +394,6 @@ localStorageEventEmitter.on("test", async (data) => {
     console.log(e);
     toast.error("ERROR TRYING TO TEST");
     return;
-    
   }
 });
 
@@ -426,7 +413,7 @@ export const EventProxy = {
 };
 
 const buildRigo = async (token: string, inputs: object) => {
-  const result = await fetch(`${RIGOBOT_HOST}/v1/prompting/completion/57/`, {
+  const result = await fetch(`${RIGOBOT_HOST}/v1/prompting/completion/324/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -439,9 +426,8 @@ const buildRigo = async (token: string, inputs: object) => {
     }),
   });
   const json = await result.json();
-  //   console.log(json);
 
-  return json.answer;
+  return json.parsed;
 };
 const testRigo = async (token: string, inputs: object) => {
   const result = await fetch(`${RIGOBOT_HOST}/v1/prompting/completion/126/`, {

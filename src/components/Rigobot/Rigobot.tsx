@@ -2,15 +2,13 @@ import { useState, useEffect, useRef } from "react";
 
 import { useTranslation } from "react-i18next";
 import SimpleButton from "../mockups/SimpleButton";
-import {
-  convertMarkdownToHTML,
-  removeSpecialCharacters,
-} from "../../utils/lib";
+import { removeSpecialCharacters } from "../../utils/lib";
 import { svgs } from "../../assets/svgs";
 
 import useStore from "../../utils/store";
 import { TUser } from "../../utils/storeTypes";
 import { Loader } from "../composites/Loader/Loader";
+import { Markdowner } from "../composites/Markdowner/Markdowner";
 
 function removeHiddenContent(text: string) {
   // Use a regular expression to match and remove the hidden section
@@ -163,6 +161,7 @@ export const ChatTab = () => {
   useEffect(() => {
     if (!messagesRef.current || !autoScroll) return;
     messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
+    // scrollPosition.current = messagesRef.current.scrollTop || 0;
   }, [messages, autoScroll]);
 
   useEffect(() => {
@@ -481,11 +480,12 @@ const Message = ({ type, text, extraClass }: IMessage) => {
   return (
     <>
       <div className={`message ${type} ${extraClass ? extraClass : ""}`}>
-        <div
+        {/* <div
           dangerouslySetInnerHTML={{
             __html: convertMarkdownToHTML(messageText ? messageText : text),
           }}
-        ></div>
+        ></div> */}
+        <Markdowner markdown={messageText ? messageText : text} />
       </div>
     </>
   );

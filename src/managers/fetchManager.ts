@@ -203,7 +203,7 @@ export const FetchManager = {
         }
         const json = await res.json();
 
-        if ("tabHash" in json.payload) {
+        if (json && json.payload && "tabHash" in json.payload) {
           return json.payload.tabHash;
         } else {
           const tabHash = uuidv4();
@@ -231,7 +231,7 @@ export const FetchManager = {
         }
         const json = await res.json();
 
-        if ("sessionKey" in json.payload) {
+        if (json && json .payload && "sessionKey" in json.payload) {
           return json.payload.sessionKey;
         } else {
           return null;

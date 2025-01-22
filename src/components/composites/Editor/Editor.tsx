@@ -8,7 +8,7 @@ import FeedbackButton from "../../sections/header/FeedbackButton";
 import ResetButton from "../../sections/header/ResetButton";
 
 import { useTranslation } from "react-i18next";
-import { convertMarkdownToHTML, debounce } from "../../../utils/lib";
+import { debounce } from "../../../utils/lib";
 import { Tab } from "../../../types/editor";
 import { CompileOptions } from "../../sections/header/CompileOptions";
 import SimpleButton from "../../mockups/SimpleButton";
@@ -217,7 +217,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
       {terminalTab && (
         <Terminal
           terminalTab={terminalTab}
-          terminal={terminal}
+          terminalState={terminal}
           removeTab={removeTab}
           editorStatus={editorStatus}
         />
@@ -228,12 +228,12 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
 
 const Terminal = ({
   terminalTab,
-  terminal,
+  terminalState,
   removeTab,
   editorStatus,
 }: {
   terminalTab: TEditorTab;
-  terminal: string;
+  terminalState: "hidden" | "only" | "normal";
   removeTab: (id: number, name: string) => void;
   editorStatus: TEditorStatus;
 }) => {
@@ -278,7 +278,7 @@ const Terminal = ({
   return (
     <>
       {terminalTab && !terminalTab.isHTML && (
-        <div className={`terminal ${terminal}`}>
+        <div className={`terminal ${terminalState}`}>
           <h5 className="d-flex justify-between align-center">
             <span className="d-flex align-center gap-small">
               {terminalTab &&
@@ -304,11 +304,9 @@ const Terminal = ({
           )}
 
           {terminalTab.content ? (
-            <div
-              dangerouslySetInnerHTML={{
-                __html: convertMarkdownToHTML(terminalTab.content, false),
-              }}
-            ></div>
+            <>
+              <Markdowner markdown={terminalTab.content} />
+            </>
           ) : (
             <Loader svg={svgs.blueRigoSvg} text={t("thinking...")} />
           )}
@@ -316,13 +314,13 @@ const Terminal = ({
             <AskForHint context={terminalTab.content} from="test" />
           )}
 
-          {terminal === "only" && getCurrentExercise().done && (
+          {terminalState === "only" && getCurrentExercise().done && (
             <Toolbar editorStatus={editorStatus} />
           )}
         </div>
       )}
       {terminalTab && terminalTab.isHTML && (
-        <div className={`terminal ${terminal} html browser`}>
+        <div className={`terminal ${terminalState} html browser`}>
           <div className="d-flex justify-between align-center browser-header">
             <div title={browserTabTitle} className=" browser-tab">
               {browserTabTitle}

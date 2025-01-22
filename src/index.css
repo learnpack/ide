@@ -683,3 +683,20 @@ a {
 .text-black {
   color: black !important;
 }
+
+.stdout-prefix {
+  color: var(--color-active);
+  margin: 0;
+  font-weight: bold;
+  font-size: 12px;
+}
+.stdout {
+  background-color: black;
+  padding: 10px;
+  color: white;
+}
+.stderr {
+  background-color: black;
+  padding: 10px;
+  color: var(--color-fail);
+}

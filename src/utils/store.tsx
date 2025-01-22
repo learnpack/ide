@@ -249,9 +249,7 @@ const useStore = create<IStore>((set, get) => ({
       data;
 
       set({ lastState: "error", terminalShouldShow: true });
-      if (data.recommendations) {
-        toast.error(data.recommendations);
-      }
+
       setBuildButtonPrompt("try-again", "bg-fail");
       setFeedbackButtonProps("test-my-code", "bg-white ");
       toastFromStatus("compiler-error");
