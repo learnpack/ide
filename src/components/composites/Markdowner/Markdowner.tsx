@@ -1,7 +1,9 @@
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import useStore from "../../../utils/store";
-
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { atomDark as prismStyle } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { QuizRenderer } from "../QuizRenderer/QuizRenderer";
 
 export const Markdowner = ({ markdown }: { markdown: string }) => {
   const { openLink } = useStore((state) => ({
@@ -21,6 +23,44 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
           }
           return <span>{children}</span>;
         },
+        // @ts-ignore
+        ol: ({ children, node }) => {
+          const containsTaskList = node?.children.filter(
+            (child) =>
+              child.type === "element" &&
+              child.tagName === "li" &&
+              child.children.some(
+                (child) =>
+                  child.type === "element" &&
+                  (child.tagName === "ul" || child.tagName === "ol")
+              )
+          );
+
+          if (containsTaskList && containsTaskList.length > 0) {
+            return <QuizRenderer children={children} />;
+          }
+
+          return <ol>{children}</ol>;
+        },
+        // @ts-ignore
+        ul: ({ children, node }) => {
+          const containsTaskList = node?.children.filter(
+            (child) =>
+              child.type === "element" &&
+              child.tagName === "li" &&
+              child.children.some(
+                (child) =>
+                  child.type === "element" &&
+                  (child.tagName === "ul" || child.tagName === "ol")
+              )
+          );
+
+          if (containsTaskList && containsTaskList.length > 0) {
+            return <QuizRenderer children={children} />;
+          }
+
+          return <ul>{children}</ul>;
+        },
         pre(props) {
           const codeBlocks = props.node?.children.map((child) => {
             // @ts-ignore
@@ -37,9 +77,9 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
             };
           });
           if (!codeBlocks || codeBlocks.length === 0) {
-            // toast.success("No code blocks found");
             return <pre>{props.children}</pre>;
           }
+
           return (
             <CustomCodeBlock
               code={codeBlocks[0].code}
@@ -62,27 +102,29 @@ const CustomCodeBlock = ({
   code: string;
   language: string;
 }) => {
-  if (language === "stdout") {
+  const { getCurrentExercise } = useStore((state) => ({
+    getCurrentExercise: state.getCurrentExercise,
+  }));
+
+  if (language === "stdout" || language === "stderr") {
     return (
       <div
         // style={{ backgroundColor: "black", color: "red" }}
-        className={`stdout`}
+        className={`${language}`}
       >
-        <p className="stdout-prefix">~/learnpack</p>
-        {code}
-      </div>
-    );
-  }
-  if (language === "stderr") {
-    return (
-      <div
-        // style={{ backgroundColor: "black", color: "red" }}
-        className={`stderr`}
-      >
+        {language === "stdout" && (
+          <p className="stdout-prefix">
+            ~/learnpack/{getCurrentExercise().slug}
+          </p>
+        )}
         {code}
       </div>
     );
   }
 
-  return <pre className={`language-${language}`}>{code}</pre>;
+  return (
+    <SyntaxHighlighter language={language} style={prismStyle}>
+      {code}
+    </SyntaxHighlighter>
+  );
 };

@@ -91,7 +91,7 @@ export function SocketHandler() {
 
     compilerSocket.onStatus("ready", (data: any) => {
       if (data.allowed) {
-        console.log("allowed", data.allowed);
+        // console.log("allowed", data.allowed);
         setAllowedActions(data.allowed);
       }
     });

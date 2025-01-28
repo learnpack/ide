@@ -115,5 +115,7 @@
     "solution-tab-not-editable": "Estás viendo una solución modelo, este no es tu código, para continuar editando tu solución, cambia a la pestaña **{{switchTo}}**.",
     "another-tab": "otra pestaña",
     "try-again": "Intenta de nuevo",
-    "thinking": "Pensando..."
+    "thinking": "Pensando...",
+    "answer-all-questions-before": "Debes responder todas las preguntas antes de enviar el quiz",
+    "learnpack_consumable_depleted": "Has usado todas tus interacciones con Rigobot, actualiza tu plan para continuar usando el tutor Rigobot [haz clic aquí para revisar tu plan](https://4geeks.com/checkout?plan=4geeks-plus&token={{bc_token}})"
 }

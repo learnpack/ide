@@ -298,7 +298,9 @@ export const countConsumables = (
 };
 
 export function hashText(text: string, callback: (hash: string) => void) {
-  const encoder = new TextEncoder(); // Create a new TextEncoder instance
+  console.log(text, "TEXT TO HASH");
+
+  const encoder = new TextEncoder();
   const data = encoder.encode(text);
 
   crypto.subtle
@@ -315,6 +317,17 @@ export function hashText(text: string, callback: (hash: string) => void) {
       console.error("Hashing failed:", err); // Handle any errors
     });
 }
+
+export const asyncHashText = async (text: string) => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(text);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  return hashHex;
+};
 
 export const removeParam = (param: string) => {
   // Retrieve the current URL
@@ -348,7 +361,7 @@ type TDataLayerPayload = {
 };
 
 export const reportDataLayer = (payload: TDataLayerPayload) => {
-  console.log(`Reporting data layer`, payload.dataLayer.event);
-  console.log(payload);
+  console.debug(`Reporting data layer`, payload.dataLayer.event);
+  console.debug(payload);
   TagManager.dataLayer(payload);
 };

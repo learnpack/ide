@@ -71,7 +71,6 @@ export const ChatTab = () => {
     runExerciseTests,
     compilerSocket,
     shouldBeTested,
-    registerAIInteraction,
     setListeners,
 
     openLink,
@@ -85,8 +84,8 @@ export const ChatTab = () => {
     chatInitialMessage,
     hasSolution,
     videoTutorial,
-
     reportEnrichDataLayer,
+    registerTelemetryEvent,
   } = useStore((state) => ({
     setOpenedModals: state.setOpenedModals,
     currentExercisePosition: state.currentExercisePosition,
@@ -104,7 +103,6 @@ export const ChatTab = () => {
     isTesteable: state.isTesteable,
     runExerciseTests: state.runExerciseTests,
     shouldBeTested: state.shouldBeTested,
-    registerAIInteraction: state.registerAIInteraction,
     setListeners: state.setListeners,
     isRigoOpened: state.isRigoOpened,
     bc_token: state.bc_token,
@@ -117,6 +115,7 @@ export const ChatTab = () => {
     reportEnrichDataLayer: state.reportEnrichDataLayer,
     hasSolution: state.hasSolution,
     videoTutorial: state.videoTutorial,
+    registerTelemetryEvent: state.registerTelemetryEvent,
   }));
 
   const initialMessages = [
@@ -183,7 +182,7 @@ export const ChatTab = () => {
   useEffect(() => {
     if (!rigoContext || !userMessageCache || !userMessage) return;
 
-    sendUserMessage();
+    processUserMessage();
     setRigoContext("");
   }, [rigoContext, userMessageCache, userMessage]);
 
@@ -201,7 +200,11 @@ export const ChatTab = () => {
       if (data.status == "ok") {
         aiInteraction.ending_at = Date.now();
         aiInteraction.ai_response = messages[messages.length - 1].text;
-        registerAIInteraction(Number(currentExercisePosition), aiInteraction);
+
+        reportEnrichDataLayer("ai_interaction", {
+          interaction: aiInteraction,
+        });
+        registerTelemetryEvent("ai_interaction", aiInteraction);
 
         aiInteraction = {};
         setExerciseMessages(messages, Number(currentExercisePosition));
@@ -209,9 +212,10 @@ export const ChatTab = () => {
       if (data.finish_reason == "not_enough_ai_interactions") {
         setMessages((prev) => {
           let messages = [...prev];
-          messages[
-            messages.length - 1
-          ].text = `**You have used all your AI interactions** Upgrade your subscription to continue using Rigobot AI tutor [click here to review your subscription](https://4geeks.com/checkout?plan=4geeks-plus&token=${bc_token})`;
+          messages[messages.length - 1].text = t(
+            "learnpack_consumable_depleted",
+            { bc_token }
+          );
           return messages;
         });
         reportEnrichDataLayer("learnpack_consumable_depleted", {
@@ -305,7 +309,7 @@ export const ChatTab = () => {
     setUserMessageCache(e.target.value);
   };
 
-  const sendUserMessage = async () => {
+  const processUserMessage = async () => {
     if (Boolean(userMessage.trim() == "")) return;
     if (isGenerating) return;
     setAutoScroll(true);
@@ -338,7 +342,7 @@ export const ChatTab = () => {
     }
 
     if (hasSolution) {
-      messageData.message.context += `\n This exercise has solution file, the user can click the solution button at the top of LearnPack near Rigobot icon to see the solution`;
+      messageData.message.context += `\n This exercise has solution file, the user can click the solution button at the top of LearnPack near Rigobot icon to see the solution. There are the steps to open `;
     }
 
     if (videoTutorial) {
@@ -356,19 +360,21 @@ export const ChatTab = () => {
   };
 
   const handleSubmit = () => {
-    sendUserMessage();
+    processUserMessage();
   };
 
   const handleKeyUp = (event: any) => {
     if (event.key === "Enter" && !event.ctrlKey) {
       event.preventDefault();
 
-      sendUserMessage();
+      processUserMessage();
     }
   };
 
   const getMessageData = async () => {
     const contextFilesContent = await getContextFilesContent();
+
+    console.log(contextFilesContent, "CONTEXT FILES CONTENT");
 
     const data = {
       message: {

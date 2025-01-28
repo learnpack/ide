@@ -10,6 +10,7 @@ import { TEnvironment } from "./EventProxy";
 import frontMatter from "front-matter";
 import { LocalStorage } from "./localStorage";
 import { v4 as uuidv4 } from "uuid";
+import TelemetryManager from "./telemetry";
 
 // Correct the type definition for TMethods
 type TMethods = {
@@ -124,6 +125,24 @@ export const FetchManager = {
     return await methods[FetchManager.ENVIRONMENT as keyof TMethods]();
   },
 
+  getTelemetryStep: async (stepPosition: number) => {
+    const methods: TMethods = {
+      localStorage: async () => {
+        return TelemetryManager.getStep(stepPosition);
+      },
+      localhost: async () => {
+        const res = await fetch(
+          `${FetchManager.HOST}/telemetry/step/${stepPosition}`
+        );
+        const json = await res.json();
+        console.log("STEP FROM LOCALHOST", json);
+
+        return json;
+      },
+    };
+    return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
+  },
+
   checkLoggedStatus: async () => {
     const methods: TMethods = {
       localStorage: async () => {
@@ -231,7 +250,7 @@ export const FetchManager = {
         }
         const json = await res.json();
 
-        if (json && json .payload && "sessionKey" in json.payload) {
+        if (json && json.payload && "sessionKey" in json.payload) {
           return json.payload.sessionKey;
         } else {
           return null;

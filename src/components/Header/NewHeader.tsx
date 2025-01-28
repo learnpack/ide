@@ -54,8 +54,7 @@ export const NewHeader = () => {
       updateEditorTabs: updateEditorTabs,
     };
     compilerSocket.emit("open", data);
-    reportEnrichDataLayer("learnpack_open_solution", {
-    });
+    reportEnrichDataLayer("learnpack_open_solution", {});
   };
 
   return (
@@ -65,8 +64,7 @@ export const NewHeader = () => {
           disabled={currentExercisePosition == 0}
           onClick={() => {
             handlePositionChange(Number(currentExercisePosition) - 1);
-            reportEnrichDataLayer("learnpack_previous_step", {
-            });
+            reportEnrichDataLayer("learnpack_previous_step", {});
           }}
         >
           {svgs.prevArrowButton}
@@ -77,9 +75,7 @@ export const NewHeader = () => {
           }
           onClick={() => {
             handlePositionChange(Number(currentExercisePosition) + 1);
-            reportEnrichDataLayer("learnpack_next_step", {
-
-            });
+            reportEnrichDataLayer("learnpack_next_step", {});
           }}
         >
           {svgs.nextArrowButton}
@@ -87,7 +83,7 @@ export const NewHeader = () => {
         {DEV_MODE && <button onClick={test}>TEST</button>}
       </section>
       <section>{svgs.learnpackLogo}</section>
-      <section>
+      <section className="flex-x align-center">
         {!isIframe && language && <LanguageButton />}
         {hasSolution && (
           <SimpleButton
@@ -107,9 +103,7 @@ export const NewHeader = () => {
           svg={svgs.video}
           action={() => {
             setShowVideoTutorial(true);
-            reportEnrichDataLayer("learnpack_open_video", {
-     
-            });
+            reportEnrichDataLayer("learnpack_open_video", {});
           }}
         />
 

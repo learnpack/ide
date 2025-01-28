@@ -1,4 +1,3 @@
-import toast from "react-hot-toast";
 import { LocalStorage } from "./localStorage";
 import axios, { AxiosResponse } from "axios";
 
@@ -107,14 +106,15 @@ type TAIInteraction = {
   ending_at: number;
 };
 
-type TQuizSelection = {
+export type TQuizSelection = {
   question: string;
   answer: string;
   isCorrect: boolean;
 };
 
-type TQuizSubmission = {
-  // TODO: Build from the concatenated question labels
+export type TQuizSubmission = {
+  status: "SUCCESS" | "ERROR";
+  percentage: number;
   quiz_hash: string;
   selections: TQuizSelection[];
   submitted_at: number;
@@ -131,6 +131,7 @@ export type TStep = {
   tests: TTestAttempt[]; // Everytime the user tries to run the tests
   ai_interactions: TAIInteraction[]; // Everytime the user interacts with the AI
   quiz_submissions: TQuizSubmission[];
+  is_completed: boolean;
 };
 
 type TWorkoutSession = {
@@ -146,11 +147,11 @@ type TStudent = {
 
 export interface ITelemetryJSONSchema {
   telemetry_id?: string;
-  user_id?: number | string | null;
+  user_id?: number | string;
   slug: string;
   agent?: string;
-  tutorial_started_at?: number;
-  last_interaction_at?: number;
+  tutorial_started_at: number;
+  last_interaction_at: number;
   steps: Array<TStep>; // The steps should be the same as the exercise
   workout_session: TWorkoutSession[]; // It start when the user starts Learnpack, if the last_interaction_at is available, it automatically fills with that
   // number and start another session
@@ -168,12 +169,19 @@ export type TTelemetryUrls = {
   batch?: string;
 };
 
+type TUser = {
+  token: string;
+  id: string;
+  email: string;
+};
+
 interface ITelemetryManager {
   current: ITelemetryJSONSchema | null;
   //   configPath: string | null;
   started: boolean;
-  userToken: string;
-  userID: number | null;
+  // userToken: string;
+  // userID?: number;
+  user: TUser;
   telemetryKey: string;
   urls: TTelemetryUrls;
   salute: (message: string) => void;
@@ -196,14 +204,20 @@ interface ITelemetryManager {
   setStudent: (student: TStudent) => void;
   save: () => void;
   retrieve: () => Promise<ITelemetryJSONSchema | null>;
+  getStep: (stepPosition: number) => TStep | null;
 }
 
 const TelemetryManager: ITelemetryManager = {
   current: null,
   urls: {},
   telemetryKey: "",
-  userToken: "",
-  userID: null,
+  // userToken: "",
+  // userID: undefined,
+  user: {
+    token: "",
+    id: "",
+    email: "",
+  },
   tutorialSlug: "",
   started: false,
   salute: (message) => {
@@ -225,6 +239,7 @@ const TelemetryManager: ITelemetryManager = {
               slug: tutorialSlug,
               agent,
               tutorial_started_at: Date.now(),
+              last_interaction_at: Date.now(),
               steps,
               workout_session: [
                 {
@@ -234,12 +249,20 @@ const TelemetryManager: ITelemetryManager = {
             };
           }
 
-          this.current.user_id = this.userID;
+          this.current.user_id = this.user.id;
           this.save();
 
-          this.submit();
           this.started = true;
-          console.log("Telemetry started successfully!");
+          console.debug("Telemetry started successfully!");
+
+          if (!this.user.id) {
+            console.warn(
+              "No user ID found, impossible to submit telemetry at start"
+            );
+            return;
+          }
+
+          this.submit();
         })
         .catch((error) => {
           console.log("ERROR: There was a problem starting the Telemetry");
@@ -258,6 +281,8 @@ const TelemetryManager: ITelemetryManager = {
     }
 
     this.current.user_id = student.user_id;
+    this.user.id = student.user_id;
+    this.user.token = student.token;
     this.save();
     this.submit();
   },
@@ -281,8 +306,7 @@ const TelemetryManager: ITelemetryManager = {
   },
 
   registerStepEvent: function (stepPosition, event, data) {
-    // toast.success(`Registering Event ${event}`);
-    console.log(`Registering Event ${event}`);
+    console.debug(`Registering Event ${event} for user ${this.user.id}`);
 
     if (!this.current) {
       //   toast.error(`Telemetry has not been started, ${event} NOT REGISTERED`);
@@ -348,12 +372,12 @@ const TelemetryManager: ITelemetryManager = {
         if (!step.quiz_submissions) {
           step.quiz_submissions = [];
         }
+        console.log(data);
 
         step.quiz_submissions.push(data);
         break;
       }
       case "open_step": {
-        // NOTE: data is not used here
         const now = Date.now();
 
         if (!step.opened_at) {
@@ -374,15 +398,6 @@ const TelemetryManager: ITelemetryManager = {
         this.submit();
         break;
       }
-      // case "quiz_submission": {
-      //   const now = Date.now();
-
-      //   if (!step.completed_at) {
-      //     step.completed_at = now;
-      //     this.current.steps[stepPosition] = step;
-      //   }
-      // this.submit();
-      // }
 
       default:
         throw new Error(`Event type ${event} is not supported`);
@@ -402,8 +417,15 @@ const TelemetryManager: ITelemetryManager = {
   },
 
   submit: async function () {
-    if (!this.current || !this.userToken) {
-      toast.error("Telemetry and user token are required to send telemetry");
+    if (!this.current || !this.user.token || !this.user.id) {
+      console.warn(
+        "Telemetry and user token are required to send telemetry, telemetry was not sent"
+      );
+      console.warn({
+        current: Boolean(this.current),
+        id: Boolean(this.user.id),
+        token: Boolean(this.user.token),
+      });
       return Promise.resolve();
     }
 
@@ -415,20 +437,23 @@ const TelemetryManager: ITelemetryManager = {
 
     const body = this.current;
 
-    if (!body.user_id && !this.userID) {
-      console.error("No user ID found, impossible to submit telemetry");
-      return;
+    if (!body.user_id) {
+      body.user_id = this.user.id;
     }
 
     try {
-      await sendBatchTelemetry(url, body, this.userToken);
-      console.log("Telemetry submitted successfully");
+      await sendBatchTelemetry(url, body, this.user.token);
+      console.debug("Telemetry submitted successfully");
     } catch (error) {
       console.error("Error submitting telemetry", error);
     }
   },
   save: function () {
     LocalStorage.set(this.telemetryKey, this.current);
+  },
+
+  getStep: function (stepPosition: number) {
+    return this.current?.steps[stepPosition] || null;
   },
 
   streamEvent: async function (stepPosition, event, data) {
@@ -450,7 +475,7 @@ const TelemetryManager: ITelemetryManager = {
       data,
     };
 
-    sendStreamTelemetry(url, body, this.userToken);
+    sendStreamTelemetry(url, body, this.user.token);
   },
 };
 

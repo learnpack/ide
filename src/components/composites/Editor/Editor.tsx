@@ -311,7 +311,12 @@ const Terminal = ({
             <Loader svg={svgs.blueRigoSvg} text={t("thinking...")} />
           )}
           {!getCurrentExercise().done && lastState === "error" && (
-            <AskForHint context={terminalTab.content} from="test" />
+            <AskForHint
+              getContext={() => {
+                return terminalTab.content;
+              }}
+              from="test"
+            />
           )}
 
           {terminalState === "only" && getCurrentExercise().done && (

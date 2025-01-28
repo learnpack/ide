@@ -1,6 +1,6 @@
 import styles from "./Container.module.css";
 import CodeEditor from "../composites/Editor/Editor";
-import LessonContainer from "../sections/lesson/LessonContainer";
+// import LessonContainer from "../sections/lesson/LessonContainer";
 import { useTranslation } from "react-i18next";
 import useStore from "../../utils/store";
 import { useState, useEffect, useRef } from "react";
@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { ChatTab } from "../Rigobot/Rigobot";
 import Chat from "../sections/modals/Chat";
 import Sidebar from "../sections/sidebar/Sidebar";
+import { LessonRenderer } from "../composites/LessonRenderer/LessonRenderer";
 
 type TPossibleTabs = "instructions" | "terminal" | "all" | "code";
 
@@ -101,7 +102,11 @@ export const Container = () => {
       t.name.includes("solution.hide")
     );
 
-    if (hasSolution && !terminalShouldShow && (isMobile || isRigoOpened || showSidebar)) {
+    if (
+      hasSolution &&
+      !terminalShouldShow &&
+      (isMobile || isRigoOpened || showSidebar)
+    ) {
       setVisibleTab("code");
     }
 
@@ -208,19 +213,24 @@ export const Container = () => {
                   : "none",
             }}
           >
-            <LessonContainer continueAction={handleLessonContinue}>
-              <h3
-                style={{
-                  display:
-                    !isMobile && !isRigoOpened && !showSidebar
-                      ? "block"
-                      : "none",
-                }}
-                className={"hiddenOnMobile " + "active-hr"}
-              >
-                {t("instructions")}{" "}
-              </h3>
-            </LessonContainer>
+            <LessonRenderer
+              header={
+                <h3
+                  style={{
+                    display:
+                      !isMobile && !isRigoOpened && !showSidebar
+                        ? "block"
+                        : "none",
+                  }}
+                  className={"hiddenOnMobile " + "active-hr"}
+                >
+                  {t("instructions")}{" "}
+                </h3>
+              }
+              content={currentContent}
+              continueAction={handleLessonContinue}
+              editorTabs={editorTabs}
+            />
           </section>
           {editorTabs.length > 0 && !(environment === "localhost") && (
             <section

@@ -35,7 +35,9 @@
   font-size: 20px;
 }
 
-
+.lesson-content {
+  line-height: 2rem;
+}
 
 .simple-button-svg {
   max-height: 100% !important;
@@ -209,11 +211,6 @@
   border: var(--read-font-color) 2px solid;
 }
 
-.quiz-buttons-container {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-}
 .quiz-button {
   padding: 10px;
   border-radius: 10px;
@@ -245,4 +242,95 @@
     border-top-left-radius: var(--standard-border-radius);
     border-top-right-radius: var(--standard-border-radius);
   }
+}
+
+.quiz-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.quiz-answer {
+  padding: 10px;
+  border-radius: 50vh;
+  /* border: 1px solid var(--color-active); */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quiz-answer-checkbox {
+  appearance: none;
+  width: 22px;
+  min-width: 22px;
+  height: 22px;
+  min-height: 22px;
+  border-radius: 50%;
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.quiz-answer-checkbox:empty {
+  background-color: transparent;
+  border: 1px solid var(--color-active);
+}
+
+.quiz-answer-checkbox.selected:empty {
+  background-color: var(--bg-color);
+  border: 1px solid var(--color-active);
+}
+
+.quiz-answer-checkbox.selected:empty::after {
+  content: "";
+  position: absolute;
+  width: 11px; /* Ajusta el tamaño */
+  height: 11px;
+  background-color: var(--color-active);
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box; /* Asegúrate de que el borde no altere la posición */
+}
+
+.language-component {
+  width: fit-content !important;
+  border: 1px solid var(--bg-color);
+  padding: 7px;
+  position: relative;
+  border-radius: 10px;
+  background-color: transparent;
+  position: relative;
+}
+
+.language-dropdown {
+  display: flex;
+  position: absolute;
+  top: 101%;
+  left: 50%;
+  transform: translate(-50%, 0);
+  border: 1px solid var(--color-hovered);
+  padding: 6px;
+  border-radius: 9px;
+  flex-direction: column;
+  z-index: 2;
+  background-color: var(--bg-color);
+}
+
+.language-dropdown > button {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+
+.language-component > button {
+  display: flex;
+  gap: 6px;
+  align-items: center;
 }

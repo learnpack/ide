@@ -1,4 +1,4 @@
-import { TStepEvent } from "../managers/telemetry";
+import { TStep, TStepEvent } from "../managers/telemetry";
 import { Tab } from "../types/editor";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -139,7 +139,7 @@ type TAssessmentConfig = {
 
 export type TUser = {
   id: number;
-  // email: string;
+  email: string;
   first_name: string;
   // last_name: string;
 };
@@ -231,6 +231,7 @@ export interface IStore {
   setShowVideoTutorial: (show: boolean) => void;
   setAllowedActions: (actions: string[]) => void;
   registerTelemetryEvent: (event: TStepEvent, data: object) => void;
+  getTelemetryStep: (stepPosition: number) => Promise<TStep | null>;
   setLanguage: (language: string, fetchExercise?: boolean) => void;
   checkLoggedStatus: (opts?: TCheckLoggedStatusOptions) => void;
   setToken: (newToken: string) => void;
@@ -261,7 +262,7 @@ export interface IStore {
     submittedInputs?: string[]
   ) => void;
   resetExercise: (opts: TResetExerciseOpts) => void;
-  registerAIInteraction: (setPosition: number, interaction: object) => void;
+  // registerAIInteraction: (setPosition: number, interaction: object) => void;
   sessionActions: (opts: TSessionActionsOpts) => void;
   displayTestButton: boolean;
   getOrCreateActiveSession: () => void;

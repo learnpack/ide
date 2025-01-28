@@ -52,10 +52,10 @@ const FASTAPI_HOST = "https://ai.4geeks.com";
 const chatSocket = io(`${FASTAPI_HOST}`);
 
 chatSocket.on("connect", () => {
-  console.log("connected to chat socket at ", FASTAPI_HOST);
+  console.debug("connected to chat socket at ", FASTAPI_HOST);
 });
 chatSocket.on("disconnect", () => {
-  console.log("disconnected from chat socket at ", FASTAPI_HOST);
+  console.debug("disconnected from chat socket at ", FASTAPI_HOST);
 });
 
 const defaultParams = getParamsObject() as TPossibleParams;
@@ -447,22 +447,22 @@ const useStore = create<IStore>((set, get) => ({
       );
 
       return `
-< File name: ${file.name} \n
-  Content: 
-\`${fileContent}\`
->
+\`\`\`${file.name}
+${fileContent}
+\`\`\`
       `;
     });
 
     return Promise.all(filePromises).then((filesContext) => {
       context += filesContext.join("\n");
       context += `
-<
-This is the current exercise instructions:
+### These are the given to the student for this exercise:
+\`\`\`INSTRUCTIONS.md
 ${currentContent}
->
+\`\`\`
 
-<MANDATORY FOR AI: The user's set up the application in "${language}" language, give your feedback in "${language}" language, please.>
+### NOTES FOR AI: 
+The user's set up the application in "${language}" language, give your feedback in "${language}" language, please.\`\`\`
 
       `;
 
@@ -478,7 +478,7 @@ ${currentContent}
 
       if (!config) return;
 
-      console.log(config.config.authentication);
+      console.debug("AUTHENTICATION", config.config.authentication);
 
       if (
         config.config.authentication &&
@@ -661,7 +661,10 @@ ${currentContent}
     setBuildButtonPrompt("execute-my-code", "");
     setFeedbackButtonProps("test-my-code", "");
     set({ lastState: "" });
-    registerTelemetryEvent("open_step", {});
+
+    registerTelemetryEvent("open_step", {
+      step_position: newPosition,
+    });
     fetchReadme();
 
     // set({ configObject: { ...configObject } });
@@ -1201,27 +1204,7 @@ ${currentContent}
 
     if (opts && opts.toast) toastFromStatus("testing");
   },
-  registerAIInteraction: (stepPosition, interaction) => {
-    const { compilerSocket, getCurrentExercise, user_id } = get();
 
-    TagManager.dataLayer({
-      dataLayer: {
-        event: "ai_interaction",
-        interaction: interaction,
-        slug: getCurrentExercise().slug,
-        user_id,
-      },
-    });
-    const telemetryData = {
-      exerciseSlug: getCurrentExercise().slug,
-      stepPosition,
-      event: "ai_interaction",
-      eventData: interaction,
-    };
-    compilerSocket.emit("ai_interaction", telemetryData);
-  },
-  // Leave this empty for development purposes
-  displayTestButton: DEV_MODE,
   getOrCreateActiveSession: async () => {
     const {
       token,
@@ -1489,17 +1472,15 @@ ${currentContent}
     set({ isRigoOpened: !isRigoOpened });
   },
   registerTelemetryEvent: (event, data) => {
-    const { currentExercisePosition } = get();
+    const { currentExercisePosition, compilerSocket, getCurrentExercise } =
+      get();
 
-    if (!TelemetryManager.started) {
-      return;
-    }
-
-    TelemetryManager.registerStepEvent(
-      Number(currentExercisePosition),
+    compilerSocket.emit("telemetry_event", {
       event,
-      data
-    );
+      exerciseSlug: getCurrentExercise().slug,
+      eventData: data,
+      stepPosition: Number(currentExercisePosition),
+    });
   },
   startTelemetry: async () => {
     const { configObject, bc_token, user, registerTelemetryEvent } = get();
@@ -1523,7 +1504,8 @@ ${currentContent}
         compilations: [],
         tests: [],
         is_testeable: e.graded || false,
-        assessments: [],
+        is_completed: false,
+        quiz_submissions: [],
       }));
       const agent = configObject.config?.editor.agent || "";
       const tutorialSlug = configObject.config?.slug || "";
@@ -1540,12 +1522,13 @@ ${currentContent}
       }
 
       TelemetryManager.urls = configObject.config.telemetry;
-      TelemetryManager.userToken = bc_token;
-      TelemetryManager.userID = user.id;
 
-      // @ts-ignore
       TelemetryManager.start(agent, steps, tutorialSlug, STORAGE_KEY);
-
+      TelemetryManager.setStudent({
+        token: bc_token,
+        user_id: String(user.id),
+        email: user.email,
+      });
       registerTelemetryEvent("open_step", {
         step_slug: steps[0].slug,
         step_position: steps[0].position,
@@ -1647,6 +1630,10 @@ ${currentContent}
         ...extraData,
       },
     });
+  },
+  displayTestButton: DEV_MODE,
+  getTelemetryStep: async (stepPosition: number) => {
+    return await FetchManager.getTelemetryStep(stepPosition);
   },
   test: async () => {
     // Notifier.success("Succesfully tested");

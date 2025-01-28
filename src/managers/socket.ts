@@ -205,6 +205,7 @@ const actions = [
   "generate",
   "ai_interaction",
   "open_terminal",
+  "telemetry_event",
 ];
 
 const scopes = {}; // Add this line to store created scopes
@@ -218,7 +219,7 @@ export default {
 
     if (this.socket) {
       this.socket.on("connect", () => onConnect && onConnect());
-      console.log("Connected to host " + host);
+      console.debug("Connected to host " + host);
       this.socket.on("disconnect", () => onDisconnect && onDisconnect());
     } else {
       console.error(`Failed to connect to host: ${host}`);
@@ -270,8 +271,6 @@ export default {
       if (data.logs) {
         scope.logs = scope.logs.concat(data.logs);
       }
-
-      console.log(data, "RECEIVED IN SOCKET");
 
       if (data.status) {
         scope.status = {

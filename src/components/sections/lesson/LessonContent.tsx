@@ -360,7 +360,6 @@ export default function LessonContent() {
     quizzesRef.current = _quizzes;
 
     setTimeout(() => {
-      // console.log("quizzesRef.current", quizzesRef.current);
       hljs.highlightAll();
     }, 50);
     return () => {

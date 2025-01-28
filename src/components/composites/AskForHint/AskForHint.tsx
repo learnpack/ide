@@ -4,26 +4,24 @@ import SimpleButton from "../../mockups/SimpleButton";
 import { useTranslation } from "react-i18next";
 
 export const AskForHint: React.FC<{
-  context: string;
   from: "test" | "quiz";
-}> = ({ context, from }) => {
-  const {
-    setRigoContext,
-    toggleRigo,
-    reportEnrichDataLayer,
-
-  } = useStore((state) => ({
-    setRigoContext: state.setRigoContext,
-    toggleRigo: state.toggleRigo,
-    reportEnrichDataLayer: state.reportEnrichDataLayer,
-  }));
+  getContext: () => string;
+}> = ({ from, getContext }) => {
+  const { setRigoContext, toggleRigo, reportEnrichDataLayer } = useStore(
+    (state) => ({
+      setRigoContext: state.setRigoContext,
+      toggleRigo: state.toggleRigo,
+      reportEnrichDataLayer: state.reportEnrichDataLayer,
+    })
+  );
   const { t } = useTranslation();
 
   const handleClick = () => {
+    const context = getContext();
     setRigoContext(context);
     toggleRigo({ ensure: "open" });
     reportEnrichDataLayer(`learnpack_${from}_help`, {
-      context,
+      context: context,
     });
   };
   return (

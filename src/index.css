@@ -17,7 +17,7 @@
   --color-blue: #c1dfed;
 
   --soft-blue: #eef9fe;
-  --soft-green: #dfffe8;
+
   --color-blue-rigo: #0084ff;
   --tabs-bg-color: #f4faff;
   --color-hovered: rgba(224, 224, 224, 0.665);
@@ -108,6 +108,7 @@ pre {
   border-left: 2px solid var(--color-active);
   border-radius: 5px;
   overflow: auto;
+  padding: 10px;
 }
 
 code:not(pre code) {
@@ -120,10 +121,10 @@ li {
   padding-left: 0 !important;
   margin-left: 20px !important;
 }
-ul li {
+ul > li {
   list-style-type: disc;
 }
-ol li {
+ol > li {
   list-style-type: decimal;
 }
 blockquote {
@@ -699,4 +700,20 @@ a {
   background-color: black;
   padding: 10px;
   color: var(--color-fail);
+}
+
+.flex-y {
+  display: flex;
+  flex-direction: column;
+}
+
+.bg-soft-green {
+  color: black;
+  background-color: var(--soft-green) !important;
+  /* transition: background-color 0.3s ease; */
+}
+
+.bg-soft-red {
+  color: black;
+  background-color: var(--soft-red) !important;
 }

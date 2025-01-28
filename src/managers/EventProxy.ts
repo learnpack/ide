@@ -10,6 +10,7 @@ import {
 import { FetchManager } from "./fetchManager";
 import { LocalStorage } from "./localStorage";
 import Socket from "./socket";
+import TelemetryManager, { TStepEvent } from "./telemetry";
 
 export type TEnvironment = "localhost" | "localStorage";
 
@@ -70,9 +71,7 @@ function searchInputsForFile(filename: string, fileContent: string) {
   }
 }
 
-
 let HOST = getHost();
-
 
 const localStorageEventEmitter = {
   events: {} as Record<string, EventCallback[]>,
@@ -396,6 +395,27 @@ localStorageEventEmitter.on("test", async (data) => {
     return;
   }
 });
+
+localStorageEventEmitter.on(
+  "telemetry_event",
+  ({
+    event,
+    eventData,
+    stepPosition,
+  }: {
+    event: TStepEvent;
+    eventData: any;
+    stepPosition: number;
+  }) => {
+
+
+    if (!TelemetryManager.started) {
+      return;
+    }
+
+    TelemetryManager.registerStepEvent(stepPosition, event, eventData);
+  }
+);
 
 export const EventProxy = {
   getEmitter: (environment: TEnvironment) => {
