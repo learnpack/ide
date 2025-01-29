@@ -162,6 +162,10 @@ const QuizQuestion = ({
   onGroupReady: (group: TQuizGroup) => void;
   showResults: boolean;
 }) => {
+  if (!children) {
+    return null;
+  }
+
   const [currentAnswer, setCurrentAnswer] = useState<string>("");
   const p = children.find((child: any) => child.type === "p");
   const ul = children.find((child: any) => child.key === "ul-0");
@@ -251,6 +255,9 @@ const QuizAnswer = ({
   showResults: boolean;
 }) => {
   const divRef = useRef<HTMLDivElement>(null);
+  if (!children) {
+    return null;
+  }
   const input = children.find((child: any) => child.type === "input");
   const isCorrect = input.props.checked;
   const [isSelected, setIsSelected] = useState<boolean>(false);
