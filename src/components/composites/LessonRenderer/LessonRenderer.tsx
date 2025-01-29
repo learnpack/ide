@@ -23,7 +23,7 @@ export const LessonRenderer = memo(
       console.debug("---LessonRenderer content---");
       console.debug(content);
       console.debug("---LessonRenderer content end---");
-    }, []);
+    }, [content]);
 
     return (
       <div className="lesson-content">
