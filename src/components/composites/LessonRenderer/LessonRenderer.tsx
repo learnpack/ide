@@ -1,4 +1,4 @@
-import { ReactNode, memo } from "react";
+import { ReactNode, memo, useEffect } from "react";
 import { ENVIRONMENT } from "../../../utils/lib";
 import { TEditorTab } from "../../../utils/storeTypes";
 import { Toolbar } from "../Editor/Editor";
@@ -18,6 +18,12 @@ export const LessonRenderer = memo(
     editorTabs: TEditorTab[];
   }) => {
     const { t } = useTranslation();
+
+    useEffect(() => {
+      console.debug("---LessonRenderer content---");
+      console.debug(content);
+      console.debug("---LessonRenderer content end---");
+    }, []);
 
     return (
       <div className="lesson-content">
