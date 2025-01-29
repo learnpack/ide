@@ -19,6 +19,10 @@ export const LessonRenderer = memo(
   }) => {
     const { t } = useTranslation();
 
+    console.debug("---LessonRenderer content---");
+    console.debug(content);
+    console.debug("---LessonRenderer content end---");
+
     return (
       <div className="lesson-content">
         {header}
