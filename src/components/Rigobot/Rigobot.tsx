@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 
 import { useTranslation } from "react-i18next";
 import SimpleButton from "../mockups/SimpleButton";
@@ -9,6 +9,7 @@ import useStore from "../../utils/store";
 import { TUser } from "../../utils/storeTypes";
 import { Loader } from "../composites/Loader/Loader";
 import { Markdowner } from "../composites/Markdowner/Markdowner";
+import toast from "react-hot-toast";
 
 function removeHiddenContent(text: string) {
   // Use a regular expression to match and remove the hidden section
@@ -53,6 +54,7 @@ const slugToTitle = (slug: string) => {
 
 export const ChatTab = () => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const userMessage = useRef("");
   const { t } = useTranslation();
 
   const {
@@ -134,8 +136,8 @@ export const ChatTab = () => {
   const [messages, setMessages] = useState(
     exerciseMessages[Number(currentExercisePosition)] || initialMessages
   );
-  const [userMessage, setUserMessage] = useState("");
-  const [userMessageCache, setUserMessageCache] = useState("");
+  // const [userMessage, setUserMessage] = useState("");
+  // const [userMessageCache, setUserMessageCache] = useState("");
   const [autoScroll, setAutoScroll] = useState(true);
   const messagesRef = useRef<HTMLDivElement>(null);
   const scrollPosition = useRef(0);
@@ -166,25 +168,21 @@ export const ChatTab = () => {
   useEffect(() => {
     if (!rigoContext) return;
 
+    console.debug(rigoContext);
     const askForHelp = t("can-you-give-me-a-hint");
 
     const userMessageWithContext = `${askForHelp} \n<!--hide You must give a hint to the user based in the context provided below: \nCONTEXT\n ${rigoContext} \n
 
     END_OF_CONTEXT: provide hints on failed answers or tests and provide a congratulations for correct ones. endhide-->`;
 
-    setUserMessageCache(userMessageWithContext);
-    setUserMessage(userMessageWithContext);
+    userMessage.current = userMessageWithContext;
     if (!isRigoOpened) {
       toggleRigo();
     }
-  }, [rigoContext]);
-
-  useEffect(() => {
-    if (!rigoContext || !userMessageCache || !userMessage) return;
 
     processUserMessage();
     setRigoContext("");
-  }, [rigoContext, userMessageCache, userMessage]);
+  }, [rigoContext]);
 
   useEffect(() => {
     // @ts-ignore
@@ -304,13 +302,20 @@ export const ChatTab = () => {
     );
   }, [currentExercisePosition]);
 
-  const trackUserMessage = (e: any) => {
-    setUserMessage(e.target.value);
-    setUserMessageCache(e.target.value);
-  };
+  // const trackUserMessage = (e: any) => {
+  //   setUserMessage(e.target.value);
+  //   setUserMessageCache(e.target.value);
+
+  // };
 
   const processUserMessage = async () => {
-    if (Boolean(userMessage.trim() == "")) return;
+    const message = userMessage.current;
+    // clean the input
+    inputRef.current!.value = "";
+
+    if (!message) return;
+
+    if (Boolean(message?.trim() == "")) return;
     if (isGenerating) return;
     setAutoScroll(true);
 
@@ -318,9 +323,11 @@ export const ChatTab = () => {
 
     setMessages((prev) => [
       ...prev,
-      { type: "user", text: removeHiddenContent(userMessage) },
+      { type: "user", text: removeHiddenContent(message) },
     ]);
-    setUserMessage("");
+    toast.success("User message added", {
+      duration: 1000,
+    });
 
     if (isTesteable && (shouldBeTested || isFirstInteraction)) {
       setMessages((prev) => [...prev, { type: "loader", text: t("thinking") }]);
@@ -359,10 +366,6 @@ export const ChatTab = () => {
     setIsGenerating(true);
   };
 
-  const handleSubmit = () => {
-    processUserMessage();
-  };
-
   const handleKeyUp = (event: any) => {
     if (event.key === "Enter" && !event.ctrlKey) {
       event.preventDefault();
@@ -374,12 +377,10 @@ export const ChatTab = () => {
   const getMessageData = async () => {
     const contextFilesContent = await getContextFilesContent();
 
-    console.log(contextFilesContent, "CONTEXT FILES CONTENT");
-
     const data = {
       message: {
         type: "user",
-        text: userMessageCache,
+        text: userMessage.current,
         purpose: learnpackPurposeId,
         context: contextFilesContent,
         imageB64: "",
@@ -441,12 +442,13 @@ export const ChatTab = () => {
           <section className="chat-input">
             <input
               ref={inputRef}
-              value={userMessage}
               placeholder={t("Ask me something here")}
-              onChange={trackUserMessage}
+              onChange={(e) => {
+                userMessage.current = e.target.value;
+              }}
               onKeyUp={handleKeyUp}
             />
-            <button onClick={handleSubmit}>{svgs.send}</button>
+            <button onClick={processUserMessage}>{svgs.send}</button>
           </section>
           <SimpleButton
             extraClass="informative-opener bg-secondary d-flex justify-center align-center circle-small pos-absolute"
@@ -472,7 +474,7 @@ interface IMessage {
   extraClass?: string;
 }
 
-const Message = ({ type, text, extraClass }: IMessage) => {
+const Message = memo(({ type, text, extraClass }: IMessage) => {
   const [messageText, setMessageText] = useState("");
 
   if (text.includes("[//]: # (next)")) {
@@ -486,16 +488,11 @@ const Message = ({ type, text, extraClass }: IMessage) => {
   return (
     <>
       <div className={`message ${type} ${extraClass ? extraClass : ""}`}>
-        {/* <div
-          dangerouslySetInnerHTML={{
-            __html: convertMarkdownToHTML(messageText ? messageText : text),
-          }}
-        ></div> */}
         <Markdowner markdown={messageText ? messageText : text} />
       </div>
     </>
   );
-};
+});
 
 export const RigoToggler = () => {
   const { toggleRigo, isRigoOpened } = useStore((state) => ({

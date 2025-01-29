@@ -170,6 +170,10 @@ const QuizQuestion = ({
   const p = children.find((child: any) => child.type === "p");
   const ul = children.find((child: any) => child.key === "ul-0");
 
+  if (!p || !ul) {
+    return null;
+  }
+
   const groupRef = useRef<TQuizGroup>({
     title: "",
     checkboxes: [],
@@ -208,9 +212,10 @@ const QuizQuestion = ({
   return (
     <div className="flex-y gap-small">
       <QuizTitle onTitleReady={onTitleReady}>{p}</QuizTitle>
-      {liChildren.map((child: any) => {
+      {liChildren.map((child: any, index: number) => {
         return (
           <QuizAnswer
+            key={child.type + index}
             showResults={showResults}
             currentAnswer={currentAnswer}
             onAnswerReady={onAnswerReady}
@@ -258,7 +263,15 @@ const QuizAnswer = ({
   if (!children) {
     return null;
   }
+
+  if (typeof children.find !== "function") {
+    return children;
+  }
   const input = children.find((child: any) => child.type === "input");
+
+  if (!input) {
+    return null;
+  }
   const isCorrect = input.props.checked;
   const [isSelected, setIsSelected] = useState<boolean>(false);
 

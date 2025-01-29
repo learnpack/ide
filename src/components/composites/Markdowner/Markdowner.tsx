@@ -5,6 +5,22 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark as prismStyle } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { QuizRenderer } from "../QuizRenderer/QuizRenderer";
 
+const checkForQuiz = (node: any) => {
+  const containsTaskList = node?.children.filter(
+    (child: any) =>
+      child.type === "element" &&
+      child.tagName === "li" &&
+      child.children.some(
+        (child: any) =>
+          child.type === "element" &&
+          (child.tagName === "ul" || child.tagName === "ol") &&
+          // @ts-ignore
+          child.properties?.className?.includes("contains-task-list")
+      )
+  );
+  return containsTaskList && containsTaskList.length > 0;
+};
+
 export const Markdowner = ({ markdown }: { markdown: string }) => {
   const { openLink } = useStore((state) => ({
     openLink: state.openLink,
@@ -25,18 +41,9 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
         },
         // @ts-ignore
         ol: ({ children, node }) => {
-          const containsTaskList = node?.children.filter(
-            (child) =>
-              child.type === "element" &&
-              child.tagName === "li" &&
-              child.children.some(
-                (child) =>
-                  child.type === "element" &&
-                  (child.tagName === "ul" || child.tagName === "ol")
-              )
-          );
+          const containsTaskList = checkForQuiz(node);
 
-          if (containsTaskList && containsTaskList.length > 0) {
+          if (containsTaskList) {
             return <QuizRenderer children={children} />;
           }
 
@@ -44,22 +51,13 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
         },
         // @ts-ignore
         ul: ({ children, node }) => {
-          const containsTaskList = node?.children.filter(
-            (child) =>
-              child.type === "element" &&
-              child.tagName === "li" &&
-              child.children.some(
-                (child) =>
-                  child.type === "element" &&
-                  (child.tagName === "ul" || child.tagName === "ol")
-              )
-          );
+          const containsTaskList = checkForQuiz(node);
 
-          if (containsTaskList && containsTaskList.length > 0) {
+          if (containsTaskList) {
             return <QuizRenderer children={children} />;
           }
 
-          return <ul>{children}</ul>;
+          return <ul onClick={() => console.log(node)}>{children}</ul>;
         },
         pre(props) {
           const codeBlocks = props.node?.children.map((child) => {
