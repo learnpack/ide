@@ -47,7 +47,9 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
             return <QuizRenderer children={children} />;
           }
 
-          return <ol>{children}</ol>;
+          const start = node?.properties?.start;
+
+          return <ol start={start ? Number(start) : undefined}>{children}</ol>;
         },
         // @ts-ignore
         ul: ({ children, node }) => {
