@@ -93,7 +93,7 @@ const useStore = create<IStore>((set, get) => ({
   hasSolution: false,
   shouldBeTested: false,
   status: "",
-  agent: "vscode",
+  agent: "vscode" as "vscode" | "cloud",
   showFeedback: false,
   token: "",
   bc_token: "",
@@ -720,6 +720,7 @@ The user's set up the application in "${language}" language, give your feedback 
       currentExercisePosition,
       setOpenedModals,
       language,
+      reportEnrichDataLayer,
       getOrCreateActiveSession,
     } = get();
 
@@ -742,17 +743,12 @@ The user's set up the application in "${language}" language, give your feedback 
       toast.success(loginInfo.messages.success, {
         icon: "✅",
       });
-      reportDataLayer({
-        dataLayer: {
-          event: "session_load",
-          method: "native",
-          user_id: json.user_id,
-          email: json.user.email,
-          first_name: json.user.first_name,
-          last_name: json.user.last_name,
-          language: language,
-          path: window.location.href,
-        },
+      reportEnrichDataLayer("session_load", {
+        method: "native",
+        user_id: json.user_id,
+        language: language,
+        path: window.location.href,
+        agent: "cloud",
       });
     } catch (error) {
       if (error instanceof MissingRigobotAccountError) {

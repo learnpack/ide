@@ -6,17 +6,16 @@ import { useTranslation } from "react-i18next";
 import { Modal } from "../../mockups/Modal";
 import { svgs } from "../../../assets/svgs";
 import toast from "react-hot-toast";
-import { BREATHECODE_HOST, reportDataLayer } from "../../../utils/lib";
+import { BREATHECODE_HOST } from "../../../utils/lib";
 
 export default function LoginModal() {
   const {
     setOpenedModals,
     loginToRigo,
-    openLink,
     environment,
+    openLink,
     authentication,
-    language,
-    isIframe,
+    reportEnrichDataLayer,
   } = useStore((state) => ({
     setOpenedModals: state.setOpenedModals,
     loginToRigo: state.loginToRigo,
@@ -25,14 +24,13 @@ export default function LoginModal() {
     authentication: state.authentication,
     language: state.language,
     isIframe: state.isIframe,
+    reportEnrichDataLayer: state.reportEnrichDataLayer,
   }));
 
   const { t } = useTranslation();
   const backdropRef = useRef<HTMLDivElement>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  //   const [passwordInputType, setPasswordInputType] = useState("password");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleClickOutside = (event: any) => {
@@ -62,37 +60,21 @@ export default function LoginModal() {
       },
     });
 
-    const agent = environment === "localStorage" ? "browser" : "vscode";
-
-    reportDataLayer({
-      dataLayer: {
-        event: "login",
-        method: "native",
-        path: window.location.href,
-        language,
-        agent,
-        iframe: isIframe,
-      },
+    reportEnrichDataLayer("login", {
+      method: "native",
     });
+
     if (!isLoggedId) {
       setIsLoading(false);
     }
   };
 
   const reportPasswordRecoveryAttempt = () => {
-    reportDataLayer({
-      dataLayer: {
-        event: "tries_recover_password",
-      },
-    });
+    reportEnrichDataLayer("tries_recover_password", {});
   };
 
   const reportSignUpAttempt = () => {
-    reportDataLayer({
-      dataLayer: {
-        event: "sign_up_attempt",
-      },
-    });
+    reportEnrichDataLayer("sign_up_attempt", {});
   };
 
   function stringToBase64(str: string) {
