@@ -39,8 +39,7 @@ export default function BuildButton({
       targetButton: "build",
     });
   };
-
-  // const changeToTest = !isBuildable && isTesteable;
+  
   const changeToTest = false;
 
   return (

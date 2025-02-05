@@ -166,8 +166,10 @@ localStorageEventEmitter.on("build", async (data) => {
         isActive: false,
         isHTML: true,
         isReact: false,
+        status: "ready",
       };
       data.updateEditorTabs(outputTab);
+
       localStorageEventEmitter.emitStatus("compiler-success", {
         htmlString: compiled,
         source_code: content,
@@ -189,8 +191,10 @@ localStorageEventEmitter.on("build", async (data) => {
         isActive: false,
         isHTML: true,
         isReact: true,
+        status: "ready",
       };
       data.updateEditorTabs(outputTab);
+
 
       localStorageEventEmitter.emitStatus("compiler-success", {
         htmlString: compiled,
@@ -235,6 +239,7 @@ localStorageEventEmitter.on("build", async (data) => {
         name: "terminal",
         isActive: false,
         from: "build",
+        status: "ready",
       };
       data.updateEditorTabs(terminalTab);
     }
@@ -407,8 +412,6 @@ localStorageEventEmitter.on(
     eventData: any;
     stepPosition: number;
   }) => {
-
-
     if (!TelemetryManager.started) {
       return;
     }

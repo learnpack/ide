@@ -110,5 +110,7 @@
     "try-again": "Try again",
     "thinking": "Thinking...",
     "answer-all-questions-before": "You must answer all the questions before submitting the quiz",
-    "learnpack_consumable_depleted": "You have used all your AI interactions, upgrade your subscription to continue using Rigobot AI tutor [click here to review your subscription](https://4geeks.com/checkout?plan=4geeks-plus&token={{bc_token})"
+    "learnpack_consumable_depleted": "You have used all your AI interactions, upgrade your subscription to continue using Rigobot AI tutor [click here to review your subscription](https://4geeks.com/checkout?plan=4geeks-plus&token={{bc_token})",
+    "error-video-id-invalid": "Invalid YouTube video ID",
+    "website-built-no-body": "Your website was built successfully but nothing is shown because the website body is empty"
 }

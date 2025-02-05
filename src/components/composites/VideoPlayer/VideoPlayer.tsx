@@ -1,4 +1,5 @@
 import React, { useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 interface IVideoPlayerProps {
   link: string;
@@ -6,6 +7,8 @@ interface IVideoPlayerProps {
 
 export const VideoPlayer: React.FC<IVideoPlayerProps> = ({ link }) => {
   const videoRef = useRef<HTMLIFrameElement>(null);
+
+  const { t } = useTranslation();
 
   //   const handlePictureInPicture = async () => {
   //     if (videoRef.current) {
@@ -34,7 +37,7 @@ export const VideoPlayer: React.FC<IVideoPlayerProps> = ({ link }) => {
   const videoId = getYouTubeVideoId(link);
 
   if (!videoId) {
-    return <div>Error: Video ID no válido.</div>;
+    return <div>{t("error-video-id-invalid")}</div>;
   }
 
   return (
@@ -48,9 +51,6 @@ export const VideoPlayer: React.FC<IVideoPlayerProps> = ({ link }) => {
         frameBorder="0"
         allowFullScreen
       />
-      {/* <button onClick={handlePictureInPicture}>
-        {document.pictureInPictureElement ? "Salir de PiP" : "Activar PiP"}
-      </button> */}
     </div>
   );
 };

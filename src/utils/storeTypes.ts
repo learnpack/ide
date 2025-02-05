@@ -282,6 +282,7 @@ export type TEditorTab = {
   isActive: boolean;
   isHTML?: boolean;
   isReact?: boolean;
+  status?: "ready" | "error" | "loading";
 };
 
 export type TDialog = {

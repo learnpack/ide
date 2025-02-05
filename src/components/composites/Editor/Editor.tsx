@@ -17,6 +17,7 @@ import { AskForHint } from "../AskForHint/AskForHint";
 import { Loader } from "../Loader/Loader";
 import { TEditorTab } from "../../../utils/storeTypes";
 import { Markdowner } from "../Markdowner/Markdowner";
+import { Alert } from "../Alert/Alert";
 
 const languageMap: { [key: string]: string } = {
   ".js": "javascript",
@@ -359,6 +360,10 @@ const Terminal = ({
                 html={terminalTab.content}
                 useIframe={terminalTab.isReact}
               />
+            ) : terminalTab.status === "ready" ? (
+              <Alert>
+                <p className="text-small">{t("website-built-no-body")}</p>
+              </Alert>
             ) : (
               <Loader svg={svgs.blueRigoSvg} text={t("thinking...")} />
             )}

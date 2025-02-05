@@ -117,5 +117,7 @@
     "try-again": "Intenta de nuevo",
     "thinking": "Pensando...",
     "answer-all-questions-before": "Debes responder todas las preguntas antes de enviar el quiz",
-    "learnpack_consumable_depleted": "Has usado todas tus interacciones con Rigobot, actualiza tu plan para continuar usando el tutor Rigobot [haz clic aquí para revisar tu plan](https://4geeks.com/checkout?plan=4geeks-plus&token={{bc_token}})"
+    "learnpack_consumable_depleted": "Has usado todas tus interacciones con Rigobot, actualiza tu plan para continuar usando el tutor Rigobot [haz clic aquí para revisar tu plan](https://4geeks.com/checkout?plan=4geeks-plus&token={{bc_token}})",
+    "error-video-id-invalid": "ID de video de YouTube inválido",
+    "website-built-no-body": "Tu sitio web fue construido exitosamente pero no hay nada que mostrar porque el cuerpo del sitio web está vacío"
 }
