@@ -149,6 +149,12 @@ type TUserConsumables = {
   ai_conversation_message: number;
 };
 
+type TRigoContext = {
+  context: string;
+  userMessage: string;
+  performTests: boolean;
+};
+
 export interface IStore {
   exercises: any[];
   chatInitialMessage: string;
@@ -200,7 +206,7 @@ export interface IStore {
   };
   lastState: "success" | "error" | string;
   terminalShouldShow: boolean;
-  rigoContext: string;
+  rigoContext: TRigoContext;
   showSidebar: boolean;
   userConsumables: TUserConsumables;
   maxQuizRetries: number;
@@ -210,7 +216,7 @@ export interface IStore {
   setUser: (user: TUser) => void;
   getUserConsumables: () => Promise<any>;
   setShowSidebar: (show: boolean) => void;
-  setRigoContext: (context: string) => void;
+  setRigoContext: (context: Partial<TRigoContext>) => void;
   toggleRigo: (opts?: ToggleRigoOpts) => void;
   setTerminalShouldShow: (shouldShow: boolean) => void;
   start: () => void;

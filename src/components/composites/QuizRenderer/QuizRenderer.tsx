@@ -134,9 +134,13 @@ export const QuizRenderer = ({ children }: { children: any }) => {
 
   return (
     <div className="quiz-container">
-      {liChildren.map((child: any) => {
+      {liChildren.map((child: any, index: number) => {
         return (
-          <QuizQuestion onGroupReady={onGroupReady} showResults={showResults}>
+          <QuizQuestion
+            key={index}
+            onGroupReady={onGroupReady}
+            showResults={showResults}
+          >
             {child.props.children}
           </QuizQuestion>
         );

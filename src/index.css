@@ -571,6 +571,7 @@ a {
 }
 .active-on-hover {
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 .active-on-hover:hover {
   background-color: var(--color-blue-rigo);
@@ -716,4 +717,8 @@ a {
 .bg-soft-red {
   color: black;
   background-color: var(--soft-red) !important;
+}
+
+.fit-content {
+  width: fit-content;
 }

@@ -87,7 +87,11 @@ const useStore = create<IStore>((set, get) => ({
     "Hello! I'm **Rigobot**, your friendly **AI Mentor**! \n\n I can help you if you feel stuck, ask me anything about this exercise!",
   conversationIdsCache: {},
   lessonTitle: "",
-  rigoContext: "",
+  rigoContext: {
+    context: "",
+    userMessage: "",
+    performTests: false,
+  },
   showSidebar: false,
   user_id: null,
   hasSolution: false,
@@ -1532,7 +1536,8 @@ The user's set up the application in "${language}" language, give your feedback 
     }
   },
   setRigoContext: (context) => {
-    set({ rigoContext: context });
+    const { rigoContext } = get();
+    set({ rigoContext: { ...rigoContext, ...context } });
   },
   setShowSidebar: (show) => {
     const { isRigoOpened, toggleRigo } = get();

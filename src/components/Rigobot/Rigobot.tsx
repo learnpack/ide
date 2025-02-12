@@ -2,21 +2,14 @@ import { useState, useEffect, useRef, memo } from "react";
 
 import { useTranslation } from "react-i18next";
 import SimpleButton from "../mockups/SimpleButton";
-import { removeSpecialCharacters } from "../../utils/lib";
+import { debounce, removeSpecialCharacters } from "../../utils/lib";
 import { svgs } from "../../assets/svgs";
 
 import useStore from "../../utils/store";
-import { TUser } from "../../utils/storeTypes";
 import { Loader } from "../composites/Loader/Loader";
 import { Markdowner } from "../composites/Markdowner/Markdowner";
+import { formatInitialMessage, slugToTitle } from "./utils";
 import toast from "react-hot-toast";
-
-function removeHiddenContent(text: string) {
-  // Use a regular expression to match and remove the hidden section
-  const regex = /<!--hide[\s\S]*?endhide-->/g;
-  const textWithoutHidden = text.replace(regex, "").trim();
-  return textWithoutHidden;
-}
 
 type TAIInteraction = {
   student_message?: string;
@@ -27,30 +20,6 @@ type TAIInteraction = {
 };
 
 let aiInteraction: TAIInteraction = {};
-
-const formatInitialMessage = (
-  message: string,
-  user: TUser,
-  stepSlug: string,
-  fallbackMessage: string
-) => {
-  if (!message) return fallbackMessage;
-
-  if (!user || !user.first_name || !stepSlug || !message) return message;
-  return message
-    .replace("{userName}", user.first_name)
-    .replace("{stepSlug}", stepSlug);
-};
-
-const slugToTitle = (slug: string) => {
-  // Replace all - and _ with spaces and capitalize the first letter of each word
-
-  if (!slug) return "";
-  return slug
-    .replace(/-/g, " ")
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-};
 
 export const ChatTab = () => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -75,7 +44,6 @@ export const ChatTab = () => {
     shouldBeTested,
     setListeners,
 
-    openLink,
     bc_token,
     isRigoOpened,
     toggleRigo,
@@ -108,7 +76,6 @@ export const ChatTab = () => {
     setListeners: state.setListeners,
     isRigoOpened: state.isRigoOpened,
     bc_token: state.bc_token,
-    openLink: state.openLink,
     toggleRigo: state.toggleRigo,
     rigoContext: state.rigoContext,
     setRigoContext: state.setRigoContext,
@@ -136,9 +103,8 @@ export const ChatTab = () => {
   const [messages, setMessages] = useState(
     exerciseMessages[Number(currentExercisePosition)] || initialMessages
   );
-  // const [userMessage, setUserMessage] = useState("");
-  // const [userMessageCache, setUserMessageCache] = useState("");
-  const [autoScroll, setAutoScroll] = useState(true);
+
+  const autoScrollRef = useRef(true);
   const messagesRef = useRef<HTMLDivElement>(null);
   const scrollPosition = useRef(0);
 
@@ -160,28 +126,20 @@ export const ChatTab = () => {
   }, []);
 
   useEffect(() => {
-    if (!messagesRef.current || !autoScroll) return;
-    messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
-    // scrollPosition.current = messagesRef.current.scrollTop || 0;
-  }, [messages, autoScroll]);
+    if (!rigoContext.context) return;
 
-  useEffect(() => {
-    if (!rigoContext) return;
-
-    console.debug(rigoContext);
-    const askForHelp = t("can-you-give-me-a-hint");
-
-    const userMessageWithContext = `${askForHelp} \n<!--hide You must give a hint to the user based in the context provided below: \nCONTEXT\n ${rigoContext} \n
-
-    END_OF_CONTEXT: provide hints on failed answers or tests and provide a congratulations for correct ones. endhide-->`;
+    const userMessageWithContext = `${rigoContext.userMessage} \n<!-- You must give a hint to the user based in the context provided below: \nCONTEXT\n ${rigoContext.context} \n
+    
+    END_OF_CONTEXT: provide hints on failed answers or tests and provide a congratulations for correct ones. Explain in simple words what is the user doing wrong and how to fix it. -->`;
 
     userMessage.current = userMessageWithContext;
-    if (!isRigoOpened) {
-      toggleRigo();
-    }
 
-    processUserMessage();
-    setRigoContext("");
+    processUserMessage("useEffect of rigoContext");
+    setRigoContext({
+      context: "",
+      userMessage: "",
+    });
+    return;
   }, [rigoContext]);
 
   useEffect(() => {
@@ -223,28 +181,21 @@ export const ChatTab = () => {
       setIsGenerating(false);
     });
 
-    if (!messagesRef.current) return;
-    const anchors = messagesRef.current.getElementsByTagName("a");
-
-    const handleClick = (event: any) => {
-      event.preventDefault();
-      openLink(event.target.href);
-    };
-
-    for (let anchor of anchors) {
-      anchor.addEventListener("click", handleClick);
+    if (messagesRef.current && autoScrollRef.current) {
+      messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
     }
 
     return () => {
       chatSocket.off("response");
       chatSocket.off("responseFinished");
-
-      if (!messagesRef.current) return;
-      for (let anchor of anchors) {
-        anchor.removeEventListener("click", handleClick);
-      }
     };
   }, [messages]);
+
+  useEffect(() => {
+    setMessages(
+      exerciseMessages[Number(currentExercisePosition)] || initialMessages
+    );
+  }, [currentExercisePosition]);
 
   const setChatListeners = () => {
     compilerSocket.onStatus("testing-success", (data: any) => {
@@ -296,38 +247,20 @@ export const ChatTab = () => {
     });
   };
 
-  useEffect(() => {
-    setMessages(
-      exerciseMessages[Number(currentExercisePosition)] || initialMessages
-    );
-  }, [currentExercisePosition]);
-
-  // const trackUserMessage = (e: any) => {
-  //   setUserMessage(e.target.value);
-  //   setUserMessageCache(e.target.value);
-
-  // };
-
-  const processUserMessage = async () => {
+  const processUserMessage = debounce(async () => {
     const message = userMessage.current;
-    // clean the input
+
     inputRef.current!.value = "";
 
     if (!message) return;
 
     if (Boolean(message?.trim() == "")) return;
     if (isGenerating) return;
-    setAutoScroll(true);
+    autoScrollRef.current = true;
 
     const isFirstInteraction = messages.length === 1;
 
-    setMessages((prev) => [
-      ...prev,
-      { type: "user", text: removeHiddenContent(message) },
-    ]);
-    toast.success("User message added", {
-      duration: 1000,
-    });
+    setMessages((prev) => [...prev, { type: "user", text: message }]);
 
     if (isTesteable && (shouldBeTested || isFirstInteraction)) {
       setMessages((prev) => [...prev, { type: "loader", text: t("thinking") }]);
@@ -337,7 +270,7 @@ export const ChatTab = () => {
     }
 
     emitUserMessage();
-  };
+  }, 300);
 
   const emitUserMessage = async (testResult?: string) => {
     setMessages((prev) => [...prev, { type: "bot", text: "" }]);
@@ -362,12 +295,13 @@ export const ChatTab = () => {
 
     chatSocket.emit("message", messageData);
     reportEnrichDataLayer("rigobot_send_message", {});
-    // setUserMessage("");
+
     setIsGenerating(true);
   };
 
   const handleKeyUp = (event: any) => {
     if (event.key === "Enter" && !event.ctrlKey) {
+      toast.success("Enter key pressed");
       event.preventDefault();
 
       processUserMessage();
@@ -402,14 +336,14 @@ export const ChatTab = () => {
       messagesRef.current?.scrollTop &&
       messagesRef.current?.scrollTop < scrollPosition.current
     ) {
-      setAutoScroll(false);
+      autoScrollRef.current = false;
     } else if (
       messagesRef.current?.scrollTop &&
       messagesRef.current?.scrollTop > scrollPosition.current
     ) {
       scrollPosition.current = messagesRef.current?.scrollTop || 0;
-      if (!autoScroll) {
-        setAutoScroll(true);
+      if (!autoScrollRef.current) {
+        autoScrollRef.current = true;
       }
     }
   };
@@ -475,22 +409,14 @@ interface IMessage {
 }
 
 const Message = memo(({ type, text, extraClass }: IMessage) => {
-  const [messageText, setMessageText] = useState("");
-
-  if (text.includes("[//]: # (next)")) {
-    setMessageText(text.replace("[//]: # (next)", ""));
-  }
-
   if (type === "loader") {
     return <Loader text={text} svg={svgs.rigoSvg} />;
   }
 
   return (
-    <>
-      <div className={`message ${type} ${extraClass ? extraClass : ""}`}>
-        <Markdowner markdown={messageText ? messageText : text} />
-      </div>
-    </>
+    <div className={`message ${type} ${extraClass ? extraClass : ""}`}>
+      <Markdowner markdown={text} />
+    </div>
   );
 });
 

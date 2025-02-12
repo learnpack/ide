@@ -133,3 +133,8 @@
     left: 101%;
   }
 }
+
+
+.bg-blue-opaque {
+  background-color: var(--color-blue-opaque);
+}

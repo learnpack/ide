@@ -18,7 +18,11 @@ export const AskForHint: React.FC<{
 
   const handleClick = () => {
     const context = getContext();
-    setRigoContext(context);
+    setRigoContext({
+      context: context,
+      userMessage: from === "test" ? t("can-you-give-me-a-hint") : t("help-me-with-this-quiz"),
+      performTests: from === "test",
+    });
     toggleRigo({ ensure: "open" });
     reportEnrichDataLayer(`learnpack_${from}_help`, {
       context: context,

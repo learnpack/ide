@@ -467,7 +467,7 @@ const testRigo = async (token: string, inputs: object) => {
   });
   const json = await result.json();
 
-  console.log(json, "Test completed successfully");
+  console.debug(json, "Test completed successfully");
 
   return json.parsed;
 };

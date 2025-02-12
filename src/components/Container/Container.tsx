@@ -22,28 +22,15 @@ export const Container = () => {
   const instructionsSectionRef = useRef<HTMLDivElement>(null);
   const codeSectionRef = useRef<HTMLDivElement>(null);
 
-  const {
-    editorTabs,
-    handleNext,
-    environment,
-    terminalShouldShow,
-    setTerminalShouldShow,
-    isRigoOpened,
-    showSidebar,
-    currentContent,
-    lastState,
-  } = useStore((s) => ({
-    editorTabs: s.editorTabs,
-    handleNext: s.handleNext,
-    environment: s.environment,
-    setEditorTabs: s.setEditorTabs,
-    terminalShouldShow: s.terminalShouldShow,
-    setTerminalShouldShow: s.setTerminalShouldShow,
-    isRigoOpened: s.isRigoOpened,
-    showSidebar: s.showSidebar,
-    currentContent: s.currentContent,
-    lastState: s.lastState,
-  }));
+  const editorTabs = useStore((s) => s.editorTabs);
+  const environment = useStore((s) => s.environment);
+  const terminalShouldShow = useStore((s) => s.terminalShouldShow);
+  const isRigoOpened = useStore((s) => s.isRigoOpened);
+  const showSidebar = useStore((s) => s.showSidebar);
+  const currentContent = useStore((s) => s.currentContent);
+  const lastState = useStore((s) => s.lastState);
+  const handleNext = useStore((s) => s.handleNext);
+  const setTerminalShouldShow = useStore((s) => s.setTerminalShouldShow);
 
   const { t } = useTranslation();
 
@@ -227,7 +214,6 @@ export const Container = () => {
                   {t("instructions")}{" "}
                 </h3>
               }
-              content={currentContent}
               continueAction={handleLessonContinue}
               editorTabs={editorTabs}
             />

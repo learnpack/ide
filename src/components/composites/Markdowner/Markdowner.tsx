@@ -4,7 +4,11 @@ import useStore from "../../../utils/store";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark as prismStyle } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { QuizRenderer } from "../QuizRenderer/QuizRenderer";
+import { RigoQuestion } from "../RigoQuestion/RigoQuestion";
 
+const isRigoQuestion = (href: string) => {
+  return href.startsWith("https://4geeks.com/ask?query=");
+};
 const checkForQuiz = (node: any) => {
   const containsTaskList = node?.children.filter(
     (child: any) =>
@@ -28,9 +32,13 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
 
   return (
     <Markdown
+      skipHtml={true}
       components={{
         a: ({ href, children }) => {
           if (href) {
+            if (isRigoQuestion(href)) {
+              return <RigoQuestion href={href}>{children}</RigoQuestion>;
+            }
             return (
               <a onClick={() => openLink(href)} target="_blank" href={href}>
                 {children}
@@ -61,6 +69,7 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
 
           return <ul onClick={() => console.log(node)}>{children}</ul>;
         },
+
         pre(props) {
           const codeBlocks = props.node?.children.map((child) => {
             // @ts-ignore

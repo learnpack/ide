@@ -1,35 +1,28 @@
-import { ReactNode, memo, useEffect } from "react";
+import { ReactNode, memo } from "react";
 import { ENVIRONMENT } from "../../../utils/lib";
 import { TEditorTab } from "../../../utils/storeTypes";
 import { Toolbar } from "../Editor/Editor";
 import { Markdowner } from "../Markdowner/Markdowner";
 import { useTranslation } from "react-i18next";
+import useStore from "../../../utils/store";
 
 export const LessonRenderer = memo(
   ({
     header,
-    content,
     continueAction,
     editorTabs,
   }: {
     header: ReactNode;
-    content: string;
     continueAction: () => void;
     editorTabs: TEditorTab[];
   }) => {
     const { t } = useTranslation();
-
-    useEffect(() => {
-      console.debug("---LessonRenderer content---");
-      console.debug(content);
-      console.debug("---LessonRenderer content end---");
-    }, [content]);
+    const currentContent = useStore((s) => s.currentContent);
 
     return (
       <div className="lesson-content">
         {header}
-        <Markdowner markdown={content} />
-        {/* <LessonContent /> */}
+        <Markdowner markdown={currentContent} />
         {continueAction &&
           editorTabs.length === 0 &&
           !(ENVIRONMENT === "localhost") && (
