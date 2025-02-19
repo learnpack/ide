@@ -97,7 +97,7 @@ const useStore = create<IStore>((set, get) => ({
   hasSolution: false,
   shouldBeTested: false,
   status: "",
-  agent: "vscode" as "vscode" | "cloud",
+  agent: "vscode",
   showFeedback: false,
   token: "",
   bc_token: "",
@@ -535,6 +535,10 @@ The user's set up the application in "${language}" language, give your feedback 
 
       set({ lessonTitle: config.config.title.us });
       set({ configObject: config });
+
+      if (config.config.editor.agent) {
+        set({ agent: config.config.editor.agent });
+      }
 
       return true;
     } catch (err) {

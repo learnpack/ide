@@ -31,6 +31,7 @@ export const Container = () => {
   const lastState = useStore((s) => s.lastState);
   const handleNext = useStore((s) => s.handleNext);
   const setTerminalShouldShow = useStore((s) => s.setTerminalShouldShow);
+  const agent = useStore((s) => s.agent);
 
   const { t } = useTranslation();
 
@@ -218,22 +219,24 @@ export const Container = () => {
               editorTabs={editorTabs}
             />
           </section>
-          {editorTabs.length > 0 && !(environment === "localhost") && (
-            <section
-              ref={codeSectionRef}
-              className="w-100 "
-              style={{
-                display:
-                  visibleTab === "code" || visibleTab === "all"
-                    ? "block"
-                    : "none",
-              }}
-            >
-              <CodeEditor
-                terminal={isMobile || isRigoOpened ? "hidden" : "normal"}
-              />
-            </section>
-          )}
+
+          {editorTabs.length > 0 &&
+            (agent !== "vscode" || environment === "localStorage") && (
+              <section
+                ref={codeSectionRef}
+                className="w-100 "
+                style={{
+                  display:
+                    visibleTab === "code" || visibleTab === "all"
+                      ? "block"
+                      : "none",
+                }}
+              >
+                <CodeEditor
+                  terminal={isMobile || isRigoOpened ? "hidden" : "normal"}
+                />
+              </section>
+            )}
           {!(environment === "localhost") && (
             <section
               style={{

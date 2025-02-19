@@ -3,7 +3,6 @@ import { useEffect, useState, useCallback } from "react";
 import { InputModal } from "../sections/modals/InputModal";
 
 import "./styles.css";
-import { FetchManager } from "../../managers/fetchManager";
 import { debounce } from "../../utils/lib";
 
 export function SocketHandler() {
@@ -13,7 +12,7 @@ export function SocketHandler() {
     setShouldBeTested,
     getCurrentExercise,
     currentExercisePosition,
-    updateFileContent,
+    // updateFileContent,
     setOpenedModals,
     refreshSession,
     updateDBSession,
@@ -27,7 +26,7 @@ export function SocketHandler() {
     setShouldBeTested: state.setShouldBeTested,
     getCurrentExercise: state.getCurrentExercise,
     currentExercisePosition: state.currentExercisePosition,
-    updateFileContent: state.updateFileContent,
+    // updateFileContent: state.updateFileContent,
     setOpenedModals: state.setOpenedModals,
     refreshSession: state.refreshDataFromAnotherTab,
     updateDBSession: state.updateDBSession,
@@ -55,23 +54,23 @@ export function SocketHandler() {
       const fullpath = data.logs;
 
       const doesCurrentStepChange = fullpath.includes(current.path);
-      const parts = fullpath.split("\\");
-      const fileName = parts[parts.length - 1];
+      // const parts = fullpath.split("\\");
+      // const fileName = parts[parts.length - 1];
 
-      const { fileContent } = await FetchManager.getFileContent(
-        current.slug,
-        fileName
-      );
+      // const { fileContent } = await FetchManager.getFileContent(
+      //   current.slug,
+      //   fileName
+      // );
 
-      const tab = {
-        name: fileName,
-        content: fileContent,
-        isActive: false,
-        id: fileName,
-        modified: true,
-      };
+      // const tab = {
+      //   name: fileName,
+      //   content: fileContent,
+      //   isActive: false,
+      //   id: fileName,
+      //   modified: true,
+      // };
       debouncedStore();
-      updateFileContent(current.slug, tab, true);
+      // updateFileContent(current.slug, tab, true);
 
       if (!doesCurrentStepChange) return;
       setShouldBeTested(true);

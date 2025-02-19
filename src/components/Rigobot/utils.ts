@@ -24,6 +24,11 @@ export const slugToTitle = (slug: string) => {
   // Replace all - and _ with spaces and capitalize the first letter of each word
 
   if (!slug) return "";
+
+  if (typeof slug !== "string") {
+    console.error("slugToTitle: slug is not a string");
+    return "";
+  }
   return slug
     .replace(/-/g, " ")
     .replace(/_/g, " ")

@@ -155,13 +155,15 @@ type TRigoContext = {
   performTests: boolean;
 };
 
+type TAgent = "vscode" | "cloud" | "os";
+
 export interface IStore {
   exercises: any[];
   chatInitialMessage: string;
   currentContent: string;
   currentExercisePosition: number | string;
   language: string;
-  agent: "vscode" | "cloud";
+  agent: TAgent;
   learnpackPurposeId: number | string;
   status: string;
   environment: "localhost" | "localStorage";

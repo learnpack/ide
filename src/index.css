@@ -576,7 +576,7 @@ a {
 .active-on-hover:hover {
   background-color: var(--color-blue-rigo);
   color: white;
-  scale: 1.05;
+  scale: 1.01;
 }
 .active-on-hover:active {
   scale: 0.99;
