@@ -90,7 +90,7 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
         },
         p: ({ children }) => {
           // const isCreator = node?.properties?.className?.includes("creator");
-          const isCreator = true;
+          const isCreator = false;
           if (isCreator) {
             return <CreatorWrapper tagName="p">{children}</CreatorWrapper>;
           }
