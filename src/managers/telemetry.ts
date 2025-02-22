@@ -253,7 +253,15 @@ const TelemetryManager: ITelemetryManager = {
           this.save();
 
           this.started = true;
-          console.debug("Telemetry started successfully!");
+          console.debug(
+            "Telemetry started successfully!",
+            `User: ${this.user.id}`,
+            `Token: ${this.user.token}`,
+            `Slug: ${this.tutorialSlug}`,
+            `Storage Key: ${this.telemetryKey}`,
+            `Started: ${this.started}`,
+            `Agent: ${agent}`
+          );
 
           if (!this.user.id) {
             console.warn(

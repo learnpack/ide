@@ -5,6 +5,10 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark as prismStyle } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { QuizRenderer } from "../QuizRenderer/QuizRenderer";
 import { RigoQuestion } from "../RigoQuestion/RigoQuestion";
+import SimpleButton from "../../mockups/SimpleButton";
+
+import { useRef } from "react";
+import { RigoAI } from "../../Rigobot/AI";
 
 const isRigoQuestion = (href: string) => {
   return href.startsWith("https://4geeks.com/ask?query=");
@@ -23,6 +27,43 @@ const checkForQuiz = (node: any) => {
       )
   );
   return containsTaskList && containsTaskList.length > 0;
+};
+
+const CreatorWrapper = ({
+  children,
+  tagName,
+}: {
+  children: React.ReactNode;
+  tagName: string;
+}) => {
+  const elemRef = useRef<HTMLDivElement>(null);
+
+  const makeTextLonger = () => {
+    const text = elemRef.current?.innerHTML;
+    if (text) {
+      RigoAI.useTemplate({
+        slug: "make-text-longer",
+        inputs: {
+          text_to_increase: text,
+          factor: "2",
+        },
+        target: elemRef.current,
+      });
+    }
+  };
+
+  return (
+    <div className={`creator-wrapper ${tagName}`}>
+      <div className="creator-options">
+        <SimpleButton
+          action={() => makeTextLonger()}
+          extraClass="bg-blue"
+          text="Make longer"
+        />
+      </div>
+      <div ref={elemRef}>{children}</div>
+    </div>
+  );
 };
 
 export const Markdowner = ({ markdown }: { markdown: string }) => {
@@ -46,6 +87,14 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
             );
           }
           return <span>{children}</span>;
+        },
+        p: ({ children }) => {
+          // const isCreator = node?.properties?.className?.includes("creator");
+          const isCreator = true;
+          if (isCreator) {
+            return <CreatorWrapper tagName="p">{children}</CreatorWrapper>;
+          }
+          return <p>{children}</p>;
         },
         // @ts-ignore
         ol: ({ children, node }) => {

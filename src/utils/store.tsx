@@ -39,6 +39,7 @@ import {
   updateSession,
 } from "./apiCalls";
 import TelemetryManager from "../managers/telemetry";
+import { RigoAI } from "../components/Rigobot/AI";
 
 type TFile = {
   name: string;
@@ -191,6 +192,9 @@ const useStore = create<IStore>((set, get) => ({
         })
         .then(() => {
           getUserConsumables();
+        })
+        .then(() => {
+          RigoAI.load();
         })
     );
   },
@@ -1607,6 +1611,15 @@ The user's set up the application in "${language}" language, give your feedback 
     set({ userConsumables: { ai_compilation, ai_conversation_message } });
     console.log("---User consumables---");
     console.table({ ai_compilation, ai_conversation_message });
+
+    const isCreator = false;
+    if (isCreator) {
+      // RigoAI.init({
+      //   chatHash: "529ca5a219084bc7b93c172ad78ef92a",
+      //   purposeSlug: "learnpack-lesson-writer",
+      //   userToken: token,
+      // });
+    }
     return { ai_compilation, ai_conversation_message };
   },
   reportEnrichDataLayer: (event: string, extraData: object) => {

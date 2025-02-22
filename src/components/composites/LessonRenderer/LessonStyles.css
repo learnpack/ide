@@ -1,0 +1,46 @@
+.lesson-content {
+  padding-bottom: 70px;
+  font-size: 20px;
+  line-height: 24px;
+}
+
+.lesson-content img {
+  margin: 5px auto;
+  max-width: 750px;
+  display: block;
+}
+
+.lesson-content h1 {
+  font-size: 32px;
+}
+
+.lesson-content h2 {
+  font-size: 25px;
+}
+
+.lesson-content h3 {
+  font-size: 20px;
+}
+
+.lesson-content {
+  line-height: 2rem;
+}
+
+.creator-wrapper {
+  position: relative;
+}
+
+.creator-options {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+  background-color: var(--bg-color);
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+}
+
+.creator-wrapper:hover .creator-options {
+  display: block;
+}

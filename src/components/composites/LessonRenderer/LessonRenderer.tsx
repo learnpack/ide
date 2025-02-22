@@ -5,6 +5,7 @@ import { Toolbar } from "../Editor/Editor";
 import { Markdowner } from "../Markdowner/Markdowner";
 import { useTranslation } from "react-i18next";
 import useStore from "../../../utils/store";
+import "./LessonStyles.css";
 
 export const LessonRenderer = memo(
   ({

@@ -44,7 +44,7 @@ export const updateSession = async (
     return response.data;
   } catch (error) {
     console.error("Error updating session:", error);
-    throw error; // Rethrow the error for further handling
+    throw error; 
   }
 };
 
