@@ -42,7 +42,6 @@ import {
 import TelemetryManager from "../managers/telemetry";
 import { RigoAI } from "../components/Rigobot/AI";
 
-
 type TFile = {
   name: string;
   hidden: boolean;
@@ -1539,8 +1538,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
       TelemetryManager.urls = configObject.config.telemetry;
 
-      TelemetryManager.start(agent, steps, tutorialSlug, STORAGE_KEY);
-      TelemetryManager.setStudent({
+      TelemetryManager.start(agent, steps, tutorialSlug, STORAGE_KEY, {
         token: bc_token,
         user_id: String(user.id),
         email: user.email,

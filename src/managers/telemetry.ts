@@ -189,7 +189,8 @@ interface ITelemetryManager {
     agent: string,
     steps: TStep[],
     tutorialSlug: string,
-    storageKey: string
+    storageKey: string,
+    student: TStudent
   ) => void;
   tutorialSlug: string;
   prevStep?: number;
@@ -201,7 +202,7 @@ interface ITelemetryManager {
   streamEvent: (stepPosition: number, event: string, data: any) => void;
   submit: () => Promise<void>;
   finishWorkoutSession: () => void;
-  setStudent: (student: TStudent) => void;
+  // setStudent: (student: TStudent) => void;
   save: () => void;
   retrieve: () => Promise<ITelemetryJSONSchema | null>;
   getStep: (stepPosition: number) => TStep | null;
@@ -224,9 +225,13 @@ const TelemetryManager: ITelemetryManager = {
     console.log(message);
   },
 
-  start: function (agent, steps, tutorialSlug, storageKey) {
+  start: function (agent, steps, tutorialSlug, storageKey, student) {
     this.telemetryKey = storageKey;
     this.tutorialSlug = tutorialSlug;
+
+    this.user.id = student.user_id;
+    this.user.token = student.token;
+
     if (!this.current) {
       this.retrieve()
         .then((prevTelemetry) => {
@@ -253,15 +258,6 @@ const TelemetryManager: ITelemetryManager = {
           this.save();
 
           this.started = true;
-          console.debug(
-            "Telemetry started successfully!",
-            `User: ${this.user.id}`,
-            `Token: ${this.user.token}`,
-            `Slug: ${this.tutorialSlug}`,
-            `Storage Key: ${this.telemetryKey}`,
-            `Started: ${this.started}`,
-            `Agent: ${agent}`
-          );
 
           if (!this.user.id) {
             console.warn(
@@ -283,17 +279,6 @@ const TelemetryManager: ITelemetryManager = {
     }
   },
 
-  setStudent: function (student) {
-    if (!this.current) {
-      return;
-    }
-
-    this.current.user_id = student.user_id;
-    this.user.id = student.user_id;
-    this.user.token = student.token;
-    this.save();
-    this.submit();
-  },
   finishWorkoutSession: function () {
     if (!this.current) {
       return;
