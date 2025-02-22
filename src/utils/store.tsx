@@ -22,6 +22,7 @@ import {
 } from "./lib";
 import {
   IStore,
+  TAgent,
   TExercise,
   TParamsActions,
   TPossibleParams,
@@ -40,6 +41,7 @@ import {
 } from "./apiCalls";
 import TelemetryManager from "../managers/telemetry";
 import { RigoAI } from "../components/Rigobot/AI";
+
 
 type TFile = {
   name: string;
@@ -98,7 +100,7 @@ const useStore = create<IStore>((set, get) => ({
   hasSolution: false,
   shouldBeTested: false,
   status: "",
-  agent: "vscode",
+  agent: "vscode" as TAgent,
   showFeedback: false,
   token: "",
   bc_token: "",
@@ -1483,6 +1485,12 @@ The user's set up the application in "${language}" language, give your feedback 
     const { currentExercisePosition, compilerSocket, getCurrentExercise } =
       get();
 
+    console.debug(
+      "Registering telemetry event",
+      event,
+      "Socket emitting event: ",
+      compilerSocket
+    );
     compilerSocket.emit("telemetry_event", {
       event,
       exerciseSlug: getCurrentExercise().slug,

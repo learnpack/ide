@@ -155,7 +155,7 @@ type TRigoContext = {
   performTests: boolean;
 };
 
-type TAgent = "vscode" | "cloud" | "os";
+export type TAgent = "vscode" | "cloud" | "os";
 
 export interface IStore {
   exercises: any[];
