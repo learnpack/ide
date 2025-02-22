@@ -1498,7 +1498,13 @@ The user's set up the application in "${language}" language, give your feedback 
     });
   },
   startTelemetry: async () => {
-    const { configObject, bc_token, user, registerTelemetryEvent } = get();
+    const {
+      configObject,
+      bc_token,
+      user,
+      registerTelemetryEvent,
+      environment,
+    } = get();
     if (!bc_token || !configObject) {
       console.error("No token or config found, impossible to start telemetry");
       return;
@@ -1522,7 +1528,10 @@ The user's set up the application in "${language}" language, give your feedback 
         is_completed: false,
         quiz_submissions: [],
       }));
-      const agent = configObject.config?.editor.agent || "";
+      const agent =
+        environment === "localhost"
+          ? configObject.config?.editor.agent
+          : "cloud";
       const tutorialSlug = configObject.config?.slug || "";
       const STORAGE_KEY = "TELEMETRY";
 
