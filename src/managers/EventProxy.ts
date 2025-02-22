@@ -76,6 +76,7 @@ let HOST = getHost();
 const localStorageEventEmitter = {
   events: {} as Record<string, EventCallback[]>,
   statusEvents: {} as Record<string, EventCallback>,
+  type: "localStorageEventEmitter",
 
   emit: (event: string, data: any) => {
     if (localStorageEventEmitter.events[event]) {
@@ -194,7 +195,6 @@ localStorageEventEmitter.on("build", async (data) => {
         status: "ready",
       };
       data.updateEditorTabs(outputTab);
-
 
       localStorageEventEmitter.emitStatus("compiler-success", {
         htmlString: compiled,
