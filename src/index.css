@@ -723,6 +723,10 @@ a {
   background-color: var(--soft-red) !important;
 }
 
+.bg-soft-blue {
+  background-color: var(--soft-blue) !important;
+}
+
 .fit-content {
   width: fit-content;
 }

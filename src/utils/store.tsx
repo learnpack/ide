@@ -1675,7 +1675,7 @@ The user's set up the application in "${language}" language, give your feedback 
     // console.log(token, "Token");
     // toast.success("Succesfully tested");
     // set({ token: "123456" });
-    // FetchManager.logout();
+    FetchManager.logout();
     // console.log(TelemetryManager.current);
     // setOpenedModals({ limitReached: true });
   },

@@ -7,6 +7,7 @@ interface ButtonProps {
   disabled?: boolean;
   size?: "small" | "big" | "mini";
   title?: string;
+  type?: "button" | "submit";
 }
 
 export default function SimpleButton({
@@ -18,6 +19,7 @@ export default function SimpleButton({
   id,
   size,
   title,
+  type = "button",
 }: ButtonProps) {
   return (
     <button
@@ -26,6 +28,7 @@ export default function SimpleButton({
       className={`simple-button-svg ${extraClass} ${size}`}
       onClick={action}
       title={title}
+      type={type}
     >
       {svg && <span className="d-flex align-center">{svg}</span>}
       {text && <span className="d-flex align-center">{text}</span>}

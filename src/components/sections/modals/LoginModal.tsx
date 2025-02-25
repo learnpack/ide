@@ -32,6 +32,7 @@ export default function LoginModal() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
   const handleClickOutside = (event: any) => {
     if (backdropRef.current === event.target) {
@@ -50,6 +51,12 @@ export default function LoginModal() {
   const login = async (e: any) => {
     e.preventDefault();
     setIsLoading(true);
+
+    if (!email || !password) {
+      toast.error(t("please-fill-all-fields"));
+      setIsLoading(false);
+      return;
+    }
 
     const isLoggedId = await loginToRigo({
       email: email,
@@ -115,81 +122,106 @@ export default function LoginModal() {
 
   return (
     <>
-      <Modal extraClass="login-modal" outsideClickHandler={handleExit}>
+      <Modal extraClass="login-modal">
         <div className="modal-content">
-          <h2>{t("login")}</h2>
-
-          <div>
-            <p>{t("login-message")}</p>
-          </div>
-
-          <div>
-            <SimpleButton
-              extraClass="btn-dark w-100 justify-center big rounded"
-              text={t("login-github")}
-              svg={svgs.github}
-              action={redirectGithub}
-            />
-          </div>
-          <form action="" onSubmit={(e) => e.preventDefault()}>
-            <div className="separator">
-              <div></div>
-              <h4>{t("or")}</h4>
-              <div></div>
-            </div>
-            <input
-              placeholder="Email"
-              type="text"
-              autoComplete="email"
-              name="email"
-              onChange={(e) => {
-                setEmail(e.target.value);
-              }}
-            />
-            <div>
-              <input
-                placeholder={t("Password")}
-                autoComplete="current-password"
-                type={"password"}
-                name="password"
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                }}
-              />
-            </div>
-
-            <div className="my-2">
-              <SimpleButton
-                text={isLoading ? t("Loading...") : t("login")}
-                action={login}
-                extraClass="bg-blue big"
-              />
-              <SimpleButton
-                extraClass="btn-dark big rounded"
-                action={handleExit}
-                text={t("skip")}
-              />
-            </div>
-
-            <div>
-              <p>
-                {t("Don't have an account? ")}
+          <div className="d-flex justify-between">
+            <h2>{t("login")}</h2>
+            <div className="bg-soft-blue d-flex flex-y justify-center padding-small rounded">
+              <p className="m-0">{t("Don't have an account? ")}</p>
+              <p className="m-0">
                 <OpenWindowLink
                   callback={reportSignUpAttempt}
                   text={t("Sign up here!")}
                   href="https://4geeks.com/pricing?plan=basic"
                 />{" "}
               </p>
-              <span>
-                {t("forgot-password")}
-                <OpenWindowLink
-                  callback={reportPasswordRecoveryAttempt}
-                  text={t("recover-it-here")}
-                  href={`${BREATHECODE_HOST}/v1/auth/password/reset?url=${getCurrentUrlWithQueryParams()}`}
-                />{" "}
-              </span>
             </div>
-          </form>
+          </div>
+
+          <p>{t("login-message")}</p>
+
+          {!showForm && (
+            <>
+              <div>
+                <SimpleButton
+                  extraClass="btn-dark w-100 justify-center big rounded"
+                  text={t("login-github")}
+                  svg={svgs.github}
+                  action={redirectGithub}
+                />
+              </div>
+              <div className="separator">
+                <div></div>
+                <h4>{t("or")}</h4>
+                <div></div>
+              </div>
+              <div>
+                <SimpleButton
+                  extraClass="btn-dark w-100 justify-center big rounded"
+                  text={t("login-with-email")}
+                  svg={svgs.email}
+                  action={() => {
+                    setShowForm(true);
+                  }}
+                />
+              </div>
+            </>
+          )}
+
+          {showForm && (
+            <form action="" onSubmit={login}>
+              <input
+                placeholder="Email"
+                type="email"
+                autoComplete="email"
+                name="email"
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                }}
+              />
+              <div>
+                <input
+                  placeholder={t("Password")}
+                  autoComplete="current-password"
+                  type={"password"}
+                  name="password"
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                  }}
+                />
+              </div>
+
+              <div className="my-2">
+                <SimpleButton
+                  type="submit"
+                  text={isLoading ? t("Loading...") : t("login")}
+                  extraClass="bg-blue big"
+                />
+                <SimpleButton
+                  extraClass="btn-dark big rounded"
+                  action={handleExit}
+                  text={t("skip")}
+                />
+                <SimpleButton
+                  extraClass="btn-dark big rounded"
+                  action={() => {
+                    setShowForm(false);
+                  }}
+                  text={t("back")}
+                />
+              </div>
+              <div>
+                <span>
+                  {t("forgot-password")}
+                  <OpenWindowLink
+                    callback={reportPasswordRecoveryAttempt}
+                    text={t("recover-it-here")}
+                    href={`${BREATHECODE_HOST}/v1/auth/password/reset?url=${getCurrentUrlWithQueryParams()}`}
+                  />{" "}
+                </span>
+              </div>
+            </form>
+          )}
         </div>
       </Modal>
     </>

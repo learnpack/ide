@@ -11,7 +11,7 @@
     "To use the AI services you must login with your 4geeks account, and you have been accepted Rigobot": "To use the AI services you must login with your 4geeks account, and you have been accepted Rigobot",
     "Password": "Password",
     "Don't have an account? ": "Don't have an account? ",
-    "Sign up here!": "Sign up here!",
+    "Sign up here!": "Register here!",
     "Loading...": "Loading...",
     "submit": "Sign in",
     "Review model solution": "Review model solution",
@@ -113,5 +113,8 @@
     "learnpack_consumable_depleted": "You have used all your AI interactions, upgrade your subscription to continue using Rigobot AI tutor [click here to review your subscription](https://4geeks.com/checkout?plan=4geeks-plus&token={{bc_token})",
     "error-video-id-invalid": "Invalid YouTube video ID",
     "website-built-no-body": "Your website was built successfully but nothing is shown because the website body is empty",
-    "help-me-with-this-quiz": "Help me with this quiz"
+    "help-me-with-this-quiz": "Help me with this quiz",
+    "login-with-email": "Login with email",
+    "back": "Back",
+    "please-fill-all-fields": "Please fill all the fields"
 }

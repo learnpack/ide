@@ -7,7 +7,7 @@ interface IModal {
   children: React.ReactNode;
   htmlId?: string;
   extraClass?: string;
-  outsideClickHandler: () => void;
+  outsideClickHandler?: () => void;
   blockScroll?: boolean;
 }
 
@@ -27,7 +27,9 @@ export const Modal = ({
         event.target.classList &&
         event.target.classList.contains("modal-closer"))
     ) {
-      outsideClickHandler();
+      if (outsideClickHandler) {
+        outsideClickHandler();
+      }
     }
   };
 
@@ -55,9 +57,11 @@ export const Modal = ({
   return createPortal(
     <div ref={modalRef} className="self-closing-modal" id={htmlId}>
       <div className={`modal-content ${extraClass ? extraClass : ""}`}>
-        <div onClick={outsideClickHandler} className="modal-closer">
-          {svgs.closeIcon}
-        </div>
+        {outsideClickHandler && (
+          <div onClick={outsideClickHandler} className="modal-closer">
+            {svgs.closeIcon}
+          </div>
+        )}
         {children}
       </div>
     </div>,
