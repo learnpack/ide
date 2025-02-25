@@ -1,3 +1,4 @@
+import { calculateIndicators } from "../utils/metrics";
 import { LocalStorage } from "./localStorage";
 import axios, { AxiosResponse } from "axios";
 
@@ -437,6 +438,8 @@ const TelemetryManager: ITelemetryManager = {
     try {
       await sendBatchTelemetry(url, body, this.user.token);
       console.debug("Telemetry submitted successfully");
+      const indicators = calculateIndicators(this.current);
+      console.log(indicators, "Indicators");
     } catch (error) {
       console.error("Error submitting telemetry", error);
     }

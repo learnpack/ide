@@ -42,6 +42,7 @@ import {
 import TelemetryManager from "../managers/telemetry";
 import { RigoAI } from "../components/Rigobot/AI";
 
+
 type TFile = {
   name: string;
   hidden: boolean;
@@ -275,6 +276,7 @@ const useStore = create<IStore>((set, get) => ({
       set({ lastState: "success", terminalShouldShow: true });
 
       toastFromStatus("compiler-success");
+
       setBuildButtonPrompt("execute-my-code", "bg-success");
       if (environment === "localStorage") {
         registerTelemetryEvent("compile", data);
@@ -1670,11 +1672,12 @@ The user's set up the application in "${language}" language, give your feedback 
   },
   test: async () => {
     // Notifier.success("Succesfully tested");
-    const { token } = get();
-    console.log(token, "Token");
-    toast.success("Succesfully tested");
+    // const { token } = get();
+    // console.log(token, "Token");
+    // toast.success("Succesfully tested");
+    // set({ token: "123456" });
 
-    set({ token: "123456" });
+
     // FetchManager.logout();
     // console.log(TelemetryManager.current);
     // setOpenedModals({ limitReached: true });

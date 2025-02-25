@@ -174,7 +174,7 @@ export const Container = () => {
             >
               {t("instructions")}
             </div>
-            {editorTabs.length > 0 && !(environment === "localhost") && (
+            {editorTabs.length > 0 && !(agent === "vscode") && (
               <>
                 <div
                   onClick={() => onChangeTab("code")}

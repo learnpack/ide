@@ -19,6 +19,7 @@ export const LessonRenderer = memo(
   }) => {
     const { t } = useTranslation();
     const currentContent = useStore((s) => s.currentContent);
+    const agent = useStore((s) => s.agent);
 
     return (
       <div className="lesson-content">
@@ -39,7 +40,9 @@ export const LessonRenderer = memo(
             </div>
           )}
         {/* {ENVIRONMENT === "localhost" && editorTabs.length > 0 && ( */}
-        {ENVIRONMENT === "localhost" && <Toolbar editorStatus="MODIFIED" />}
+        {ENVIRONMENT === "localhost" && agent !== "os" && (
+          <Toolbar editorStatus="MODIFIED" />
+        )}
       </div>
     );
   }
