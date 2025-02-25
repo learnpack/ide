@@ -42,7 +42,6 @@ import {
 import TelemetryManager from "../managers/telemetry";
 import { RigoAI } from "../components/Rigobot/AI";
 
-
 type TFile = {
   name: string;
   hidden: boolean;
@@ -543,7 +542,7 @@ The user's set up the application in "${language}" language, give your feedback 
       set({ lessonTitle: config.config.title.us });
       set({ configObject: config });
 
-      if (config.config.editor.agent) {
+      if (config.config.editor.agent && environment !== "localStorage") {
         set({ agent: config.config.editor.agent });
       }
 
@@ -1676,8 +1675,6 @@ The user's set up the application in "${language}" language, give your feedback 
     // console.log(token, "Token");
     // toast.success("Succesfully tested");
     // set({ token: "123456" });
-
-
     // FetchManager.logout();
     // console.log(TelemetryManager.current);
     // setOpenedModals({ limitReached: true });

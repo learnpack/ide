@@ -150,6 +150,7 @@ export const Container = () => {
     }
   }, [currentContent]);
 
+
   return (
     <>
       {isRigoOpened && window.innerWidth < 768 && <Chat />}
