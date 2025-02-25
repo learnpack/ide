@@ -218,6 +218,7 @@ localStorageEventEmitter.on("build", async (data) => {
     } else {
       localStorageEventEmitter.emitStatus("compiler-success", json);
     }
+
     let logs = [json];
 
     if (json.reasoning) {
@@ -243,20 +244,40 @@ localStorageEventEmitter.on("build", async (data) => {
       };
       data.updateEditorTabs(terminalTab);
     }
-  } catch (e) {
-    console.table({
-      "Something unexpected happened in the build event": e,
-    });
-    toast.error("Something unexpected happened in the build event");
-    const errorDatalayer = {
-      dataLayer: {
-        event: "learnpack_unexpected_error",
-        origin: "cloud_build",
-        agent: "cloud",
-        error: e,
-      },
-    };
-    reportDataLayer(errorDatalayer);
+  } catch (error) {
+    // console.table({
+    //   "Something unexpected happened in the build event": e,
+    // });
+    // toast.error("Something unexpected happened in the build event");
+    // const errorDatalayer = {
+    //   dataLayer: {
+    //     event: "learnpack_unexpected_error",
+    //     origin: "cloud_build",
+    //     agent: "cloud",
+    //     error: e,
+    //   },
+    // };
+    // reportDataLayer(errorDatalayer);
+
+    if (error instanceof TokenExpired) {
+      console.warn("Token expired. Logging out...");
+      toast.error("Session expired. Please log in again.");
+      // Handle token expiration (e.g., logout user)
+      await FetchManager.logout();
+    } else {
+      console.table({
+        "Something unexpected happened in the build event": error,
+      });
+      toast.error("Something unexpected happened in the build event");
+      reportDataLayer({
+        dataLayer: {
+          event: "learnpack_unexpected_error",
+          origin: "cloud_build",
+          agent: "cloud",
+          error: error,
+        },
+      });
+    }
     // await FetchManager.logout();
   }
 });
@@ -394,10 +415,17 @@ localStorageEventEmitter.on("test", async (data) => {
         logs: [JSON.stringify(json)],
       });
     }
-  } catch (e) {
-    console.log(e);
-    toast.error("ERROR TRYING TO TEST");
-    return;
+  } catch (error) {
+    if (error instanceof TokenExpired) {
+      console.warn("Token expired. Logging out...");
+      toast.error("Session expired. Please log in again.");
+      // Handle token expiration (e.g., logout user)
+      await FetchManager.logout();
+    } else {
+      console.log(error);
+
+      return;
+    }
   }
 });
 
@@ -435,39 +463,70 @@ export const EventProxy = {
   },
 };
 
-const buildRigo = async (token: string, inputs: object) => {
-  const result = await fetch(`${RIGOBOT_HOST}/v1/prompting/completion/324/`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Token " + token,
-    },
-    body: JSON.stringify({
-      inputs: inputs,
-      include_purpose_objective: false,
-      execute_async: false,
-    }),
-  });
-  const json = await result.json();
+class TokenExpired extends Error {
+  constructor(message: string = "Token has expired") {
+    super(message);
+    this.name = "TokenExpired";
+  }
+}
 
-  return json.parsed;
+class APIError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "APIError";
+  }
+}
+
+const fetchWithHandling = async (
+  url: string,
+  token: string,
+  inputs: object
+) => {
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Token " + token,
+      },
+      body: JSON.stringify({
+        inputs: inputs,
+        include_purpose_objective: false,
+        execute_async: false,
+      }),
+    });
+
+    if (response.status === 401) {
+      throw new TokenExpired();
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new APIError(
+        `Request failed with status ${response.status}: ${errorText}`
+      );
+    }
+
+    const json = await response.json();
+    return json.parsed;
+  } catch (error) {
+    console.error("Error in API request:", error);
+    throw error;
+  }
 };
-const testRigo = async (token: string, inputs: object) => {
-  const result = await fetch(`${RIGOBOT_HOST}/v1/prompting/completion/126/`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Token " + token,
-    },
-    body: JSON.stringify({
-      inputs: inputs,
-      include_purpose_objective: false,
-      execute_async: false,
-    }),
-  });
-  const json = await result.json();
 
-  console.debug(json, "Test completed successfully");
+const buildRigo = (token: string, inputs: object) => {
+  return fetchWithHandling(
+    `${RIGOBOT_HOST}/v1/prompting/completion/324/`,
+    token,
+    inputs
+  );
+};
 
-  return json.parsed;
+const testRigo = (token: string, inputs: object) => {
+  return fetchWithHandling(
+    `${RIGOBOT_HOST}/v1/prompting/completion/126/`,
+    token,
+    inputs
+  );
 };

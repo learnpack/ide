@@ -470,6 +470,7 @@ a {
 .browser {
   height: max-content !important;
   background-color: var(--opaque-blue-editor);
+  padding: 3px;
 }
 .browser-tab {
   padding: 4px 20px;
@@ -485,13 +486,15 @@ a {
 .browser-header {
   background-color: #8585852f;
   border-radius: 5px;
-  width: calc(100%);
+  width: 100%;
   padding: 2px;
 }
 .browser-body {
   background-color: var(--app-bg-color);
   overflow-y: auto;
-  height: calc(100% - 40px);
+  min-height: 200px;
+  border-radius: 5px;
+  margin-top: 3px;
 }
 
 .danger-on-hover:hover {

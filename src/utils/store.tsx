@@ -1670,8 +1670,12 @@ The user's set up the application in "${language}" language, give your feedback 
   },
   test: async () => {
     // Notifier.success("Succesfully tested");
-    // const { setOpenedModals } = get();
-    FetchManager.logout();
+    const { token } = get();
+    console.log(token, "Token");
+    toast.success("Succesfully tested");
+
+    set({ token: "123456" });
+    // FetchManager.logout();
     // console.log(TelemetryManager.current);
     // setOpenedModals({ limitReached: true });
   },

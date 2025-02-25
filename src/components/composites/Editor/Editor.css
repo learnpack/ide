@@ -34,22 +34,23 @@
 }
 
 .terminal {
-  border: 8px solid var(--opaque-blue-editor);
+  border: 3px solid var(--opaque-blue-editor);
   border-top: 0;
-  padding: 8px;
   overflow-y: auto;
   position: relative;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
 }
 .terminal.html {
   height: min(400px, fit-content);
   overflow-y: auto;
   border: none;
-  padding-bottom: 8px;
 }
 .terminal.only {
   margin-top: 0;
   border: 0;
   max-height: 70vh;
+  border-radius: 5px;
   & .editor-footer {
     margin-top: 20px;
     display: block;

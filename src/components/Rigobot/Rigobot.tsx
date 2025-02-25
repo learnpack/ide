@@ -9,7 +9,7 @@ import useStore from "../../utils/store";
 import { Loader } from "../composites/Loader/Loader";
 import { Markdowner } from "../composites/Markdowner/Markdowner";
 import { formatInitialMessage, slugToTitle } from "./utils";
-import toast from "react-hot-toast";
+
 
 type TAIInteraction = {
   student_message?: string;
@@ -301,7 +301,7 @@ export const ChatTab = () => {
 
   const handleKeyUp = (event: any) => {
     if (event.key === "Enter" && !event.ctrlKey) {
-      toast.success("Enter key pressed");
+   
       event.preventDefault();
 
       processUserMessage();
