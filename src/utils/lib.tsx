@@ -1,10 +1,9 @@
-import MarkdownIt from "markdown-it";
-import hljs from "highlight.js";
 import { TEnvironment } from "../managers/EventProxy";
 import { TPossibleParams } from "./storeTypes";
 // @ts-ignore
 import TaskLists from "markdown-it-task-lists";
 import TagManager from "react-gtm-module";
+import * as yaml from "js-yaml";
 // import toast from "react-hot-toast";
 export const DEV_MODE =false;
 
@@ -82,36 +81,6 @@ export const RIGOBOT_HOST = "https://rigobot.herokuapp.com";
 export const BREATHECODE_HOST = "https://breathecode.herokuapp.com";
 // export const RIGOBOT_HOST = "https://8000-charlytoc-rigobot-bmwdeam7cev.ws-us116.gitpod.io";
 
-/**
- * Converts markdown to HTML and injects it into a div.
- * @param {string} markdown - The markdown string to be converted.
- * @returns {string} - The HTML string.
- */
-
-export const convertMarkdownToHTML = (
-  markdown: any,
-  allowHTML: boolean = true
-) => {
-  const md = new MarkdownIt({
-    html: allowHTML,
-    linkify: false,
-    typographer: true,
-    highlight: function (str, lang) {
-      if (lang && hljs.getLanguage(lang)) {
-        try {
-          return hljs.highlight(str, { language: lang }).value;
-        } catch (__) {}
-      }
-
-      return ""; // use external default escaping
-    },
-  }).use(TaskLists, { enabled: true });
-
-  let html = md.render(markdown);
-  html = replaceSrc(html);
-  return html;
-};
-
 export const changeSidebarVisibility = () => {
   const sidebar: HTMLElement | null =
     document.querySelector(".sidebar-component");
@@ -135,7 +104,7 @@ export const changeSidebarVisibility = () => {
  * @param {string} rawText - The input text in HTML-like format.
  * @returns {string} - The modified text with replaced occurrences.
  */
-function replaceSrc(rawText: string) {
+export function replaceSrc(rawText: string) {
   // Use a regular expression to find all oc currences of src="../.."
   const regex = /src="\.\.\/\.\./g;
 
@@ -285,7 +254,8 @@ export const countConsumables = (
   consumables: any,
   consumableSlug:
     | "ai-conversation-message"
-    | "ai-compilation" = "ai-conversation-message"
+    | "ai-compilation"
+    | "ai-generation" = "ai-conversation-message"
 ) => {
   // Find the void that matches the consumableSlug
   // @ts-ignore
@@ -377,3 +347,25 @@ export function loadScript(src: string): Promise<void> {
     document.head.appendChild(script);
   });
 }
+
+export const remakeMarkdown = (
+  attributes: Record<string, any>,
+  body: string
+) => {
+  const yamlAttributes = yaml.dump(attributes);
+
+  const wholeMD = "---\n" + yamlAttributes + "---\n\n" + body;
+
+  return wholeMD;
+};
+
+export const correctLanguage = (language: string) => {
+  return language === "us" ? "en" : "es";
+};
+
+export const convertUrlToBase64 = (url: string, extraParams: string = "") => {
+  if (url.includes("?") || url.includes("#")) {
+    return btoa(url + extraParams);
+  }
+  return btoa(url + "?" + extraParams);
+};

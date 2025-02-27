@@ -450,6 +450,11 @@ a {
 .gap-small {
   gap: 5px;
 }
+
+.gap-medium {
+  gap: 10px;
+}
+
 .gap-big {
   gap: 20px;
 }
@@ -729,4 +734,34 @@ a {
 
 .fit-content {
   width: fit-content;
+}
+.text-bold {
+  font-weight: bold;
+}
+.border-gray {
+  border: 1px solid var(--color-hovered);
+}
+
+.scale-on-hover {
+  transition: scale 0.3s ease;
+}
+.scale-on-hover:hover {
+  scale: 1.5;
+}
+
+.bg-transparent {
+  background-color: transparent;
+}
+
+.gray-on-hover {
+  transition: background-color 0.3s ease;
+}
+.gray-on-hover:hover {
+  background-color: var(--color-hovered);
+}
+.text-dark {
+  color: rgb(24, 24, 24);
+}
+.mr-10 {
+  margin-right: 40px;
 }

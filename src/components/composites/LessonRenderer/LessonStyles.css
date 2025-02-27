@@ -31,10 +31,11 @@
 }
 
 .creator-options {
-  position: absolute;
-  top: 0;
-  left: 0;
+  /* position: absolute; */
+  /* bottom: 100%; */
+  /* left: 0; */
   display: none;
+  /* z-index: 1000; */
   background-color: var(--bg-color);
   padding: 10px;
   border-radius: 5px;
@@ -42,5 +43,19 @@
 }
 
 .creator-wrapper:hover .creator-options {
-  display: block;
+  display: flex;
+}
+.creator-wrapper:hover .text-in-editor {
+  color: var(--color-fail);
+}
+
+.creator-wrapper:has(.creator-target-content:empty) .target-buttons {
+  display: none;
+}
+.creator-target-content:empty {
+  display: none;
+}
+
+.creator-target-content {
+  color: var(--color-success);
 }

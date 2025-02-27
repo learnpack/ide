@@ -3,12 +3,9 @@ import SimpleButton from "../../mockups/SimpleButton";
 import ExercisesList from "./ExercisesList";
 import useStore from "../../../utils/store";
 import { svgs } from "../../../assets/svgs";
-// import { useEffect, useState } from "react";
-// import { createPortal } from "react-dom";
 import packageInfo from "../../../../package.json";
-// import { useTranslation } from "react-i18next";
 import "./styles.css";
-// import { DEV_MODE } from "../../../utils/lib";
+import { useState } from "react";
 
 const version = packageInfo.version;
 let versionSections = version.split(".");
@@ -22,6 +19,7 @@ export default function Sidebar() {
     setShowSidebar,
     userConsumables,
     isIframe,
+    environment,
   } = useStore((state) => ({
     theme: state.theme,
     toggleTheme: state.toggleTheme,
@@ -29,7 +27,10 @@ export default function Sidebar() {
     setShowSidebar: state.setShowSidebar,
     userConsumables: state.userConsumables,
     isIframe: state.isIframe,
+    environment: state.environment,
   }));
+
+  const [mode, setMode] = useState<"list" | "editor">("list");
 
   const closeSidebar = () => {
     const sidebar: HTMLElement | null =
@@ -39,6 +40,9 @@ export default function Sidebar() {
       setShowSidebar(false);
     });
   };
+
+  const isCreator =
+    userConsumables.ai_generation > 0 && environment !== "localStorage";
 
   return (
     <>
@@ -53,9 +57,18 @@ export default function Sidebar() {
                 svg={theme === "dark" ? svgs.sun : svgs.moon}
               />
             )}
+            {isCreator && (
+              <SimpleButton
+                action={() => {
+                  mode === "list" ? setMode("editor") : setMode("list");
+                }}
+                extraClass="text-white"
+                text={mode === "list" ? "List" : "Editor"}
+              />
+            )}
           </section>
 
-          <ExercisesList closeSidebar={closeSidebar} />
+          <ExercisesList mode={mode} closeSidebar={closeSidebar} />
 
           <section className="footer">
             <BugButton />

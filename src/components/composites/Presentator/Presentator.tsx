@@ -6,11 +6,10 @@ import SimpleButton from "../../mockups/SimpleButton";
 import { useTranslation } from "react-i18next";
 import { svgs } from "../../../assets/svgs";
 import useStore from "../../../utils/store";
-import { convertMarkdownToHTML } from "../../../utils/lib";
 import { defaultSteps } from "../../../utils/presentation";
+import { Markdowner } from "../Markdowner/Markdowner";
 
 type PresentatorProps = {};
-
 
 export const Presentator = ({}: PresentatorProps) => {
   const [element, setElement] = useState<HTMLElement | null>(null);
@@ -67,7 +66,7 @@ type BadgeProps = {
   color?: string;
   currentStep: number;
   numberOfSteps: number;
-  position: any
+  position: any;
   handlePositionChange: (action: string) => void;
 };
 
@@ -78,7 +77,7 @@ const Badge = ({
   element,
   numberOfSteps,
   currentStep,
-  position
+  position,
 }: BadgeProps) => {
   const { t } = useTranslation();
   const { setOpenedModals } = useStore((state) => ({
@@ -131,17 +130,14 @@ const Badge = ({
     if (e.target.classList.contains("presentator")) {
       closeTutorial();
     }
-  }
+  };
 
   return (
     <>
-      <div onClick={handleClickBackdrop} className="presentator">
-      </div>
-      <div style={{top: position[0], left: position[1]}} className="_badge">
+      <div onClick={handleClickBackdrop} className="presentator"></div>
+      <div style={{ top: position[0], left: position[1] }} className="_badge">
         <h2>{t(title)}</h2>
-        <div className="_content"
-          dangerouslySetInnerHTML={{ __html: convertMarkdownToHTML(t(text)) }}
-        ></div>
+        <Markdowner markdown={t(text)} />
 
         <div className="_footer">
           {!(currentStep === 0) && (
@@ -153,7 +149,7 @@ const Badge = ({
           )}
           {!(currentStep === numberOfSteps - 1) && (
             <SimpleButton
-              extraClass="pill" 
+              extraClass="pill"
               svg={svgs.nextArrowButton}
               action={next}
             />

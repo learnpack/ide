@@ -10,7 +10,7 @@ export const ShortcutsListener = ({ children }: ShortcutListenerProps) => {
   const { t } = useTranslation();
   const {
     currentExercisePosition,
-    handlePositionChange,
+    // handlePositionChange,
     build,
     runExerciseTests,
     setOpenedModals,
@@ -19,7 +19,7 @@ export const ShortcutsListener = ({ children }: ShortcutListenerProps) => {
     isTesteable,
   } = useStore((state) => ({
     currentExercisePosition: state.currentExercisePosition,
-    handlePositionChange: state.handlePositionChange,
+    // handlePositionChange: state.handlePositionChange,
     exercises: state.exercises,
     build: state.build,
     runExerciseTests: state.runExerciseTests,
@@ -31,12 +31,12 @@ export const ShortcutsListener = ({ children }: ShortcutListenerProps) => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.ctrlKey && event.key === "ArrowRight" && !event.shiftKey) {
-        handlePositionChange(Number(currentExercisePosition) + 1);
-      }
-      if (event.ctrlKey && event.key === "ArrowLeft" && !event.shiftKey) {
-        handlePositionChange(Number(currentExercisePosition) - 1);
-      }
+      // if (event.ctrlKey && event.key === "ArrowRight" && !event.shiftKey) {
+      //   handlePositionChange(Number(currentExercisePosition) + 1);
+      // }
+      // if (event.ctrlKey && event.key === "ArrowLeft" && !event.shiftKey) {
+      //   handlePositionChange(Number(currentExercisePosition) - 1);
+      // }
       if (
         event.ctrlKey &&
         !event.shiftKey &&

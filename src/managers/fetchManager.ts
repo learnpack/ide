@@ -11,6 +11,7 @@ import frontMatter from "front-matter";
 import { LocalStorage } from "./localStorage";
 import { v4 as uuidv4 } from "uuid";
 import TelemetryManager from "./telemetry";
+import toast from "react-hot-toast";
 
 // Correct the type definition for TMethods
 type TMethods = {
@@ -135,7 +136,6 @@ export const FetchManager = {
           `${FetchManager.HOST}/telemetry/step/${stepPosition}`
         );
         const json = await res.json();
-        console.log("STEP FROM LOCALHOST", json);
 
         return json;
       },
@@ -313,17 +313,11 @@ export const FetchManager = {
       throw Error("Unable to login with provided credentials");
     }
 
-    const rigoUrl = `${RIGOBOT_HOST}/v1/auth/me/token?breathecode_token=${breathecodeToken}`;
-    const rigoResp = await fetch(rigoUrl);
+    const rigoJson = await getRigobotJSON(breathecodeToken);
 
-    if (!rigoResp.ok) {
-      throw new MissingRigobotAccountError("Unable to obtain Rigobot token");
-    }
-
-    const rigobotJson = await rigoResp.json();
     const returns = {
       ...user,
-      rigobot: { ...rigobotJson },
+      rigobot: { ...rigoJson },
       token: breathecodeToken,
     };
 
@@ -345,6 +339,30 @@ export const FetchManager = {
     }
 
     return loggedFormat;
+  },
+
+  replaceReadme: async (slug: string, language: string, newReadme: string) => {
+    const methods: TMethods = {
+      localhost: async () => {
+        const url = `${FetchManager.HOST}/exercise/${slug}/file/README.${
+          language === "us" ? "" : "es."
+        }md`;
+        const res = await fetch(url, {
+          method: "PUT",
+          body: newReadme,
+        });
+        if (!res.ok) {
+          return false;
+        }
+        // await res.json();
+        return true;
+      },
+      localStorage: async () => {
+        toast.error("IMPOSSIBLE TO REPLACE README IN LS");
+        // console.log("REPLACING README IN LS");
+      },
+    };
+    return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
   },
 
   logout: async () => {
@@ -425,6 +443,16 @@ const loginLocalhost = async (loginInfo: any, host: string) => {
   return { ...json, user };
 };
 
+const getRigobotJSON = async (breathecodeToken: string) => {
+  const rigoUrl = `${RIGOBOT_HOST}/v1/auth/me/token?breathecode_token=${breathecodeToken}`;
+  const rigoResp = await fetch(rigoUrl);
+  if (!rigoResp.ok) {
+    throw new MissingRigobotAccountError("Unable to obtain Rigobot token");
+  }
+  const rigobotJson = await rigoResp.json();
+  return rigobotJson;
+};
+
 const loginLocalStorage = async (loginInfo: any) => {
   const url = `${BREATHECODE_HOST}/v1/auth/login/`;
 
@@ -442,12 +470,10 @@ const loginLocalStorage = async (loginInfo: any) => {
 
   const json = await res.json();
 
-  const rigoUrl = `${RIGOBOT_HOST}/v1/auth/me/token?breathecode_token=${json.token}`;
-  const rigoResp = await fetch(rigoUrl);
+  const rigoJson = await getRigobotJSON(json.token);
 
-  const rigobotJson = await rigoResp.json();
   const user = await validateUser(json.token);
-  const returns = { ...json, rigobot: { ...rigobotJson }, user };
+  const returns = { ...json, rigobot: { ...rigoJson }, user };
 
   LocalStorage.set("session", returns);
 

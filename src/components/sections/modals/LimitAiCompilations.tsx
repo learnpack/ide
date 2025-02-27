@@ -2,7 +2,8 @@ import { Modal } from "../../mockups/Modal";
 import useStore from "../../../utils/store";
 import { useTranslation } from "react-i18next";
 import SimpleButton from "../../mockups/SimpleButton";
-import { convertMarkdownToHTML } from "../../../utils/lib";
+
+import { Markdowner } from "../../composites/Markdowner/Markdowner";
 
 export const LimitAiCompilations = () => {
   const { setOpenedModals, bc_token } = useStore((state) => ({
@@ -28,14 +29,7 @@ export const LimitAiCompilations = () => {
       <Modal outsideClickHandler={handleOutsideClick}>
         <div className="">
           <h1 className="">{t("limit-ai-compilations")}</h1>
-          <p
-            dangerouslySetInnerHTML={{
-              __html: convertMarkdownToHTML(
-                t("limit-ai-compilations-description")
-              ),
-            }}
-            className="text-sm text-gray-500"
-          ></p>
+          <Markdowner markdown={t("limit-ai-compilations-description")} />
           <div className="d-flex justify-center">
             <SimpleButton
               extraClass="bg-blue padding-medium rounded "

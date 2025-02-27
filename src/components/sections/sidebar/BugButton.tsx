@@ -6,17 +6,15 @@ import SimpleButton from "../../mockups/SimpleButton";
 import { svgs } from "../../../assets/svgs";
 export default function BugButton() {
   const { t } = useTranslation();
-  const { currentExercisePosition, exercises, lessonTitle, openLink } =
-    useStore((state) => ({
-      currentExercisePosition: state.currentExercisePosition,
-      exercises: state.exercises,
-      lessonTitle: state.lessonTitle,
-      openLink: state.openLink,
-    }));
+  const { lessonTitle, openLink, getCurrentExercise } = useStore((state) => ({
+    getCurrentExercise: state.getCurrentExercise,
+    lessonTitle: state.lessonTitle,
+    openLink: state.openLink,
+  }));
   let defaultTitle = "Bug";
 
-  if (currentExercisePosition != 0) {
-    defaultTitle = `Bug in ${exercises[Number(currentExercisePosition)].slug}`;
+  if (getCurrentExercise()) {
+    defaultTitle = `Bug in ${getCurrentExercise().slug}`;
   }
 
   const body = `Lesson: ${lessonTitle} %0D%0A

@@ -18,6 +18,7 @@ import { Loader } from "../Loader/Loader";
 import { TEditorTab } from "../../../utils/storeTypes";
 import { Markdowner } from "../Markdowner/Markdowner";
 
+
 const languageMap: { [key: string]: string } = {
   ".js": "javascript",
   ".py": "python",
@@ -279,7 +280,7 @@ const Terminal = ({
     <>
       {terminalTab && !terminalTab.isHTML && (
         <div className={`terminal ${terminalState}`}>
-          <h5 className="d-flex justify-between align-center">
+          <h5 className={`d-flex justify-between align-center `}>
             <span className="d-flex align-center gap-small">
               {terminalTab &&
                 terminalTab.from &&
@@ -319,9 +320,10 @@ const Terminal = ({
             />
           )}
 
-          {terminalState === "only" && getCurrentExercise().done && (
-            <Toolbar editorStatus={editorStatus} />
-          )}
+          {terminalState === "only" &&
+            (lastState === "error" || getCurrentExercise().done) && (
+              <Toolbar editorStatus={editorStatus} />
+            )}
         </div>
       )}
       {terminalTab && terminalTab.isHTML && (

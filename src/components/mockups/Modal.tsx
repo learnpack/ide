@@ -21,6 +21,7 @@ export const Modal = ({
   const modalRef = useRef<HTMLDivElement>(null);
 
   const handleClickOutside = (event: any) => {
+    
     if (
       modalRef.current === event.target ||
       (typeof event.target.classList === "function" &&

@@ -1,3 +1,10 @@
+import toast from "react-hot-toast";
+
+export type TRigoMessage = {
+  text: string;
+  type: "assistant" | "user";
+};
+
 export const RigoAI = {
   started: false,
   load: () => {
@@ -13,10 +20,12 @@ export const RigoAI = {
     chatHash,
     purposeSlug,
     userToken,
+    context,
   }: {
     chatHash: string;
     purposeSlug: string;
     userToken: string;
+    context?: string;
   }) => {
     if (!RigoAI.started) RigoAI.load();
 
@@ -28,12 +37,13 @@ export const RigoAI = {
         user: {
           token: userToken,
         },
+        context: context || "",
         // sockethost: "https://ai.4geeks.com",
         sockethost: "http://127.0.0.1:8003",
       });
       // @ts-ignore
       window.rigo.show({
-        showBubble: true,
+        showBubble: false,
         collapsed: true,
       });
     }
@@ -42,10 +52,12 @@ export const RigoAI = {
     slug,
     inputs,
     target,
+    onComplete,
   }: {
     slug: string;
     inputs: Record<string, string>;
-    target: HTMLElement;
+    target?: HTMLElement;
+    onComplete?: (success: boolean, data: any) => void;
   }) => {
     // @ts-ignore
     const job = window.rigo.complete({
@@ -53,13 +65,39 @@ export const RigoAI = {
       payload: {
         ...inputs,
       },
-      target,
-      format: "html",
-      onComplete: (data: any) => {
-        console.log("data", data);
+      target: target,
+      format: "markdown",
+      onComplete: (success: boolean, data: any) => {
+        if (onComplete) onComplete(success, data);
       },
     });
 
     job.run();
+  },
+
+  ask: (
+    question: string,
+    target: HTMLElement,
+    previousMessages: TRigoMessage[] = []
+  ) => {
+    // @ts-ignore
+    const job = window.rigo.ask({
+      prompt: question,
+      target,
+      previousMessages,
+      format: "markdown",
+      useVectorStore: false,
+      onStart: () => {
+        toast.success("AI is starting...");
+      },
+      onComplete: (success: boolean, data: any) => {
+        console.log("success", success);
+        console.log("data", data);
+      },
+    });
+
+    if (job) {
+      job.run();
+    }
   },
 };

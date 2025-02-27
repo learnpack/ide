@@ -24,7 +24,7 @@ export const LessonRenderer = memo(
     return (
       <div className="lesson-content">
         {header}
-        <Markdowner markdown={currentContent} />
+        <Markdowner markdown={currentContent.body} />
         {continueAction &&
           editorTabs.length === 0 &&
           !(ENVIRONMENT === "localhost") && (

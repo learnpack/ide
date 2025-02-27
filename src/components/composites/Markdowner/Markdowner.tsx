@@ -1,14 +1,12 @@
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+
 import useStore from "../../../utils/store";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark as prismStyle } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { QuizRenderer } from "../QuizRenderer/QuizRenderer";
 import { RigoQuestion } from "../RigoQuestion/RigoQuestion";
-import SimpleButton from "../../mockups/SimpleButton";
-
-import { useRef } from "react";
-import { RigoAI } from "../../Rigobot/AI";
+import { CreatorWrapper } from "../../Creator/Creator";
 
 const isRigoQuestion = (href: string) => {
   return href.startsWith("https://4geeks.com/ask?query=");
@@ -29,47 +27,15 @@ const checkForQuiz = (node: any) => {
   return containsTaskList && containsTaskList.length > 0;
 };
 
-const CreatorWrapper = ({
-  children,
-  tagName,
-}: {
-  children: React.ReactNode;
-  tagName: string;
-}) => {
-  const elemRef = useRef<HTMLDivElement>(null);
-
-  const makeTextLonger = () => {
-    const text = elemRef.current?.innerHTML;
-    if (text) {
-      RigoAI.useTemplate({
-        slug: "make-text-longer",
-        inputs: {
-          text_to_increase: text,
-          factor: "2",
-        },
-        target: elemRef.current,
-      });
-    }
-  };
-
-  return (
-    <div className={`creator-wrapper ${tagName}`}>
-      <div className="creator-options">
-        <SimpleButton
-          action={() => makeTextLonger()}
-          extraClass="bg-blue"
-          text="Make longer"
-        />
-      </div>
-      <div ref={elemRef}>{children}</div>
-    </div>
-  );
-};
-
 export const Markdowner = ({ markdown }: { markdown: string }) => {
-  const { openLink } = useStore((state) => ({
+  const { openLink, userConsumables, environment } = useStore((state) => ({
     openLink: state.openLink,
+    userConsumables: state.userConsumables,
+    environment: state.environment,
   }));
+
+  const isCreator =
+    userConsumables.ai_generation > 0 && environment !== "localStorage";
 
   return (
     <Markdown
@@ -88,11 +54,13 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
           }
           return <span>{children}</span>;
         },
-        p: ({ children }) => {
-          // const isCreator = node?.properties?.className?.includes("creator");
-          const isCreator = false;
+        p: ({ children, node }) => {
           if (isCreator) {
-            return <CreatorWrapper tagName="p">{children}</CreatorWrapper>;
+            return (
+              <CreatorWrapper node={node} tagName="p">
+                <p>{children}</p>
+              </CreatorWrapper>
+            );
           }
           return <p>{children}</p>;
         },
@@ -106,6 +74,13 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
 
           const start = node?.properties?.start;
 
+          // if (isCreator) {
+          //   return (
+          //     <CreatorWrapper node={node} tagName="ol">
+          //       <ol start={start ? Number(start) : undefined}>{children}</ol>
+          //     </CreatorWrapper>
+          //   );
+          // }
           return <ol start={start ? Number(start) : undefined}>{children}</ol>;
         },
         // @ts-ignore
@@ -116,6 +91,13 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
             return <QuizRenderer children={children} />;
           }
 
+          // if (isCreator) {
+          //   return (
+          //     <CreatorWrapper node={node} tagName="ul">
+          //       <ul>{children}</ul>
+          //     </CreatorWrapper>
+          //   );
+          // }
           return <ul onClick={() => console.log(node)}>{children}</ul>;
         },
 

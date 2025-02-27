@@ -1,5 +1,6 @@
 import { TStep, TStepEvent } from "../managers/telemetry";
 import { Tab } from "../types/editor";
+import { Point } from "unist";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 interface IBuildProps {
@@ -147,6 +148,7 @@ export type TUser = {
 type TUserConsumables = {
   ai_compilation: number;
   ai_conversation_message: number;
+  ai_generation: number;
 };
 
 type TRigoContext = {
@@ -157,10 +159,14 @@ type TRigoContext = {
 
 export type TAgent = "vscode" | "cloud" | "os";
 
+type TContent = {
+  body: string;
+  bodyBegin: number;
+};
 export interface IStore {
   exercises: any[];
   chatInitialMessage: string;
-  currentContent: string;
+  currentContent: TContent;
   currentExercisePosition: number | string;
   language: string;
   agent: TAgent;
@@ -224,7 +230,9 @@ export interface IStore {
   start: () => void;
   handleEnvironmentChange: (event: any) => void;
   setListeners: () => void;
-  checkRigobotInvitation: (messages: { error: string }) => void;
+  checkRigobotInvitation: (messages: {
+    error: string;
+  }) => Promise<boolean | string>;
   openLink: (url: string, opts?: TOpenLinkOptions) => void;
   setTestResult: (status: TTestStatus, logs: string) => void;
   checkParams: (opts: TCheckParamsOptions) => TPossibleParams;
@@ -248,7 +256,6 @@ export interface IStore {
   fetchSingleExerciseInfo: (index: number) => Promise<TExercise>;
   toggleFeedback: () => void;
   fetchExercises: () => void;
-  getLessonTitle: () => void;
   updateEditorTabs: () => void;
   startTelemetry: () => Promise<void>;
   build: (buildText: string, submittedInputs?: string[]) => void;
@@ -280,6 +287,11 @@ export interface IStore {
   cleanTerminal: () => void;
   setEditorTabs: (tabs: TEditorTab[]) => void;
   reportEnrichDataLayer: (event: string, extraData: object) => void;
+  replaceInReadme: (
+    newText: string,
+    startPosition: Point,
+    endPosition: Point
+  ) => Promise<void>;
 }
 
 export type TEditorTab = {

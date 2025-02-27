@@ -1,3 +1,6 @@
+import { useRef } from "react";
+import toast from "react-hot-toast";
+
 interface ButtonProps {
   id?: string;
   text?: JSX.Element | string;
@@ -8,6 +11,7 @@ interface ButtonProps {
   size?: "small" | "big" | "mini";
   title?: string;
   type?: "button" | "submit";
+  confirmationMessage?: string;
 }
 
 export default function SimpleButton({
@@ -19,14 +23,32 @@ export default function SimpleButton({
   id,
   size,
   title,
+  confirmationMessage,
   type = "button",
 }: ButtonProps) {
+  const timesClicked = useRef(0);
+
+  const handleClick = (e: any) => {
+    if (!action) return;
+    if (!confirmationMessage) {
+      action(e);
+      return;
+    }
+
+    if (timesClicked.current === 0) {
+      toast.error(confirmationMessage || "Please confirm the action");
+      timesClicked.current++;
+    } else {
+      action(e);
+    }
+  };
+
   return (
     <button
       id={id}
       disabled={Boolean(disabled)}
       className={`simple-button-svg ${extraClass} ${size}`}
-      onClick={action}
+      onClick={handleClick}
       title={title}
       type={type}
     >

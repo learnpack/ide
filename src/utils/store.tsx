@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import io from "socket.io-client";
+
 import TagManager from "react-gtm-module";
 import { create } from "zustand";
 import {
@@ -19,6 +20,9 @@ import {
   countConsumables,
   removeParam,
   reportDataLayer,
+  remakeMarkdown,
+  correctLanguage,
+  convertUrlToBase64,
 } from "./lib";
 import {
   IStore,
@@ -41,6 +45,7 @@ import {
 } from "./apiCalls";
 import TelemetryManager from "../managers/telemetry";
 import { RigoAI } from "../components/Rigobot/AI";
+import { svgs } from "../assets/svgs";
 
 type TFile = {
   name: string;
@@ -72,7 +77,10 @@ const useStore = create<IStore>((set, get) => ({
   },
   learnpackPurposeId: defaultParams.purpose || 26,
   exercises: [],
-  currentContent: "",
+  currentContent: {
+    body: "",
+    bodyBegin: 0,
+  },
   targetButtonForFeedback: "feedback" as "feedback",
   dialogData: {
     message: "",
@@ -82,6 +90,7 @@ const useStore = create<IStore>((set, get) => ({
   userConsumables: {
     ai_compilation: 0,
     ai_conversation_message: 0,
+    ai_generation: 0,
   },
   chatSocket: chatSocket,
   currentExercisePosition: defaultParams.currentExercise || 0,
@@ -319,6 +328,7 @@ const useStore = create<IStore>((set, get) => ({
 
   getCurrentExercise: () => {
     const { exercises, currentExercisePosition } = get();
+
     if (!exercises || exercises.length === 0) {
       return {};
     }
@@ -468,7 +478,7 @@ ${fileContent}
       context += `
 ### These are the given to the student for this exercise:
 \`\`\`INSTRUCTIONS.md
-${currentContent}
+${currentContent.body}
 \`\`\`
 
 ### NOTES FOR AI: 
@@ -488,7 +498,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
       if (!config) return;
 
-      console.debug("AUTHENTICATION", config.config.authentication);
+      // console.debug("AUTHENTICATION", config.config.authentication);
 
       if (
         config.config.authentication &&
@@ -534,7 +544,7 @@ The user's set up the application in "${language}" language, give your feedback 
         const foundExercise = config.exercises.findIndex(
           (exercise: TExercise) => exercise.slug === config.currentExercise
         );
-        if (foundExercise) {
+        if (foundExercise !== -1) {
           set({ currentExercisePosition: foundExercise });
         }
       }
@@ -781,31 +791,53 @@ The user's set up the application in "${language}" language, give your feedback 
   },
 
   checkRigobotInvitation: async (messages) => {
-    const { bc_token, setToken, openLink } = get();
-    const rigoAcceptedUrl = `${RIGOBOT_HOST}/v1/auth/me/token?breathecode_token=${bc_token}`;
-    const res = await fetch(rigoAcceptedUrl);
-    if (res.status != 200) {
-      toast.error(messages.error);
-      openLink(
-        "https://rigobot.herokuapp.com/invite?referer=4geeks&token=" + bc_token,
-        { redirect: false }
-      );
-      return;
+    try {
+      const { bc_token, setToken, openLink, language, environment } = get();
+
+      const acceptRigobot = () => {
+        const inviteUrl =
+          "https://rigobot.herokuapp.com/invite?referer=4geeks&lang=" +
+          correctLanguage(language) +
+          "&token=" +
+          bc_token +
+          "&callback=" +
+          convertUrlToBase64(window.location.href + "?autoclose=true");
+
+        openLink(inviteUrl);
+      };
+
+      const rigoAcceptedUrl = `${RIGOBOT_HOST}/v1/auth/me/token?breathecode_token=${bc_token}`;
+      const res = await fetch(rigoAcceptedUrl);
+
+      if (res.status != 200) {
+        toast.error(messages.error, {
+          icon: svgs.rigoSvg,
+        });
+        acceptRigobot();
+        return false;
+      }
+      const data = await res.json();
+      console.log("DATA FROM RIGOBOT INVITATION", data);
+      
+      setToken(data.key);
+
+      if (environment === "localhost") {
+        const payload = { token: data.key };
+
+        const config = {
+          method: "post",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        };
+        await fetch(`${HOST}/set-rigobot-token`, config);
+      }
+      return data.key;
+    } catch (error) {
+      console.log(error, "ERROR");
+      return false;
     }
-    const data = await res.json();
-    setToken(data.key);
-
-    const payload = { token: data.key };
-
-    const config = {
-      method: "post",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    };
-    await fetch(`${HOST}/set-rigobot-token`, config);
-    // setOpenedModals({ chat: true });
   },
 
   openLink: (url, opts = { redirect: false }) => {
@@ -943,7 +975,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
     if (!exercise) return;
 
-    if (exercise.attributes.tutorial) {
+    if (exercise.attributes && exercise.attributes.tutorial) {
       set({ videoTutorial: exercise.attributes.tutorial });
     } else if (exercise.attributes.intro) {
       // openLink(exercise.attributes.intro);
@@ -969,7 +1001,7 @@ The user's set up the application in "${language}" language, give your feedback 
       }
     }
 
-    set({ currentContent: readme });
+    set({ currentContent: { body: readme, bodyBegin: exercise.bodyBegin } });
     set({ editorTabs: [] });
     // @ts-ignore
     fetchSingleExerciseInfo(currentExercisePosition);
@@ -1097,7 +1129,7 @@ The user's set up the application in "${language}" language, give your feedback 
       reportEnrichDataLayer,
     } = get();
 
-    if (!Boolean(token) || !Boolean(bc_token)) {
+    if (!Boolean(bc_token) || !Boolean(token)) {
       setOpenedModals({ mustLogin: true });
       return;
     }
@@ -1194,7 +1226,7 @@ The user's set up the application in "${language}" language, give your feedback 
       editorTabs,
       submittedInputs,
       language,
-      instructions: currentContent,
+      instructions: currentContent.body,
     };
     compilerSocket.emit("test", data);
 
@@ -1281,10 +1313,12 @@ The user's set up the application in "${language}" language, give your feedback 
       token,
       tabHash,
       sessionKey,
-      currentExercisePosition,
+      // currentExercisePosition,
+      getCurrentExercise,
     } = get();
 
-    const exercise = exercises[Number(currentExercisePosition)];
+    const exercise = getCurrentExercise();
+
     const configCopy = {
       ...configObject,
       exercises,
@@ -1295,6 +1329,7 @@ The user's set up the application in "${language}" language, give your feedback 
     if (!sessionKey) {
       cachedSessionKey = await FetchManager.getSessionKey();
     }
+
     await updateSession(
       token,
       tabHash,
@@ -1613,7 +1648,7 @@ The user's set up the application in "${language}" language, give your feedback 
     return result;
   },
   getUserConsumables: async () => {
-    const { bc_token } = get();
+    const { bc_token, token, environment } = get();
 
     if (!bc_token) {
       return;
@@ -1624,19 +1659,29 @@ The user's set up the application in "${language}" language, give your feedback 
       consumables,
       "ai-conversation-message"
     );
-    set({ userConsumables: { ai_compilation, ai_conversation_message } });
-    console.log("---User consumables---");
-    console.table({ ai_compilation, ai_conversation_message });
+    const ai_generation = countConsumables(consumables, "ai-generation");
+    // const ai_generation = 1;
+    set({
+      userConsumables: {
+        ai_compilation,
+        ai_conversation_message,
+        ai_generation,
+      },
+    });
 
-    const isCreator = false;
+    console.table({ ai_compilation, ai_conversation_message, ai_generation });
+
+    const isCreator = ai_generation > 0 && environment !== "localStorage";
     if (isCreator) {
-      // RigoAI.init({
-      //   chatHash: "529ca5a219084bc7b93c172ad78ef92a",
-      //   purposeSlug: "learnpack-lesson-writer",
-      //   userToken: token,
-      // });
+      RigoAI.init({
+        chatHash: "529ca5a219084bc7b93c172ad78ef92a",
+        purposeSlug: "learnpack-lesson-writer",
+        userToken: token,
+        context:
+          "You are a helpful lesson writer assistant. Please provide your response always in MARKDOWN. ",
+      });
     }
-    return { ai_compilation, ai_conversation_message };
+    return { ai_compilation, ai_conversation_message, ai_generation };
   },
   reportEnrichDataLayer: (event: string, extraData: object) => {
     const {
@@ -1671,13 +1716,49 @@ The user's set up the application in "${language}" language, give your feedback 
   },
   test: async () => {
     // Notifier.success("Succesfully tested");
-    // const { token } = get();
+    // const { getCurrentExercise } = get();
     // console.log(token, "Token");
-    // toast.success("Succesfully tested");
-    // set({ token: "123456" });
-    FetchManager.logout();
+    set({ token: "123456" });
+    // await FetchManager.logout();
+    toast.success("Succesfully tested");
+
     // console.log(TelemetryManager.current);
     // setOpenedModals({ limitReached: true });
+  },
+
+  replaceInReadme: async (newText: string, startPosition, endPosition) => {
+    const { getCurrentExercise, language } = get();
+    const readme = await FetchManager.getReadme(
+      getCurrentExercise().slug,
+      language
+    );
+
+    let body: string = readme.body;
+
+    body =
+      body.slice(0, startPosition.offset) +
+      newText +
+      body.slice(endPosition.offset);
+
+    const newReadme = remakeMarkdown(readme.attributes, body);
+
+    await FetchManager.replaceReadme(
+      getCurrentExercise().slug,
+      language,
+      newReadme
+    );
+
+    const editedReadme = await FetchManager.getReadme(
+      getCurrentExercise().slug,
+      language
+    );
+
+    set({
+      currentContent: {
+        body: editedReadme.body,
+        bodyBegin: editedReadme.bodyBegin,
+      },
+    });
   },
 }));
 

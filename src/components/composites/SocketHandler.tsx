@@ -20,6 +20,7 @@ export function SocketHandler() {
     runExerciseTests,
     setUser,
     setAllowedActions,
+    // fetchExercises,
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     exercises: state.exercises,
@@ -34,6 +35,7 @@ export function SocketHandler() {
     runExerciseTests: state.runExerciseTests,
     setUser: state.setUser,
     setAllowedActions: state.setAllowedActions,
+    // fetchExercises: state.fetchExercises,
   }));
 
   const [inputsResponses, setInputsResponses] = useState([] as string[]);
@@ -42,9 +44,9 @@ export function SocketHandler() {
   const [nextAction, setNextAction] = useState("");
 
   const debouncedStore = useCallback(
-    debounce(() => {
-      updateDBSession();
-    }, 4000),
+    debounce(async () => {
+      await updateDBSession();
+    }, 2500),
     []
   );
 
@@ -69,6 +71,7 @@ export function SocketHandler() {
       //   id: fileName,
       //   modified: true,
       // };
+
       debouncedStore();
       // updateFileContent(current.slug, tab, true);
 

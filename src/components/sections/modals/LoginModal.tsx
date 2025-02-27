@@ -111,6 +111,7 @@ export default function LoginModal() {
   };
 
   const handleExit = () => {
+  
     if (!authentication.mandatory) {
       setOpenedModals({ login: false });
     } else {
@@ -122,12 +123,12 @@ export default function LoginModal() {
 
   return (
     <>
-      <Modal extraClass="login-modal">
+      <Modal extraClass="login-modal" outsideClickHandler={handleExit}>
         <div className="modal-content">
           <div className="d-flex justify-between">
             <h2>{t("login")}</h2>
-            <div className="bg-soft-blue d-flex flex-y justify-center padding-small rounded">
-              <p className="m-0">{t("Don't have an account? ")}</p>
+            <div className="bg-soft-blue d-flex flex-y justify-center padding-small rounded text-black mr-10">
+              <p className="m-0 text-black">{t("Don't have an account? ")}</p>
               <p className="m-0">
                 <OpenWindowLink
                   callback={reportSignUpAttempt}
@@ -144,7 +145,7 @@ export default function LoginModal() {
             <>
               <div>
                 <SimpleButton
-                  extraClass="btn-dark w-100 justify-center big rounded"
+                  extraClass="btn-dark w-100 justify-center big rounded text-bold"
                   text={t("login-github")}
                   svg={svgs.github}
                   action={redirectGithub}
@@ -157,7 +158,7 @@ export default function LoginModal() {
               </div>
               <div>
                 <SimpleButton
-                  extraClass="btn-dark w-100 justify-center big rounded"
+                  extraClass="btn-dark w-100 justify-center big rounded text-bold"
                   text={t("login-with-email")}
                   svg={svgs.email}
                   action={() => {
@@ -197,11 +198,13 @@ export default function LoginModal() {
                   text={isLoading ? t("Loading...") : t("login")}
                   extraClass="bg-blue big"
                 />
-                <SimpleButton
-                  extraClass="btn-dark big rounded"
-                  action={handleExit}
-                  text={t("skip")}
-                />
+                {!authentication.mandatory && (
+                  <SimpleButton
+                    extraClass="btn-dark big rounded"
+                    action={handleExit}
+                    text={t("skip")}
+                  />
+                )}
                 <SimpleButton
                   extraClass="btn-dark big rounded"
                   action={() => {
