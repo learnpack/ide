@@ -2,14 +2,19 @@ import { useState, useEffect, useRef, memo } from "react";
 
 import { useTranslation } from "react-i18next";
 import SimpleButton from "../mockups/SimpleButton";
-import { debounce, removeSpecialCharacters } from "../../utils/lib";
+import {
+  debounce,
+  removeSpecialCharacters,
+  TokenExpiredError,
+} from "../../utils/lib";
 import { svgs } from "../../assets/svgs";
 
 import useStore from "../../utils/store";
 import { Loader } from "../composites/Loader/Loader";
 import { Markdowner } from "../composites/Markdowner/Markdowner";
 import { formatInitialMessage, slugToTitle } from "./utils";
-
+import toast from "react-hot-toast";
+import { validateRigobotToken } from "../../managers/fetchManager";
 
 type TAIInteraction = {
   student_message?: string;
@@ -75,6 +80,7 @@ export const ChatTab = () => {
     shouldBeTested: state.shouldBeTested,
     setListeners: state.setListeners,
     isRigoOpened: state.isRigoOpened,
+
     bc_token: state.bc_token,
     toggleRigo: state.toggleRigo,
     rigoContext: state.rigoContext,
@@ -134,7 +140,7 @@ export const ChatTab = () => {
 
     userMessage.current = userMessageWithContext;
 
-    processUserMessage("useEffect of rigoContext");
+    processUserMessage();
     setRigoContext({
       context: "",
       userMessage: "",
@@ -256,6 +262,15 @@ export const ChatTab = () => {
 
     if (Boolean(message?.trim() == "")) return;
     if (isGenerating) return;
+
+    try {
+      await validateRigobotToken(token);
+    } catch (error) {
+      if (error instanceof TokenExpiredError) {
+        toast.error(t("token_expired"));
+        toggleRigo();
+      }
+    }
     autoScrollRef.current = true;
 
     const isFirstInteraction = messages.length === 1;
@@ -270,7 +285,7 @@ export const ChatTab = () => {
     }
 
     emitUserMessage();
-  }, 300);
+  }, 200);
 
   const emitUserMessage = async (testResult?: string) => {
     setMessages((prev) => [...prev, { type: "bot", text: "" }]);
@@ -300,8 +315,10 @@ export const ChatTab = () => {
   };
 
   const handleKeyUp = (event: any) => {
-    if (event.key === "Enter" && !event.ctrlKey) {
-   
+    if (
+      (event.key === "Enter" && !event.ctrlKey) ||
+      (event.key === "Enter" && !event.shiftKey)
+    ) {
       event.preventDefault();
 
       processUserMessage();

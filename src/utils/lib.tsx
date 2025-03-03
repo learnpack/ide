@@ -250,6 +250,13 @@ export class MissingRigobotAccountError extends Error {
   }
 }
 
+export class TokenExpiredError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "TokenExpiredError";
+  }
+}
+
 export const countConsumables = (
   consumables: any,
   consumableSlug:

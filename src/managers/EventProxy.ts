@@ -261,7 +261,7 @@ localStorageEventEmitter.on("build", async (data) => {
 
     if (error instanceof TokenExpired) {
       console.warn("Token expired. Logging out...");
-      toast.error("Session expired. Please log in again.");
+
       // Handle token expiration (e.g., logout user)
       await FetchManager.logout();
     } else {
@@ -278,7 +278,6 @@ localStorageEventEmitter.on("build", async (data) => {
         },
       });
     }
-    // await FetchManager.logout();
   }
 });
 
@@ -418,7 +417,7 @@ localStorageEventEmitter.on("test", async (data) => {
   } catch (error) {
     if (error instanceof TokenExpired) {
       console.warn("Token expired. Logging out...");
-      toast.error("Session expired. Please log in again.");
+
       // Handle token expiration (e.g., logout user)
       await FetchManager.logout();
     } else {

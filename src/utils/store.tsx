@@ -67,7 +67,9 @@ chatSocket.on("disconnect", () => {
 
 const defaultParams = getParamsObject() as TPossibleParams;
 
-FetchManager.init(ENVIRONMENT, HOST);
+FetchManager.init(ENVIRONMENT, HOST, () => {
+  window.location.reload();
+});
 
 const useStore = create<IStore>((set, get) => ({
   language: defaultParams.language || "us",
@@ -311,8 +313,11 @@ const useStore = create<IStore>((set, get) => ({
   },
 
   figureEnvironment: async () => {
+    const { setOpenedModals } = get();
     const env = await getEnvironment();
-    FetchManager.init(env, HOST);
+    FetchManager.init(env, HOST, () => {
+      setOpenedModals({ login: true });
+    });
     set({ compilerSocket: EventProxy.getEmitter(env) });
     if (env === "localStorage") {
       set({ agent: "cloud" });
@@ -1714,11 +1719,20 @@ The user's set up the application in "${language}" language, give your feedback 
   },
   test: async () => {
     // Notifier.success("Succesfully tested");
-    // const { getCurrentExercise } = get();
-    // console.log(token, "Token");
-    set({ token: "123456" });
+    const { token, setOpenedModals } = get();
+    console.log(token, "Token");
+    // set({ token: "123456" });
+    // toast.success("Token fucked");
+    setOpenedModals({ session: true });
     // await FetchManager.logout();
-    toast.success("Succesfully tested");
+    // try {
+    //   await validateRigobotToken(token);
+    //   toast.success("Token is valid");
+    // } catch (error) {
+    //   if (error instanceof TokenExpiredError) {
+    //     toast.error("Token expired, please login again!");
+    //   }
+    // }
 
     // console.log(TelemetryManager.current);
     // setOpenedModals({ limitReached: true });

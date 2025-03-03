@@ -151,5 +151,8 @@
     "errorDeletingExercise": "Error al eliminar ejercicio",
     "please-accept-rigobot-first": "Por favor acepta la invitación de Rigobot primero",
     "rigobot-invitation-accepted": "Invitación de Rigobot aceptada",
-    "i-already-accepted": "Ya acepté"
+    "i-already-accepted": "Ya acepté",
+    "token_expired": "Token expirado, por favor inicia sesión de nuevo",
+    "continue-where-you-left": "Continúa donde dejaste",
+    "continue-where-you-left-description": "Tienes una sesión abierta en otro lugar, ¿quieres continuar con tu progreso acá o empezar desde cero?"
 }

@@ -111,7 +111,6 @@ export default function LoginModal() {
   };
 
   const handleExit = () => {
-  
     if (!authentication.mandatory) {
       setOpenedModals({ login: false });
     } else {
@@ -198,13 +197,6 @@ export default function LoginModal() {
                   text={isLoading ? t("Loading...") : t("login")}
                   extraClass="bg-blue big"
                 />
-                {!authentication.mandatory && (
-                  <SimpleButton
-                    extraClass="btn-dark big rounded"
-                    action={handleExit}
-                    text={t("skip")}
-                  />
-                )}
                 <SimpleButton
                   extraClass="btn-dark big rounded"
                   action={() => {

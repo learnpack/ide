@@ -5,13 +5,14 @@ import {
   MissingRigobotAccountError,
   RIGOBOT_HOST,
   setWindowHash,
+  TokenExpiredError,
 } from "../utils/lib";
 import { TEnvironment } from "./EventProxy";
 import frontMatter from "front-matter";
 import { LocalStorage } from "./localStorage";
-import { v4 as uuidv4 } from "uuid";
 import TelemetryManager from "./telemetry";
 import toast from "react-hot-toast";
+import { v4 as uuidv4 } from "uuid";
 
 // Correct the type definition for TMethods
 type TMethods = {
@@ -22,9 +23,17 @@ type TMethods = {
 export const FetchManager = {
   ENVIRONMENT: "",
   HOST: "",
-  init: (environment: TEnvironment, host: string) => {
+  LOGOUT_CALLBACK: () => {},
+  init: (
+    environment: TEnvironment,
+    host: string,
+    logoutCallback: () => void
+  ) => {
     FetchManager.ENVIRONMENT = environment;
     FetchManager.HOST = host;
+    if (typeof logoutCallback === "function") {
+      FetchManager.LOGOUT_CALLBACK = logoutCallback;
+    }
   },
   getExercises: async () => {
     const configUrl =
@@ -212,34 +221,35 @@ export const FetchManager = {
     return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
   },
   getTabHash: async () => {
-    const methods: TMethods = {
-      localhost: async () => {
-        const res = await fetch(`${FetchManager.HOST}/check/rigo/status`);
-        if (res.status === 400) {
-          const tabHash = uuidv4();
-          await FetchManager.setTabHash(tabHash);
-          return tabHash;
-        }
-        const json = await res.json();
+    // const methods: TMethods = {
+    // localhost: async () => {
+    //   const res = await fetch(`${FetchManager.HOST}/check/rigo/status`);
+    //   if (res.status === 400) {
+    //     const tabHash = createTabHashFromURL();
+    //     await FetchManager.setTabHash(tabHash);
+    //     return tabHash;
+    //   }
+    //   const json = await res.json();
+    //   if (json && json.payload && "tabHash" in json.payload) {
+    //     return json.payload.tabHash;
+    //   } else {
+    //     const tabHash = createTabHashFromURL();
+    //     await FetchManager.setTabHash(tabHash);
+    //     return tabHash;
+    //   }
+    // },
+    // localStorage: async () => {
+    //   let tabHash = LocalStorage.get("TAB_HASH");
+    //   if (!tabHash) {
+    //
+    //     await FetchManager.setTabHash(tabHash);
+    //   }
+    //   return tabHash;
+    // },
+    // };
+    const tabHash = createTabHashFromURL();
 
-        if (json && json.payload && "tabHash" in json.payload) {
-          return json.payload.tabHash;
-        } else {
-          const tabHash = uuidv4();
-          await FetchManager.setTabHash(tabHash);
-          return tabHash;
-        }
-      },
-      localStorage: async () => {
-        let tabHash = LocalStorage.get("TAB_HASH");
-        if (!tabHash) {
-          tabHash = uuidv4();
-          await FetchManager.setTabHash(tabHash);
-        }
-        return tabHash;
-      },
-    };
-    return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
+    return tabHash;
   },
   getSessionKey: async () => {
     const methods: TMethods = {
@@ -321,21 +331,22 @@ export const FetchManager = {
       token: breathecodeToken,
     };
 
+    const tabHash = await FetchManager.getTabHash();
     const loggedFormat = {
       payload: { ...returns },
       rigoToken: returns.rigobot.key,
       user,
+      tabHash,
     };
 
     if (FetchManager.ENVIRONMENT === "localhost") {
-      const tabHash = await FetchManager.getTabHash();
       await setSessionInCLI({
         ...loggedFormat.payload,
         token: breathecodeToken,
         tabHash: tabHash,
       });
-    } else {
-      LocalStorage.set("session", returns);
+    } else if (FetchManager.ENVIRONMENT === "localStorage") {
+      LocalStorage.set("session", loggedFormat);
     }
 
     return loggedFormat;
@@ -377,7 +388,10 @@ export const FetchManager = {
           delete params.token;
         }
         setWindowHash(params);
-        window.location.reload();
+
+        if (typeof FetchManager.LOGOUT_CALLBACK === "function") {
+          FetchManager.LOGOUT_CALLBACK();
+        }
       },
     };
 
@@ -499,4 +513,36 @@ const setSessionInCLI = async (payload: any) => {
   }
   await res.json();
   return true;
+};
+
+export const validateRigobotToken = async (rigobotToken: string) => {
+  const rigoUrl = `${RIGOBOT_HOST}/v1/auth/token/${rigobotToken}`;
+  const rigoResp = await fetch(rigoUrl);
+  if (!rigoResp.ok) {
+    throw new TokenExpiredError("Unable to obtain Rigobot token");
+  }
+  return true;
+};
+
+const fnv1aHash = (str: string) => {
+  let hash = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    hash ^= str.charCodeAt(i);
+    hash +=
+      (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+  }
+  return (hash >>> 0).toString(16);
+};
+
+const createTabHashFromURL = () => {
+  try {
+    const currentURL = window.location.href;
+    const url = currentURL.split("?")[0].split("#")[0];
+    const hash = fnv1aHash(url);
+    console.debug(hash, "HASH");
+    return hash;
+  } catch (error) {
+    console.error("Error generating tab hash:", error);
+    return uuidv4();
+  }
 };

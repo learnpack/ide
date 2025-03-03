@@ -27,8 +27,8 @@ export const SessionModal = () => {
 
   return (
     <Modal outsideClickHandler={outsideClickHandler}>
-      <h3 className="text-center">{t("we-got-you-covered")}</h3>
-      <p>{t("prev-session")}</p>
+      <h3 className="text-center">{t("continue-where-you-left")}</h3>
+      <p>{t("continue-where-you-left-description")}</p>
 
       <div className="d-flex justify-center gap-big">
         <SimpleButton

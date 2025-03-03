@@ -144,5 +144,8 @@
     "errorDeletingExercise": "Error deleting exercise",
     "please-accept-rigobot-first": "Please accept Rigobot's invitation first",
     "rigobot-invitation-accepted": "Rigobot invitation accepted",
-    "i-already-accepted": "I already accepted"
+    "i-already-accepted": "I already accepted",
+    "token_expired": "Token expired, please login again!",
+    "continue-where-you-left": "Continue where you left off",
+    "continue-where-you-left-description": "You have a session opened in another place, do you want to continue your progress here or start from scratch?"
 }
