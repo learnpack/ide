@@ -316,8 +316,6 @@ const useStore = create<IStore>((set, get) => ({
     set({ compilerSocket: EventProxy.getEmitter(env) });
     if (env === "localStorage") {
       set({ agent: "cloud" });
-    } else {
-      set({ agent: "vscode" });
     }
 
     return { message: "Environment figured out!" };
@@ -818,7 +816,7 @@ The user's set up the application in "${language}" language, give your feedback 
       }
       const data = await res.json();
       console.log("DATA FROM RIGOBOT INVITATION", data);
-      
+
       setToken(data.key);
 
       if (environment === "localhost") {

@@ -167,14 +167,21 @@ const QuizQuestion = ({
   showResults: boolean;
 }) => {
   if (!children) {
+    console.log("No children found for quiz question");
     return null;
   }
 
   const [currentAnswer, setCurrentAnswer] = useState<string>("");
-  const p = children.find((child: any) => child.type === "p");
-  const ul = children.find((child: any) => child.key === "ul-0");
+
+  const p = children.find((child: any) => {
+    return child.key && child.key.startsWith("p-");
+  });
+  const ul = children.find((child: any) => {
+    return child.key && child.key.startsWith("ul-");
+  });
 
   if (!p || !ul) {
+    console.log("No p or ul found for quiz question");
     return null;
   }
 

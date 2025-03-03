@@ -74,13 +74,6 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
 
           const start = node?.properties?.start;
 
-          // if (isCreator) {
-          //   return (
-          //     <CreatorWrapper node={node} tagName="ol">
-          //       <ol start={start ? Number(start) : undefined}>{children}</ol>
-          //     </CreatorWrapper>
-          //   );
-          // }
           return <ol start={start ? Number(start) : undefined}>{children}</ol>;
         },
         // @ts-ignore
@@ -91,13 +84,6 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
             return <QuizRenderer children={children} />;
           }
 
-          // if (isCreator) {
-          //   return (
-          //     <CreatorWrapper node={node} tagName="ul">
-          //       <ul>{children}</ul>
-          //     </CreatorWrapper>
-          //   );
-          // }
           return <ul onClick={() => console.log(node)}>{children}</ul>;
         },
 
