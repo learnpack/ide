@@ -176,6 +176,8 @@ type TUser = {
   email: string;
 };
 
+type TAlerts = "test_struggles" | "compile_struggles";
+
 interface ITelemetryManager {
   current: ITelemetryJSONSchema | null;
   //   configPath: string | null;
@@ -195,6 +197,8 @@ interface ITelemetryManager {
   ) => void;
   tutorialSlug: string;
   prevStep?: number;
+  listeners: Record<string, (data: any) => void>;
+  registerListener: (event: TAlerts, callback: (data: any) => void) => void;
   registerStepEvent: (
     stepPosition: number,
     event: TStepEvent,
@@ -209,10 +213,18 @@ interface ITelemetryManager {
   getStep: (stepPosition: number) => TStep | null;
 }
 
+function isMultipleOfThree(number: number): boolean {
+  if (number === 0) {
+    return false;
+  }
+  return number % 3 === 0;
+}
+
 const TelemetryManager: ITelemetryManager = {
   current: null,
   urls: {},
   telemetryKey: "",
+  listeners: {},
   // userToken: "",
   // userID: undefined,
   user: {
@@ -278,6 +290,10 @@ const TelemetryManager: ITelemetryManager = {
           );
         });
     }
+  },
+
+  registerListener: function (event: TAlerts, callback: (data: any) => void) {
+    this.listeners[event] = callback;
   },
 
   finishWorkoutSession: function () {
@@ -400,6 +416,14 @@ const TelemetryManager: ITelemetryManager = {
     this.current.last_interaction_at = Date.now();
     this.streamEvent(stepPosition, event, data);
     this.save();
+    if (event === "test") {
+      const indicators = calculateIndicators(this.current);
+      const stepIndicators = indicators.steps[stepPosition];
+
+      if (isMultipleOfThree(stepIndicators.metrics.streak_test_struggle)) {
+        this.listeners["test_struggles"](stepIndicators);
+      }
+    }
   },
   retrieve: function () {
     const saved = LocalStorage.get(this.telemetryKey);
@@ -438,8 +462,6 @@ const TelemetryManager: ITelemetryManager = {
     try {
       await sendBatchTelemetry(url, body, this.user.token);
       console.debug("Telemetry submitted successfully");
-      const indicators = calculateIndicators(this.current);
-      console.debug(indicators, "Indicators");
     } catch (error) {
       console.error("Error submitting telemetry", error);
     }

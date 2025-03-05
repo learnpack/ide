@@ -268,7 +268,6 @@ const useStore = create<IStore>((set, get) => ({
         setBuildButtonPrompt("Try again", "bg-fail text-white");
       }
       playEffect("error");
-      
     }, 100);
 
     let compilerErrorHandler = debounce(async (data: any) => {
@@ -1551,6 +1550,8 @@ The user's set up the application in "${language}" language, give your feedback 
       user,
       registerTelemetryEvent,
       environment,
+      setRigoContext,
+      toggleRigo,
     } = get();
     if (!bc_token || !configObject) {
       console.error("No token or config found, impossible to start telemetry");
@@ -1598,6 +1599,20 @@ The user's set up the application in "${language}" language, give your feedback 
         token: bc_token,
         user_id: String(user.id),
         email: user.email,
+      });
+      TelemetryManager.registerListener("compile_struggles", (data) => {
+        // toast.error("Compile struggles alert");
+        console.log(data, "Data");
+      });
+      TelemetryManager.registerListener("test_struggles", (data) => {
+        data;
+        setRigoContext({
+          userMessage: "Help!",
+          performTests: true,
+          context:
+            "The student is struggling with the tests. It has failed 3 times in a row. Please help him.",
+        });
+        toggleRigo({ ensure: "open" });
       });
       registerTelemetryEvent("open_step", {
         step_slug: steps[0].slug,

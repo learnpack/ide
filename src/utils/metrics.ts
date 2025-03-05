@@ -15,6 +15,8 @@ type StepMetrics = {
   time_spent: number;
   comp_struggles: number;
   test_struggles: number;
+  streak_comp_struggles: number;
+  streak_test_struggle: number;
 };
 
 type GlobalMetrics = {
@@ -28,6 +30,7 @@ type GlobalMetrics = {
   avg_test_struggles: number;
   skipped_steps: number;
   total_steps: number;
+  global_test_success_streak: number;
 };
 
 type IndicatorResults = {
@@ -59,7 +62,7 @@ class EngagementIndicator implements Indicator {
     stepIndicators: number[],
     globalMetrics: GlobalMetrics
   ): number {
-    console.debug(stepIndicators, "Step Indicators");
+    stepIndicators;
 
     const weights = {
       total_time: 0.3,
@@ -108,8 +111,8 @@ class FrustrationIndicator implements Indicator {
     stepIndicators: number[],
     globalMetrics: GlobalMetrics
   ): number {
-    console.debug(stepIndicators, "Step Indicators");
-
+    // console.debug(stepIndicators, "Step Indicators");
+    stepIndicators;
     const weights = {
       steps_not_completed: 0.3,
       time_on_incomplete: 0.2,
@@ -162,7 +165,28 @@ function calculateStepMetrics(step: TStep): StepMetrics {
   const test_struggles =
     step.tests?.filter((t) => t.exit_code !== 0).length || 0;
 
-  return { status, time_spent, comp_struggles, test_struggles };
+  // Cálculo de streaks
+  let streak_comp_struggles = 0;
+  let streak_test_struggle = 0;
+
+  for (let i = step.compilations?.length - 1; i >= 0; i--) {
+    if (step.compilations[i].exit_code !== 0) streak_comp_struggles++;
+    else break;
+  }
+
+  for (let i = step.tests?.length - 1; i >= 0; i--) {
+    if (step.tests[i].exit_code !== 0) streak_test_struggle++;
+    else break;
+  }
+
+  return {
+    status,
+    time_spent,
+    comp_struggles,
+    test_struggles,
+    streak_comp_struggles,
+    streak_test_struggle,
+  };
 }
 
 function calculateGlobalMetrics(steps: TStep[]): GlobalMetrics {
@@ -194,6 +218,20 @@ function calculateGlobalMetrics(steps: TStep[]): GlobalMetrics {
     ? stepMetrics.reduce((sum, sm) => sum + sm.test_struggles, 0) / total_steps
     : 0;
 
+  // Cálculo de global_test_success_streak
+  let global_test_success_streak = 0;
+  for (const step of steps) {
+    let local_streak = 0;
+    for (const test of step.tests || []) {
+      if (test.exit_code === 0) local_streak++;
+      else local_streak = 0;
+      global_test_success_streak = Math.max(
+        global_test_success_streak,
+        local_streak
+      );
+    }
+  }
+
   return {
     total_time_on_platform,
     num_sessions: 1,
@@ -205,6 +243,7 @@ function calculateGlobalMetrics(steps: TStep[]): GlobalMetrics {
     avg_test_struggles,
     skipped_steps: num_skipped,
     total_steps,
+    global_test_success_streak,
   };
 }
 

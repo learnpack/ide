@@ -27,7 +27,6 @@ export default function Home() {
     start();
 
     i18n.changeLanguage(language);
-    // startTelemetry();
     document.addEventListener("environment-change", handleEnvironmentChange);
     return () => {
       document.removeEventListener(
