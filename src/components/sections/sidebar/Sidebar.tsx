@@ -5,7 +5,6 @@ import useStore from "../../../utils/store";
 import { svgs } from "../../../assets/svgs";
 import packageInfo from "../../../../package.json";
 import "./styles.css";
-import { useState } from "react";
 
 const version = packageInfo.version;
 let versionSections = version.split(".");
@@ -20,6 +19,8 @@ export default function Sidebar() {
     userConsumables,
     isIframe,
     environment,
+    mode,
+    setMode,
   } = useStore((state) => ({
     theme: state.theme,
     toggleTheme: state.toggleTheme,
@@ -28,9 +29,9 @@ export default function Sidebar() {
     userConsumables: state.userConsumables,
     isIframe: state.isIframe,
     environment: state.environment,
+    mode: state.mode,
+    setMode: state.setMode,
   }));
-
-  const [mode, setMode] = useState<"list" | "editor">("list");
 
   const closeSidebar = () => {
     const sidebar: HTMLElement | null =
@@ -60,10 +61,11 @@ export default function Sidebar() {
             {isCreator && (
               <SimpleButton
                 action={() => {
-                  mode === "list" ? setMode("editor") : setMode("list");
+                  mode === "student" ? setMode("creator") : setMode("student");
                 }}
                 extraClass="text-white"
-                text={mode === "list" ? "List" : "Editor"}
+                svg={mode === "student" ? svgs.edit : svgs.run}
+                // text={mode === "student" ? "Creator" : "Student"}
               />
             )}
           </section>

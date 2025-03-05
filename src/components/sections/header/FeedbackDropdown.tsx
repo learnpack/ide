@@ -99,14 +99,14 @@ export const FeedbackDropdown = ({
 
   const openSolutionFile = () => {
     // TODO: This should open ALL solution files
-    const solutionFile = getCurrentExercise().files.find((file: any) =>
+    const solutionFile = getCurrentExercise().files.filter((file: any) =>
       file.name.includes("solution.hide")
     );
 
     const data = {
       exerciseSlug: getCurrentExercise().slug,
-      files: [solutionFile.path],
-      solutionFileName: solutionFile.name,
+      files: solutionFile.map((file: any) => file.path),
+      solutionFileName: solutionFile.map((file: any) => file.name),
       updateEditorTabs: updateEditorTabs,
     };
     compilerSocket.emit("open", data);

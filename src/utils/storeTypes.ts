@@ -66,14 +66,21 @@ interface IExerciseMessages {
   [key: number]: IMessage[];
 }
 
+type TFile = {
+  hidden: boolean;
+  name: string;
+  path: string;
+};
 export type TExercise = {
   path: any;
-  files: any;
+  files: TFile[];
   slug: string;
-  translations: object;
+  title: string;
+  translations: Record<string, string>;
   done: boolean;
   graded: boolean;
   position: number;
+  language: string;
 };
 
 export type TNumberCache = {
@@ -163,8 +170,11 @@ type TContent = {
   body: string;
   bodyBegin: number;
 };
+
+export type TMode = "creator" | "student";
+
 export interface IStore {
-  exercises: any[];
+  exercises: TExercise[];
   chatInitialMessage: string;
   currentContent: TContent;
   currentExercisePosition: number | string;
@@ -218,6 +228,9 @@ export interface IStore {
   showSidebar: boolean;
   userConsumables: TUserConsumables;
   maxQuizRetries: number;
+  mode: TMode;
+  setMode: (mode: TMode) => void;
+  addVideoTutorial: (videoTutorial: string) => Promise<void>;
   useConsumable: (
     consumableSlug: "ai-conversation-message" | "ai-compilation"
   ) => Promise<boolean>;

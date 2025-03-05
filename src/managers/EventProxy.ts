@@ -290,19 +290,29 @@ localStorageEventEmitter.on("reset", async (data) => {
   data.updateEditorTabs();
 });
 
-localStorageEventEmitter.on("open", async (data) => {
-  const { fileContent } = await FetchManager.getFileContent(
-    data.exerciseSlug,
-    data.solutionFileName
-  );
-  const solutionTab = {
-    id: generateUUID(),
-    name: data.solutionFileName,
-    content: fileContent,
-    isActive: true,
-  };
+const getFileNameFromPath = (path: string) => {
+  const fileName = path.split("/").pop();
+  if (!fileName) {
+    return path;
+  }
+  return fileName;
+};
 
-  data.updateEditorTabs(solutionTab);
+localStorageEventEmitter.on("open", async (data) => {
+  for (const file of data.files) {
+    const fileName = getFileNameFromPath(file);
+    const { fileContent } = await FetchManager.getFileContent(
+      data.exerciseSlug,
+      fileName
+    );
+    const solutionTab = {
+      id: generateUUID(),
+      name: file,
+      content: fileContent,
+      isActive: true,
+    };
+    data.updateEditorTabs(solutionTab);
+  }
 });
 
 const createTestContext = async (files: any[], exerciseSlug: string) => {

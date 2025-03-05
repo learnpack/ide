@@ -29,6 +29,7 @@ import {
   IStore,
   TAgent,
   TExercise,
+  TMode,
   TParamsActions,
   TPossibleParams,
 } from "./storeTypes";
@@ -134,6 +135,7 @@ const useStore = create<IStore>((set, get) => ({
   assessmentConfig: {
     maxRetries: 3,
   },
+  mode: "student" as TMode,
   configObject: {
     currentExercise: "",
     config: {
@@ -1550,8 +1552,8 @@ The user's set up the application in "${language}" language, give your feedback 
       user,
       registerTelemetryEvent,
       environment,
-      setRigoContext,
-      toggleRigo,
+      // setRigoContext,
+      // toggleRigo,
     } = get();
     if (!bc_token || !configObject) {
       console.error("No token or config found, impossible to start telemetry");
@@ -1605,14 +1607,14 @@ The user's set up the application in "${language}" language, give your feedback 
         console.log(data, "Data");
       });
       TelemetryManager.registerListener("test_struggles", (data) => {
-        data;
-        setRigoContext({
-          userMessage: "Help!",
-          performTests: true,
-          context:
-            "The student is struggling with the tests. It has failed 3 times in a row. Please help him.",
-        });
-        toggleRigo({ ensure: "open" });
+        console.debug(data, "TEST STRUGGLES ALERT");
+        // setRigoContext({
+        //   userMessage: "Help!",
+        //   performTests: true,
+        //   context:
+        //     "The student is struggling with the tests. It has failed 3 times in a row. Please help him.",
+        // });
+        // toggleRigo({ ensure: "open" });
       });
       registerTelemetryEvent("open_step", {
         step_slug: steps[0].slug,
@@ -1686,7 +1688,10 @@ The user's set up the application in "${language}" language, give your feedback 
       "ai-conversation-message"
     );
     const ai_generation = countConsumables(consumables, "ai-generation");
+    console.debug(ai_generation, "AI GENERATIONS");
+
     // const ai_generation = 1;
+
     set({
       userConsumables: {
         ai_compilation,
@@ -1698,6 +1703,7 @@ The user's set up the application in "${language}" language, give your feedback 
     console.table({ ai_compilation, ai_conversation_message, ai_generation });
 
     const isCreator = ai_generation > 0 && environment !== "localStorage";
+
     if (isCreator) {
       RigoAI.init({
         chatHash: "529ca5a219084bc7b93c172ad78ef92a",
@@ -1740,6 +1746,10 @@ The user's set up the application in "${language}" language, give your feedback 
   getTelemetryStep: async (stepPosition: number) => {
     return await FetchManager.getTelemetryStep(stepPosition);
   },
+
+  setMode: (mode) => {
+    set({ mode });
+  },
   test: async () => {
     // Notifier.success("Succesfully tested");
     // const { token, setOpenedModals } = get();
@@ -1758,6 +1768,29 @@ The user's set up the application in "${language}" language, give your feedback 
     // }
     // console.log(TelemetryManager.current);
     // setOpenedModals({ limitReached: true });
+  },
+
+  addVideoTutorial: async (videoTutorial: string) => {
+    const { getCurrentExercise, language } = get();
+    const readme = await FetchManager.getReadme(
+      getCurrentExercise().slug,
+      language
+    );
+    let newAttributes = readme.attributes;
+    newAttributes.tutorial = videoTutorial;
+
+    const newReadme = remakeMarkdown(newAttributes, readme.body);
+
+    await FetchManager.replaceReadme(
+      getCurrentExercise().slug,
+      language,
+      newReadme
+    );
+
+    set({
+      videoTutorial: videoTutorial,
+      showVideoTutorial: true,
+    });
   },
 
   replaceInReadme: async (newText: string, startPosition, endPosition) => {

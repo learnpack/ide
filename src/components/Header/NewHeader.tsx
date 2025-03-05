@@ -7,6 +7,7 @@ import { RigoToggler } from "../Rigobot/Rigobot";
 import LanguageButton from "../sections/header/LanguageButton";
 import styles from "./NewHeader.module.css";
 import { ToggleSidebar } from "../sections/sidebar/ToggleSidebar";
+import toast from "react-hot-toast";
 
 export const NewHeader = () => {
   const {
@@ -23,6 +24,8 @@ export const NewHeader = () => {
     videoTutorial,
     setShowVideoTutorial,
     reportEnrichDataLayer,
+    mode,
+    addVideoTutorial,
   } = useStore((state) => ({
     handlePositionChange: state.handlePositionChange,
     currentExercisePosition: state.currentExercisePosition,
@@ -37,20 +40,21 @@ export const NewHeader = () => {
     videoTutorial: state.videoTutorial,
     setShowVideoTutorial: state.setShowVideoTutorial,
     reportEnrichDataLayer: state.reportEnrichDataLayer,
+    mode: state.mode,
+    addVideoTutorial: state.addVideoTutorial,
   }));
 
   const { t } = useTranslation();
 
   const openSolutionFile = () => {
-    // TODO: This should open ALL solution files
-    const solutionFile = getCurrentExercise().files.find((file: any) =>
+    const solutionFile = getCurrentExercise().files.filter((file: any) =>
       file.name.includes("solution.hide")
     );
 
     const data = {
       exerciseSlug: getCurrentExercise().slug,
-      files: [solutionFile.path],
-      solutionFileName: solutionFile.name,
+      files: solutionFile.map((file: any) => file.path),
+      solutionFileName: solutionFile.map((file: any) => file.name),
       updateEditorTabs: updateEditorTabs,
     };
     compilerSocket.emit("open", data);
@@ -99,11 +103,20 @@ export const NewHeader = () => {
         )}
         <SimpleButton
           title={`Video tutorial ${videoTutorial ? "" : t("not available")}`}
-          disabled={!videoTutorial}
+          disabled={!videoTutorial && mode === "student"}
           svg={svgs.video}
-          action={() => {
-            setShowVideoTutorial(true);
-            reportEnrichDataLayer("learnpack_open_video", {});
+          action={async () => {
+            if (mode === "student") {
+              setShowVideoTutorial(true);
+              reportEnrichDataLayer("learnpack_open_video", {});
+            } else {
+              const tutorial = prompt("Enter the video tutorial URL");
+              if (tutorial) {
+                const tid = toast.loading(t("Adding video tutorial..."));
+                await addVideoTutorial(tutorial);
+                toast.success(t("Video tutorial added"), { id: tid });
+              }
+            }
           }}
         />
 

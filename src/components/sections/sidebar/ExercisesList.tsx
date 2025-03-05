@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { svgs } from "../../../assets/svgs";
 import useStore from "../../../utils/store";
 import SimpleButton from "../../mockups/SimpleButton";
@@ -7,9 +7,11 @@ import { Input } from "../../composites/Input/Input";
 import toast from "react-hot-toast";
 import { RigoAI } from "../../Rigobot/AI";
 import { createExercise, deleteExercise } from "../../../utils/creator";
+import { FetchManager } from "../../../managers/fetchManager";
+import { TMode } from "../../../utils/storeTypes";
 interface IExerciseList {
   closeSidebar: () => void;
-  mode: "list" | "editor";
+  mode: "creator" | "student";
 }
 
 const fixTitleFormat = (title: string): string | null => {
@@ -147,42 +149,74 @@ const AddExerciseButton = ({
 };
 
 export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
-  const { exercises } = useStore((state) => ({
+  const { exercises, fetchExercises } = useStore((state) => ({
     exercises: state.exercises,
+    fetchExercises: state.fetchExercises,
   }));
+  const inputLanguageRef = useRef<HTMLInputElement>(null);
+
   const { t } = useTranslation();
 
-  const [selectedExercises, setSelectedExercises] = useState<number[]>([]);
+  const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
 
   if (!exercises || exercises.length === 0) return null;
 
-  const handleSelect = (index: number) => {
-    if (selectedExercises.includes(index)) {
-      setSelectedExercises((prev) => prev.filter((item) => item !== index));
+  const handleSelect = (slug: string) => {
+    if (selectedExercises.includes(slug)) {
+      setSelectedExercises((prev) => prev.filter((item) => item !== slug));
     } else {
-      setSelectedExercises((prev) => [...prev, index]);
+      setSelectedExercises((prev) => [...prev, slug]);
     }
   };
 
   useEffect(() => {
-    if (mode === "list") {
+    if (mode === "student") {
       setSelectedExercises([]);
     }
   }, [mode]);
+
+  const handleTranslate = async () => {
+    const toastId = toast.loading(t("translatingExercises"));
+    try {
+      if (!inputLanguageRef.current) return;
+      const languages = inputLanguageRef.current.value;
+
+      if (!languages) {
+        toast.error(t("invalidLanguage"), {
+          duration: 5000,
+          id: toastId,
+        });
+        return;
+      }
+
+      await FetchManager.translateExercises(selectedExercises, languages);
+      toast.success(t("exercisesTranslated"), { id: toastId });
+      await fetchExercises();
+      setSelectedExercises([]);
+    } catch (error) {
+      toast.error(t("errorTranslatingExercises"), { id: toastId });
+      console.log(error, "Error");
+    }
+  };
 
   return (
     <ul className="exercise-list">
       {selectedExercises.length > 0 && (
         <div className="flex-y gap-small align-center">
-          <span>
-            {t("selectedExercises")}: {selectedExercises.length}
-          </span>
-          <SimpleButton
-            extraClass="active-on-hover padding-small rounded"
-            svg={svgs.translation}
-            text={t("translate")}
-            action={() => setSelectedExercises([])}
-          />
+          <div className="flex-x gap-small align-center active-on-hover rounded">
+            <SimpleButton
+              extraClass="padding-small "
+              svg={svgs.translation}
+              text={t("translate")}
+              action={handleTranslate}
+            />
+            <input
+              ref={inputLanguageRef}
+              type="text"
+              placeholder={t("languagesCSV")}
+              className="rounded padding-small"
+            />
+          </div>
         </div>
       )}
       {exercises.map((item, index) => (
@@ -192,10 +226,10 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
             {...item}
             closeSidebar={closeSidebar}
             mode={mode}
-            selected={selectedExercises.includes(index)}
+            selected={selectedExercises.includes(item.slug)}
             handleSelect={handleSelect}
           />
-          {mode === "editor" && (
+          {mode === "creator" && (
             <AddExerciseButton
               prevExercise={index > 0 ? exercises[index] : null}
               exercises={exercises}
@@ -213,9 +247,9 @@ interface IExerciseProps {
   done: boolean;
   slug: string;
   graded: boolean;
-  mode: "list" | "editor";
+  mode: TMode;
   closeSidebar: () => void;
-  handleSelect: (index: number) => void;
+  handleSelect: (slug: string) => void;
   selected: boolean;
 }
 
@@ -253,7 +287,7 @@ function ExerciseCard({
     <li
       className={`w-100 exercise-card  ${selected ? "bg-blue" : ""}`}
       onClick={
-        mode === "list"
+        mode === "student"
           ? () => {
               handlePositionChange(position);
               closeSidebar();
@@ -263,8 +297,8 @@ function ExerciseCard({
     >
       <div
         onClick={() => {
-          if (mode === "editor") {
-            handleSelect(position);
+          if (mode === "creator") {
+            handleSelect(slug);
           }
         }}
       >
@@ -283,13 +317,13 @@ function ExerciseCard({
         )}
       </div>
       <div>
-        {graded && mode === "list" && (
+        {graded && mode === "student" && (
           <SimpleButton
             svg={done ? svgs.checkIcon : svgs.blankCircle}
             text=""
           />
         )}
-        {mode === "editor" && (
+        {mode === "creator" && (
           <>
             <SimpleButton
               extraClass="scale-on-hover"
@@ -306,7 +340,6 @@ function ExerciseCard({
                   }
                   toast.success(t("exerciseDeleted"), { id: toastId });
 
-                
                   await fetchExercises();
                 } catch (error) {
                   toast.error(t("errorDeletingExercise"), { id: toastId });

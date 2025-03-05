@@ -132,7 +132,7 @@
     "friendly": "Amigable",
     "simplifyLanguage": "Simplificar lenguaje",
     "explainFurther": "Explicar más",
-    "changeTone": "Cambiar tono",
+    "changeTone": "Cambiar tono a",
     "writeYourPrompt": "Escribe tu prompt",
     "acceptChanges": "Aceptar cambios",
     "rejectChanges": "Rechazar cambios",
@@ -154,5 +154,10 @@
     "i-already-accepted": "Ya acepté",
     "token_expired": "Token expirado, por favor inicia sesión de nuevo",
     "continue-where-you-left": "Continúa donde dejaste",
-    "continue-where-you-left-description": "Tienes una sesión abierta en otro lugar, ¿quieres continuar con tu progreso acá o empezar desde cero?"
+    "continue-where-you-left-description": "Tienes una sesión abierta en otro lugar, ¿quieres continuar con tu progreso acá o empezar desde cero?",
+    "languagesCSV": "Español, Japonés",
+    "exercisesTranslated": "Ejercicios traducidos correctamente",
+    "errorTranslatingExercises": "Error al traducir ejercicios",
+    "translatingExercises": "Traduciendo ejercicios...",
+    "invalidLanguage": "Idiomas inválidos, escribe los idiomas a traducir, separados por comas"
 }

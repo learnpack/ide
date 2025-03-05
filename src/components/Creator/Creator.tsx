@@ -41,8 +41,6 @@ export const CreatorWrapper = ({
   const simplifyLanguage = () => {
     const text = elemRef.current?.innerHTML;
 
-    console.log(currentContent.body, "BODY");
-
     if (text && targetRef.current) {
       RigoAI.useTemplate({
         slug: "simplify-language",
@@ -106,13 +104,13 @@ export const CreatorWrapper = ({
       type: "button",
       text: t("simplifyLanguage"),
       action: () => simplifyLanguage(),
-      extraClass: "padding-small border-gray rounded w-100 active-on-hover",
+      extraClass: " border-gray rounded padding-small active-on-hover",
     },
     {
       type: "button",
       text: t("explainFurther"),
       action: () => explainFurther(),
-      extraClass: "padding-small border-gray rounded w-100 active-on-hover",
+      extraClass: " border-gray rounded padding-small active-on-hover",
     },
     {
       type: "select",
@@ -126,20 +124,20 @@ export const CreatorWrapper = ({
       ],
 
       action: (tone: string) => changeTone(tone),
-      extraClass: "padding-small border-gray rounded w-100 active-on-hover",
+      extraClass: " border-gray rounded padding-small active-on-hover",
     },
     {
       type: "input",
       placeholder: t("writeYourPrompt"),
       text: t("askAIAnything"),
       action: (question: string) => askAIAnything(question),
-      extraClass: "padding-small border-gray rounded w-100 active-on-hover",
+      extraClass: " border-gray rounded padding-small active-on-hover",
     },
   ];
 
   return (
     <div className={`creator-wrapper ${tagName}`}>
-      <div className="creator-options flex-y gap-medium">
+      <div className="creator-options ">
         {promps.map((prompt) =>
           prompt.type === "button" ? (
             <SimpleButton
@@ -149,7 +147,10 @@ export const CreatorWrapper = ({
               text={prompt.text}
             />
           ) : prompt.type === "select" ? (
-            <div className="flex-x gap-small" key={prompt.text}>
+            <div
+              className={`flex-x gap-small ${prompt.extraClass}`}
+              key={prompt.text}
+            >
               <SimpleButton
                 action={() => prompt.action(toneRef.current?.value || "")}
                 extraClass={prompt.extraClass}
@@ -158,7 +159,7 @@ export const CreatorWrapper = ({
               <select
                 ref={toneRef}
                 key={prompt.text}
-                className={prompt.extraClass}
+                className={`rounded`}
                 // onChange={(e) => prompt.action(e.target.value)}
               >
                 {prompt.options?.map((option) => (
@@ -169,7 +170,10 @@ export const CreatorWrapper = ({
               </select>
             </div>
           ) : prompt.type === "input" ? (
-            <div className="flex-x gap-small" key={prompt.text}>
+            <div
+              className={`flex-x gap-small ${prompt.extraClass}`}
+              key={prompt.text}
+            >
               <input
                 placeholder={prompt.placeholder}
                 ref={inputRef}

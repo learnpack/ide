@@ -38,12 +38,13 @@ export const CustomPictureInPicture: React.FC<CustomPictureInPictureProps> = ({
             zIndex: 5,
             backgroundColor: "#D8E2F0",
             // cursor: "move",
+            color: "black",
             boxShadow: "0px 0px 10px rgba(0,0,0,0.8)",
           }}
         >
           <div className="flex-x justify-between align-center">
             <SimpleButton
-              extraClass="no-drag "
+              extraClass="no-drag svg-black"
               action={() => setIsOpen(true)}
               svg={svgs.expand}
             />
@@ -74,6 +75,7 @@ export const CustomPictureInPicture: React.FC<CustomPictureInPictureProps> = ({
               left: "5vw",
               top: "10%",
               zIndex: 5,
+              color: "black",
               backgroundColor: "#D8E2F0",
               cursor: "move",
               boxShadow: "0px 0px 10px rgba(0,0,0,0.8)",
@@ -81,7 +83,7 @@ export const CustomPictureInPicture: React.FC<CustomPictureInPictureProps> = ({
           >
             <div className="flex-x justify-between align-center">
               <SimpleButton
-                extraClass="no-drag"
+                extraClass="no-drag svg-black"
                 action={() => setIsOpen(false)}
                 svg={svgs.reduce}
               />

@@ -4,6 +4,7 @@ import { InputModal } from "../sections/modals/InputModal";
 
 import "./styles.css";
 import { debounce } from "../../utils/lib";
+import { useTranslation } from "react-i18next";
 
 export function SocketHandler() {
   const {
@@ -42,6 +43,7 @@ export function SocketHandler() {
   const [inputs, setInputs] = useState([] as string[]);
   const [shouldWeSend, setShouldWeSend] = useState(false);
   const [nextAction, setNextAction] = useState("");
+  const { t } = useTranslation();
 
   const debouncedStore = useCallback(
     debounce(async () => {
@@ -56,24 +58,8 @@ export function SocketHandler() {
       const fullpath = data.logs;
 
       const doesCurrentStepChange = fullpath.includes(current.path);
-      // const parts = fullpath.split("\\");
-      // const fileName = parts[parts.length - 1];
-
-      // const { fileContent } = await FetchManager.getFileContent(
-      //   current.slug,
-      //   fileName
-      // );
-
-      // const tab = {
-      //   name: fileName,
-      //   content: fileContent,
-      //   isActive: false,
-      //   id: fileName,
-      //   modified: true,
-      // };
 
       debouncedStore();
-      // updateFileContent(current.slug, tab, true);
 
       if (!doesCurrentStepChange) return;
       setShouldBeTested(true);
@@ -118,10 +104,7 @@ export function SocketHandler() {
 
     const emitResponses = () => {
       if (nextAction === "build") {
-        build(
-          exercises[Number(currentExercisePosition)].instructions,
-          inputsResponses
-        );
+        build(t("Running..."), inputsResponses);
       }
 
       if (nextAction === "test") {

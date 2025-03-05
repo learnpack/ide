@@ -31,14 +31,13 @@
 }
 
 .creator-options {
-  /* position: absolute; */
-  /* bottom: 100%; */
-  /* left: 0; */
   display: none;
-  /* z-index: 1000; */
-  background-color: var(--bg-color);
+  background-color: var(--app-bg-color);
   padding: 10px;
   border-radius: 5px;
+  gap: 3px;
+  /* justify-content: space-between; */
+  flex-wrap: wrap;
   box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
 }
 

@@ -42,11 +42,14 @@ const extractMetadata = (metadata: string) => {
 };
 
 export const Markdowner = ({ markdown }: { markdown: string }) => {
-  const { openLink, userConsumables, environment } = useStore((state) => ({
-    openLink: state.openLink,
-    userConsumables: state.userConsumables,
-    environment: state.environment,
-  }));
+  const { openLink, userConsumables, environment, mode } = useStore(
+    (state) => ({
+      openLink: state.openLink,
+      userConsumables: state.userConsumables,
+      environment: state.environment,
+      mode: state.mode,
+    })
+  );
 
   const isCreator =
     userConsumables.ai_generation > 0 && environment !== "localStorage";
@@ -69,7 +72,7 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
           return <span>{children}</span>;
         },
         p: ({ children, node }) => {
-          if (isCreator) {
+          if (isCreator && mode === "creator") {
             return (
               <CreatorWrapper node={node} tagName="p">
                 <p>{children}</p>
@@ -149,8 +152,8 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
 const CustomCodeBlock = ({
   code,
   language,
-  // metadata,
-}: {
+}: // metadata,
+{
   code: string;
   language: string;
   // metadata: Record<string, string>;

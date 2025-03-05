@@ -699,12 +699,13 @@ a {
 }
 .text-black {
   color: black !important;
-
-  &.set-path-fill > path {
-    fill: black !important;
-  }
 }
 
+.svg-black {
+  & svg {
+    --read-font-color: black;
+  }
+}
 .stdout-prefix {
   color: var(--color-active);
   margin: 0;
@@ -774,4 +775,8 @@ a {
 }
 .mr-10 {
   margin-right: 40px;
+}
+
+.wrap-wrap {
+  flex-wrap: wrap;
 }

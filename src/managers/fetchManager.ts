@@ -397,6 +397,27 @@ export const FetchManager = {
 
     methods[FetchManager.ENVIRONMENT as keyof TMethods]();
   },
+
+  translateExercises: async (exerciseSlugs: string[], languages: string) => {
+    const methods: TMethods = {
+      localhost: async () => {
+        const url = `${FetchManager.HOST}/actions/translate`;
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ exerciseSlugs, languages }),
+        });
+        const json = await res.json();
+        return json;
+      },
+      localStorage: async () => {
+        toast.error("IMPOSSIBLE TO TRANSLATE EXERCISES IN LS");
+      },
+    };
+    return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
+  },
 };
 
 const validateUser = async (breathecodeToken: string) => {

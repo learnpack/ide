@@ -125,7 +125,7 @@
     "friendly": "Friendly",
     "simplifyLanguage": "Simplify Language",
     "explainFurther": "Explain Further",
-    "changeTone": "Change Tone",
+    "changeTone": "Change Tone to",
     "writeYourPrompt": "Write your prompt",
     "acceptChanges": "Accept changes",
     "rejectChanges": "Reject changes",
@@ -147,5 +147,10 @@
     "i-already-accepted": "I already accepted",
     "token_expired": "Token expired, please login again!",
     "continue-where-you-left": "Continue where you left off",
-    "continue-where-you-left-description": "You have a session opened in another place, do you want to continue your progress here or start from scratch?"
+    "continue-where-you-left-description": "You have a session opened in another place, do you want to continue your progress here or start from scratch?",
+    "languagesCSV": "Spanish, Japanese",
+    "exercisesTranslated": "Exercises translated successfully",
+    "errorTranslatingExercises": "Error translating exercises",
+    "translatingExercises": "Translating exercises...",
+    "invalidLanguage": "Invalid languages, write the languages to translate to, separated by commas"
 }

@@ -376,11 +376,14 @@ export const convertUrlToBase64 = (url: string, extraParams: string = "") => {
   }
   return btoa(url + "?" + extraParams);
 };
+const LEARNPACK_CDN = "https://storage.googleapis.com/breathecode/learnpack";
 
 export const playEffect = (mood: "success" | "error") => {
   try {
-    const random = Math.floor(Math.random() * 5);
-    const audio = new Audio(`/sounds/${mood}/${random}.mp3`);
+    const random = Math.floor(Math.random() * 2);
+    const audio = new Audio(
+      `${LEARNPACK_CDN}/sounds-${mood}/${mood === "success" ? random : 0}.mp3`
+    );
     audio.play();
   } catch (error) {
     console.error("Error playing sound", error);
