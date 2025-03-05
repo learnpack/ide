@@ -106,9 +106,9 @@ hr {
 }
 pre {
   border-left: 2px solid var(--color-active);
-  border-radius: 5px;
   overflow: auto;
-  padding: 10px;
+  padding: 10px !important;
+  margin: 0 !important;
 }
 
 code:not(pre code) {
@@ -462,6 +462,9 @@ a {
 .my-2 {
   margin-block: 20px;
 }
+.my-small {
+  margin-block: 10px;
+}
 .d-none {
   display: none;
 }
@@ -596,6 +599,9 @@ a {
 .bg-rigo {
   background-color: var(--color-blue-rigo);
 }
+.bg-gray {
+  background-color: var(--color-hovered);
+}
 .conector-blue {
   position: relative;
 }
@@ -693,6 +699,10 @@ a {
 }
 .text-black {
   color: black !important;
+
+  &.set-path-fill > path {
+    fill: black !important;
+  }
 }
 
 .stdout-prefix {

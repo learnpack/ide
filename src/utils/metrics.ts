@@ -47,7 +47,8 @@ type IndicatorResults = {
 
 class EngagementIndicator implements Indicator {
   calculateStepIndicator(step: TStep, stepMetrics: StepMetrics): number {
-    console.debug(step, "Step", stepMetrics, "Step Metrics");
+    // console.debug(step, "Step", stepMetrics, "Step Metrics");
+    step;
     const maxTimePerStep = 3600;
     return stepMetrics.status !== "skipped" && stepMetrics.status !== "unread"
       ? Math.min((stepMetrics.time_spent / maxTimePerStep) * 100, 100)
@@ -86,7 +87,8 @@ class EngagementIndicator implements Indicator {
 
 class FrustrationIndicator implements Indicator {
   calculateStepIndicator(step: TStep, stepMetrics: StepMetrics): number {
-    console.debug(step, "Step", stepMetrics, "Step Metrics");
+    step;
+    // console.debug(step, "Step", stepMetrics, "Step Metrics");
     if (stepMetrics.status === "completed") {
       return Math.min(
         ((stepMetrics.comp_struggles + stepMetrics.test_struggles) / 20) * 100,

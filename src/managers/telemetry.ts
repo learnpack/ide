@@ -439,7 +439,7 @@ const TelemetryManager: ITelemetryManager = {
       await sendBatchTelemetry(url, body, this.user.token);
       console.debug("Telemetry submitted successfully");
       const indicators = calculateIndicators(this.current);
-      console.log(indicators, "Indicators");
+      console.debug(indicators, "Indicators");
     } catch (error) {
       console.error("Error submitting telemetry", error);
     }

@@ -59,3 +59,13 @@
 .creator-target-content {
   color: var(--color-success);
 }
+
+.code-buttons {
+  background-color: var(--color-blue-opaque);
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  padding-left: 10px;
+  padding-right: 10px;
+  font-size: 12px;
+  color: var(--color-blue-rigo);
+}

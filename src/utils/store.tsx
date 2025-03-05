@@ -23,6 +23,7 @@ import {
   remakeMarkdown,
   correctLanguage,
   convertUrlToBase64,
+  playEffect,
 } from "./lib";
 import {
   IStore,
@@ -46,6 +47,7 @@ import {
 import TelemetryManager from "../managers/telemetry";
 import { RigoAI } from "../components/Rigobot/AI";
 import { svgs } from "../assets/svgs";
+import { Notifier } from "../managers/Notifier";
 
 type TFile = {
   name: string;
@@ -243,6 +245,8 @@ const useStore = create<IStore>((set, get) => ({
       } else {
         setBuildButtonPrompt("execute-my-code", "bg-success text-white");
       }
+      playEffect("success");
+      Notifier.confetti();
     }, 100);
 
     const debounceTestingError = debounce((data: any) => {
@@ -263,6 +267,8 @@ const useStore = create<IStore>((set, get) => ({
       } else {
         setBuildButtonPrompt("Try again", "bg-fail text-white");
       }
+      playEffect("error");
+      
     }, 100);
 
     let compilerErrorHandler = debounce(async (data: any) => {
@@ -279,6 +285,7 @@ const useStore = create<IStore>((set, get) => ({
       if (data.ai_required) {
         useConsumable("ai-compilation");
       }
+      // playEffect("error");
     }, 100);
 
     let compilerSuccessHandler = debounce(async (data: any) => {
@@ -294,6 +301,7 @@ const useStore = create<IStore>((set, get) => ({
       if (data.ai_required) {
         useConsumable("ai-compilation");
       }
+      // playEffect("success");
     }, 100);
 
     compilerSocket.onStatus("testing-success", debounceTestingSuccess);
@@ -1719,11 +1727,11 @@ The user's set up the application in "${language}" language, give your feedback 
   },
   test: async () => {
     // Notifier.success("Succesfully tested");
-    const { token, setOpenedModals } = get();
-    console.log(token, "Token");
+    // const { token, setOpenedModals } = get();
+    // console.log(token, "Token");
     // set({ token: "123456" });
     // toast.success("Token fucked");
-    setOpenedModals({ session: true });
+    // setOpenedModals({ session: true });
     // await FetchManager.logout();
     // try {
     //   await validateRigobotToken(token);
@@ -1733,7 +1741,6 @@ The user's set up the application in "${language}" language, give your feedback 
     //     toast.error("Token expired, please login again!");
     //   }
     // }
-
     // console.log(TelemetryManager.current);
     // setOpenedModals({ limitReached: true });
   },

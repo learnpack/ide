@@ -376,3 +376,13 @@ export const convertUrlToBase64 = (url: string, extraParams: string = "") => {
   }
   return btoa(url + "?" + extraParams);
 };
+
+export const playEffect = (mood: "success" | "error") => {
+  try {
+    const randomFrom0to4 = Math.floor(Math.random() * 5);
+    const audio = new Audio(`/sounds/${mood}/${randomFrom0to4}.mp3`);
+    audio.play();
+  } catch (error) {
+    console.error("Error playing sound", error);
+  }
+};

@@ -407,6 +407,8 @@ const validateUser = async (breathecodeToken: string) => {
       Authorization: `Token ${breathecodeToken}`,
     },
   };
+  console.debug(breathecodeToken, "Breathecode Token in validation");
+
   const res = await fetch(`${BREATHECODE_HOST}/v1/auth/user/me`, config);
   if (!res.ok) {
     return null;

@@ -134,8 +134,12 @@ localStorageEventEmitter.on("build", async (data) => {
         userRequiredInputs.push(...inputs);
       }
 
+      if (tab.name.includes("solution")) {
+        return;
+      }
+
       const contentToAdd = `
-      \`\`\`FILE NAME: ${tab.name}
+      \`\`\`${tab.name}
       ${tab.content} 
       \`\`\`\ 
 `;
