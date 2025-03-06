@@ -156,7 +156,11 @@ export const FetchManager = {
     const methods: TMethods = {
       localStorage: async () => {
         const session = LocalStorage.get("session");
-        if (!session) throw Error("The user is not logged in");
+        if (!session) {
+          console.log("No session in LS");
+
+          throw Error("The user is not logged in");
+        }
 
         const user = await validateUser(session.token);
 
@@ -337,6 +341,8 @@ export const FetchManager = {
       rigoToken: returns.rigobot.key,
       user,
       tabHash,
+      rigobot: { ...returns.rigobot },
+      user_id: returns.id,
     };
 
     if (FetchManager.ENVIRONMENT === "localhost") {
@@ -346,7 +352,13 @@ export const FetchManager = {
         tabHash: tabHash,
       });
     } else if (FetchManager.ENVIRONMENT === "localStorage") {
-      LocalStorage.set("session", loggedFormat);
+      LocalStorage.set("session", {
+        token: breathecodeToken,
+        email: loggedFormat.user.email,
+        user_id: loggedFormat.user_id,
+        rigobot: { ...loggedFormat.rigobot },
+        user: { ...loggedFormat.user },
+      });
     }
 
     return loggedFormat;
@@ -428,7 +440,6 @@ const validateUser = async (breathecodeToken: string) => {
       Authorization: `Token ${breathecodeToken}`,
     },
   };
-  console.debug(breathecodeToken, "Breathecode Token in validation");
 
   const res = await fetch(`${BREATHECODE_HOST}/v1/auth/user/me`, config);
   if (!res.ok) {

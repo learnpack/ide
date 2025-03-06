@@ -403,7 +403,9 @@ const useStore = create<IStore>((set, get) => ({
         json = await FetchManager.loginWithToken(params.token);
         set({ token: json.rigoToken });
         set({ user: json.user });
-        removeParam("token");
+        setTimeout(() => {
+          removeParam("token");
+        }, 10000);
       } else {
         json = await FetchManager.checkLoggedStatus();
         set({ token: json.rigoToken });
@@ -613,9 +615,9 @@ The user's set up the application in "${language}" language, give your feedback 
           setOpenedModals({ closeWindow: true });
         }
       },
-      // token: (value: string) => {
-      //   set({ token: value });
-      // },
+      token: (value: string) => {
+        set({ token: value });
+      },
     };
 
     const entries = Object.entries(paramsObject);
@@ -624,7 +626,7 @@ The user's set up the application in "${language}" language, give your feedback 
       if (key in paramsActions) {
         paramsActions[key](value);
       } else {
-        console.error(`Unknown param passed: ${key}`);
+        console.debug(`Unknown param passed: ${key}`);
       }
     }
 
@@ -1688,7 +1690,6 @@ The user's set up the application in "${language}" language, give your feedback 
       "ai-conversation-message"
     );
     const ai_generation = countConsumables(consumables, "ai-generation");
-    console.debug(ai_generation, "AI GENERATIONS");
 
     // const ai_generation = 1;
 
@@ -1702,7 +1703,9 @@ The user's set up the application in "${language}" language, give your feedback 
 
     console.table({ ai_compilation, ai_conversation_message, ai_generation });
 
-    const isCreator = ai_generation > 0 && environment !== "localStorage";
+    const isCreator =
+      (ai_generation > 0 || ai_generation === -1) &&
+      environment !== "localStorage";
 
     if (isCreator) {
       RigoAI.init({
@@ -1757,7 +1760,7 @@ The user's set up the application in "${language}" language, give your feedback 
     // set({ token: "123456" });
     // toast.success("Token fucked");
     // setOpenedModals({ session: true });
-    // await FetchManager.logout();
+    await FetchManager.logout();
     // try {
     //   await validateRigobotToken(token);
     //   toast.success("Token is valid");
