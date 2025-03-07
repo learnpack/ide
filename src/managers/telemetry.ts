@@ -252,6 +252,11 @@ const TelemetryManager: ITelemetryManager = {
             this.current = prevTelemetry;
             this.finishWorkoutSession();
           } else {
+            console.debug(
+              "No previous telemetry found, creating new one. Agent: ",
+              agent
+            );
+
             this.current = {
               telemetry_id: createUUID(),
               slug: tutorialSlug,
@@ -362,7 +367,6 @@ const TelemetryManager: ITelemetryManager = {
           step.tests = [];
         }
 
-        // data.stdout =
         step.tests.push(data);
         if (data.exit_code === 0) {
           step.completed_at = Date.now();
@@ -382,7 +386,6 @@ const TelemetryManager: ITelemetryManager = {
         if (!step.quiz_submissions) {
           step.quiz_submissions = [];
         }
-        console.log(data);
 
         step.quiz_submissions.push(data);
         break;
