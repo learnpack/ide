@@ -105,7 +105,7 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
         },
 
         pre(props) {
-          console.log(props, "PROPS");
+          // console.log(props, "PROPS");
 
           const codeBlocks = props.node?.children.map((child) => {
             // @ts-ignore

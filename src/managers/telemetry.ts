@@ -1,4 +1,5 @@
 import { calculateIndicators } from "../utils/metrics";
+import packageInfo from "../../package.json";
 import { LocalStorage } from "./localStorage";
 import axios, { AxiosResponse } from "axios";
 
@@ -150,6 +151,7 @@ export interface ITelemetryJSONSchema {
   telemetry_id?: string;
   user_id?: number | string;
   slug: string;
+  version: string;
   agent?: string;
   tutorial_started_at: number;
   last_interaction_at: number;
@@ -184,6 +186,7 @@ interface ITelemetryManager {
   started: boolean;
   // userToken: string;
   // userID?: number;
+  version: string;
   user: TUser;
   telemetryKey: string;
   urls: TTelemetryUrls;
@@ -234,6 +237,7 @@ const TelemetryManager: ITelemetryManager = {
   },
   tutorialSlug: "",
   started: false,
+  version: `CLOUD:${packageInfo.version}` || "CLOUD:0.0.0",
   salute: (message) => {
     console.log(message);
   },
@@ -260,6 +264,7 @@ const TelemetryManager: ITelemetryManager = {
             this.current = {
               telemetry_id: createUUID(),
               slug: tutorialSlug,
+              version: `CLOUD:${this.version}`,
               agent,
               tutorial_started_at: Date.now(),
               last_interaction_at: Date.now(),
@@ -273,6 +278,11 @@ const TelemetryManager: ITelemetryManager = {
           }
 
           this.current.user_id = this.user.id;
+
+          if (!this.current.version) {
+            this.current.version = `CLOUD:${this.version}`;
+          }
+
           this.save();
 
           this.started = true;
