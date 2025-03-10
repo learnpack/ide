@@ -305,6 +305,10 @@ const useStore = create<IStore>((set, get) => ({
       // playEffect("success");
     }, 100);
 
+    compilerSocket.on("telemetry_event", (data: any) => {
+      registerTelemetryEvent(data.data.event, data.data.data);
+    });
+
     compilerSocket.onStatus("testing-success", debounceTestingSuccess);
     compilerSocket.onStatus("testing-error", debounceTestingError);
     compilerSocket.onStatus("compiler-error", compilerErrorHandler);
@@ -391,7 +395,6 @@ const useStore = create<IStore>((set, get) => ({
       checkParams,
       getOrCreateActiveSession,
       startTelemetry,
-      environment,
     } = get();
 
     const params = checkParams({ justReturn: true });
@@ -418,9 +421,7 @@ const useStore = create<IStore>((set, get) => ({
       }
       getOrCreateActiveSession();
 
-      if (environment === "localStorage") {
-        await startTelemetry();
-      }
+      await startTelemetry();
 
       return true;
     } catch (err) {
@@ -1531,21 +1532,13 @@ The user's set up the application in "${language}" language, give your feedback 
     set({ isRigoOpened: !isRigoOpened });
   },
   registerTelemetryEvent: (event, data) => {
-    const { currentExercisePosition, compilerSocket, getCurrentExercise } =
-      get();
+    const { currentExercisePosition } = get();
 
-    console.debug(
-      "Registering telemetry event",
+    TelemetryManager.registerStepEvent(
+      Number(currentExercisePosition),
       event,
-      "Socket emitting event: ",
-      compilerSocket
+      data
     );
-    compilerSocket.emit("telemetry_event", {
-      event,
-      exerciseSlug: getCurrentExercise().slug,
-      eventData: data,
-      stepPosition: Number(currentExercisePosition),
-    });
   },
   startTelemetry: async () => {
     const {
@@ -1605,18 +1598,10 @@ The user's set up the application in "${language}" language, give your feedback 
         email: user.email,
       });
       TelemetryManager.registerListener("compile_struggles", (data) => {
-        // toast.error("Compile struggles alert");
         console.log(data, "Data");
       });
       TelemetryManager.registerListener("test_struggles", (data) => {
         console.debug(data, "TEST STRUGGLES ALERT");
-        // setRigoContext({
-        //   userMessage: "Help!",
-        //   performTests: true,
-        //   context:
-        //     "The student is struggling with the tests. It has failed 3 times in a row. Please help him.",
-        // });
-        // toggleRigo({ ensure: "open" });
       });
       registerTelemetryEvent("open_step", {
         step_slug: steps[0].slug,

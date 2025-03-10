@@ -136,20 +136,7 @@ export const FetchManager = {
   },
 
   getTelemetryStep: async (stepPosition: number) => {
-    const methods: TMethods = {
-      localStorage: async () => {
-        return TelemetryManager.getStep(stepPosition);
-      },
-      localhost: async () => {
-        const res = await fetch(
-          `${FetchManager.HOST}/telemetry/step/${stepPosition}`
-        );
-        const json = await res.json();
-
-        return json;
-      },
-    };
-    return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
+    return TelemetryManager.getStep(stepPosition);
   },
 
   checkLoggedStatus: async () => {

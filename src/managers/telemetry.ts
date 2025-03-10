@@ -2,6 +2,8 @@ import { calculateIndicators } from "../utils/metrics";
 import packageInfo from "../../package.json";
 import { LocalStorage } from "./localStorage";
 import axios, { AxiosResponse } from "axios";
+import { TAgent } from "../utils/storeTypes";
+import { LEARNPACK_LOCAL_URL } from "../utils/creator";
 
 export interface IFile {
   path: string;
@@ -67,6 +69,32 @@ const sendStreamTelemetry = async function (
     .catch((error) => {
       console.log("Error while sending stream Telemetry", error);
     });
+};
+
+const retrieveFromCLI =
+  async function (): Promise<ITelemetryJSONSchema | null> {
+    try {
+      const response = await axios.get(`${LEARNPACK_LOCAL_URL}/telemetry`);
+      // console.debug("Retrieved telemetry from CLI", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error while retrieving telemetry from CLI", error);
+      return null;
+    }
+  };
+
+const saveInCLI = async function (telemetry: ITelemetryJSONSchema) {
+  try {
+    const response = await axios.post(
+      `${LEARNPACK_LOCAL_URL}/telemetry`,
+      telemetry
+    );
+    console.debug("Saved telemetry in CLI", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error while saving telemetry in CLI", error);
+    return null;
+  }
 };
 
 function createUUID(): string {
@@ -182,17 +210,15 @@ type TAlerts = "test_struggles" | "compile_struggles";
 
 interface ITelemetryManager {
   current: ITelemetryJSONSchema | null;
-  //   configPath: string | null;
   started: boolean;
-  // userToken: string;
-  // userID?: number;
+  agent: TAgent;
   version: string;
   user: TUser;
   telemetryKey: string;
   urls: TTelemetryUrls;
   salute: (message: string) => void;
   start: (
-    agent: string,
+    agent: TAgent,
     steps: TStep[],
     tutorialSlug: string,
     storageKey: string,
@@ -228,6 +254,7 @@ const TelemetryManager: ITelemetryManager = {
   urls: {},
   telemetryKey: "",
   listeners: {},
+  agent: "cloud",
   // userToken: "",
   // userID: undefined,
   user: {
@@ -245,7 +272,7 @@ const TelemetryManager: ITelemetryManager = {
   start: function (agent, steps, tutorialSlug, storageKey, student) {
     this.telemetryKey = storageKey;
     this.tutorialSlug = tutorialSlug;
-
+    this.agent = agent;
     this.user.id = student.user_id;
     this.user.token = student.token;
 
@@ -316,6 +343,8 @@ const TelemetryManager: ITelemetryManager = {
       return;
     }
 
+    console.log("Finishing workout session", this.current);
+
     const lastSession =
       this.current?.workout_session[this.current.workout_session.length - 1];
     if (
@@ -331,7 +360,9 @@ const TelemetryManager: ITelemetryManager = {
   },
 
   registerStepEvent: function (stepPosition, event, data) {
-    console.debug(`Registering Event ${event} for user ${this.user.id}`);
+    console.debug(
+      `Registering Telemetry Event ${event} for user ${this.user.id}`
+    );
 
     if (!this.current) {
       //   toast.error(`Telemetry has not been started, ${event} NOT REGISTERED`);
@@ -439,6 +470,10 @@ const TelemetryManager: ITelemetryManager = {
     }
   },
   retrieve: function () {
+    if (this.agent === "os" || this.agent === "vscode") {
+      return retrieveFromCLI();
+    }
+
     const saved = LocalStorage.get(this.telemetryKey);
     if (saved && saved.slug === this.tutorialSlug) {
       return Promise.resolve(saved);
@@ -474,13 +509,22 @@ const TelemetryManager: ITelemetryManager = {
 
     try {
       await sendBatchTelemetry(url, body, this.user.token);
-      console.debug("Telemetry submitted successfully");
+      console.debug("Telemetry submitted successfully for user", this.user.id);
     } catch (error) {
       console.error("Error submitting telemetry", error);
     }
   },
   save: function () {
-    LocalStorage.set(this.telemetryKey, this.current);
+    if (!this.current) {
+      console.error("No current telemetry to save");
+      return;
+    }
+
+    if (this.agent === "os" || this.agent === "vscode") {
+      saveInCLI(this.current);
+    } else {
+      LocalStorage.set(this.telemetryKey, this.current);
+    }
   },
 
   getStep: function (stepPosition: number) {
