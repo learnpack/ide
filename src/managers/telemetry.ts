@@ -1,4 +1,4 @@
-import { calculateIndicators } from "../utils/metrics";
+import { calculateIndicators, TStepIndicators } from "../utils/metrics";
 import packageInfo from "../../package.json";
 import { LocalStorage } from "./localStorage";
 import axios, { AxiosResponse } from "axios";
@@ -120,12 +120,12 @@ type TCompilationAttempt = {
   ending_at: number;
 };
 
-type TTestAttempt = {
+export type TTestAttempt = {
   source_code: string;
   stdout: string;
   exit_code: number;
   starting_at: number;
-  ending_at: number;
+  ended_at: number;
 };
 
 type TAIInteraction = {
@@ -233,6 +233,7 @@ interface ITelemetryManager {
     event: TStepEvent,
     data: any
   ) => void;
+  getStepIndicators: (stepPosition: number) => TStepIndicators | null;
   streamEvent: (stepPosition: number, event: string, data: any) => void;
   submit: () => Promise<void>;
   finishWorkoutSession: () => void;
@@ -242,12 +243,12 @@ interface ITelemetryManager {
   getStep: (stepPosition: number) => TStep | null;
 }
 
-function isMultipleOfThree(number: number): boolean {
-  if (number === 0) {
-    return false;
-  }
-  return number % 3 === 0;
-}
+// function isMultipleOfThree(number: number): boolean {
+//   if (number === 0) {
+//     return false;
+//   }
+//   return number % 3 === 0;
+// }
 
 const TelemetryManager: ITelemetryManager = {
   current: null,
@@ -336,6 +337,15 @@ const TelemetryManager: ITelemetryManager = {
 
   registerListener: function (event: TAlerts, callback: (data: any) => void) {
     this.listeners[event] = callback;
+  },
+
+  getStepIndicators: function (stepPosition: number) {
+    if (!this.current) {
+      return null;
+    }
+    const indicators = calculateIndicators(this.current);
+    const stepIndicators = indicators.steps[stepPosition];
+    return stepIndicators;
   },
 
   finishWorkoutSession: function () {
@@ -460,11 +470,13 @@ const TelemetryManager: ITelemetryManager = {
     this.current.last_interaction_at = Date.now();
     this.streamEvent(stepPosition, event, data);
     this.save();
-    if (event === "test") {
+    if (
+      event === "test" &&
+      typeof this.listeners["test_struggles"] === "function"
+    ) {
       const indicators = calculateIndicators(this.current);
       const stepIndicators = indicators.steps[stepPosition];
-
-      if (isMultipleOfThree(stepIndicators.metrics.streak_test_struggle)) {
+      if (stepIndicators.metrics.streak_test_struggle >= 3) {
         this.listeners["test_struggles"](stepIndicators);
       }
     }

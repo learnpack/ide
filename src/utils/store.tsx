@@ -164,6 +164,7 @@ const useStore = create<IStore>((set, get) => ({
     reset: false,
     session: false,
     rigobotInvite: false,
+    testStruggles: false,
   },
   activeTab: 0,
   lastTestResult: {
@@ -1547,6 +1548,7 @@ The user's set up the application in "${language}" language, give your feedback 
       user,
       registerTelemetryEvent,
       environment,
+      setOpenedModals,
       // setRigoContext,
       // toggleRigo,
     } = get();
@@ -1597,11 +1599,22 @@ The user's set up the application in "${language}" language, give your feedback 
         user_id: String(user.id),
         email: user.email,
       });
-      TelemetryManager.registerListener("compile_struggles", (data) => {
-        console.log(data, "Data");
-      });
-      TelemetryManager.registerListener("test_struggles", (data) => {
-        console.debug(data, "TEST STRUGGLES ALERT");
+      TelemetryManager.registerListener(
+        "compile_struggles",
+        (stepIndicators) => {
+          console.log(stepIndicators, "In compile struggles");
+        }
+      );
+      TelemetryManager.registerListener("test_struggles", (stepIndicators) => {
+        if (stepIndicators.metrics.streak_test_struggle === 3) {
+          setOpenedModals({ testStruggles: true });
+        }
+        if (stepIndicators.metrics.streak_test_struggle === 9) {
+          setOpenedModals({ testStruggles: true });
+        }
+        if (stepIndicators.metrics.streak_test_struggle >= 15) {
+          setOpenedModals({ testStruggles: true });
+        }
       });
       registerTelemetryEvent("open_step", {
         step_slug: steps[0].slug,
@@ -1740,12 +1753,12 @@ The user's set up the application in "${language}" language, give your feedback 
   },
   test: async () => {
     // Notifier.success("Succesfully tested");
-    // const { token, setOpenedModals } = get();
+    const { setOpenedModals } = get();
     // console.log(token, "Token");
     // set({ token: "123456" });
     // toast.success("Token fucked");
-    // setOpenedModals({ session: true });
-    await FetchManager.logout();
+    setOpenedModals({ testStruggles: true });
+    // await FetchManager.logout();
     // try {
     //   await validateRigobotToken(token);
     //   toast.success("Token is valid");

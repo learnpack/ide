@@ -60,7 +60,7 @@ export const Modal = ({
       <div className={`modal-content ${extraClass ? extraClass : ""}`}>
         {outsideClickHandler && (
           <div onClick={outsideClickHandler} className="modal-closer">
-            {svgs.closeIcon}
+            {svgs.closeX}
           </div>
         )}
         {children}

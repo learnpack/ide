@@ -12,6 +12,7 @@ import "./modals.css";
 import { SessionModal } from "./ContinueSession";
 import { MustLoginModal } from "./MustLogin";
 import { CloseWindow } from "./CloseWindow";
+import { TestStrugglesModal } from "./StreakStruggles";
 import { LimitAiCompilations } from "./LimitAiCompilations";
 
 export const ModalsContainer = () => {
@@ -33,6 +34,7 @@ export const ModalsContainer = () => {
       {openedModals.mustLogin && <MustLoginModal />}
       {openedModals.closeWindow && <CloseWindow />}
       {openedModals.limitReached && <LimitAiCompilations />}
+      {openedModals.testStruggles && <TestStrugglesModal />}
     </>
   );
 };

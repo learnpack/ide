@@ -152,5 +152,36 @@
     "exercisesTranslated": "Exercises translated successfully",
     "errorTranslatingExercises": "Error translating exercises",
     "translatingExercises": "Translating exercises...",
-    "invalidLanguage": "Invalid languages, write the languages to translate to, separated by commas"
+    "invalidLanguage": "Invalid languages, write the languages to translate to, separated by commas",
+    "threeStrugglesAlert": {
+        "0": "Whoa, this one's playing hard to get! Want Rigobot to jump in, or keep rocking it solo?",
+        "1": "Hmm, feeling tricky? Rigobot's got your back—want a boost, or sticking with it?",
+        "2": "This one's a puzzle, huh? Grab some help from Rigobot, or keep cracking it on your own?",
+        "3": "Oof, it's putting up a fight! Need Rigobot to swoop in, or wanna power through?",
+        "4": "Curious if there's a shortcut? Rigobot can help, or you can keep ruling it!",
+        "5": "This one's sneaky! Want a hand from Rigobot, or feeling good to go solo?",
+        "6": "Hey, you're so close! Rigobot's ready to assist—want in, or keep the momentum?",
+        "7": "What's this one up to? Rigobot can sort it out, or you can keep being awesome!",
+        "8": "Stumped for a sec? Rigobot's got a nudge if you want it, or keep slaying it yourself!",
+        "9": "This one's got some sass! Want Rigobot to tame it, or sticking to your guns?",
+        "10": "Oh, it's a brain teaser! Rigobot's here if you need it, or keep shining on your own!"
+    },
+    "nineStrugglesAlert": {
+        "0": "Ready to level up? The best way to learn is to accept help, so let's get you past this hurdle.",
+        "1": "Feeling the grind? Don't be stubborn, it's time to ease up and take a smarter path forward.",
+        "2": "Nine tries in? There's always another challenge next, so why not conquer this one with a boost?",
+        "3": "Need a smarter move? We're begging you to let Rigobot jump in, you've earned the assist.",
+        "4": "Curious about progress? Accepting help is the fastest way to grow, and you're ready for it.",
+        "5": "Still at it? Don't be stubborn, you've fought hard and deserve a break with some guidance.",
+        "6": "Your effort's unreal! The best way to learn is with Rigobot's nudge, so let's keep that momentum.",
+        "7": "Wondering how to crack it? There's another challenge waiting, and help now sets you up perfectly.",
+        "8": "Rethinking your approach? Don't be stubborn, you're too good to stall out on this one.",
+        "9": "Showing true grit! The fastest way to learn is with help, and you've proven you're up for it.",
+        "10": "Got stamina? There's always more to conquer, so grab some support to keep the wins coming."
+    },
+    "continueOnMyOwn": "Continue on my own",
+    "yesHelpMe": "Yes, help me!",
+    "rigoWantsToHelpYou": "Rigo wants to help you!",
+    "whatImDoingWrong": "What am I doing wrong?",
+    "helpIsNowMandatory": "Help is now mandatory! You have failed {{streakTestStruggle}} times in a row, please accept help from Rigobot to continue."
 }

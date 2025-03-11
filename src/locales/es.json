@@ -159,5 +159,36 @@
     "exercisesTranslated": "Ejercicios traducidos correctamente",
     "errorTranslatingExercises": "Error al traducir ejercicios",
     "translatingExercises": "Traduciendo ejercicios...",
-    "invalidLanguage": "Idiomas inválidos, escribe los idiomas a traducir, separados por comas"
+    "invalidLanguage": "Idiomas inválidos, escribe los idiomas a traducir, separados por comas",
+    "threeStrugglesAlert": {
+        "0": "¡Vaya, este se está haciendo difícil de conseguir! ¿Quieres que Rigobot intervenga o prefieres seguir rockeando solo?",
+        "1": "Hmm, ¿sintiéndote complicado? Rigobot está aquí para ayudarte—¿quieres un impulso o sigues con ello?",
+        "2": "¿Este es un rompecabezas, eh? ¿Quieres ayuda de Rigobot o prefieres seguir resolviéndolo por tu cuenta?",
+        "3": "¡Uf, está poniendo resistencia! ¿Necesitas que Rigobot entre en acción o quieres continuar?",
+        "4": "¿Tienes curiosidad si hay un atajo? Rigobot puede ayudar, o puedes seguir dominando!",
+        "5": "¡Este es astuto! ¿Quieres una mano de Rigobot o te sientes bien para ir solo?",
+        "6": "¡Hey, estás tan cerca! Rigobot está listo para ayudar—¿quieres su ayuda o sigues con el impulso?",
+        "7": "¿Qué está tramando este? Rigobot puede resolverlo, o puedes seguir siendo increíble!",
+        "8": "¿Atascado por un segundo? Rigobot tiene un empujón si lo quieres, o sigue conquistándolo tú mismo!",
+        "9": "¡Este tiene un poco de actitud! ¿Quieres que Rigobot lo doméne, o sigues firme en tus convicciones?",
+        "10": "Oh, ¡es un acertijo! Rigobot está aquí si lo necesitas, o sigue brillando por tu cuenta!"
+    },
+    "nineStrugglesAlert": {
+        "0": "¿Listo para subir de nivel? La mejor manera de aprender es aceptar ayuda, así que vamos a superar este obstáculo.",
+        "1": "¿Sintiendo la presión? No seas terco, es hora de aflojar y tomar un camino más inteligente hacia adelante.",
+        "2": "¿Nueve intentos? Siempre hay otro desafío a continuación, así que ¿por qué no conquistar este con un impulso?",
+        "3": "¿Necesitas un movimiento más inteligente? Te rogamos que dejes que Rigobot intervenga, te has ganado la asistencia.",
+        "4": "¿Tienes curiosidad acerca del progreso? Aceptar ayuda es la forma más rápida de crecer, y estás listo para ello.",
+        "5": "¿Sigues en ello? No seas terco, has luchado duro y mereces un descanso con un poco de orientación.",
+        "6": "¡Tu esfuerzo es increíble! La mejor manera de aprender es con el empujón de Rigobot, así que mantengamos ese impulso.",
+        "7": "¿Te preguntas cómo resolverlo? Hay otro desafío esperando, y pedir ayuda ahora te prepara perfectamente.",
+        "8": "¿Reevaluando tu enfoque? No seas terco, eres demasiado bueno para estancarte en esto.",
+        "9": "¡Mostrando verdadero coraje! La forma más rápida de aprender es con ayuda, y has demostrado que estás a la altura.",
+        "10": "¿Tienes resistencia? Siempre hay más por conquistar, así que agarra algo de apoyo para seguir acumulando victorias."
+    },
+    "continueOnMyOwn": "Continuar por mi cuenta",
+    "yesHelpMe": "Sí, ayúdame!",
+    "rigoWantsToHelpYou": "Rigobot quiere ayudarte",
+    "whatImDoingWrong": "¿Qué estoy haciendo mal?",
+    "helpIsNowMandatory": "¡La ayuda es obligatoria ahora! Has fallado {{streakTestStruggle}} veces seguidas, por favor acepta ayuda de Rigobot para continuar."
 }

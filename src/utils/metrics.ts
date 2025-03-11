@@ -10,13 +10,19 @@ interface Indicator {
   ): number;
 }
 
-type StepMetrics = {
+export type StepMetrics = {
   status: string;
   time_spent: number;
   comp_struggles: number;
   test_struggles: number;
   streak_comp_struggles: number;
   streak_test_struggle: number;
+};
+
+export type TStepIndicators = {
+  slug: string;
+  metrics: StepMetrics;
+  indicators: Record<string, number>;
 };
 
 type GlobalMetrics = {
@@ -39,11 +45,7 @@ type IndicatorResults = {
     metrics: GlobalMetrics;
     indicators: Record<string, number>;
   };
-  steps: {
-    slug: string;
-    metrics: StepMetrics;
-    indicators: Record<string, number>;
-  }[];
+  steps: TStepIndicators[];
 };
 
 // ---------------------- Indicadores ----------------------
