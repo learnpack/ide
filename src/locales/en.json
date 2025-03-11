@@ -117,7 +117,7 @@
     "login-with-email": "Login with email",
     "back": "Back",
     "please-fill-all-fields": "Please fill all the fields",
-    "askAIAnything": "Ask AI Anything",
+    "askAI": "Ask Rigobot",
     "professional": "Professional",
     "casual": "Casual",
     "straightforward": "Straightforward",
@@ -183,5 +183,11 @@
     "yesHelpMe": "Yes, help me!",
     "rigoWantsToHelpYou": "Rigo wants to help you!",
     "whatImDoingWrong": "What am I doing wrong?",
-    "helpIsNowMandatory": "Help is now mandatory! You have failed {{streakTestStruggle}} times in a row, please accept help from Rigobot to continue."
+    "helpIsNowMandatory": "Help is now mandatory! You have failed {{streakTestStruggle}} times in a row, please accept help from Rigobot to continue.",
+    "updatingExercise": "Updating exercise...",
+    "invalidExerciseName": "Invalid exercise name",
+    "exerciseRenamed": "Exercise renamed successfully",
+    "errorRenamingExercise": "Error renaming exercise",
+    "pasteTutorialUrl": "Paste the tutorial URL here",
+    "finish": "Finish"
 }

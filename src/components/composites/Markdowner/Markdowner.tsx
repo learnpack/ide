@@ -42,17 +42,11 @@ const extractMetadata = (metadata: string) => {
 };
 
 export const Markdowner = ({ markdown }: { markdown: string }) => {
-  const { openLink, userConsumables, environment, mode } = useStore(
-    (state) => ({
-      openLink: state.openLink,
-      userConsumables: state.userConsumables,
-      environment: state.environment,
-      mode: state.mode,
-    })
-  );
-
-  const isCreator =
-    userConsumables.ai_generation > 0 && environment !== "localStorage";
+  const { openLink, mode, isCreator } = useStore((state) => ({
+    openLink: state.openLink,
+    mode: state.mode,
+    isCreator: state.isCreator,
+  }));
 
   return (
     <Markdown
@@ -71,7 +65,29 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
           }
           return <span>{children}</span>;
         },
+        h1: ({ children, node }) => {
+          if (isCreator && mode === "creator") {
+            return (
+              <CreatorWrapper node={node} tagName="h1">
+                <h1>{children}</h1>
+              </CreatorWrapper>
+            );
+          }
+          return <h1>{children}</h1>;
+        },
+        h2: ({ children, node }) => {
+          if (isCreator && mode === "creator") {
+            return (
+              <CreatorWrapper node={node} tagName="h2">
+                <h2>{children}</h2>
+              </CreatorWrapper>
+            );
+          }
+          return <h2>{children}</h2>;
+        },
         p: ({ children, node }) => {
+          console.log(node, "NODE");
+
           if (isCreator && mode === "creator") {
             return (
               <CreatorWrapper node={node} tagName="p">
@@ -84,13 +100,28 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
         // @ts-ignore
         ol: ({ children, node }) => {
           const containsTaskList = checkForQuiz(node);
+          const creatorModeActivated = isCreator && mode === "creator";
 
           if (containsTaskList) {
+            // if (creatorModeActivated) {
+            //   return (
+            //     <CreatorWrapper node={node} tagName="ol">
+            //       <QuizRenderer children={children} />
+            //     </CreatorWrapper>
+            //   );
+            // }
             return <QuizRenderer children={children} />;
           }
 
           const start = node?.properties?.start;
 
+          if (creatorModeActivated) {
+            return (
+              <CreatorWrapper node={node} tagName="ol">
+                <ol start={start ? Number(start) : undefined}>{children}</ol>
+              </CreatorWrapper>
+            );
+          }
           return <ol start={start ? Number(start) : undefined}>{children}</ol>;
         },
         // @ts-ignore
@@ -99,6 +130,14 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
 
           if (containsTaskList) {
             return <QuizRenderer children={children} />;
+          }
+
+          if (isCreator && mode === "creator") {
+            return (
+              <CreatorWrapper node={node} tagName="ul">
+                <ul>{children}</ul>
+              </CreatorWrapper>
+            );
           }
 
           return <ul onClick={() => console.log(node)}>{children}</ul>;
@@ -133,11 +172,20 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
             return <pre>{props.children}</pre>;
           }
 
+          if (isCreator && mode === "creator") {
+            return (
+              <CreatorWrapper node={props.node} tagName="pre">
+                <CustomCodeBlock
+                  code={codeBlocks[0].code}
+                  language={codeBlocks[0].lang}
+                />
+              </CreatorWrapper>
+            );
+          }
           return (
             <CustomCodeBlock
               code={codeBlocks[0].code}
               language={codeBlocks[0].lang}
-              // metadata={codeBlocks[0].metadata}
             />
           );
         },

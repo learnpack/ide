@@ -48,7 +48,7 @@ export function SocketHandler() {
   const debouncedStore = useCallback(
     debounce(async () => {
       await updateDBSession();
-    }, 2500),
+    }, 2000),
     []
   );
 

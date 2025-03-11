@@ -124,7 +124,7 @@
     "login-with-email": "Iniciar sesión con correo electrónico",
     "back": "Volver",
     "please-fill-all-fields": "Por favor llena todos los campos",
-    "askAIAnything": "Preguntale a Rigobot",
+    "askAI": "Pídele a Rigobot",
     "professional": "Profesional",
     "casual": "Casual",
     "straightforward": "Directo",
@@ -190,5 +190,11 @@
     "yesHelpMe": "Sí, ayúdame!",
     "rigoWantsToHelpYou": "Rigobot quiere ayudarte",
     "whatImDoingWrong": "¿Qué estoy haciendo mal?",
-    "helpIsNowMandatory": "¡La ayuda es obligatoria ahora! Has fallado {{streakTestStruggle}} veces seguidas, por favor acepta ayuda de Rigobot para continuar."
+    "helpIsNowMandatory": "¡La ayuda es obligatoria ahora! Has fallado {{streakTestStruggle}} veces seguidas, por favor acepta ayuda de Rigobot para continuar.",
+    "updatingExercise": "Actualizando ejercicio...",
+    "invalidExerciseName": "Nombre de ejercicio inválido",
+    "exerciseRenamed": "Ejercicio renombrado correctamente",
+    "errorRenamingExercise": "Error al renombrar ejercicio",
+    "pasteTutorialUrl": "Pega la URL del tutorial aquí",
+    "finish": "Finalizar"
 }

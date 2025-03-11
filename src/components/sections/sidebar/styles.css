@@ -74,7 +74,6 @@
 
 .exercise-list li.exercise-card {
   background-color: var(--color-blue-opaque);
-
   margin-left: 0 !important;
   display: flex;
   padding: 10px 11px;
@@ -83,7 +82,8 @@
   font-size: 18px;
   border-radius: 15px;
   align-items: center;
-  opacity: 1;
+  position: relative;
+  width: 100%;
 }
 .exercise-circle {
   /* background-color: var(--color-blue); */
@@ -133,7 +133,6 @@
     left: 101%;
   }
 }
-
 
 .bg-blue-opaque {
   background-color: var(--color-blue-opaque);

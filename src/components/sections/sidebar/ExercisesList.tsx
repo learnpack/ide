@@ -6,7 +6,11 @@ import { useTranslation } from "react-i18next";
 import { Input } from "../../composites/Input/Input";
 import toast from "react-hot-toast";
 import { RigoAI } from "../../Rigobot/AI";
-import { createExercise, deleteExercise } from "../../../utils/creator";
+import {
+  createExercise,
+  deleteExercise,
+  renameExercise,
+} from "../../../utils/creator";
 import { FetchManager } from "../../../managers/fetchManager";
 import { TMode } from "../../../utils/storeTypes";
 interface IExerciseList {
@@ -265,6 +269,7 @@ function ExerciseCard({
   selected,
 }: IExerciseProps) {
   const { t } = useTranslation();
+  const titleInputRef = useRef<HTMLInputElement>(null);
   const { handlePositionChange, fetchExercises, getCurrentExercise } = useStore(
     (state) => ({
       handlePositionChange: state.handlePositionChange,
@@ -283,9 +288,35 @@ function ExerciseCard({
     return result;
   };
 
+  const handleEdit = async () => {
+    if (isEditing) {
+      const newTitle = titleInputRef.current?.value;
+      const toastId = toast.loading(t("updatingExercise"));
+      const fixedTitle = fixTitleFormat(newTitle as string);
+      if (!fixedTitle) {
+        toast.error(t("invalidExerciseName"), { id: toastId });
+        return;
+      }
+      try {
+        await renameExercise(slug, fixedTitle);
+        setIsEditing(false);
+        toast.success(t("exerciseRenamed"), { id: toastId });
+        await fetchExercises();
+      } catch (e) {
+        toast.error(t("errorRenamingExercise"), { id: toastId });
+        console.log(e);
+      }
+    } else {
+      setIsEditing(true);
+      setTimeout(() => {
+        titleInputRef.current?.focus();
+      }, 100);
+    }
+  };
+
   return (
     <li
-      className={`w-100 exercise-card  ${selected ? "bg-blue" : ""}`}
+      className={`exercise-card  ${selected ? "bg-blue" : ""}`}
       onClick={
         mode === "student"
           ? () => {
@@ -295,13 +326,7 @@ function ExerciseCard({
           : () => {}
       }
     >
-      <div
-        onClick={() => {
-          if (mode === "creator") {
-            handleSelect(slug);
-          }
-        }}
-      >
+      <div className="z-index-1">
         <button className={`exercise-circle ${done ? "done" : ""}`}>
           <span>{title.split("-")[0]}</span>
         </button>
@@ -310,12 +335,21 @@ function ExerciseCard({
             className="padding-small rounded bg-transparent"
             type="text"
             defaultValue={title}
+            ref={titleInputRef}
             // onChange={(e) => setTitle(e.target.value)}
           />
         ) : (
           <span>{titlefy(title)}</span>
         )}
       </div>
+      {mode === "creator" && (
+        <div
+          onClick={() => {
+            handleSelect(slug);
+          }}
+          className="pos-absolute w-100 h-100"
+        ></div>
+      )}
       <div>
         {graded && mode === "student" && (
           <SimpleButton
@@ -325,6 +359,12 @@ function ExerciseCard({
         )}
         {mode === "creator" && (
           <>
+            <SimpleButton
+              extraClass="scale-on-hover"
+              svg={isEditing ? svgs.checkIcon : svgs.edit}
+              text=""
+              action={handleEdit}
+            />
             <SimpleButton
               extraClass="scale-on-hover"
               svg={svgs.trash}
@@ -347,12 +387,6 @@ function ExerciseCard({
                 }
               }}
               confirmationMessage={t("sureDeleteExercise")}
-            />
-            <SimpleButton
-              extraClass="scale-on-hover"
-              svg={svgs.edit}
-              text=""
-              action={() => setIsEditing(!isEditing)}
             />
           </>
         )}

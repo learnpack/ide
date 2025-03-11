@@ -16,21 +16,19 @@ export default function Sidebar() {
     toggleTheme,
     showSidebar,
     setShowSidebar,
-    userConsumables,
     isIframe,
-    environment,
     mode,
+    isCreator,
     setMode,
   } = useStore((state) => ({
     theme: state.theme,
     toggleTheme: state.toggleTheme,
     showSidebar: state.showSidebar,
     setShowSidebar: state.setShowSidebar,
-    userConsumables: state.userConsumables,
     isIframe: state.isIframe,
-    environment: state.environment,
     mode: state.mode,
     setMode: state.setMode,
+    isCreator: state.isCreator,
   }));
 
   const closeSidebar = () => {
@@ -41,9 +39,6 @@ export default function Sidebar() {
       setShowSidebar(false);
     });
   };
-
-  const isCreator =
-    userConsumables.ai_generation > 0 && environment !== "localStorage";
 
   return (
     <>
@@ -74,23 +69,7 @@ export default function Sidebar() {
 
           <section className="footer">
             <BugButton />
-            <div className="hidden">
-              <table>
-                <thead>
-                  <tr>
-                    <th>AI Conversation Message</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>
-                      <strong>AI Conversation Message: </strong>
-                    </td>
-                    <td>{userConsumables.ai_conversation_message}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+
             <span>
               <strong>v{versionSections.join(".")}</strong>
             </span>

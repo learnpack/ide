@@ -7,7 +7,7 @@ import { RigoToggler } from "../Rigobot/Rigobot";
 import LanguageButton from "../sections/header/LanguageButton";
 import styles from "./NewHeader.module.css";
 import { ToggleSidebar } from "../sections/sidebar/ToggleSidebar";
-import toast from "react-hot-toast";
+// import toast from "react-hot-toast";
 
 export const NewHeader = () => {
   const {
@@ -25,7 +25,8 @@ export const NewHeader = () => {
     setShowVideoTutorial,
     reportEnrichDataLayer,
     mode,
-    addVideoTutorial,
+    // addVideoTutorial,
+    setOpenedModals,
   } = useStore((state) => ({
     handlePositionChange: state.handlePositionChange,
     currentExercisePosition: state.currentExercisePosition,
@@ -41,7 +42,8 @@ export const NewHeader = () => {
     setShowVideoTutorial: state.setShowVideoTutorial,
     reportEnrichDataLayer: state.reportEnrichDataLayer,
     mode: state.mode,
-    addVideoTutorial: state.addVideoTutorial,
+    // addVideoTutorial: state.addVideoTutorial,
+    setOpenedModals: state.setOpenedModals,
   }));
 
   const { t } = useTranslation();
@@ -110,12 +112,9 @@ export const NewHeader = () => {
               setShowVideoTutorial(true);
               reportEnrichDataLayer("learnpack_open_video", {});
             } else {
-              const tutorial = prompt("Enter the video tutorial URL");
-              if (tutorial) {
-                const tid = toast.loading(t("Adding video tutorial..."));
-                await addVideoTutorial(tutorial);
-                toast.success(t("Video tutorial added"), { id: tid });
-              }
+              setOpenedModals({
+                addVideoTutorial: true,
+              });
             }
           }}
         />

@@ -34,3 +34,16 @@ export const deleteExercise = async (slug: string) => {
     throw error;
   }
 };
+
+export const renameExercise = async (slug: string, newSlug: string) => {
+  try {
+    const response = await axios.put(
+      `${LEARNPACK_LOCAL_URL}/actions/rename`,
+      { slug, newSlug }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error renaming exercise:", error);
+    throw error;
+  }
+};

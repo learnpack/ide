@@ -229,6 +229,7 @@ export interface IStore {
   userConsumables: TUserConsumables;
   maxQuizRetries: number;
   mode: TMode;
+  isCreator: boolean;
   setMode: (mode: TMode) => void;
   addVideoTutorial: (videoTutorial: string) => Promise<void>;
   useConsumable: (

@@ -121,6 +121,7 @@ const useStore = create<IStore>((set, get) => ({
     text: "execute-my-code",
     className: "",
   },
+  isCreator: false,
   theme: "light",
   isIframe: false,
   tabHash: "",
@@ -165,6 +166,7 @@ const useStore = create<IStore>((set, get) => ({
     session: false,
     rigobotInvite: false,
     testStruggles: false,
+    addVideoTutorial: false,
   },
   activeTab: 0,
   lastTestResult: {
@@ -553,6 +555,8 @@ The user's set up the application in "${language}" language, give your feedback 
         },
       });
       if (config.exercises && config.exercises.length > 0) {
+        console.log("CONFIG EXERCISES", config.exercises);
+
         set({ exercises: config.exercises });
       }
 
@@ -1705,6 +1709,8 @@ The user's set up the application in "${language}" language, give your feedback 
       (ai_generation > 0 || ai_generation === -1) &&
       environment !== "localStorage";
 
+    set({ isCreator });
+
     if (isCreator) {
       RigoAI.init({
         chatHash: "529ca5a219084bc7b93c172ad78ef92a",
@@ -1753,12 +1759,13 @@ The user's set up the application in "${language}" language, give your feedback 
   },
   test: async () => {
     // Notifier.success("Succesfully tested");
-    const { setOpenedModals } = get();
+    const { fetchExercises } = get();
     // console.log(token, "Token");
     // set({ token: "123456" });
     // toast.success("Token fucked");
-    setOpenedModals({ testStruggles: true });
+    // setOpenedModals({ testStruggles: true });
     // await FetchManager.logout();
+    await fetchExercises();
     // try {
     //   await validateRigobotToken(token);
     //   toast.success("Token is valid");

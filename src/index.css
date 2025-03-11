@@ -344,10 +344,7 @@ a {
 .text-white {
   border: white;
   color: white !important;
-}
-
-.text-white > svg {
-  stroke: white;
+  --read-font-color: white;
 }
 
 .d-block {
@@ -779,4 +776,12 @@ a {
 
 .wrap-wrap {
   flex-wrap: wrap;
+}
+
+.h-100 {
+  height: 100%;
+}
+
+.z-index-1 {
+  z-index: 1;
 }
