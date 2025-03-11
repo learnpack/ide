@@ -8,11 +8,12 @@ import { svgs } from "../../assets/svgs";
 
 type TPromp = {
   type: "button" | "select" | "input";
-  text: string;
+  text?: string;
   options?: string[];
   action: (value: string) => void;
   extraClass: string;
   placeholder?: string;
+  svg?: React.ReactNode;
 };
 
 const getPortionFromText = (text: string, start: number, end: number) => {
@@ -176,16 +177,28 @@ export const CreatorWrapper = ({
 
   const promps: TPromp[] = [
     {
+      type: "input",
+      placeholder: t("editWithRigobot"),
+      svg: svgs.rigoSoftBlue,
+      text: "",
+      action: (question: string) => askAIAnything(question),
+      extraClass: "  rounded padding-small active-on-hover blank-input",
+    },
+    {
       type: "button",
       text: t("simplifyLanguage"),
       action: () => simplifyLanguage(),
-      extraClass: "  rounded padding-small active-on-hover",
+      extraClass:
+        "text-secondary  rounded padding-small active-on-hover svg-blue",
+      svg: svgs.play,
     },
     {
       type: "button",
       text: t("explainFurther"),
       action: () => explainFurther(),
-      extraClass: "  rounded padding-small active-on-hover",
+      extraClass:
+        "text-secondary  rounded padding-small active-on-hover svg-blue",
+      svg: svgs.play,
     },
     {
       type: "select",
@@ -199,24 +212,20 @@ export const CreatorWrapper = ({
       ],
 
       action: (tone: string) => changeTone(tone),
-      extraClass: "  rounded padding-small active-on-hover",
-    },
-    {
-      type: "input",
-      placeholder: t("writeYourPrompt"),
-      text: t("askAI"),
-      action: (question: string) => askAIAnything(question),
-      extraClass: "  rounded padding-small active-on-hover",
+      extraClass:
+        "text-secondary  rounded padding-small active-on-hover svg-blue",
+      svg: svgs.play,
     },
   ];
 
   return (
     <div className={`creator-wrapper ${tagName}`}>
       {isOpen && (
-        <div ref={optionsRef} className="creator-options ">
+        <div ref={optionsRef} className="creator-options">
           {promps.map((prompt) =>
             prompt.type === "button" ? (
               <SimpleButton
+                svg={prompt.svg}
                 key={prompt.text}
                 action={prompt.action}
                 extraClass={prompt.extraClass}
@@ -225,6 +234,8 @@ export const CreatorWrapper = ({
             ) : prompt.type === "select" ? (
               <div className={`flex-x gap-small `} key={prompt.text}>
                 <SimpleButton
+                  key={prompt.text}
+                  svg={prompt.svg}
                   action={() => prompt.action(toneRef.current?.value || "")}
                   extraClass={prompt.extraClass}
                   text={prompt.text}
@@ -232,7 +243,7 @@ export const CreatorWrapper = ({
                 <select
                   ref={toneRef}
                   key={prompt.text}
-                  className={`rounded`}
+                  className={`rounded bg-transparent`}
                   // onChange={(e) => prompt.action(e.target.value)}
                 >
                   {prompt.options?.map((option) => (
@@ -243,17 +254,18 @@ export const CreatorWrapper = ({
                 </select>
               </div>
             ) : prompt.type === "input" ? (
-              <div className={`flex-x gap-small `} key={prompt.text}>
+              <div className={`flex-x gap-small border-bottom-blue`} key={prompt.text}>
+                <SimpleButton
+                  svg={prompt.svg}
+                  action={() => prompt.action(inputRef.current?.value || "")}
+                  extraClass={prompt.extraClass}
+                  text={prompt.text}
+                />
                 <input
                   placeholder={prompt.placeholder}
                   ref={inputRef}
                   type="text"
-                  className="rounded"
-                />
-                <SimpleButton
-                  action={() => prompt.action(inputRef.current?.value || "")}
-                  extraClass={prompt.extraClass}
-                  text={prompt.text}
+                  className="rounded blank-input"
                 />
               </div>
             ) : null
@@ -263,7 +275,7 @@ export const CreatorWrapper = ({
 
       <div className="text-in-editor" ref={elemRef}>
         <SimpleButton
-          svg={svgs.options}
+          svg={svgs.optionsGrid}
           extraClass="creator-options-opener"
           action={() => setIsOpen(!isOpen)}
         />

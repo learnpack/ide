@@ -11,7 +11,7 @@
   --4geeks-yellow: #ffd900;
   --color-warning: #ffd900;
   --opaque-blue-editor: #a5d9f8;
-  --soft-blue-color: #eef9fe;
+
   --color-blue-opaque: #eef9fe;
 
   --color-blue: #c1dfed;
@@ -36,8 +36,16 @@
   --font-size-medium: 18px;
   --app-width: min(100%, 1111px);
   --read-font-color: black;
+  --font-color-secondary: #4c648f;
+  --gray-blue-color: #9fbdf0;
   --dropdown-bg-color: white;
   --standard-border-radius: 8px;
+  --bg-1: #fafdff;
+  --bg-2: #f3fafe;
+  --white: #ffffff;
+
+  --sidebar-bg-color: #E4E8EE;
+
   font-size: 16px;
 }
 
@@ -51,7 +59,6 @@
   --color-active: #02a9ea;
   --4geeks-yellow: #ffd900;
   --opaque-blue-editor: #a5d9f8;
-  --soft-blue-color: #eef9fe;
   --soft-blue: #eef9fe;
   --color-blue-opaque: #003b5a77;
   --color-hovered: rgba(95, 95, 95, 0.311);
@@ -66,7 +73,14 @@
   --font-size-medium: 18px;
   --dropdown-bg-color: var(--bg-color);
   --read-font-color: white;
+  --font-color-secondary: #6e90d1;
+  --gray-blue-color: #9fbdf0;
+  --white: #000000;
+  --bg-1: #111f39;
+  --bg-2: #1a2d50;
+  --sidebar-bg-color: #131b25;
 }
+
 
 * {
   margin: 0;
@@ -480,7 +494,7 @@ a {
 .browser-tab {
   padding: 4px 20px;
   border-radius: 5px;
-  background-color: var(--soft-blue-color);
+  background-color: var(--soft-blue);
   color: var(--color-active);
   max-width: 100%;
   text-overflow: ellipsis;
@@ -578,18 +592,7 @@ a {
 .padding-big {
   padding: 20px;
 }
-.active-on-hover {
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-.active-on-hover:hover {
-  background-color: var(--color-blue-rigo);
-  color: white;
-  scale: 1.01;
-}
-.active-on-hover:active {
-  scale: 0.99;
-}
+
 .m-0 {
   margin: 0;
 }
@@ -784,4 +787,55 @@ a {
 
 .z-index-1 {
   z-index: 1;
+}
+
+.text-secondary {
+  color: var(--font-color-secondary);
+}
+
+.svg-blue {
+  & svg {
+    --read-font-color: var(--color-blue-rigo);
+  }
+}
+
+.blank-input {
+  background: transparent;
+  border: 0;
+  padding: 8px;
+  font-size: 16px;
+  &::placeholder {
+    color: var(--gray-blue-color);
+  }
+}
+
+.active-on-hover {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.active-on-hover:hover {
+  background-color: var(--color-blue-rigo);
+  color: white;
+  scale: 1.01;
+
+  & svg {
+    --read-font-color: white;
+  }
+}
+.active-on-hover:active {
+  scale: 0.99;
+}
+
+.border-bottom-blue {
+  border-bottom: 1px solid var(--opaque-blue-editor);
+}
+
+.bg-1 {
+  background-color: var(--bg-1) !important;
+}
+.bg-2 {
+  background-color: var(--bg-2) !important;
+}
+.bg-white {
+  background-color: var(--white) !important;
 }

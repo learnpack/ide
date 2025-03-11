@@ -207,9 +207,9 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
     <ul className="exercise-list">
       {selectedExercises.length > 0 && (
         <div className="flex-y gap-small align-center">
-          <div className="flex-x gap-small align-center active-on-hover rounded">
+          <div className="flex-x gap-small align-center">
             <SimpleButton
-              extraClass="padding-small "
+              extraClass=" active-on-hover rounded"
               svg={svgs.translation}
               text={t("translate")}
               action={handleTranslate}
@@ -316,7 +316,7 @@ function ExerciseCard({
 
   return (
     <li
-      className={`exercise-card  ${selected ? "bg-blue" : ""}`}
+      className={`exercise-card ${selected ? "bg-2" : "bg-white"}`}
       onClick={
         mode === "student"
           ? () => {
@@ -327,6 +327,22 @@ function ExerciseCard({
       }
     >
       <div className="z-index-1">
+        {mode === "creator" && selected && (
+          <SimpleButton
+            extraClass="padding-small"
+            svg={svgs.checked}
+            text=""
+            action={() => handleSelect(slug)}
+          />
+        )}
+        {mode === "creator" && !selected && (
+          <SimpleButton
+            extraClass="padding-small"
+            svg={svgs.unchecked}
+            text=""
+            action={() => handleSelect(slug)}
+          />
+        )}
         <button className={`exercise-circle ${done ? "done" : ""}`}>
           <span>{title.split("-")[0]}</span>
         </button>
@@ -342,14 +358,7 @@ function ExerciseCard({
           <span>{titlefy(title)}</span>
         )}
       </div>
-      {mode === "creator" && (
-        <div
-          onClick={() => {
-            handleSelect(slug);
-          }}
-          className="pos-absolute w-100 h-100"
-        ></div>
-      )}
+
       <div>
         {graded && mode === "student" && (
           <SimpleButton

@@ -196,5 +196,7 @@
     "exerciseRenamed": "Ejercicio renombrado correctamente",
     "errorRenamingExercise": "Error al renombrar ejercicio",
     "pasteTutorialUrl": "Pega la URL del tutorial aquí",
-    "finish": "Finalizar"
+    "finish": "Finalizar",
+    "editWithRigobot": "Editar con Rigobot",
+    "open-learnpack-docs": "Abrir documentación de LearnPack"
 }

@@ -5,6 +5,7 @@ import useStore from "../../../utils/store";
 import { svgs } from "../../../assets/svgs";
 import packageInfo from "../../../../package.json";
 import "./styles.css";
+import { useTranslation } from "react-i18next";
 
 const version = packageInfo.version;
 let versionSections = version.split(".");
@@ -20,6 +21,8 @@ export default function Sidebar() {
     mode,
     isCreator,
     setMode,
+    openLink,
+    fetchExercises,
   } = useStore((state) => ({
     theme: state.theme,
     toggleTheme: state.toggleTheme,
@@ -29,7 +32,11 @@ export default function Sidebar() {
     mode: state.mode,
     setMode: state.setMode,
     isCreator: state.isCreator,
+    openLink: state.openLink,
+    fetchExercises: state.fetchExercises,
   }));
+
+  const { t } = useTranslation();
 
   const closeSidebar = () => {
     const sidebar: HTMLElement | null =
@@ -38,6 +45,12 @@ export default function Sidebar() {
     sidebar?.addEventListener("animationend", () => {
       setShowSidebar(false);
     });
+  };
+
+  const openLearnpackDocs = async () => {
+    const docsUrl = "https://4geeks.com/docs/learnpack";
+    openLink(docsUrl);
+    await fetchExercises();
   };
 
   return (
@@ -73,6 +86,13 @@ export default function Sidebar() {
             <span>
               <strong>v{versionSections.join(".")}</strong>
             </span>
+
+            <SimpleButton
+              extraClass="pill svg-white"
+              svg={svgs.question}
+              title={t("open-learnpack-docs")}
+              action={openLearnpackDocs}
+            />
           </section>
         </div>
       )}

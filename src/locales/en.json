@@ -189,5 +189,7 @@
     "exerciseRenamed": "Exercise renamed successfully",
     "errorRenamingExercise": "Error renaming exercise",
     "pasteTutorialUrl": "Paste the tutorial URL here",
-    "finish": "Finish"
+    "finish": "Finish",
+    "editWithRigobot": "Edit with Rigobot",
+    "open-learnpack-docs": "Open LearnPack docs"
 }

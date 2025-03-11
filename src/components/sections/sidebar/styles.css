@@ -4,7 +4,7 @@
   /* top: 0; */
   font-size: 17px;
   z-index: 2;
-  background-color: var(--app-bg-color);
+  background-color: var(--sidebar-bg-color);
   /* animation: appear-4-right 0.5s ease 1 forwards; */
   display: flex;
   flex-direction: column;
@@ -73,7 +73,7 @@
 }
 
 .exercise-list li.exercise-card {
-  background-color: var(--color-blue-opaque);
+  background-color: var(--bg-1);
   margin-left: 0 !important;
   display: flex;
   padding: 10px 11px;
@@ -86,13 +86,14 @@
   width: 100%;
 }
 .exercise-circle {
-  /* background-color: var(--color-blue); */
+  background-color: var(--bg-1);
   border-radius: 50%;
   width: 40px;
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #0097cf;
   padding: 10px;
 }
 .exercise-circle.done {
@@ -101,7 +102,11 @@
 }
 
 .sidebar-component .exercise-list li.exercise-card:hover {
-  background-color: var(--color-hovered);
+  background-color: var(--bg-2);
+}
+.sidebar-component .exercise-list li.exercise-card:active {
+  background-color: var(--color-blue-opaque);
+  transition: all 0.3s ease;
 }
 
 .exercise-list li.exercise-card > div {

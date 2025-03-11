@@ -32,12 +32,12 @@
 
 .creator-options {
   display: flex;
-  background-color: var(--app-bg-color);
+  background-color: var(--color-blue-opaque);
   padding: 5px;
   border-radius: 5px;
   gap: 3px;
   position: absolute;
-  border: 1px solid var(--read-font-color);
+  /* border: 1px solid var(--read-font-color); */
   /* transform: translateY(50%); */
   top: 0;
   left: 20px;
@@ -54,20 +54,22 @@
   display: none;
   position: absolute;
   right: 100%;
-  top: 0;
+  top: 50%;
+  transform: translateY(-50%);
   /* z-index: 1000; */
   background-color: var(--app-bg-color);
 }
 
-.creator-wrapper:hover .creator-options-opener {
+.creator-wrapper:hover > .text-in-editor > .creator-options-opener {
   display: block;
+}
+
+.creator-wrapper:hover {
+  background-color: var(--soft-blue);
 }
 
 .creator-wrapper:hover .text-in-editor {
   margin-left: 20px;
-}
-.creator-wrapper:hover .text-in-editor {
-  color: var(--color-blue-rigo);
 }
 
 /* .creator-wrapper:has(.creator-target-content:empty) .target-buttons {
