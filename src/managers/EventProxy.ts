@@ -451,7 +451,6 @@ localStorageEventEmitter.on("test", async (data) => {
   }
 });
 
-
 export const EventProxy = {
   getEmitter: (environment: TEnvironment) => {
     const emitters = {
@@ -484,7 +483,8 @@ class APIError extends Error {
 const fetchWithHandling = async (
   url: string,
   token: string,
-  inputs: object
+  inputs: object,
+  structured: boolean = true
 ) => {
   try {
     const response = await fetch(url, {
@@ -512,14 +512,22 @@ const fetchWithHandling = async (
     }
 
     const json = await response.json();
-    return json.parsed;
+    if (structured) {
+      return json.parsed;
+    }
+    return json;
   } catch (error) {
     console.error("Error in API request:", error);
     throw error;
   }
 };
 
-const buildRigo = (token: string, inputs: object) => {
+type TBuildInputs = {
+  code: string;
+  inputs: string;
+};
+
+export const buildRigo = (token: string, inputs: TBuildInputs) => {
   return fetchWithHandling(
     `${RIGOBOT_HOST}/v1/prompting/completion/324/`,
     token,
@@ -533,4 +541,26 @@ const testRigo = (token: string, inputs: object) => {
     token,
     inputs
   );
+};
+
+type TCheckAnswerInputs = {
+  eval: string;
+  lesson_content: string;
+  student_response: string;
+};
+
+type TCheckAnswerOutputs = {
+  exit_code: 0 | 1;
+  reasoning: string;
+  feedback: string;
+  correct_answer: string;
+  confidence: string;
+};
+
+export const checkAnswer = (token: string, inputs: TCheckAnswerInputs) => {
+  return fetchWithHandling(
+    `${RIGOBOT_HOST}/v1/prompting/completion/786/`,
+    token,
+    inputs
+  ) as Promise<TCheckAnswerOutputs>;
 };

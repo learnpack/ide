@@ -20,6 +20,10 @@ export const LessonRenderer = memo(
     const { t } = useTranslation();
     const currentContent = useStore((s) => s.currentContent);
     const agent = useStore((s) => s.agent);
+    const currentExercisePosition = useStore((s) => s.currentExercisePosition);
+    const exercises = useStore((s) => s.exercises);
+
+    const isLastExercise = currentExercisePosition === exercises.length - 1;
 
     return (
       <div className="lesson-content">
@@ -27,6 +31,7 @@ export const LessonRenderer = memo(
         <Markdowner markdown={currentContent.body} />
         {continueAction &&
           editorTabs.length === 0 &&
+          !isLastExercise &&
           !(ENVIRONMENT === "localhost") && (
             <div
               onClick={continueAction}

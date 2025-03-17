@@ -20,7 +20,7 @@ export const formatInitialMessage = (
     .replace("{stepSlug}", stepSlug);
 };
 
-export const slugToTitle = (slug: string) => {
+export const slugToTitle = (slug: string, uppercase = true) => {
   // Replace all - and _ with spaces and capitalize the first letter of each word
 
   if (!slug) return "";
@@ -29,8 +29,10 @@ export const slugToTitle = (slug: string) => {
     console.error("slugToTitle: slug is not a string");
     return "";
   }
-  return slug
-    .replace(/-/g, " ")
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
+  let title = slug.replace(/-/g, " ").replace(/_/g, " ");
+
+  if (uppercase) {
+    title = title.replace(/\b\w/g, (char) => char.toUpperCase());
+  }
+  return title;
 };

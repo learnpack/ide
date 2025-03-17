@@ -7,6 +7,15 @@ import { atomDark as prismStyle } from "react-syntax-highlighter/dist/esm/styles
 import { QuizRenderer } from "../QuizRenderer/QuizRenderer";
 import { RigoQuestion } from "../RigoQuestion/RigoQuestion";
 import { CreatorWrapper } from "../../Creator/Creator";
+import SimpleButton from "../../mockups/SimpleButton";
+import { svgs } from "../../../assets/svgs";
+import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
+import { buildRigo, checkAnswer } from "../../../managers/EventProxy";
+import { useRef, useState } from "react";
+import { Notifier } from "../../../managers/Notifier";
+import { playEffect } from "../../../utils/lib";
+// import { slugToTitle } from "../../Rigobot/utils";
 // import SimpleButton from "../../mockups/SimpleButton";
 // import { svgs } from "../../../assets/svgs";
 
@@ -29,17 +38,34 @@ const checkForQuiz = (node: any) => {
   return containsTaskList && containsTaskList.length > 0;
 };
 
-const extractMetadata = (metadata: string) => {
-  const metadataObject: Record<string, string> = {};
-  const metadataProperties = metadata.split(" ");
-  if (metadataProperties.length > 0) {
-    metadataProperties.forEach((property) => {
-      const [key, value] = property.split("=");
-      metadataObject[key] = value;
-    });
+const isTrueOrFalse = (value: string) => {
+  return value.toLowerCase() === "true" || value.toLowerCase() === "false";
+};
+
+const parseBooleans = (value: string) => {
+  if (isTrueOrFalse(value)) {
+    if (value.toLowerCase() === "true") {
+      return true;
+    }
+    return false;
   }
+  return value;
+};
+
+const extractMetadata = (metadata: string) => {
+  const metadataObject: Record<string, string | boolean> = {};
+  const regex = /(\w+)="([^"]*)"/g;
+  let match;
+
+  while ((match = regex.exec(metadata)) !== null) {
+    const [_, key, value] = match;
+    metadataObject[key] = parseBooleans(value);
+  }
+
   return metadataObject;
 };
+
+type TMetadata = Record<string, string | boolean>;
 
 export const Markdowner = ({ markdown }: { markdown: string }) => {
   const { openLink, mode, isCreator } = useStore((state) => ({
@@ -86,8 +112,6 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
           return <h2>{children}</h2>;
         },
         p: ({ children, node }) => {
-          console.log(node, "NODE");
-
           if (isCreator && mode === "creator") {
             return (
               <CreatorWrapper node={node} tagName="p">
@@ -144,8 +168,6 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
         },
 
         pre(props) {
-          // console.log(props, "PROPS");
-
           const codeBlocks = props.node?.children.map((child) => {
             // @ts-ignore
             const code = child.children.map((c) => c.value).join("");
@@ -153,7 +175,7 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
             const classNames = child.properties?.className;
             // @ts-ignore F
             const metadata = child.data?.meta || "";
-            let metadataObject: Record<string, string> = {};
+            let metadataObject: TMetadata = {};
             let lang = "text";
             if (classNames && classNames?.length > 0) {
               lang = classNames[0].split("-")[1];
@@ -178,6 +200,8 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
                 <CustomCodeBlock
                   code={codeBlocks[0].code}
                   language={codeBlocks[0].lang}
+                  metadata={codeBlocks[0].metadata}
+                  wholeMD={markdown}
                 />
               </CreatorWrapper>
             );
@@ -186,6 +210,8 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
             <CustomCodeBlock
               code={codeBlocks[0].code}
               language={codeBlocks[0].lang}
+              metadata={codeBlocks[0].metadata}
+              wholeMD={markdown}
             />
           );
         },
@@ -197,25 +223,39 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
   );
 };
 
+const objectToArray = (
+  obj: Record<string, string | boolean>
+): { key: string; value: string | boolean }[] => {
+  // Record<string, string | boolean> is a type that represents an object with string keys and string or boolean values.
+  return Object.entries(obj).map(([key, value]) => ({ key, value }));
+};
+
 const CustomCodeBlock = ({
   code,
   language,
+  metadata,
+  wholeMD,
 }: // metadata,
 {
   code: string;
   language: string;
-  // metadata: Record<string, string>;
+  metadata: TMetadata;
+  wholeMD: string;
 }) => {
-  const { getCurrentExercise } = useStore((state) => ({
+  const { getCurrentExercise, isIframe, token } = useStore((state) => ({
     getCurrentExercise: state.getCurrentExercise,
+    isIframe: state.isIframe,
+    token: state.token,
   }));
+
+  console.log("metadata", metadata);
+
+  const { t } = useTranslation();
+  const [executionResult, setExecutionResult] = useState<string | null>(null);
 
   if (language === "stdout" || language === "stderr") {
     return (
-      <div
-        // style={{ backgroundColor: "black", color: "red" }}
-        className={`${language}`}
-      >
+      <div className={`${language}`}>
         {language === "stdout" && (
           <p className="stdout-prefix">
             ~/learnpack/{getCurrentExercise().slug}
@@ -226,58 +266,147 @@ const CustomCodeBlock = ({
     );
   }
 
-  // const metadataComponents = {
-  //   runnable: (value: string) => {
-  //     if (value.toLowerCase() === "true") {
-  //       return (
-  //         <SimpleButton
-  //           svg={svgs.runCustom}
-  //           action={async () => console.log("RUN")}
-  //           extraClass="text-black"
-  //         />
-  //       );
-  //     }
-  //   },
-  //   answer: (value: string) => {
-  //     if (value.toLowerCase() === "true") {
-  //       return (
-  //         <SimpleButton
-  //           svg={svgs.runCustom}
-  //           action={() => console.log("CHECK")}
-  //           extraClass="text-black"
-  //         />
-  //       );
-  //     }
-  //   },
-  // };
+  if (language === "question") {
+    return <Question metadata={metadata} wholeMD={wholeMD} />;
+  }
+
+  const metadataComponents = {
+    runnable: (value: boolean | string) => {
+      if (value) {
+        return (
+          <SimpleButton
+            title={t("runCode")}
+            svg={svgs.runCustom}
+            action={async () => {
+              const result = await buildRigo(token, {
+                code: code,
+                inputs: "{}",
+              });
+              setExecutionResult(result.stdout);
+            }}
+            extraClass=""
+          />
+        );
+      }
+    },
+  };
+
+  const metadataComponentsArray = objectToArray(metadata);
 
   return (
-    <div className="flex-y my-small">
-      {/* <div className="d-flex justify-between align-center  code-buttons">
+    <div className="flex-y my-small custom-code-block">
+      <div className="d-flex justify-between align-center code-buttons">
         <span className="language">{language}</span>
-        <div>
-          <SimpleButton
-            svg={svgs.copy}
-            action={() => console.log("COPY")}
-            extraClass="color-blue"
-          />
-          {Object.keys(metadata).length > 0 &&
-            Object.keys(metadata).map((key) => {
-              if (metadataComponents[key as keyof typeof metadataComponents]) {
-                return (
-                  <div key={key}>
-                    {metadataComponents[key as keyof typeof metadataComponents](
-                      metadata[key]
-                    )}
-                  </div>
-                );
-              }
-            })}
+        <div className="d-flex gap-small">
+          {!isIframe && (
+            <SimpleButton
+              title={t("copyCodeToClipboard")}
+              svg={svgs.copy}
+              action={() => {
+                navigator.clipboard.writeText(code);
+                toast.success(t("copied"));
+              }}
+              extraClass="color-blue"
+            />
+          )}
+          {metadataComponentsArray.map(({ key, value }) => {
+            if (Object.keys(metadataComponents).includes(key)) {
+              return metadataComponents[key as keyof typeof metadataComponents](
+                value
+              );
+            }
+          })}
         </div>
-      </div> */}
+      </div>
+
       <SyntaxHighlighter language={language} style={prismStyle}>
         {code}
       </SyntaxHighlighter>
+      {executionResult && (
+        <div className="stdout">
+          <p className="stdout-prefix">
+            ~/learnpack/{getCurrentExercise().slug}
+          </p>
+          {executionResult}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const Question = ({
+  metadata,
+  wholeMD,
+}: {
+  metadata: TMetadata;
+  wholeMD: string;
+}) => {
+  const { t } = useTranslation();
+  const { token } = useStore((state) => ({
+    token: state.token,
+  }));
+
+  const [exitCode, setExitCode] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const answerRef = useRef<HTMLTextAreaElement>(null);
+
+  const evaluateAnswer = async () => {
+    if (!answerRef.current?.value) {
+      toast.error(t("pleaseEnterAnAnswer"));
+      return;
+    }
+    setIsLoading(true);
+    const result = await checkAnswer(token, {
+      eval: metadata.eval as string,
+      lesson_content: wholeMD,
+      student_response: answerRef.current.value,
+    });
+    console.log(result);
+    setExitCode(result.exit_code);
+    if (result.exit_code === 0) {
+      Notifier.confetti();
+      playEffect("success");
+    } else {
+      playEffect("error");
+    }
+    setIsLoading(false);
+  };
+
+  return (
+    <div
+      className={`stdin rounded ${exitCode === 0 && "bg-soft-green"} ${
+        exitCode === 1 && "bg-soft-red"
+      }`}
+    >
+      <textarea
+        ref={answerRef}
+        className="w-100 input"
+        name="answer"
+        placeholder={t("yourAnswerHere")}
+      />
+      <div className="d-flex gap-small padding-small">
+        <SimpleButton
+          disabled={isLoading}
+          text={isLoading ? t("evaluating") : t("submitForReview")}
+          title={isLoading ? t("evaluating") : t("submitForReview")}
+          svg={svgs.rigoSoftBlue}
+          action={evaluateAnswer}
+          extraClass="active-on-hover padding-small rounded"
+        />
+        {/* {metadata.speak_to_answer && (
+          <SimpleButton
+            text={t("speakToAnswer")}
+            title={t("speakToAnswer")}
+            svg={svgs.speak}
+            action={() => {
+              const utterance = new SpeechSynthesisUtterance(
+                answerRef.current?.value
+              );
+              window.speechSynthesis.speak(utterance);
+            }}
+          />
+        )} */}
+      </div>
     </div>
   );
 };

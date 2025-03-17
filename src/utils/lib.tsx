@@ -7,6 +7,8 @@ import * as yaml from "js-yaml";
 // import toast from "react-hot-toast";
 export const DEV_MODE =false;
 
+// export const FASTAPI_HOST = "https://ai.4geeks.com";
+export const FASTAPI_HOST = "http://localhost:8003";
 //@ts-ignore
 export function getParams(opts) {
   if (!Array.isArray(opts)) opts = [opts];
@@ -384,6 +386,7 @@ export const playEffect = (mood: "success" | "error") => {
     const audio = new Audio(
       `${LEARNPACK_CDN}/sounds-${mood}/${mood === "success" ? random : 0}.mp3`
     );
+    audio.volume = 0.4;
     audio.play();
   } catch (error) {
     console.error("Error playing sound", error);

@@ -183,7 +183,7 @@
     "yesHelpMe": "Yes, help me!",
     "rigoWantsToHelpYou": "Rigo wants to help you!",
     "whatImDoingWrong": "What am I doing wrong?",
-    "helpIsNowMandatory": "Help is now mandatory! You have failed {{streakTestStruggle}} times in a row, please accept help from Rigobot to continue.",
+    "helpIsNowMandatory": "Don't worry! Rigobot will help you dig your way out. Mistakes are always expected, we have to move on, there is always another challenge and opportunity to learn.",
     "updatingExercise": "Updating exercise...",
     "invalidExerciseName": "Invalid exercise name",
     "exerciseRenamed": "Exercise renamed successfully",
@@ -191,5 +191,11 @@
     "pasteTutorialUrl": "Paste the tutorial URL here",
     "finish": "Finish",
     "editWithRigobot": "Edit with Rigobot",
-    "open-learnpack-docs": "Open LearnPack docs"
+    "open-learnpack-docs": "Open LearnPack docs",
+    "copied": "Copied to clipboard",
+    "copyCodeToClipboard": "Copy code to clipboard",
+    "runCode": "Run code",
+    "yourAnswerHere": "Your answer here",
+    "submitForReview": "Send for review",
+    "evaluating": "Evaluating..."
 }

@@ -24,6 +24,7 @@ import {
   correctLanguage,
   convertUrlToBase64,
   playEffect,
+  FASTAPI_HOST,
 } from "./lib";
 import {
   IStore,
@@ -57,8 +58,7 @@ type TFile = {
 
 const HOST = getHost();
 
-const FASTAPI_HOST = "https://ai.4geeks.com";
-// const FASTAPI_HOST = "http://localhost:8000";
+
 const chatSocket = io(`${FASTAPI_HOST}`);
 
 chatSocket.on("connect", () => {
@@ -555,8 +555,6 @@ The user's set up the application in "${language}" language, give your feedback 
         },
       });
       if (config.exercises && config.exercises.length > 0) {
-        console.log("CONFIG EXERCISES", config.exercises);
-
         set({ exercises: config.exercises });
       }
 

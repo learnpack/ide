@@ -190,7 +190,7 @@
     "yesHelpMe": "Sí, ayúdame!",
     "rigoWantsToHelpYou": "Rigobot quiere ayudarte",
     "whatImDoingWrong": "¿Qué estoy haciendo mal?",
-    "helpIsNowMandatory": "¡La ayuda es obligatoria ahora! Has fallado {{streakTestStruggle}} veces seguidas, por favor acepta ayuda de Rigobot para continuar.",
+    "helpIsNowMandatory": "¡No te preocupes! Rigobot te ayudará a salir de este embrollo. Los errores son siempre esperados, tenemos que seguir adelante, siempre hay otro desafío y oportunidad para aprender.",
     "updatingExercise": "Actualizando ejercicio...",
     "invalidExerciseName": "Nombre de ejercicio inválido",
     "exerciseRenamed": "Ejercicio renombrado correctamente",
@@ -198,5 +198,11 @@
     "pasteTutorialUrl": "Pega la URL del tutorial aquí",
     "finish": "Finalizar",
     "editWithRigobot": "Editar con Rigobot",
-    "open-learnpack-docs": "Abrir documentación de LearnPack"
+    "open-learnpack-docs": "Abrir documentación de LearnPack",
+    "copied": "Copiado al portapapeles",
+    "copyCodeToClipboard": "Copiar código al portapapeles",
+    "runCode": "Ejecutar código",
+    "yourAnswerHere": "Tu respuesta aquí",
+    "submitForReview": "Enviar para revisión",
+    "evaluating": "Evaluando..."
 }

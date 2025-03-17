@@ -1,4 +1,5 @@
 import toast from "react-hot-toast";
+import { FASTAPI_HOST } from "../../utils/lib";
 
 export type TRigoMessage = {
   text: string;
@@ -38,8 +39,8 @@ export const RigoAI = {
           token: userToken,
         },
         context: context || "",
-        // sockethost: "https://ai.4geeks.com",
-        sockethost: "http://127.0.0.1:8003",
+        sockethost: FASTAPI_HOST,
+        // sockethost: "http://127.0.0.1:8003",
       });
       // @ts-ignore
       window.rigo.show({

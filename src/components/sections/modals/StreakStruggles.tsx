@@ -6,7 +6,6 @@ import TelemetryManager, { TTestAttempt } from "../../../managers/telemetry";
 import SimpleButton from "../../mockups/SimpleButton";
 import { useTranslation } from "react-i18next";
 import { svgs } from "../../../assets/svgs";
-import toast from "react-hot-toast";
 
 const randomFrom0to10 = () => {
   return Math.floor(Math.random() * 10);
@@ -55,13 +54,7 @@ export const TestStrugglesModal = () => {
       setMessage(`${t("nineStrugglesAlert." + randomFrom0to10())}`);
     }
     if (stepIndicators && stepIndicators?.metrics.streak_test_struggle >= 15) {
-      setMessage(
-        t("helpIsNowMandatory", {
-          streakTestStruggle: String(
-            stepIndicators?.metrics.streak_test_struggle ?? 15
-          ),
-        })
-      );
+      setMessage(t("helpIsNowMandatory"));
     }
     setFailures(stepIndicators?.metrics.streak_test_struggle ?? 0);
   }, [currentExercisePosition]);
@@ -76,9 +69,7 @@ export const TestStrugglesModal = () => {
     ) {
       setOpenedModals({ testStruggles: false });
     } else {
-      toast.error(
-        t("helpIsNowMandatory", { streakTestStruggle: String(failures) })
-      );
+      console.log("help is now mandatory, you can't close the modal");
     }
   };
 
