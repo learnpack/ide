@@ -3,7 +3,7 @@ import SimpleButton from "../../mockups/SimpleButton";
 import { AskForHint } from "../AskForHint/AskForHint";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { asyncHashText } from "../../../utils/lib";
+import { asyncHashText, playEffect } from "../../../utils/lib";
 import useStore from "../../../utils/store";
 import { Notifier } from "../../../managers/Notifier";
 import { svgs } from "../../../assets/svgs";
@@ -120,8 +120,10 @@ export const QuizRenderer = ({ children }: { children: any }) => {
       if (submission.status === "SUCCESS") {
         toastFromStatus("quiz-success");
         Notifier.confetti();
+        playEffect("success");
       } else {
         toastFromStatus("quiz-error");
+        playEffect("error");
       }
     } else {
       toast.error(t("answer-all-questions-before"));
