@@ -41,3 +41,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <RouterProvider router={router} />
   </React.StrictMode>
 );
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker
+    .register("/sw.js")
+    .then((reg) => console.log("Service Worker registrado:", reg))
+    .catch((err) => console.error("Error al registrar Service Worker:", err));
+}

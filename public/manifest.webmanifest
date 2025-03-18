@@ -1,0 +1,21 @@
+{
+    "short_name": "LearnPack",
+    "name": "LearnPack",
+    "icons": [
+        {
+            "src": "logo-512.png",
+            "type": "image/png",
+            "sizes": "512x512"
+        },
+        {
+            "src": "logo-192.png",
+            "type": "image/png",
+            "sizes": "192x192"
+        }
+    ],
+    "start_url": "/",
+    "scope": "/",
+    "background_color": "#ffffff",
+    "display": "standalone",
+    "theme_color": "#000000"
+}
