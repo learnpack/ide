@@ -536,6 +536,9 @@ a {
 .bg-secondary {
   background-color: var(--color-hovered);
 }
+.bg-danger {
+  background-color: var(--color-fail);
+}
 .input {
   padding: 10px;
   border-radius: 8px;

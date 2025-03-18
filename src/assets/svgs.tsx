@@ -1503,8 +1503,8 @@ export const svgs = {
           y2="8.97052"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#080B16" />
-          <stop offset="1" stop-color="#161F2C" />
+          <stop stopColor="#080B16" />
+          <stop offset="1" stopColor="#161F2C" />
         </linearGradient>
         <linearGradient
           id="paint1_linear_1485_1767"
@@ -1514,11 +1514,11 @@ export const svgs = {
           y2="9.76334"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#B0EFFF" />
-          <stop offset="0.44" stop-color="#ADECFE" />
-          <stop offset="0.67" stop-color="#A5E4FE" />
-          <stop offset="0.85" stop-color="#98D7FD" />
-          <stop offset="1" stop-color="#86C5FD" />
+          <stop stopColor="#B0EFFF" />
+          <stop offset="0.44" stopColor="#ADECFE" />
+          <stop offset="0.67" stopColor="#A5E4FE" />
+          <stop offset="0.85" stopColor="#98D7FD" />
+          <stop offset="1" stopColor="#86C5FD" />
         </linearGradient>
         <linearGradient
           id="paint2_linear_1485_1767"
@@ -1528,11 +1528,11 @@ export const svgs = {
           y2="1.41473"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#B0EFFF" />
-          <stop offset="0.44" stop-color="#ADECFE" />
-          <stop offset="0.67" stop-color="#A5E4FE" />
-          <stop offset="0.85" stop-color="#98D7FD" />
-          <stop offset="1" stop-color="#86C5FD" />
+          <stop stopColor="#B0EFFF" />
+          <stop offset="0.44" stopColor="#ADECFE" />
+          <stop offset="0.67" stopColor="#A5E4FE" />
+          <stop offset="0.85" stopColor="#98D7FD" />
+          <stop offset="1" stopColor="#86C5FD" />
         </linearGradient>
       </defs>
     </svg>
@@ -1671,6 +1671,48 @@ export const svgs = {
 
         <path d="M48,72A12,12,0,1,0,60,84,12.0119,12.0119,0,0,0,48,72Z" />
       </g>
+    </svg>
+  ),
+  microphone: (
+    <svg
+      width="800px"
+      height="800px"
+      viewBox="0 0 16 16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="set-path-fill"
+    >
+      <path
+        d="M5 3C5 1.34315 6.34315 0 8 0C9.65685 0 11 1.34315 11 3V7C11 8.65685 9.65685 10 8 10C6.34315 10 5 8.65685 5 7V3Z"
+        fill="var(--read-font-color)"
+      />
+      <path
+        d="M9 13.9291V16H7V13.9291C3.60771 13.4439 1 10.5265 1 7V6H3V7C3 9.76142 5.23858 12 8 12C10.7614 12 13 9.76142 13 7V6H15V7C15 10.5265 12.3923 13.4439 9 13.9291Z"
+        fill="var(--read-font-color)"
+      />
+    </svg>
+  ),
+  microphoneOff: (
+    <svg
+      width="800px"
+      height="800px"
+      viewBox="0 0 16 16"
+      fill="none"
+      className="set-path-fill"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M16 16H13L10.8748 13.3843C10.2884 13.6488 9.65899 13.8349 9 13.9291V16H7V13.9291C3.60771 13.4439 1 10.5265 1 7V6H3V7C3 9.76142 5.23858 12 8 12C8.54134 12 9.06258 11.914 9.55081 11.7548L8.12299 9.99753C8.0822 9.99917 8.0412 10 8 10C6.34315 10 5 8.65685 5 7V6.15385L0 0H3L16 16Z"
+        fill="var(--read-font-color)"
+      />
+      <path
+        d="M11 6.15385L6.38367 0.472212C6.85016 0.173309 7.40484 0 8 0C9.65685 0 11 1.34315 11 3V6.15385Z"
+        fill="var(--read-font-color)"
+      />
+      <path
+        d="M12.8076 8.37853L14.2506 10.1546C14.7299 9.20663 15 8.13485 15 7V6H13V7C13 7.47815 12.9329 7.94063 12.8076 8.37853Z"
+        fill="var(--read-font-color)"
+      />
     </svg>
   ),
 };

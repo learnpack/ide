@@ -15,6 +15,7 @@ import { buildRigo, checkAnswer } from "../../../managers/EventProxy";
 import { useRef, useState } from "react";
 import { Notifier } from "../../../managers/Notifier";
 import { playEffect } from "../../../utils/lib";
+import { SpeechToTextButton } from "../SpeechRecognitionButton/SpeechRecognitionButton";
 // import { slugToTitle } from "../../Rigobot/utils";
 // import SimpleButton from "../../mockups/SimpleButton";
 // import { svgs } from "../../../assets/svgs";
@@ -370,18 +371,27 @@ const Question = ({
     setIsLoading(false);
   };
 
+  const handleTranscription = (text: string) => {
+    if (answerRef.current) {
+      answerRef.current.value += ` ${text}`;
+    }
+  };
+
   return (
     <div
       className={`stdin rounded ${exitCode === 0 && "bg-soft-green"} ${
         exitCode === 1 && "bg-soft-red"
       }`}
     >
-      <textarea
-        ref={answerRef}
-        className="w-100 input"
-        name="answer"
-        placeholder={t("yourAnswerHere")}
-      />
+      <section className="d-flex gap-small align-center">
+        <textarea
+          ref={answerRef}
+          className="w-100 input"
+          name="answer"
+          placeholder={t("yourAnswerHere")}
+        />
+        <SpeechToTextButton onTranscription={handleTranscription} />
+      </section>
       <div className="d-flex gap-small padding-small">
         <SimpleButton
           disabled={isLoading}
@@ -391,19 +401,6 @@ const Question = ({
           action={evaluateAnswer}
           extraClass="active-on-hover padding-small rounded"
         />
-        {/* {metadata.speak_to_answer && (
-          <SimpleButton
-            text={t("speakToAnswer")}
-            title={t("speakToAnswer")}
-            svg={svgs.speak}
-            action={() => {
-              const utterance = new SpeechSynthesisUtterance(
-                answerRef.current?.value
-              );
-              window.speechSynthesis.speak(utterance);
-            }}
-          />
-        )} */}
       </div>
     </div>
   );
