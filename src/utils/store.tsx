@@ -1757,13 +1757,13 @@ The user's set up the application in "${language}" language, give your feedback 
   },
   test: async () => {
     // Notifier.success("Succesfully tested");
-    const { fetchExercises } = get();
+    // const { fetchExercises } = get();
     // console.log(token, "Token");
     // set({ token: "123456" });
     // toast.success("Token fucked");
     // setOpenedModals({ testStruggles: true });
-    // await FetchManager.logout();
-    await fetchExercises();
+    await FetchManager.logout();
+    // await fetchExercises();
     // try {
     //   await validateRigobotToken(token);
     //   toast.success("Token is valid");

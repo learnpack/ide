@@ -138,8 +138,8 @@
     "rejectChanges": "Rechazar cambios",
     "selectedExercises": "Ejercicios seleccionados",
     "translate": "Traducir",
-    "exerciseName": "01.1 - Nombre del ejercicio",
-    "exerciseNameDescription": "Ingresa el nombre del ejercicio que quieres agregar. Debe contener un número de índice y el título del ejercicio. Por ejemplo: 01.1 - Título del ejercicio",
+    "exerciseName": "Nombre del ejercicio",
+
     "generate": "Generar",
     "cancel": "Cancelar",
     "generatingExercise": "Generando ejercicio...",
@@ -204,5 +204,6 @@
     "runCode": "Ejecutar código",
     "yourAnswerHere": "Tu respuesta aquí",
     "submitForReview": "Enviar para revisión",
-    "evaluating": "Evaluando..."
+    "evaluating": "Evaluando...",
+    "summarize": "Resumir"
 }

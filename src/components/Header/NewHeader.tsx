@@ -25,6 +25,8 @@ export const NewHeader = () => {
     setShowVideoTutorial,
     reportEnrichDataLayer,
     mode,
+    isCreator,
+    setMode,
     // addVideoTutorial,
     setOpenedModals,
   } = useStore((state) => ({
@@ -42,6 +44,8 @@ export const NewHeader = () => {
     setShowVideoTutorial: state.setShowVideoTutorial,
     reportEnrichDataLayer: state.reportEnrichDataLayer,
     mode: state.mode,
+    isCreator: state.isCreator,
+    setMode: state.setMode,
     // addVideoTutorial: state.addVideoTutorial,
     setOpenedModals: state.setOpenedModals,
   }));
@@ -90,6 +94,15 @@ export const NewHeader = () => {
       </section>
       <section>{svgs.learnpackLogo}</section>
       <section className="flex-x align-center">
+        {isCreator && (
+          <SimpleButton
+            action={() => {
+              mode === "student" ? setMode("creator") : setMode("student");
+            }}
+            extraClass="svg-blue"
+            svg={mode === "student" ? svgs.edit : svgs.runCustom}
+          />
+        )}
         {!isIframe && language && <LanguageButton />}
         {hasSolution && (
           <SimpleButton

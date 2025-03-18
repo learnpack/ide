@@ -1,6 +1,7 @@
 .lesson-content {
   padding-bottom: 70px;
   font-size: 20px;
+  padding-inline: 16px;
   line-height: 24px;
 }
 
@@ -40,7 +41,7 @@
   /* border: 1px solid var(--read-font-color); */
   /* transform: translateY(50%); */
   top: 0;
-  left: 20px;
+  left: 0px;
   flex-direction: column;
   z-index: 1000;
   box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
@@ -54,9 +55,9 @@
   display: none;
   position: absolute;
   right: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  /* z-index: 1000; */
+  top: 0%;
+  /* transform: translateY(-50%); */
+  z-index: 1000;
   background-color: var(--app-bg-color);
 }
 
@@ -68,9 +69,9 @@
   background-color: var(--soft-blue);
 }
 
-.creator-wrapper:hover .text-in-editor {
+/* .creator-wrapper:hover .text-in-editor {
   margin-left: 20px;
-}
+} */
 
 /* .creator-wrapper:has(.creator-target-content:empty) .target-buttons {
   display: none;

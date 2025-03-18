@@ -76,7 +76,7 @@
   background-color: var(--bg-1);
   margin-left: 0 !important;
   display: flex;
-  padding: 10px 11px;
+  padding: 5px 11px;
   cursor: pointer;
   justify-content: space-between;
   font-size: 18px;
@@ -107,12 +107,6 @@
 .sidebar-component .exercise-list li.exercise-card:active {
   background-color: var(--color-blue-opaque);
   transition: all 0.3s ease;
-}
-
-.exercise-list li.exercise-card > div {
-  display: flex;
-  gap: 10px;
-  align-items: center;
 }
 
 .sidebar-disappear {

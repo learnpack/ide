@@ -169,7 +169,7 @@ export default function LoginModal() {
           )}
 
           {showForm && (
-            <form action="" onSubmit={login}>
+            <form className="flex-y gap-small" action="" onSubmit={login}>
               <input
                 placeholder="Email"
                 type="email"

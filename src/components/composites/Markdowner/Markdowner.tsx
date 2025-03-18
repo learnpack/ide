@@ -248,8 +248,6 @@ const CustomCodeBlock = ({
     token: state.token,
   }));
 
-  console.log("metadata", metadata);
-
   const { t } = useTranslation();
   const [executionResult, setExecutionResult] = useState<string | null>(null);
 

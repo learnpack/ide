@@ -120,6 +120,32 @@ export const CreatorWrapper = ({
     setIsOpen(false);
   };
 
+  const summarize = () => {
+    let text = elemRef.current?.innerHTML;
+
+    if (node?.position?.start?.offset && node?.position?.end?.offset) {
+      text = getPortionFromText(
+        currentContent.body,
+        node?.position?.start.offset || 0,
+        node?.position?.end.offset || 0
+      );
+    }
+
+    if (text && targetRef.current) {
+      RigoAI.useTemplate({
+        slug: "summarize-text",
+        inputs: {
+          text_to_summarize: text,
+        },
+        target: targetRef.current,
+        onComplete: () => {
+          setShowButtons(true);
+        },
+      });
+    }
+    setIsOpen(false);
+  };
+
   const changeTone = (tone: string) => {
     let text = elemRef.current?.innerHTML;
 
@@ -194,6 +220,14 @@ export const CreatorWrapper = ({
     },
     {
       type: "button",
+      text: t("summarize"),
+      action: () => summarize(),
+      extraClass:
+      "text-secondary  rounded padding-small active-on-hover svg-blue",
+      svg: svgs.play,
+    },
+    {
+      type: "button",
       text: t("explainFurther"),
       action: () => explainFurther(),
       extraClass:
@@ -254,7 +288,10 @@ export const CreatorWrapper = ({
                 </select>
               </div>
             ) : prompt.type === "input" ? (
-              <div className={`flex-x gap-small border-bottom-blue`} key={prompt.text}>
+              <div
+                className={`flex-x gap-small border-bottom-blue`}
+                key={prompt.text}
+              >
                 <SimpleButton
                   svg={prompt.svg}
                   action={() => prompt.action(inputRef.current?.value || "")}

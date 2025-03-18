@@ -11,6 +11,34 @@ interface CustomPictureInPictureProps {
   hide: () => void;
 }
 
+const openedStyles = {
+  width: "min(300px, 95vw)",
+  position: "fixed",
+  padding: "10px",
+  borderRadius: "10px",
+  right: "5vw",
+  bottom: "10%",
+  zIndex: 5,
+  backgroundColor: "#D8E2F0",
+  // cursor: "move",
+  color: "black",
+  boxShadow: "0px 0px 10px rgba(0,0,0,0.8)",
+};
+
+const closedStyles = {
+  width: "min(600px, 95vw)",
+  position: "fixed",
+  padding: "10px",
+  borderRadius: "10px",
+  left: "5vw",
+  top: "10%",
+  zIndex: 5,
+  color: "black",
+  backgroundColor: "#D8E2F0",
+  cursor: "move",
+  boxShadow: "0px 0px 10px rgba(0,0,0,0.8)",
+};
+
 export const CustomPictureInPicture: React.FC<CustomPictureInPictureProps> = ({
   link,
   hide,
@@ -25,22 +53,10 @@ export const CustomPictureInPicture: React.FC<CustomPictureInPictureProps> = ({
 
   return (
     <>
-      {!isOpen && (
+      {/* {!isOpen && (
         <div
           ref={videoContainerRef}
-          style={{
-            width: "min(300px, 95vw)",
-            position: "fixed",
-            padding: "10px",
-            borderRadius: "10px",
-            right: "5vw",
-            bottom: "10%",
-            zIndex: 5,
-            backgroundColor: "#D8E2F0",
-            // cursor: "move",
-            color: "black",
-            boxShadow: "0px 0px 10px rgba(0,0,0,0.8)",
-          }}
+    
         >
           <div className="flex-x justify-between align-center">
             <SimpleButton
@@ -62,47 +78,38 @@ export const CustomPictureInPicture: React.FC<CustomPictureInPictureProps> = ({
           </div>
           <VideoPlayer link={link} />
         </div>
-      )}
-      {isOpen && (
-        <Draggable cancel=".no-drag">
-          <div
-            ref={videoContainerRef}
-            style={{
-              width: "min(600px, 95vw)",
-              position: "fixed",
-              padding: "10px",
-              borderRadius: "10px",
-              left: "5vw",
-              top: "10%",
-              zIndex: 5,
-              color: "black",
-              backgroundColor: "#D8E2F0",
-              cursor: "move",
-              boxShadow: "0px 0px 10px rgba(0,0,0,0.8)",
-            }}
-          >
-            <div className="flex-x justify-between align-center">
-              <SimpleButton
-                extraClass="no-drag svg-black"
-                action={() => setIsOpen(false)}
-                svg={svgs.reduce}
-              />
+      )} */}
 
-              <span className="padding-small">
-                {currentExercisePosition === 0
-                  ? t("video-introduction")
-                  : t("video-solution")}
-              </span>
-              <SimpleButton
-                extraClass="no-drag"
-                action={hide}
-                svg={svgs.redClose}
-              />
-            </div>
-            <VideoPlayer link={link} />
+      <Draggable cancel=".no-drag">
+        <div
+          ref={videoContainerRef}
+          className={isOpen ? "no-drag" : ""}
+          // @ts-ignore
+          style={isOpen ? openedStyles : closedStyles}
+        >
+          <div className="flex-x justify-between align-center">
+            <SimpleButton
+              extraClass="no-drag svg-black"
+              action={() => {
+                setIsOpen(!isOpen);
+              }}
+              svg={isOpen ? svgs.expand : svgs.reduce}
+            />
+
+            <span className="padding-small">
+              {currentExercisePosition === 0
+                ? t("video-introduction")
+                : t("video-solution")}
+            </span>
+            <SimpleButton
+              extraClass="no-drag"
+              action={hide}
+              svg={svgs.redClose}
+            />
           </div>
-        </Draggable>
-      )}
+          <VideoPlayer link={link} />
+        </div>
+      </Draggable>
     </>
   );
 };

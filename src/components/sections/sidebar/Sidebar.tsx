@@ -19,8 +19,7 @@ export default function Sidebar() {
     setShowSidebar,
     isIframe,
     mode,
-    isCreator,
-    setMode,
+
     openLink,
     fetchExercises,
   } = useStore((state) => ({
@@ -30,8 +29,7 @@ export default function Sidebar() {
     setShowSidebar: state.setShowSidebar,
     isIframe: state.isIframe,
     mode: state.mode,
-    setMode: state.setMode,
-    isCreator: state.isCreator,
+
     openLink: state.openLink,
     fetchExercises: state.fetchExercises,
   }));
@@ -66,33 +64,23 @@ export default function Sidebar() {
                 svg={theme === "dark" ? svgs.sun : svgs.moon}
               />
             )}
-            {isCreator && (
-              <SimpleButton
-                action={() => {
-                  mode === "student" ? setMode("creator") : setMode("student");
-                }}
-                extraClass="text-white"
-                svg={mode === "student" ? svgs.edit : svgs.run}
-                // text={mode === "student" ? "Creator" : "Student"}
-              />
-            )}
           </section>
 
           <ExercisesList mode={mode} closeSidebar={closeSidebar} />
 
           <section className="footer">
-            <BugButton />
-
+            <div className="flex-x align-center gap-small">
+              <BugButton />
+              <SimpleButton
+                extraClass="pill svg-white"
+                svg={svgs.question}
+                title={t("open-learnpack-docs")}
+                action={openLearnpackDocs}
+              />
+            </div>
             <span>
               <strong>v{versionSections.join(".")}</strong>
             </span>
-
-            <SimpleButton
-              extraClass="pill svg-white"
-              svg={svgs.question}
-              title={t("open-learnpack-docs")}
-              action={openLearnpackDocs}
-            />
           </section>
         </div>
       )}

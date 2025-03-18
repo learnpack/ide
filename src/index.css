@@ -180,11 +180,6 @@ p,
   line-height: 1.7;
 }
 
-form {
-  display: flex;
-  gap: 5px;
-  flex-direction: column;
-}
 form button {
   width: fit-content;
   padding: 7px;
@@ -843,4 +838,12 @@ a {
 }
 .bg-white {
   background-color: var(--white) !important;
+}
+
+.margin-left-small {
+  margin-left: 10px;
+}
+
+.svg-blue {
+  --read-font-color: var(--color-blue-rigo);
 }

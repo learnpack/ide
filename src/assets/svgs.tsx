@@ -1236,8 +1236,8 @@ export const svgs = {
   ),
   iconCheck: (
     <svg
-      width="11"
-      height="13"
+      width="18"
+      height="18"
       viewBox="0 0 11 13"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -1279,8 +1279,8 @@ export const svgs = {
   ),
   edit: (
     <svg
-      width="10"
-      height="10"
+      width="18"
+      height="18"
       viewBox="0 0 10 10"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -1294,8 +1294,8 @@ export const svgs = {
   ),
   trash: (
     <svg
-      width="9"
-      height="10"
+      width="18"
+      height="18"
       viewBox="0 0 9 10"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

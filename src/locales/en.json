@@ -131,8 +131,8 @@
     "rejectChanges": "Reject changes",
     "selectedExercises": "Selected exercises",
     "translate": "Translate",
-    "exerciseName": "01.1 - Exercise title",
-    "exerciseNameDescription": "Enter the name of the exercise you want to add. It should contain an index number and the title of the exercise. For example: 01.1 - Exercise title",
+    "exerciseName": "Exercise title",
+
     "generate": "Generate",
     "cancel": "Cancel",
     "generatingExercise": "Generating exercise...",
@@ -197,5 +197,6 @@
     "runCode": "Run code",
     "yourAnswerHere": "Your answer here",
     "submitForReview": "Send for review",
-    "evaluating": "Evaluating..."
+    "evaluating": "Evaluating...",
+    "summarize": "Summarize"
 }
