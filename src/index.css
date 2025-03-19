@@ -513,6 +513,10 @@ a {
 
 .danger-on-hover:hover {
   background-color: var(--color-fail);
+  color: white;
+  & svg.set-path-fill path {
+    fill: white !important;
+  }
 }
 
 .svg-success svg path {
@@ -849,4 +853,14 @@ a {
 
 .svg-blue {
   --read-font-color: var(--color-blue-rigo);
+}
+
+.rigo-textarea {
+  border: 0;
+  background: transparent;
+  font-size: 16px;
+  &::placeholder {
+    color: var(--gray-blue-color);
+  }
+  outline: none;
 }

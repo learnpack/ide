@@ -44,7 +44,7 @@ export const CreatorWrapper = ({
   const targetRef = useRef<HTMLDivElement>(null);
 
   const toneRef = useRef<HTMLSelectElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const { t } = useTranslation();
 
@@ -201,6 +201,13 @@ export const CreatorWrapper = ({
     setIsOpen(false);
   };
 
+  const removeThis = async () => {
+    if (node?.position?.start && node?.position?.end) {
+      await replaceInReadme("", node?.position?.start, node?.position?.end);
+    }
+    setIsOpen(false);
+  };
+
   const promps: TPromp[] = [
     {
       type: "input",
@@ -223,7 +230,7 @@ export const CreatorWrapper = ({
       text: t("summarize"),
       action: () => summarize(),
       extraClass:
-      "text-secondary  rounded padding-small active-on-hover svg-blue",
+        "text-secondary  rounded padding-small active-on-hover svg-blue",
       svg: svgs.play,
     },
     {
@@ -234,6 +241,7 @@ export const CreatorWrapper = ({
         "text-secondary  rounded padding-small active-on-hover svg-blue",
       svg: svgs.play,
     },
+
     {
       type: "select",
       text: t("changeTone"),
@@ -250,6 +258,14 @@ export const CreatorWrapper = ({
         "text-secondary  rounded padding-small active-on-hover svg-blue",
       svg: svgs.play,
     },
+    {
+      type: "button",
+      text: t("removeThis"),
+      action: () => removeThis(),
+      extraClass:
+        "text-secondary  rounded padding-small danger-on-hover svg-blue",
+      svg: svgs.trash,
+    }
   ];
 
   return (
@@ -298,12 +314,13 @@ export const CreatorWrapper = ({
                   extraClass={prompt.extraClass}
                   text={prompt.text}
                 />
-                <input
+                <textarea
                   placeholder={prompt.placeholder}
                   ref={inputRef}
-                  type="text"
-                  className="rounded blank-input"
-                />
+                  autoFocus
+                  // type="text"
+                  className="rounded blank-input w-100 rigo-textarea"
+                ></textarea>
               </div>
             ) : null
           )}
