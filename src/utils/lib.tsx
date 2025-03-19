@@ -7,8 +7,8 @@ import * as yaml from "js-yaml";
 // import toast from "react-hot-toast";
 export const DEV_MODE =false;
 
-// export const FASTAPI_HOST = "https://ai.4geeks.com";
-export const FASTAPI_HOST = "http://localhost:8003";
+export const FASTAPI_HOST = "https://ai.4geeks.com";
+// export const FASTAPI_HOST = "http://localhost:8003";
 //@ts-ignore
 export function getParams(opts) {
   if (!Array.isArray(opts)) opts = [opts];

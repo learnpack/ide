@@ -1,6 +1,6 @@
 {
-    "short_name": "LearnPack",
-    "name": "LearnPack",
+    "short_name": "{{course_app_name}}",
+    "name": "LearnPack: {{course_title}}",
     "icons": [
         {
             "src": "logo-512.png",
