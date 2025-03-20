@@ -102,7 +102,7 @@ export default function LoginModal() {
 
   const redirectGithub = () => {
     let currentUrl = getCurrentUrlWithQueryParams();
-    toast.success(`currentUrl: ${currentUrl}`);
+
     toast.success(t("redirecting-to-github"));
     openLink(
       `${BREATHECODE_HOST}/v1/auth/github/?url=${stringToBase64(currentUrl)}`,
