@@ -91,8 +91,8 @@ export default function LoginModal() {
   function getCurrentUrlWithQueryParams() {
     const currentUrl = window.location.href;
     if (environment === "localhost") {
-      // detech if the url has hash params
-      if (currentUrl.includes("#")) {
+      // detech if the url has hash or query params
+      if (currentUrl.includes("#") || currentUrl.includes("?")) {
         return `${currentUrl}&autoclose=true`;
       }
       return `${currentUrl}?autoclose=true`;

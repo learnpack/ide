@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import useStore from "../../../utils/store";
 import "./LessonStyles.css";
 
+
 export const LessonRenderer = memo(
   ({
     header,
@@ -29,18 +30,23 @@ export const LessonRenderer = memo(
       <div className="lesson-content">
         {header}
         <Markdowner markdown={currentContent.body} />
-        {continueAction && editorTabs.length === 0 && !isLastExercise && (
-          <div
-            onClick={continueAction}
-            className={`badge bg-blue ${
-              editorTabs.length > 0 ? "hide-continue-button" : "continue-button"
-            }`}
-          >
-            {t("continue")}
-          </div>
-        )}
+        {continueAction &&
+          editorTabs.length === 0 &&
+          !isLastExercise &&
+          agent !== "vscode" && (
+            <div
+              onClick={continueAction}
+              className={`badge bg-blue ${
+                editorTabs.length > 0
+                  ? "hide-continue-button"
+                  : "continue-button"
+              }`}
+            >
+              {t("continue")}
+            </div>
+          )}
         {/* {ENVIRONMENT === "localhost" && editorTabs.length > 0 && ( */}
-        {ENVIRONMENT === "localhost" && agent !== "os" && (
+        {ENVIRONMENT === "localhost" && agent === "vscode" && (
           <Toolbar editorStatus="MODIFIED" />
         )}
       </div>

@@ -130,7 +130,7 @@ const AddExerciseButton = ({
       {isAdding ? (
         <form
           onSubmit={handleGenerate}
-          className=" bg-soft-blue rounded padding-small w-100 flex-x"
+          className=" bg-soft-blue rounded padding-small w-100 flex-x gap-small"
         >
           {prevExercise &&
           prevExercise.title &&

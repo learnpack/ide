@@ -1,6 +1,8 @@
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 import useStore from "../../../utils/store";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark as prismStyle } from "react-syntax-highlighter/dist/esm/styles/prism";
@@ -78,6 +80,8 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
   return (
     <Markdown
       skipHtml={true}
+      remarkPlugins={[remarkGfm, remarkMath]}
+      rehypePlugins={[rehypeKatex]}
       components={{
         a: ({ href, children }) => {
           if (href) {
@@ -217,7 +221,6 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
           );
         },
       }}
-      remarkPlugins={[remarkGfm]}
     >
       {markdown}
     </Markdown>
