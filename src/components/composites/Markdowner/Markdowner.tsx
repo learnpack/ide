@@ -246,10 +246,11 @@ const CustomCodeBlock = ({
   metadata: TMetadata;
   wholeMD: string;
 }) => {
-  const { getCurrentExercise, isIframe, token } = useStore((state) => ({
+  const { getCurrentExercise, isIframe, token, agent } = useStore((state) => ({
     getCurrentExercise: state.getCurrentExercise,
     isIframe: state.isIframe,
     token: state.token,
+    agent: state.agent,
   }));
 
   const { t } = useTranslation();
@@ -300,7 +301,7 @@ const CustomCodeBlock = ({
       <div className="d-flex justify-between align-center code-buttons">
         <span className="language">{language}</span>
         <div className="d-flex gap-small">
-          {!isIframe && (
+          {!isIframe && agent !== "vscode" && (
             <SimpleButton
               title={t("copyCodeToClipboard")}
               svg={svgs.copy}
