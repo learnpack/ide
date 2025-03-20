@@ -89,17 +89,15 @@ export default function LoginModal() {
   }
 
   function getCurrentUrlWithQueryParams() {
-    const currentUrl = window.location.href;
+    let currentUrl = window.location.origin + window.location.pathname;
+  
     if (environment === "localhost") {
-      // detech if the url has hash or query params
-      if (currentUrl.includes("#") || currentUrl.includes("?")) {
-        return `${currentUrl}&autoclose=true`;
-      }
       return `${currentUrl}?autoclose=true`;
     }
-    return currentUrl;
+  
+    return window.location.href;
   }
-
+  
   const redirectGithub = () => {
     let currentUrl = getCurrentUrlWithQueryParams();
 
