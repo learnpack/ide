@@ -11,6 +11,7 @@ import { NewHeader } from "./components/Header/NewHeader";
 import { Container } from "./components/Container/Container";
 import useStore from "./utils/store";
 import i18n from "./utils/i18n";
+import mermaid from "mermaid";
 
 export default function Home() {
   const { start, handleEnvironmentChange, theme, isIframe, language } =
@@ -25,6 +26,7 @@ export default function Home() {
 
   useEffect(() => {
     start();
+    mermaid.initialize({ startOnLoad: false });
 
     i18n.changeLanguage(language);
     document.addEventListener("environment-change", handleEnvironmentChange);

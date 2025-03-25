@@ -17,7 +17,9 @@ import { buildRigo, checkAnswer } from "../../../managers/EventProxy";
 import { useRef, useState } from "react";
 import { Notifier } from "../../../managers/Notifier";
 import { playEffect } from "../../../utils/lib";
+
 import { SpeechToTextButton } from "../SpeechRecognitionButton/SpeechRecognitionButton";
+import MermaidRenderer from "../MermaidRenderer/MermaidRenderer";
 // import { slugToTitle } from "../../Rigobot/utils";
 // import SimpleButton from "../../mockups/SimpleButton";
 // import { svgs } from "../../../assets/svgs";
@@ -278,6 +280,10 @@ const CustomCodeBlock = ({
 
   if (language === "question") {
     return <Question metadata={metadata} wholeMD={wholeMD} />;
+  }
+
+  if (language === "mermaid") {
+    return <MermaidRenderer code={code} />;
   }
 
   const metadataComponents = {
