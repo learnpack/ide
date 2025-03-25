@@ -57,13 +57,6 @@ export default function Sidebar() {
         <div className="sidebar-component">
           <section className="d-flex gap-small align-center justify-between  bg-rigo  rounded text-white w-100">
             <p className="margin-0 padding-small">Menu</p>
-            {!isIframe && (
-              <SimpleButton
-                action={toggleTheme}
-                extraClass="pill svg-white"
-                svg={theme === "dark" ? svgs.sun : svgs.moon}
-              />
-            )}
           </section>
 
           <ExercisesList mode={mode} closeSidebar={closeSidebar} />
@@ -77,6 +70,12 @@ export default function Sidebar() {
                 title={t("open-learnpack-docs")}
                 action={openLearnpackDocs}
               />
+              {!isIframe && (
+                <SimpleButton
+                  action={toggleTheme}
+                  svg={theme === "dark" ? svgs.sun : svgs.moon}
+                />
+              )}
             </div>
             <span>
               <strong>v{versionSections.join(".")}</strong>
