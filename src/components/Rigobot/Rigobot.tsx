@@ -432,7 +432,7 @@ const Message = memo(({ type, text, extraClass }: IMessage) => {
 
   return (
     <div className={`message ${type} ${extraClass ? extraClass : ""}`}>
-      <Markdowner markdown={text} />
+      <Markdowner markdown={text} allowCreate={false} />
     </div>
   );
 });

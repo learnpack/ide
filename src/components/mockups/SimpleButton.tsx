@@ -1,5 +1,4 @@
-import { useRef } from "react";
-import toast from "react-hot-toast";
+import { useRef, useState } from "react";
 
 interface ButtonProps {
   id?: string;
@@ -27,6 +26,7 @@ export default function SimpleButton({
   type = "button",
 }: ButtonProps) {
   const timesClicked = useRef(0);
+  const [currentText, setCurrentText] = useState(text);
 
   const handleClick = (e: any) => {
     if (!action) return;
@@ -36,7 +36,7 @@ export default function SimpleButton({
     }
 
     if (timesClicked.current === 0) {
-      toast.error(confirmationMessage || "Please confirm the action");
+      setCurrentText(confirmationMessage);
       timesClicked.current++;
     } else {
       action(e);
@@ -53,7 +53,9 @@ export default function SimpleButton({
       type={type}
     >
       {svg && <span className="d-flex align-center">{svg}</span>}
-      {text && <span className="d-flex align-center">{text}</span>}
+      {currentText && (
+        <span className="d-flex align-center">{currentText}</span>
+      )}
     </button>
   );
 }

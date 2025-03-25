@@ -206,5 +206,6 @@
     "submitForReview": "Enviar para revisión",
     "evaluating": "Evaluando...",
     "summarize": "Resumir",
-    "removeThis": "Eliminar este"
+    "removeThis": "Eliminar este",
+    "sure?": "¿Seguro?"
 }

@@ -55,7 +55,7 @@
   display: none;
   position: absolute;
   right: 100%;
-  top: 0%;
+  top: 5px;
   /* transform: translateY(-50%); */
   z-index: 1000;
   background-color: var(--app-bg-color);

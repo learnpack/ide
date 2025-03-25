@@ -250,7 +250,7 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
       {exercises.map((item, index) => (
         <div key={index} className="flex-y align-center gap-small">
           <ExerciseCard
-            key={index}
+            key={index + item.slug}
             {...item}
             closeSidebar={closeSidebar}
             mode={mode}
@@ -259,7 +259,7 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
           />
           {mode === "creator" && (
             <AddExerciseButton
-              prevExercise={index > 0 ? exercises[index] : null}
+              prevExercise={exercises[index]}
               exercises={exercises}
             />
           )}
@@ -396,13 +396,13 @@ function ExerciseCard({
         {mode === "creator" && (
           <>
             <SimpleButton
-              extraClass="scale-on-hover"
+              extraClass=""
               svg={isEditing ? svgs.iconCheck : svgs.edit}
               text=""
               action={handleEdit}
             />
             <SimpleButton
-              extraClass="scale-on-hover"
+              extraClass=""
               svg={isEditing ? svgs.iconClose : svgs.trash}
               text=""
               action={async () => {
@@ -426,9 +426,7 @@ function ExerciseCard({
                   console.log(error);
                 }
               }}
-              confirmationMessage={
-                isEditing ? undefined : t("sureDeleteExercise")
-              }
+              confirmationMessage={isEditing ? undefined : t("sure?")}
             />
           </>
         )}

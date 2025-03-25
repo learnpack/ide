@@ -199,5 +199,6 @@
     "submitForReview": "Send for review",
     "evaluating": "Evaluating...",
     "summarize": "Summarize",
-    "removeThis": "Remove this"
+    "removeThis": "Remove this",
+    "sure?": "Sure?"
 }

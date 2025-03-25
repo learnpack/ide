@@ -7,7 +7,6 @@ import { useTranslation } from "react-i18next";
 import useStore from "../../../utils/store";
 import "./LessonStyles.css";
 
-
 export const LessonRenderer = memo(
   ({
     header,
@@ -29,7 +28,7 @@ export const LessonRenderer = memo(
     return (
       <div className="lesson-content">
         {header}
-        <Markdowner markdown={currentContent.body} />
+        <Markdowner markdown={currentContent.body} allowCreate={true} />
         {continueAction &&
           editorTabs.length === 0 &&
           !isLastExercise &&

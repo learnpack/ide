@@ -165,6 +165,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                   {tab.name.includes("solution.hide") && (
                     <div className=" padding-small margin-children-none text-small bg-warning text-black">
                       <Markdowner
+                        allowCreate={false}
                         markdown={t("solution-tab-not-editable", {
                           switchTo:
                             filteredTabs.filter(

@@ -70,7 +70,13 @@ const extractMetadata = (metadata: string) => {
 
 type TMetadata = Record<string, string | boolean>;
 
-export const Markdowner = ({ markdown }: { markdown: string }) => {
+export const Markdowner = ({
+  markdown,
+  allowCreate = false,
+}: {
+  markdown: string;
+  allowCreate?: boolean;
+}) => {
   const { openLink, mode, isCreator } = useStore((state) => ({
     openLink: state.openLink,
     mode: state.mode,
@@ -97,7 +103,7 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
           return <span>{children}</span>;
         },
         h1: ({ children, node }) => {
-          if (isCreator && mode === "creator") {
+          if (isCreator && mode === "creator" && allowCreate) {
             return (
               <CreatorWrapper node={node} tagName="h1">
                 <h1>{children}</h1>
@@ -107,7 +113,7 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
           return <h1>{children}</h1>;
         },
         h2: ({ children, node }) => {
-          if (isCreator && mode === "creator") {
+          if (isCreator && mode === "creator" && allowCreate) {
             return (
               <CreatorWrapper node={node} tagName="h2">
                 <h2>{children}</h2>
@@ -117,7 +123,7 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
           return <h2>{children}</h2>;
         },
         p: ({ children, node }) => {
-          if (isCreator && mode === "creator") {
+          if (isCreator && mode === "creator" && allowCreate) {
             return (
               <CreatorWrapper node={node} tagName="p">
                 <p>{children}</p>
@@ -129,7 +135,8 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
         // @ts-ignore
         ol: ({ children, node }) => {
           const containsTaskList = checkForQuiz(node);
-          const creatorModeActivated = isCreator && mode === "creator";
+          const creatorModeActivated =
+            isCreator && mode === "creator" && allowCreate;
 
           if (containsTaskList) {
             // if (creatorModeActivated) {
@@ -161,7 +168,7 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
             return <QuizRenderer children={children} />;
           }
 
-          if (isCreator && mode === "creator") {
+          if (isCreator && mode === "creator" && allowCreate) {
             return (
               <CreatorWrapper node={node} tagName="ul">
                 <ul>{children}</ul>
@@ -199,7 +206,7 @@ export const Markdowner = ({ markdown }: { markdown: string }) => {
             return <pre>{props.children}</pre>;
           }
 
-          if (isCreator && mode === "creator") {
+          if (isCreator && mode === "creator" && allowCreate) {
             return (
               <CreatorWrapper node={props.node} tagName="pre">
                 <CustomCodeBlock
