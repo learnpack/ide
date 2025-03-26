@@ -139,7 +139,6 @@
     "selectedExercises": "Ejercicios seleccionados",
     "translate": "Traducir",
     "exerciseName": "Nombre del ejercicio",
-
     "generate": "Generar",
     "cancel": "Cancelar",
     "generatingExercise": "Generando ejercicio...",
@@ -198,6 +197,7 @@
     "pasteTutorialUrl": "Pega la URL del tutorial aquí",
     "finish": "Finalizar",
     "editWithRigobot": "Editar con Rigobot",
+    "editWithRigobotPlaceholder": "Reescribe este texto con más ejemplos",
     "open-learnpack-docs": "Abrir documentación de LearnPack",
     "copied": "Copiado al portapapeles",
     "copyCodeToClipboard": "Copiar código al portapapeles",

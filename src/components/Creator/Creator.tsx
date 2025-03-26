@@ -210,14 +210,6 @@ export const CreatorWrapper = ({
 
   const promps: TPromp[] = [
     {
-      type: "input",
-      placeholder: t("editWithRigobot"),
-      svg: svgs.rigoSoftBlue,
-      text: "",
-      action: (question: string) => askAIAnything(question),
-      extraClass: "  rounded padding-small active-on-hover blank-input",
-    },
-    {
       type: "button",
       text: t("simplifyLanguage"),
       action: () => simplifyLanguage(),
@@ -265,65 +257,62 @@ export const CreatorWrapper = ({
       extraClass:
         "text-secondary  rounded padding-small danger-on-hover svg-blue",
       svg: svgs.trash,
-    }
+    },
   ];
 
   return (
     <div className={`creator-wrapper ${tagName}`}>
       {isOpen && (
         <div ref={optionsRef} className="creator-options">
-          {promps.map((prompt) =>
-            prompt.type === "button" ? (
-              <SimpleButton
-                svg={prompt.svg}
-                key={prompt.text}
-                action={prompt.action}
-                extraClass={prompt.extraClass}
-                text={prompt.text}
-              />
-            ) : prompt.type === "select" ? (
-              <div className={`flex-x gap-small `} key={prompt.text}>
+          <div className={`flex-x gap-small  rigo-input`}>
+            <SimpleButton
+              svg={svgs.rigoSoftBlue}
+              action={() => askAIAnything(inputRef.current?.value || "")}
+              extraClass={"active-on-hover rounded text-small"}
+              text={t("editWithRigobot")}
+            />
+            <textarea
+              placeholder={t("editWithRigobotPlaceholder")}
+              ref={inputRef}
+              autoFocus
+              className="rounded blank-input w-100 rigo-textarea"
+            ></textarea>
+          </div>
+          <div className="flex-y gap-small creator-options-buttons">
+            {promps.map((prompt, index) =>
+              prompt.type === "button" ? (
                 <SimpleButton
-                  key={prompt.text}
                   svg={prompt.svg}
-                  action={() => prompt.action(toneRef.current?.value || "")}
+                  key={`${prompt.text}-${index}`}
+                  action={prompt.action}
                   extraClass={prompt.extraClass}
                   text={prompt.text}
                 />
-                <select
-                  ref={toneRef}
-                  key={prompt.text}
-                  className={`rounded bg-transparent`}
-                  // onChange={(e) => prompt.action(e.target.value)}
-                >
-                  {prompt.options?.map((option) => (
-                    <option key={option} value={option}>
-                      {t(option)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ) : prompt.type === "input" ? (
-              <div
-                className={`flex-x gap-small border-bottom-blue`}
-                key={prompt.text}
-              >
-                <SimpleButton
-                  svg={prompt.svg}
-                  action={() => prompt.action(inputRef.current?.value || "")}
-                  extraClass={prompt.extraClass}
-                  text={prompt.text}
-                />
-                <textarea
-                  placeholder={prompt.placeholder}
-                  ref={inputRef}
-                  autoFocus
-                  // type="text"
-                  className="rounded blank-input w-100 rigo-textarea"
-                ></textarea>
-              </div>
-            ) : null
-          )}
+              ) : prompt.type === "select" ? (
+                <div className={`flex-x gap-small `} key={prompt.text}>
+                  <SimpleButton
+                    key={prompt.text}
+                    svg={prompt.svg}
+                    action={() => prompt.action(toneRef.current?.value || "")}
+                    extraClass={prompt.extraClass}
+                    text={prompt.text}
+                  />
+                  <select
+                    ref={toneRef}
+                    key={prompt.text}
+                    className={`rounded `}
+                    // onChange={(e) => prompt.action(e.target.value)}
+                  >
+                    {prompt.options?.map((option) => (
+                      <option key={option} value={option}>
+                        {t(option)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : null
+            )}
+          </div>
         </div>
       )}
 

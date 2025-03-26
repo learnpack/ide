@@ -426,12 +426,16 @@ interface IMessage {
 }
 
 const Message = memo(({ type, text, extraClass }: IMessage) => {
+  const { t } = useTranslation();
   if (type === "loader") {
     return <Loader text={text} svg={svgs.rigoSvg} />;
   }
 
   return (
     <div className={`message ${type} ${extraClass ? extraClass : ""}`}>
+      {type === "bot" && !text && (
+        <Loader text={t("thinking")} svg={svgs.rigoSvg} />
+      )}
       <Markdowner markdown={text} allowCreate={false} />
     </div>
   );

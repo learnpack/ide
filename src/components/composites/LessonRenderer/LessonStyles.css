@@ -33,7 +33,7 @@
 
 .creator-options {
   display: flex;
-  background-color: var(--color-blue-opaque);
+
   padding: 5px;
   border-radius: 5px;
   gap: 3px;
@@ -45,6 +45,13 @@
   flex-direction: column;
   z-index: 1000;
   box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+}
+
+.creator-options-buttons {
+  background-color: var(--color-blue-opaque);
+  width: fit-content;
+  padding: 5px;
+  border-radius: 5px;
 }
 
 .text-in-editor {
@@ -67,6 +74,7 @@
 
 .creator-wrapper:hover {
   background-color: var(--soft-blue);
+  border-radius: 2px;
 }
 
 /* .creator-wrapper:hover .text-in-editor {
@@ -107,9 +115,15 @@
   color: var(--color-success);
 }
 
-
- 
 .katex {
   font-size: 1.2rem;
   line-height: 2rem;
+}
+
+.rigo-input {
+  background-color: var(--color-blue-opaque);
+  border-radius: 5px;
+  font-size: 16px;
+  padding: 5px;
+  width: min(600px, 90vw) !important;
 }

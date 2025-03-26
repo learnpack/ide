@@ -132,7 +132,6 @@
     "selectedExercises": "Selected exercises",
     "translate": "Translate",
     "exerciseName": "Exercise title",
-
     "generate": "Generate",
     "cancel": "Cancel",
     "generatingExercise": "Generating exercise...",
@@ -191,6 +190,7 @@
     "pasteTutorialUrl": "Paste the tutorial URL here",
     "finish": "Finish",
     "editWithRigobot": "Edit with Rigobot",
+    "editWithRigobotPlaceholder": "Rewrite this text with including more examples",
     "open-learnpack-docs": "Open LearnPack docs",
     "copied": "Copied to clipboard",
     "copyCodeToClipboard": "Copy code to clipboard",
