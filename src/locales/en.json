@@ -200,5 +200,19 @@
     "evaluating": "Evaluating...",
     "summarize": "Summarize",
     "removeThis": "Remove this",
-    "sure?": "Sure?"
+    "sure?": "Sure?",
+    "send": "Send",
+    "missingExamples": "Missing examples",
+    "missingExamplesExplanation": "In order to make the evaluation process more accurate, we need to add examples of correct inputs. Please evaluate the following examples and add more if needed.",
+    "accept": "Accept",
+    "reject": "Reject",
+    "correct": "Correct",
+    "incorrect": "Incorrect",
+    "writeAnExampleCorrectAnswer": "Write an example of a correct answer",
+    "add": "Add",
+    "remove": "Remove",
+    "editExamples": "Edit examples",
+    "questionEditor": "Question editor",
+    "evaluationCriteria": "Evaluation criteria",
+    "examples": "Examples"
 }

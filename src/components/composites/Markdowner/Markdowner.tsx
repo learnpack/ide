@@ -1,6 +1,6 @@
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-
+import { TMetadata } from "./types";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import useStore from "../../../utils/store";
@@ -13,17 +13,11 @@ import SimpleButton from "../../mockups/SimpleButton";
 import { svgs } from "../../../assets/svgs";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { buildRigo, checkAnswer } from "../../../managers/EventProxy";
-import { useRef, useState } from "react";
-import { Notifier } from "../../../managers/Notifier";
-import { playEffect } from "../../../utils/lib";
+import { buildRigo } from "../../../managers/EventProxy";
+import { useState } from "react";
 
-import { SpeechToTextButton } from "../SpeechRecognitionButton/SpeechRecognitionButton";
 import MermaidRenderer from "../MermaidRenderer/MermaidRenderer";
-// import { slugToTitle } from "../../Rigobot/utils";
-// import SimpleButton from "../../mockups/SimpleButton";
-// import { svgs } from "../../../assets/svgs";
-
+import { Question } from "../OpenQuestion/OpenQuestion";
 const isRigoQuestion = (href: string) => {
   return href.startsWith("https://4geeks.com/ask?query=");
 };
@@ -69,8 +63,6 @@ const extractMetadata = (metadata: string) => {
 
   return metadataObject;
 };
-
-type TMetadata = Record<string, string | boolean>;
 
 export const Markdowner = ({
   markdown,
@@ -212,6 +204,7 @@ export const Markdowner = ({
             return (
               <CreatorWrapper node={props.node} tagName="pre">
                 <CustomCodeBlock
+                  node={props.node}
                   code={codeBlocks[0].code}
                   language={codeBlocks[0].lang}
                   metadata={codeBlocks[0].metadata}
@@ -222,6 +215,7 @@ export const Markdowner = ({
           }
           return (
             <CustomCodeBlock
+              node={props.node}
               code={codeBlocks[0].code}
               language={codeBlocks[0].lang}
               metadata={codeBlocks[0].metadata}
@@ -248,19 +242,24 @@ const CustomCodeBlock = ({
   language,
   metadata,
   wholeMD,
+  node,
 }: // metadata,
 {
   code: string;
   language: string;
   metadata: TMetadata;
   wholeMD: string;
+  node: any;
 }) => {
-  const { getCurrentExercise, isIframe, token, agent } = useStore((state) => ({
-    getCurrentExercise: state.getCurrentExercise,
-    isIframe: state.isIframe,
-    token: state.token,
-    agent: state.agent,
-  }));
+  const { getCurrentExercise, isIframe, token, agent, isCreator } = useStore(
+    (state) => ({
+      getCurrentExercise: state.getCurrentExercise,
+      isIframe: state.isIframe,
+      token: state.token,
+      agent: state.agent,
+      isCreator: state.isCreator,
+    })
+  );
 
   const { t } = useTranslation();
   const [executionResult, setExecutionResult] = useState<string | null>(null);
@@ -279,9 +278,16 @@ const CustomCodeBlock = ({
   }
 
   if (language === "question") {
-    return <Question metadata={metadata} wholeMD={wholeMD} />;
+    return (
+      <Question
+        metadata={metadata}
+        wholeMD={wholeMD}
+        code={code}
+        isCreator={isCreator}
+        node={node}
+      />
+    );
   }
-
   if (language === "mermaid") {
     return <MermaidRenderer code={code} />;
   }
@@ -346,79 +352,6 @@ const CustomCodeBlock = ({
           {executionResult}
         </div>
       )}
-    </div>
-  );
-};
-
-const Question = ({
-  metadata,
-  wholeMD,
-}: {
-  metadata: TMetadata;
-  wholeMD: string;
-}) => {
-  const { t } = useTranslation();
-  const { token } = useStore((state) => ({
-    token: state.token,
-  }));
-
-  const [exitCode, setExitCode] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const answerRef = useRef<HTMLTextAreaElement>(null);
-
-  const evaluateAnswer = async () => {
-    if (!answerRef.current?.value) {
-      toast.error(t("pleaseEnterAnAnswer"));
-      return;
-    }
-    setIsLoading(true);
-    const result = await checkAnswer(token, {
-      eval: metadata.eval as string,
-      lesson_content: wholeMD,
-      student_response: answerRef.current.value,
-    });
-    console.log(result);
-    setExitCode(result.exit_code);
-    if (result.exit_code === 0) {
-      Notifier.confetti();
-      playEffect("success");
-    } else {
-      playEffect("error");
-    }
-    setIsLoading(false);
-  };
-
-  const handleTranscription = (text: string) => {
-    if (answerRef.current) {
-      answerRef.current.value += ` ${text}`;
-    }
-  };
-
-  return (
-    <div
-      className={`stdin rounded ${exitCode === 0 && "bg-soft-green"} ${
-        exitCode === 1 && "bg-soft-red"
-      }`}
-    >
-      <section className="d-flex gap-small align-center">
-        <textarea
-          ref={answerRef}
-          className="w-100 input"
-          name="answer"
-          placeholder={t("yourAnswerHere")}
-        />
-        <SpeechToTextButton onTranscription={handleTranscription} />
-      </section>
-      <div className="d-flex gap-small padding-small">
-        <SimpleButton
-          disabled={isLoading}
-          text={isLoading ? t("evaluating") : t("submitForReview")}
-          title={isLoading ? t("evaluating") : t("submitForReview")}
-          svg={svgs.rigoSoftBlue}
-          action={evaluateAnswer}
-          extraClass="active-on-hover padding-small rounded"
-        />
-      </div>
     </div>
   );
 };

@@ -264,19 +264,19 @@ export const CreatorWrapper = ({
     <div className={`creator-wrapper ${tagName}`}>
       {isOpen && (
         <div ref={optionsRef} className="creator-options">
-          <div className={`flex-x gap-small  rigo-input`}>
-            <SimpleButton
-              svg={svgs.rigoSoftBlue}
-              action={() => askAIAnything(inputRef.current?.value || "")}
-              extraClass={"active-on-hover rounded text-small"}
-              text={t("editWithRigobot")}
-            />
+          <div className={`flex-x gap-small rigo-input`}>
             <textarea
               placeholder={t("editWithRigobotPlaceholder")}
               ref={inputRef}
               autoFocus
               className="rounded blank-input w-100 rigo-textarea"
             ></textarea>
+            <SimpleButton
+              svg={svgs.rigoSoftBlue}
+              action={() => askAIAnything(inputRef.current?.value || "")}
+              extraClass={"bg-rigo rounded text-small"}
+              text={t("send")}
+            />
           </div>
           <div className="flex-y gap-small creator-options-buttons">
             {promps.map((prompt, index) =>

@@ -512,12 +512,37 @@ a {
 }
 
 .danger-on-hover:hover {
-  background-color: var(--color-fail);
+  background-color: var(--soft-red);
   color: white;
   & svg.set-path-fill path {
     fill: white !important;
   }
 }
+
+/* .danger-on-hover:active {
+  background-color: var(--color-fail);
+  color: white;
+  & svg.set-path-fill path {
+    fill: white !important;
+  }
+} */
+
+.success-on-hover:hover {
+  background-color: var(--soft-green);
+  color: black;
+
+  & svg {
+    --read-font-color: black;
+  }
+}
+
+/* .success-on-hover:active {
+  background-color: var(--color-success);
+  color: white;
+  & svg.set-path-fill path {
+    fill: white !important;
+  }
+} */
 
 .svg-success svg path {
   stroke: var(--color-success) !important;
@@ -543,6 +568,10 @@ a {
 .bg-danger {
   background-color: var(--color-fail);
 }
+.bg-selected {
+  background-color: var(--opaque-blue-editor);
+}
+
 .input {
   padding: 10px;
   border-radius: 8px;
@@ -863,4 +892,12 @@ a {
     color: var(--gray-blue-color);
   }
   outline: none;
+}
+
+.textarea {
+  border: 1px solid var(--color-hovered);
+  border-radius: 5px;
+  padding: 5px;
+  font-size: 16px;
+  resize: none;
 }

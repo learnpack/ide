@@ -547,6 +547,7 @@ type TCheckAnswerInputs = {
   eval: string;
   lesson_content: string;
   student_response: string;
+  examples: string;
 };
 
 type TCheckAnswerOutputs = {
@@ -563,4 +564,26 @@ export const checkAnswer = (token: string, inputs: TCheckAnswerInputs) => {
     token,
     inputs
   ) as Promise<TCheckAnswerOutputs>;
+};
+
+type TSuggestExamplesInputs = {
+  evaluation: string;
+  lesson_content: string;
+};
+
+type TSuggestExamplesOutputs = {
+  examples: string[];
+  reasoning: string;
+  confidence: number;
+};
+
+export const suggestExamples = (
+  token: string,
+  inputs: TSuggestExamplesInputs
+) => {
+  return fetchWithHandling(
+    `${RIGOBOT_HOST}/v1/prompting/completion/885/`,
+    token,
+    inputs
+  ) as Promise<TSuggestExamplesOutputs>;
 };

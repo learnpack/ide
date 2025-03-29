@@ -34,7 +34,7 @@
 .creator-options {
   display: flex;
 
-  padding: 5px;
+  /* padding: 5px; */
   border-radius: 5px;
   gap: 3px;
   position: absolute;
@@ -44,7 +44,7 @@
   left: 0px;
   flex-direction: column;
   z-index: 1000;
-  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+
 }
 
 .creator-options-buttons {
@@ -126,4 +126,6 @@
   font-size: 16px;
   padding: 5px;
   width: min(600px, 90vw) !important;
+
+  
 }

@@ -1715,4 +1715,78 @@ export const svgs = {
       />
     </svg>
   ),
+  acceptChanges: (
+    <svg
+      width="50px"
+      height="50px"
+      viewBox="0 0 29 28"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <g filter="url(#filter0_d_1569_1498)">
+        <rect
+          x="4"
+          y="4"
+          width="15"
+          height="14"
+          rx="4"
+          fill="#DFFFE8"
+          shape-rendering="crispEdges"
+        />
+        <path
+          d="M10.161 12.8489L8.71128 11.1932C8.54834 11.0072 8.28514 11.0072 8.1222 11.1932C7.95927 11.3793 7.95927 11.6799 8.1222 11.866L9.86855 13.8604C10.0315 14.0465 10.2947 14.0465 10.4576 13.8604L14.8778 8.81233C15.0407 8.62624 15.0407 8.32565 14.8778 8.13956C14.7149 7.95348 14.4517 7.95348 14.2887 8.13956L10.161 12.8489Z"
+          fill="#25BF6C"
+        />
+      </g>
+      <defs>
+        <filter
+          id="filter0_d_1569_1498"
+          x="0"
+          y="0"
+          width="29"
+          height="28"
+          filterUnits="userSpaceOnUse"
+          color-interpolation-filters="sRGB"
+        >
+          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+          <feColorMatrix
+            in="SourceAlpha"
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+            result="hardAlpha"
+          />
+          <feOffset dx="3" dy="3" />
+          <feGaussianBlur stdDeviation="3.5" />
+          <feComposite in2="hardAlpha" operator="out" />
+          <feColorMatrix
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.02 0"
+          />
+          <feBlend
+            mode="normal"
+            in2="BackgroundImageFix"
+            result="effect1_dropShadow_1569_1498"
+          />
+          <feBlend
+            mode="normal"
+            in="SourceGraphic"
+            in2="effect1_dropShadow_1569_1498"
+            result="shape"
+          />
+        </filter>
+      </defs>
+    </svg>
+  ),
+  warning: (
+    <svg
+      fill="var(--read-font-color)"
+      width="20px"
+      height="20px"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      className="icon glyph"
+    >
+      <path d="M22.25,17.55,14.63,3.71a3,3,0,0,0-5.26,0L1.75,17.55A3,3,0,0,0,4.38,22H19.62a3,3,0,0,0,2.63-4.45ZM12,18a1,1,0,1,1,1-1A1,1,0,0,1,12,18Zm1-5a1,1,0,0,1-2,0V9a1,1,0,0,1,2,0Z"></path>
+    </svg>
+  ),
 };

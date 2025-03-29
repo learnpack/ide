@@ -207,5 +207,19 @@
     "evaluating": "Evaluando...",
     "summarize": "Resumir",
     "removeThis": "Eliminar este",
-    "sure?": "¿Seguro?"
+    "sure?": "¿Seguro?",
+    "send": "Enviar",
+    "missingExamples": "Faltan ejemplos",
+    "missingExamplesExplanation": "Para hacer el proceso de evaluación más preciso, necesitamos agregar ejemplos de entradas correctas. Por favor evalúa los siguientes ejemplos y agrega más si es necesario.",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "correct": "Correcto",
+    "incorrect": "Incorrecto",
+    "writeAnExampleCorrectAnswer": "Escribe un ejemplo de una respuesta correcta",
+    "add": "Agregar",
+    "remove": "Eliminar",
+    "editExamples": "Editar ejemplos",
+    "questionEditor": "Editor de preguntas",
+    "evaluationCriteria": "Criterio de evaluación",
+    "examples": "Ejemplos"
 }
