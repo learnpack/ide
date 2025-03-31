@@ -5,6 +5,7 @@ import { RigoAI } from "../Rigobot/AI";
 import { Element } from "hast";
 import SimpleButton from "../mockups/SimpleButton";
 import { svgs } from "../../assets/svgs";
+import { Markdowner } from "../composites/Markdowner/Markdowner";
 
 type TPromp = {
   type: "button" | "select" | "input";
@@ -14,6 +15,7 @@ type TPromp = {
   extraClass: string;
   placeholder?: string;
   svg?: React.ReactNode;
+  allowedElements?: string[];
 };
 
 const getPortionFromText = (text: string, start: number, end: number) => {
@@ -37,7 +39,8 @@ export const CreatorWrapper = ({
   }));
 
   const [isOpen, setIsOpen] = useState(false);
-  const [showButtons, setShowButtons] = useState(false);
+  // const [showButtons, setShowButtons] = useState(false);
+  const [replacementValue, setReplacementValue] = useState("");
 
   const elemRef = useRef<HTMLDivElement>(null);
   const optionsRef = useRef<HTMLDivElement>(null);
@@ -86,8 +89,12 @@ export const CreatorWrapper = ({
           whole_lesson: currentContent.body,
         },
         target: targetRef.current,
-        onComplete: () => {
-          setShowButtons(true);
+
+        onComplete: (success: boolean, data: any) => {
+          if (success) {
+            setReplacementValue(data.ai_response);
+            // setShowButtons(true);
+          }
         },
       });
     }
@@ -112,8 +119,11 @@ export const CreatorWrapper = ({
           whole_lesson: currentContent.body,
         },
         target: targetRef.current,
-        onComplete: () => {
-          setShowButtons(true);
+        onComplete: (success: boolean, data: any) => {
+          if (success) {
+            setReplacementValue(data.ai_response);
+            // setShowButtons(true);
+          }
         },
       });
     }
@@ -138,8 +148,11 @@ export const CreatorWrapper = ({
           text_to_summarize: text,
         },
         target: targetRef.current,
-        onComplete: () => {
-          setShowButtons(true);
+        onComplete: (success: boolean, data: any) => {
+          if (success) {
+            setReplacementValue(data.ai_response);
+            // setShowButtons(true);
+          }
         },
       });
     }
@@ -166,8 +179,11 @@ export const CreatorWrapper = ({
           whole_lesson: currentContent.body,
         },
         target: targetRef.current,
-        onComplete: () => {
-          setShowButtons(true);
+        onComplete: (success: boolean, data: any) => {
+          if (success) {
+            setReplacementValue(data.ai_response);
+            // setShowButtons(true);
+          }
         },
       });
     }
@@ -193,8 +209,11 @@ export const CreatorWrapper = ({
           text_selected: elementText,
         },
         target: targetRef.current,
-        onComplete: () => {
-          setShowButtons(true);
+        onComplete: (success: boolean, data: any) => {
+          if (success) {
+            setReplacementValue(data.ai_response);
+            // setShowButtons(true);
+          }
         },
       });
     }
@@ -208,6 +227,34 @@ export const CreatorWrapper = ({
     setIsOpen(false);
   };
 
+  const simplifyCode = () => {
+    setReplacementValue("");
+    let text = elemRef.current?.innerHTML;
+    if (node?.position?.start?.offset && node?.position?.end?.offset) {
+      text = getPortionFromText(
+        currentContent.body,
+        node?.position?.start.offset || 0,
+        node?.position?.end.offset || 0
+      );
+    }
+    if (text && targetRef.current) {
+      RigoAI.useTemplate({
+        slug: "simplify-code",
+        inputs: {
+          code_to_simplify: text,
+        },
+        target: targetRef.current,
+        onComplete: (success: boolean, data: any) => {
+          if (success) {
+            setReplacementValue(data.ai_response);
+            // setShowButtons(true);
+          }
+        },
+      });
+    }
+    setIsOpen(false);
+  };
+
   const promps: TPromp[] = [
     {
       type: "button",
@@ -216,6 +263,7 @@ export const CreatorWrapper = ({
       extraClass:
         "text-secondary  rounded padding-small active-on-hover svg-blue",
       svg: svgs.play,
+      allowedElements: ["p", "h1", "h2", "h3", "h4", "h5", "h6"],
     },
     {
       type: "button",
@@ -224,6 +272,7 @@ export const CreatorWrapper = ({
       extraClass:
         "text-secondary  rounded padding-small active-on-hover svg-blue",
       svg: svgs.play,
+      allowedElements: ["p", "h1", "h2", "h3", "h4", "h5", "h6"],
     },
     {
       type: "button",
@@ -232,6 +281,16 @@ export const CreatorWrapper = ({
       extraClass:
         "text-secondary  rounded padding-small active-on-hover svg-blue",
       svg: svgs.play,
+      allowedElements: ["p", "h1", "h2", "h3", "h4", "h5", "h6"],
+    },
+    {
+      type: "button",
+      text: t("simplifyCode"),
+      action: () => simplifyCode(),
+      extraClass:
+        "text-secondary  rounded padding-small active-on-hover svg-blue",
+      svg: svgs.play,
+      allowedElements: ["pre"],
     },
 
     {
@@ -249,6 +308,7 @@ export const CreatorWrapper = ({
       extraClass:
         "text-secondary  rounded padding-small active-on-hover svg-blue",
       svg: svgs.play,
+      allowedElements: ["p", "h1", "h2", "h3", "h4", "h5", "h6"],
     },
     {
       type: "button",
@@ -257,6 +317,7 @@ export const CreatorWrapper = ({
       extraClass:
         "text-secondary  rounded padding-small danger-on-hover svg-blue",
       svg: svgs.trash,
+      allowedElements: ["all"],
     },
   ];
 
@@ -279,39 +340,48 @@ export const CreatorWrapper = ({
             />
           </div>
           <div className="flex-y gap-small creator-options-buttons">
-            {promps.map((prompt, index) =>
-              prompt.type === "button" ? (
-                <SimpleButton
-                  svg={prompt.svg}
-                  key={`${prompt.text}-${index}`}
-                  action={prompt.action}
-                  extraClass={prompt.extraClass}
-                  text={prompt.text}
-                />
-              ) : prompt.type === "select" ? (
-                <div className={`flex-x gap-small `} key={prompt.text}>
+            {promps
+              .filter((prompt) => {
+                if (prompt.allowedElements?.includes("all")) return true;
+                if (prompt.allowedElements?.includes(tagName)) return true;
+                return false;
+              })
+              .map((prompt, index) =>
+                prompt.type === "button" ? (
                   <SimpleButton
-                    key={prompt.text}
                     svg={prompt.svg}
-                    action={() => prompt.action(toneRef.current?.value || "")}
+                    key={`${prompt.text}-${index}`}
+                    action={prompt.action}
                     extraClass={prompt.extraClass}
                     text={prompt.text}
                   />
-                  <select
-                    ref={toneRef}
-                    key={prompt.text}
-                    className={`rounded `}
-                    // onChange={(e) => prompt.action(e.target.value)}
+                ) : prompt.type === "select" ? (
+                  <div
+                    className={`flex-x gap-small `}
+                    key={`${prompt.text}-${index}`}
                   >
-                    {prompt.options?.map((option) => (
-                      <option key={option} value={option}>
-                        {t(option)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ) : null
-            )}
+                    <SimpleButton
+                      key={`${prompt.text}-${index}`}
+                      svg={prompt.svg}
+                      action={() => prompt.action(toneRef.current?.value || "")}
+                      extraClass={prompt.extraClass}
+                      text={prompt.text}
+                    />
+                    <select
+                      ref={toneRef}
+                      key={prompt.text}
+                      className={`rounded `}
+                      // onChange={(e) => prompt.action(e.target.value)}
+                    >
+                      {prompt.options?.map((option) => (
+                        <option key={option} value={option}>
+                          {t(option)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : null
+              )}
           </div>
         </div>
       )}
@@ -327,10 +397,11 @@ export const CreatorWrapper = ({
       <div className="creator-target">
         <div
           contentEditable
-          className="creator-target-content"
+          className="creator-target-content hidden"
           ref={targetRef}
         ></div>
-        {showButtons && (
+        <Markdowner allowCreate={false} markdown={replacementValue} />
+        {replacementValue && (
           <div className="flex-x gap-small target-buttons">
             <SimpleButton
               action={async () => {
@@ -340,7 +411,7 @@ export const CreatorWrapper = ({
                     node?.position?.start,
                     node?.position?.end
                   );
-                  setShowButtons(false);
+                  setReplacementValue("");
                 }
               }}
               extraClass="padding-small border-gray rounded w-100 active-on-hover"
@@ -349,7 +420,7 @@ export const CreatorWrapper = ({
             <SimpleButton
               action={() => {
                 targetRef.current!.innerHTML = "";
-                setShowButtons(false);
+                setReplacementValue("");
               }}
               extraClass="padding-small border-gray rounded w-100 active-on-hover"
               text={t("rejectChanges")}

@@ -77,6 +77,8 @@ export const Markdowner = ({
     isCreator: state.isCreator,
   }));
 
+  const creatorModeActivated = isCreator && mode === "creator" && allowCreate;
+
   return (
     <Markdown
       skipHtml={true}
@@ -97,7 +99,7 @@ export const Markdowner = ({
           return <span>{children}</span>;
         },
         h1: ({ children, node }) => {
-          if (isCreator && mode === "creator" && allowCreate) {
+          if (creatorModeActivated) {
             return (
               <CreatorWrapper node={node} tagName="h1">
                 <h1>{children}</h1>
@@ -107,7 +109,7 @@ export const Markdowner = ({
           return <h1>{children}</h1>;
         },
         h2: ({ children, node }) => {
-          if (isCreator && mode === "creator" && allowCreate) {
+          if (creatorModeActivated) {
             return (
               <CreatorWrapper node={node} tagName="h2">
                 <h2>{children}</h2>
@@ -116,8 +118,28 @@ export const Markdowner = ({
           }
           return <h2>{children}</h2>;
         },
+        h3: ({ children, node }) => {
+          if (creatorModeActivated) {
+            return (
+              <CreatorWrapper node={node} tagName="h3">
+                <h3>{children}</h3>
+              </CreatorWrapper>
+            );
+          }
+          return <h3>{children}</h3>;
+        },
+        h4: ({ children, node }) => {
+          if (creatorModeActivated) {
+            return (
+              <CreatorWrapper node={node} tagName="h4">
+                <h4>{children}</h4>
+              </CreatorWrapper>
+            );
+          }
+          return <h4>{children}</h4>;
+        },
         p: ({ children, node }) => {
-          if (isCreator && mode === "creator" && allowCreate) {
+          if (creatorModeActivated) {
             return (
               <CreatorWrapper node={node} tagName="p">
                 <p>{children}</p>
@@ -129,17 +151,15 @@ export const Markdowner = ({
         // @ts-ignore
         ol: ({ children, node }) => {
           const containsTaskList = checkForQuiz(node);
-          const creatorModeActivated =
-            isCreator && mode === "creator" && allowCreate;
 
           if (containsTaskList) {
-            // if (creatorModeActivated) {
-            //   return (
-            //     <CreatorWrapper node={node} tagName="ol">
-            //       <QuizRenderer children={children} />
-            //     </CreatorWrapper>
-            //   );
-            // }
+            if (creatorModeActivated) {
+              return (
+                <CreatorWrapper node={node} tagName="quiz">
+                  <QuizRenderer children={children} />
+                </CreatorWrapper>
+              );
+            }
             return <QuizRenderer children={children} />;
           }
 
@@ -159,6 +179,13 @@ export const Markdowner = ({
           const containsTaskList = checkForQuiz(node);
 
           if (containsTaskList) {
+            if (creatorModeActivated) {
+              return (
+                <CreatorWrapper node={node} tagName="quiz">
+                  <QuizRenderer children={children} />
+                </CreatorWrapper>
+              );
+            }
             return <QuizRenderer children={children} />;
           }
 
@@ -200,7 +227,7 @@ export const Markdowner = ({
             return <pre>{props.children}</pre>;
           }
 
-          if (isCreator && mode === "creator" && allowCreate) {
+          if (creatorModeActivated) {
             return (
               <CreatorWrapper node={props.node} tagName="pre">
                 <CustomCodeBlock

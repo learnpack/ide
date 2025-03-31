@@ -49,8 +49,8 @@ export default function LoginModal() {
   }, []);
 
   const login = async (e: any) => {
-    e.preventDefault();
     setIsLoading(true);
+    e.preventDefault();
 
     if (!email || !password) {
       toast.error(t("please-fill-all-fields"));
@@ -90,14 +90,14 @@ export default function LoginModal() {
 
   function getCurrentUrlWithQueryParams() {
     let currentUrl = window.location.origin + window.location.pathname;
-  
+
     if (environment === "localhost") {
       return `${currentUrl}?autoclose=true`;
     }
-  
+
     return window.location.href;
   }
-  
+
   const redirectGithub = () => {
     let currentUrl = getCurrentUrlWithQueryParams();
 

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface ButtonProps {
   id?: string;
@@ -42,6 +42,10 @@ export default function SimpleButton({
       action(e);
     }
   };
+
+  useEffect(() => {
+    setCurrentText(text);
+  }, [text]);
 
   return (
     <button
