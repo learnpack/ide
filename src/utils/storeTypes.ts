@@ -173,6 +173,13 @@ type TContent = {
 
 export type TMode = "creator" | "student";
 
+type TTitleTranslations = {
+  [key: string]: string;
+};
+
+export type TSidebar = {
+  [key: string]: TTitleTranslations;
+};
 export interface IStore {
   exercises: TExercise[];
   chatInitialMessage: string;
@@ -230,6 +237,8 @@ export interface IStore {
   maxQuizRetries: number;
   mode: TMode;
   isCreator: boolean;
+  sidebar: TSidebar;
+  getSidebar: () => Promise<TSidebar>;
   setMode: (mode: TMode) => void;
   addVideoTutorial: (videoTutorial: string) => Promise<void>;
   useConsumable: (

@@ -58,7 +58,6 @@ type TFile = {
 
 const HOST = getHost();
 
-
 const chatSocket = io(`${FASTAPI_HOST}`);
 
 chatSocket.on("connect", () => {
@@ -179,6 +178,7 @@ const useStore = create<IStore>((set, get) => ({
   },
   // @ts-ignore
   environment: "localhost",
+  sidebar: {},
 
   // setters
   start: () => {
@@ -1754,6 +1754,12 @@ The user's set up the application in "${language}" language, give your feedback 
 
   setMode: (mode) => {
     set({ mode });
+  },
+
+  getSidebar: async () => {
+    const sidebar = await FetchManager.getSidebar();
+    set({ sidebar });
+    return sidebar;
   },
   test: async () => {
     // Notifier.success("Succesfully tested");

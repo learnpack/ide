@@ -177,10 +177,14 @@ const AddExerciseButton = ({
 };
 
 export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
-  const { exercises, fetchExercises } = useStore((state) => ({
-    exercises: state.exercises,
-    fetchExercises: state.fetchExercises,
-  }));
+  const { exercises, fetchExercises, getSidebar, sidebar } = useStore(
+    (state) => ({
+      exercises: state.exercises,
+      fetchExercises: state.fetchExercises,
+      getSidebar: state.getSidebar,
+      sidebar: state.sidebar,
+    })
+  );
   const inputLanguageRef = useRef<HTMLInputElement>(null);
 
   const { t } = useTranslation();
@@ -203,6 +207,12 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
     }
   }, [mode]);
 
+  useEffect(() => {
+    if (Object.keys(sidebar).length === 0) {
+      getSidebar();
+    }
+  }, []);
+
   const handleTranslate = async () => {
     const toastId = toast.loading(t("translatingExercises"));
     try {
@@ -220,6 +230,7 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
       await FetchManager.translateExercises(selectedExercises, languages);
       toast.success(t("exercisesTranslated"), { id: toastId });
       await fetchExercises();
+      await getSidebar();
       setSelectedExercises([]);
     } catch (error) {
       toast.error(t("errorTranslatingExercises"), { id: toastId });
@@ -294,13 +305,19 @@ function ExerciseCard({
 }: IExerciseProps) {
   const { t } = useTranslation();
   const titleInputRef = useRef<HTMLInputElement>(null);
-  const { handlePositionChange, fetchExercises, getCurrentExercise } = useStore(
-    (state) => ({
-      handlePositionChange: state.handlePositionChange,
-      fetchExercises: state.fetchExercises,
-      getCurrentExercise: state.getCurrentExercise,
-    })
-  );
+  const {
+    handlePositionChange,
+    fetchExercises,
+    getCurrentExercise,
+    sidebar,
+    language,
+  } = useStore((state) => ({
+    handlePositionChange: state.handlePositionChange,
+    fetchExercises: state.fetchExercises,
+    getCurrentExercise: state.getCurrentExercise,
+    sidebar: state.sidebar,
+    language: state.language,
+  }));
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -338,6 +355,7 @@ function ExerciseCard({
     }
   };
 
+  console.log(sidebar?.[slug]?.[language], "Sidebar");
   return (
     <li
       className={`exercise-card ${selected ? "bg-2" : "bg-white"}`}
@@ -381,7 +399,7 @@ function ExerciseCard({
             <button className={`exercise-circle ${done ? "done" : ""}`}>
               <span>{title.split("-")[0]}</span>
             </button>
-            <span>{titlefy(title)}</span>
+            <span>{titlefy(sidebar?.[slug]?.[language] || title)}</span>
           </>
         )}
       </div>

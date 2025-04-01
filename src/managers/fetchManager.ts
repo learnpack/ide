@@ -13,6 +13,7 @@ import { LocalStorage } from "./localStorage";
 import TelemetryManager from "./telemetry";
 import toast from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
+import { TSidebar } from "../utils/storeTypes";
 
 // Correct the type definition for TMethods
 type TMethods = {
@@ -291,6 +292,32 @@ export const FetchManager = {
       },
       localStorage: async () => {
         LocalStorage.set("LEARNPACK_SESSION_KEY", sessionKey);
+      },
+    };
+    return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
+  },
+
+  getSidebar: async (): Promise<TSidebar> => {
+    const methods: TMethods = {
+      localhost: async () => {
+        try {
+          const res = await fetch(`${FetchManager.HOST}/sidebar`);
+          const json = await res.json();
+          return json;
+        } catch (e) {
+          console.error(e, "error getting sidebar");
+          return {};
+        }
+      },
+      localStorage: async () => {
+        try {
+          const sidebar = await fetch(`/sidebar.json`);
+          const json = await sidebar.json();
+          return json;
+        } catch (e) {
+          console.error(e, "error getting sidebar");
+          return {};
+        }
       },
     };
     return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
