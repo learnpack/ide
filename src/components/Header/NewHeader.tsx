@@ -7,6 +7,8 @@ import { RigoToggler } from "../Rigobot/Rigobot";
 import LanguageButton from "../sections/header/LanguageButton";
 import styles from "./NewHeader.module.css";
 import { ToggleSidebar } from "../sections/sidebar/ToggleSidebar";
+// import { ScreenShareSmart } from "../ScreenShare/ScreenShare";
+
 // import toast from "react-hot-toast";
 
 export const NewHeader = () => {
@@ -70,6 +72,7 @@ export const NewHeader = () => {
   return (
     <header className={styles.header}>
       <section>
+        {/* <ScreenShareSmart /> */}
         <button
           disabled={currentExercisePosition == 0}
           onClick={() => {

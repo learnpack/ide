@@ -395,7 +395,7 @@ export const CreatorWrapper = ({
         {children}
       </div>
       <div
-        className={`creator-target ${replacementValue ? "border-blue" : ""}`}
+        className={`creator-target ${replacementValue ? "border-blue padding-medium" : ""}`}
       >
         <div
           contentEditable
