@@ -1307,15 +1307,12 @@ The user's set up the application in "${language}" language, give your feedback 
       } else if (session.tab_hash && session.tab_hash === storedTabHash) {
         set({
           configObject: session.config_json,
-          exercises: session.config_json.exercises,
         });
         set({ sessionKey: session.key });
 
         await FetchManager.setSessionKey(session.key);
         updateEditorTabs();
       } else {
-        console.log("NO SESSION ACTIVE PREVIOUSLY");
-
         set({ sessionKey: session.key });
         return;
       }
@@ -1469,7 +1466,7 @@ The user's set up the application in "${language}" language, give your feedback 
         session.config_json.exercises &&
         session.config_json.exercises.length > 0
       ) {
-        set({ exercises: session.config_json.exercises });
+        // set({ exercises: session.config_json.exercises });
 
         if (session.config_json.currentExercise) {
           const exIndex = session.config_json.exercises.findIndex(

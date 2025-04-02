@@ -44,7 +44,6 @@
   left: 0px;
   flex-direction: column;
   z-index: 1000;
-
 }
 
 .creator-options-buttons {
@@ -77,19 +76,12 @@
   border-radius: 2px;
 }
 
-/* .creator-wrapper:hover .text-in-editor {
-  margin-left: 20px;
-} */
-
-/* .creator-wrapper:has(.creator-target-content:empty) .target-buttons {
-  display: none;
-} */
-.creator-target-content:empty {
-  display: none;
-}
-
 .creator-target-content {
   color: var(--color-success);
+}
+
+.creator-target {
+  border-radius: 5px;
 }
 
 .code-buttons {
@@ -121,11 +113,41 @@
 }
 
 .rigo-input {
-  background-color: var(--color-blue-opaque);
   border-radius: 5px;
   font-size: 16px;
+
   padding: 5px;
   width: min(600px, 90vw) !important;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
 
-  
+.rigo-button {
+  background: linear-gradient(132deg, #0fb0fc, #022cc2);
+  border: 2px solid white;
+  color: var(--white);
+  opacity: 1;
+  border-radius: 50%;
+  padding: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 50px;
+  height: 50px;
+  margin-right: -12px;
+  z-index: 1;
+}
+
+.rigo-textarea {
+  border: 0;
+  background: #c8dbfc;
+  font-size: 16px;
+  padding: 7px;
+  outline: none;
+  width: 100%;
+  border-radius: 10px;
+  &::placeholder {
+    color: var(--gray-blue-color);
+  }
 }

@@ -718,6 +718,12 @@ a {
   height: 20px;
 }
 
+.big-circle {
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+}
+
 .hidden {
   display: none;
 }
@@ -793,7 +799,7 @@ a {
   transition: scale 0.3s ease;
 }
 .scale-on-hover:hover {
-  scale: 1.5;
+  scale: 1.05;
 }
 
 .bg-transparent {
@@ -884,20 +890,14 @@ a {
   --read-font-color: var(--color-blue-rigo);
 }
 
-.rigo-textarea {
-  border: 0;
-  background: transparent;
-  font-size: 16px;
-  &::placeholder {
-    color: var(--gray-blue-color);
-  }
-  outline: none;
-}
-
 .textarea {
   border: 1px solid var(--color-hovered);
   border-radius: 5px;
   padding: 5px;
   font-size: 16px;
   resize: none;
+}
+
+.border-warning {
+  border: 1px solid var(--color-warning);
 }

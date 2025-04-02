@@ -325,19 +325,19 @@ export const CreatorWrapper = ({
     <div className={`creator-wrapper ${tagName}`}>
       {isOpen && (
         <div ref={optionsRef} className="creator-options">
-          <div className={`flex-x gap-small rigo-input`}>
-            <textarea
-              placeholder={t("editWithRigobotPlaceholder")}
-              ref={inputRef}
-              autoFocus
-              className="rounded blank-input w-100 rigo-textarea"
-            ></textarea>
+          <div className={` rigo-input`}>
             <SimpleButton
               svg={svgs.rigoSoftBlue}
               action={() => askAIAnything(inputRef.current?.value || "")}
-              extraClass={"bg-rigo rounded text-small"}
-              text={t("send")}
+              extraClass={"big-circle rigo-button"}
             />
+            <textarea
+              placeholder={t("editWithRigobotPlaceholder")}
+              ref={inputRef}
+              rows={2}
+              autoFocus
+              className="rigo-textarea"
+            ></textarea>
           </div>
           <div className="flex-y gap-small creator-options-buttons">
             {promps
@@ -394,7 +394,9 @@ export const CreatorWrapper = ({
         />
         {children}
       </div>
-      <div className="creator-target">
+      <div
+        className={`creator-target ${replacementValue ? "border-blue" : ""}`}
+      >
         <div
           contentEditable
           className="creator-target-content hidden"
@@ -402,7 +404,7 @@ export const CreatorWrapper = ({
         ></div>
         <Markdowner allowCreate={false} markdown={replacementValue} />
         {replacementValue && (
-          <div className="flex-x gap-small target-buttons">
+          <div className="flex-x gap-small target-buttons justify-center">
             <SimpleButton
               action={async () => {
                 if (node?.position?.start && node?.position?.end) {
@@ -414,7 +416,8 @@ export const CreatorWrapper = ({
                   setReplacementValue("");
                 }
               }}
-              extraClass="padding-small border-gray rounded w-100 active-on-hover"
+              extraClass="padding-small border-gray rounded scale-on-hover"
+              svg={svgs.iconCheck}
               text={t("acceptChanges")}
             />
             <SimpleButton
@@ -422,7 +425,8 @@ export const CreatorWrapper = ({
                 targetRef.current!.innerHTML = "";
                 setReplacementValue("");
               }}
-              extraClass="padding-small border-gray rounded w-100 active-on-hover"
+              extraClass="padding-small border-gray rounded  scale-on-hover"
+              svg={svgs.iconClose}
               text={t("rejectChanges")}
             />
           </div>
