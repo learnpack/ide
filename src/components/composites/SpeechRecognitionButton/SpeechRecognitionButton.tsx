@@ -33,6 +33,7 @@ export const SpeechToTextButton: React.FC<SpeechToTextButtonProps> = ({
   const [isSupported, setIsSupported] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null); // Guardamos la instancia aquí
   const language = useStore((state) => state.language);
+  const agent = useStore((state) => state.agent);
 
   useEffect(() => {
     // Verificar soporte de SpeechRecognition
@@ -40,7 +41,7 @@ export const SpeechToTextButton: React.FC<SpeechToTextButtonProps> = ({
       (window as any).SpeechRecognition ||
       (window as any).webkitSpeechRecognition;
 
-    if (SpeechRecognitionAPI) {
+    if (SpeechRecognitionAPI && agent !== "vscode") {
       setIsSupported(true);
       recognitionRef.current = new SpeechRecognitionAPI();
       const recognition = recognitionRef.current;
