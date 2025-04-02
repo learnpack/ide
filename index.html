@@ -40,8 +40,31 @@
     <meta name="description" content="{{description}}" />
     <meta property="og:title" content="{{title}}" />
     <meta property="og:description" content="{{description}}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Learn Pack" />
 
     <meta property="og:image" content="{{preview}}" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "http://schema.org",
+        "@type": "Course",
+        "name": "{{title}}",
+        "description": "{{description}}",
+        "provider": {
+          "@type": "Organization",
+          "name": "Learn Pack",
+          "url": "https://learn-pack.com"
+        },
+        "inLanguage": "en",
+        "courseCode": "{{slug}}",
+        "hasCourseInstance": {
+          "@type": "CourseInstance",
+          "courseMode": "online",
+          "duration": "PT2H"
+        }
+      }
+    </script>
   </head>
   <body>
     <!-- Google Tag Manager (noscript) -->
