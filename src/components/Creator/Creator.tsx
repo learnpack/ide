@@ -6,6 +6,7 @@ import { Element } from "hast";
 import SimpleButton from "../mockups/SimpleButton";
 import { svgs } from "../../assets/svgs";
 import { Markdowner } from "../composites/Markdowner/Markdowner";
+import { Loader } from "../composites/Loader/Loader";
 
 type TPromp = {
   type: "button" | "select" | "input";
@@ -41,6 +42,7 @@ export const CreatorWrapper = ({
   const [isOpen, setIsOpen] = useState(false);
   // const [showButtons, setShowButtons] = useState(false);
   const [replacementValue, setReplacementValue] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const elemRef = useRef<HTMLDivElement>(null);
   const optionsRef = useRef<HTMLDivElement>(null);
@@ -71,6 +73,7 @@ export const CreatorWrapper = ({
   }, [optionsRef]);
 
   const simplifyLanguage = () => {
+    setIsGenerating(true);
     let text = elemRef.current?.innerHTML;
     if (node?.position?.start?.offset && node?.position?.end?.offset) {
       const textPortion = getPortionFromText(
@@ -93,6 +96,7 @@ export const CreatorWrapper = ({
         onComplete: (success: boolean, data: any) => {
           if (success) {
             setReplacementValue(data.ai_response);
+            setIsGenerating(false);
             // setShowButtons(true);
           }
         },
@@ -131,6 +135,7 @@ export const CreatorWrapper = ({
   };
 
   const summarize = () => {
+    setIsGenerating(true);
     let text = elemRef.current?.innerHTML;
 
     if (node?.position?.start?.offset && node?.position?.end?.offset) {
@@ -150,6 +155,7 @@ export const CreatorWrapper = ({
         target: targetRef.current,
         onComplete: (success: boolean, data: any) => {
           if (success) {
+            setIsGenerating(false);
             setReplacementValue(data.ai_response);
             // setShowButtons(true);
           }
@@ -191,6 +197,7 @@ export const CreatorWrapper = ({
   };
 
   const askAIAnything = (question: string) => {
+    setIsGenerating(true);
     let elementText = elemRef.current?.innerHTML;
 
     if (node?.position?.start?.offset && node?.position?.end?.offset) {
@@ -211,6 +218,7 @@ export const CreatorWrapper = ({
         target: targetRef.current,
         onComplete: (success: boolean, data: any) => {
           if (success) {
+            setIsGenerating(false);
             setReplacementValue(data.ai_response);
             // setShowButtons(true);
           }
@@ -229,6 +237,7 @@ export const CreatorWrapper = ({
 
   const simplifyCode = () => {
     setReplacementValue("");
+    setIsGenerating(true);
     let text = elemRef.current?.innerHTML;
     if (node?.position?.start?.offset && node?.position?.end?.offset) {
       text = getPortionFromText(
@@ -247,6 +256,7 @@ export const CreatorWrapper = ({
         onComplete: (success: boolean, data: any) => {
           if (success) {
             setReplacementValue(data.ai_response);
+            setIsGenerating(false);
             // setShowButtons(true);
           }
         },
@@ -336,6 +346,12 @@ export const CreatorWrapper = ({
               ref={inputRef}
               rows={2}
               autoFocus
+              onKeyUp={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  askAIAnything(inputRef.current?.value || "");
+                }
+              }}
               className="rigo-textarea"
             ></textarea>
           </div>
@@ -395,7 +411,9 @@ export const CreatorWrapper = ({
         {children}
       </div>
       <div
-        className={`creator-target ${replacementValue ? "border-blue padding-medium" : ""}`}
+        className={`creator-target ${
+          replacementValue ? "border-blue padding-medium" : ""
+        }`}
       >
         <div
           contentEditable
@@ -403,13 +421,16 @@ export const CreatorWrapper = ({
           ref={targetRef}
         ></div>
         <Markdowner allowCreate={false} markdown={replacementValue} />
+        {isGenerating && (
+          <Loader text={t("thinking")} svg={svgs.rigoSoftBlue} />
+        )}
         {replacementValue && (
           <div className="flex-x gap-small target-buttons justify-center">
             <SimpleButton
               action={async () => {
                 if (node?.position?.start && node?.position?.end) {
                   await replaceInReadme(
-                    targetRef.current!.innerHTML,
+                    replacementValue,
                     node?.position?.start,
                     node?.position?.end
                   );

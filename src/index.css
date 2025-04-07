@@ -901,3 +901,7 @@ a {
 .border-warning {
   border: 1px solid var(--color-warning);
 }
+.mermaid {
+  display: flex;
+  justify-content: center;
+}
