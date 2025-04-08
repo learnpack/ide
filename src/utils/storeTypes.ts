@@ -310,6 +310,11 @@ export interface IStore {
   cleanTerminal: () => void;
   setEditorTabs: (tabs: TEditorTab[]) => void;
   reportEnrichDataLayer: (event: string, extraData: object) => void;
+  insertBeforeOrAfter: (
+    newMarkdown: string,
+    position: "before" | "after",
+    cutPosition: number
+  ) => Promise<void>;
   replaceInReadme: (
     newText: string,
     startPosition: Point,

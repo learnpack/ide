@@ -59,7 +59,7 @@
   --color-active: #02a9ea;
   --4geeks-yellow: #ffd900;
   --opaque-blue-editor: #a5d9f8;
-  --soft-blue: #9bb6c2;
+  --soft-blue: #dff5ff;
   --color-blue-opaque: #012c57;
   --color-hovered: rgba(95, 95, 95, 0.311);
   --color-success: #21b761;
@@ -174,8 +174,7 @@ h3,
 h4,
 h5,
 h6,
-p,
-.creator-wrapper {
+p {
   margin-block: 15px;
   line-height: 1.7;
 }
@@ -232,6 +231,10 @@ a {
 }
 .color-blue {
   color: var(--color-active);
+}
+
+.bg-blue-rigo {
+  background-color: var(--color-blue-rigo) !important;
 }
 
 .bg-secondary {

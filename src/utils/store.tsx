@@ -1836,6 +1836,55 @@ The user's set up the application in "${language}" language, give your feedback 
       },
     });
   },
+
+  insertBeforeOrAfter: async (
+    newMarkdown: string,
+    position: string,
+    cutPosition: number
+  ) => {
+    const { getCurrentExercise, language } = get();
+    const readme = await FetchManager.getReadme(
+      getCurrentExercise().slug,
+      language
+    );
+    let body: string = readme.body;
+
+    if (position === "before") {
+      body =
+        body.slice(0, cutPosition) +
+        " \n\n" +
+        newMarkdown +
+        " \n\n" +
+        body.slice(cutPosition);
+    } else if (position === "after") {
+      body =
+        body.slice(0, cutPosition) +
+        " \n\n" +
+        newMarkdown +
+        " \n\n" +
+        body.slice(cutPosition);
+    }
+
+    const newReadme = remakeMarkdown(readme.attributes, body);
+
+    await FetchManager.replaceReadme(
+      getCurrentExercise().slug,
+      language,
+      newReadme
+    );
+
+    const editedReadme = await FetchManager.getReadme(
+      getCurrentExercise().slug,
+      language
+    );
+
+    set({
+      currentContent: {
+        body: editedReadme.body,
+        bodyBegin: editedReadme.bodyBegin,
+      },
+    });
+  },
 }));
 
 export default useStore;

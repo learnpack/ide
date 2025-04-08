@@ -215,5 +215,7 @@
     "questionEditor": "Question editor",
     "evaluationCriteria": "Evaluation criteria",
     "examples": "Examples",
-    "simplifyCode": "Simplify code"
+    "simplifyCode": "Simplify code",
+    "insertBefore": "Insert before",
+    "insertAfter": "Insert after"
 }

@@ -30,6 +30,13 @@
 .creator-wrapper {
   position: relative;
 }
+.inverted {
+  transform: scaleY(-1);
+
+  > * {
+    transform: scaleY(-1);
+  }
+}
 
 .creator-options {
   display: flex;
@@ -72,7 +79,7 @@
 }
 
 .creator-wrapper:hover {
-  background-color: var(--soft-blue);
+  background-color: var(--color-blue-opaque);
   border-radius: 2px;
 }
 
@@ -147,7 +154,8 @@
   outline: none;
   width: 100%;
   border-radius: 10px;
+  color: black;
   &::placeholder {
-    color: var(--gray-blue-color);
+    color: var(--color-blue-rigo);
   }
 }

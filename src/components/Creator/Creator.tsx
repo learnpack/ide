@@ -35,14 +35,18 @@ export const CreatorWrapper = ({
   const { currentContent } = useStore((state) => ({
     currentContent: state.currentContent,
   }));
-  const { replaceInReadme } = useStore((state) => ({
+  const { replaceInReadme, insertBeforeOrAfter } = useStore((state) => ({
     replaceInReadme: state.replaceInReadme,
+    insertBeforeOrAfter: state.insertBeforeOrAfter,
   }));
 
   const [isOpen, setIsOpen] = useState(false);
   // const [showButtons, setShowButtons] = useState(false);
   const [replacementValue, setReplacementValue] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [insertPosition, setInsertPosition] = useState<
+    "before" | "after" | "current"
+  >("current");
 
   const elemRef = useRef<HTMLDivElement>(null);
   const optionsRef = useRef<HTMLDivElement>(null);
@@ -208,12 +212,22 @@ export const CreatorWrapper = ({
       );
     }
     if (elementText && targetRef.current && question) {
+      let extraParams = {};
+      if (insertPosition !== "current") {
+        extraParams = {
+          before_or_after: insertPosition,
+        };
+      }
       RigoAI.useTemplate({
-        slug: "ask-anything-in-lesson",
+        slug:
+          insertPosition === "current"
+            ? "ask-anything-in-lesson"
+            : "insert-before-or-after",
         inputs: {
           prompt: question,
           whole_lesson: currentContent.body,
           text_selected: elementText,
+          ...extraParams,
         },
         target: targetRef.current,
         onComplete: (success: boolean, data: any) => {
@@ -273,7 +287,7 @@ export const CreatorWrapper = ({
       extraClass:
         "text-secondary  rounded padding-small active-on-hover svg-blue",
       svg: svgs.play,
-      allowedElements: ["p", "h1", "h2", "h3", "h4", "h5", "h6"],
+      allowedElements: ["p", "h1", "h2", "h3", "h4", "h5", "h6", "li", "ul"],
     },
     {
       type: "button",
@@ -282,7 +296,7 @@ export const CreatorWrapper = ({
       extraClass:
         "text-secondary  rounded padding-small active-on-hover svg-blue",
       svg: svgs.play,
-      allowedElements: ["p", "h1", "h2", "h3", "h4", "h5", "h6"],
+      allowedElements: ["p", "h1", "h2", "h3", "h4", "h5", "h6", "li"],
     },
     {
       type: "button",
@@ -291,7 +305,7 @@ export const CreatorWrapper = ({
       extraClass:
         "text-secondary  rounded padding-small active-on-hover svg-blue",
       svg: svgs.play,
-      allowedElements: ["p", "h1", "h2", "h3", "h4", "h5", "h6"],
+      allowedElements: ["p", "h1", "h2", "h3", "h4", "h5", "h6", "li", "ul"],
     },
     {
       type: "button",
@@ -332,7 +346,11 @@ export const CreatorWrapper = ({
   ];
 
   return (
-    <div className={`creator-wrapper ${tagName}`}>
+    <div
+      className={`creator-wrapper ${
+        insertPosition === "before" ? "inverted" : ""
+      } ${tagName}`}
+    >
       {isOpen && (
         <div ref={optionsRef} className="creator-options">
           <div className={` rigo-input`}>
@@ -356,48 +374,90 @@ export const CreatorWrapper = ({
             ></textarea>
           </div>
           <div className="flex-y gap-small creator-options-buttons">
-            {promps
-              .filter((prompt) => {
-                if (prompt.allowedElements?.includes("all")) return true;
-                if (prompt.allowedElements?.includes(tagName)) return true;
-                return false;
-              })
-              .map((prompt, index) =>
-                prompt.type === "button" ? (
-                  <SimpleButton
-                    svg={prompt.svg}
-                    key={`${prompt.text}-${index}`}
-                    action={prompt.action}
-                    extraClass={prompt.extraClass}
-                    text={prompt.text}
-                  />
-                ) : prompt.type === "select" ? (
-                  <div
-                    className={`flex-x gap-small `}
-                    key={`${prompt.text}-${index}`}
-                  >
+            {insertPosition !== "after" && (
+              <SimpleButton
+                svg={svgs.upArrow}
+                text={t("insertBefore")}
+                action={() => {
+                  if (insertPosition === "before") {
+                    setInsertPosition("current");
+                  } else {
+                    setInsertPosition("before");
+                    inputRef.current!.focus();
+                  }
+                }}
+                extraClass={`${
+                  insertPosition === "before"
+                    ? "bg-blue-rigo text-white"
+                    : "svg-blue"
+                } text-secondary  rounded padding-small active-on-hover `}
+              />
+            )}
+            {insertPosition === "current" &&
+              promps
+                .filter((prompt) => {
+                  if (prompt.allowedElements?.includes("all")) return true;
+                  if (prompt.allowedElements?.includes(tagName)) return true;
+                  return false;
+                })
+                .map((prompt, index) =>
+                  prompt.type === "button" ? (
                     <SimpleButton
-                      key={`${prompt.text}-${index}`}
                       svg={prompt.svg}
-                      action={() => prompt.action(toneRef.current?.value || "")}
+                      key={`${prompt.text}-${index}`}
+                      action={prompt.action}
                       extraClass={prompt.extraClass}
                       text={prompt.text}
                     />
-                    <select
-                      ref={toneRef}
-                      key={prompt.text}
-                      className={`rounded `}
-                      // onChange={(e) => prompt.action(e.target.value)}
+                  ) : prompt.type === "select" ? (
+                    <div
+                      className={`flex-x gap-small `}
+                      key={`${prompt.text}-${index}`}
                     >
-                      {prompt.options?.map((option) => (
-                        <option key={option} value={option}>
-                          {t(option)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ) : null
-              )}
+                      <SimpleButton
+                        key={`${prompt.text}-${index}`}
+                        svg={prompt.svg}
+                        action={() =>
+                          prompt.action(toneRef.current?.value || "")
+                        }
+                        extraClass={prompt.extraClass}
+                        text={prompt.text}
+                      />
+                      <select
+                        ref={toneRef}
+                        key={prompt.text}
+                        className={`rounded `}
+                        // onChange={(e) => prompt.action(e.target.value)}
+                      >
+                        {prompt.options?.map((option) => (
+                          <option key={option} value={option}>
+                            {t(option)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : null
+                )}
+
+            {insertPosition !== "before" && (
+              <SimpleButton
+                svg={svgs.downArrow}
+                text={t("insertAfter")}
+                action={() => {
+                  if (insertPosition === "after") {
+                    setInsertPosition("current");
+                  } else {
+                    setInsertPosition("after");
+                    inputRef.current!.focus();
+                  }
+                }}
+                extraClass={`${
+                  insertPosition === "after"
+                    ? "text-white bg-blue-rigo"
+                    : "text-secondary svg-blue"
+                }   rounded padding-small active-on-hover `}
+              />
+            )}
           </div>
         </div>
       )}
@@ -411,7 +471,7 @@ export const CreatorWrapper = ({
         {children}
       </div>
       <div
-        className={`creator-target ${
+        className={`creator-target  ${
           replacementValue ? "border-blue padding-medium" : ""
         }`}
       >
@@ -428,11 +488,31 @@ export const CreatorWrapper = ({
           <div className="flex-x gap-small target-buttons justify-center">
             <SimpleButton
               action={async () => {
-                if (node?.position?.start && node?.position?.end) {
+                if (
+                  node?.position?.start &&
+                  node?.position?.end &&
+                  insertPosition === "current"
+                ) {
                   await replaceInReadme(
                     replacementValue,
                     node?.position?.start,
                     node?.position?.end
+                  );
+                  setReplacementValue("");
+                }
+                if (insertPosition === "before" && node?.position?.start) {
+                  await insertBeforeOrAfter(
+                    replacementValue,
+                    "before",
+                    node?.position?.start.offset || 0
+                  );
+                  setReplacementValue("");
+                }
+                if (insertPosition === "after" && node?.position?.end) {
+                  await insertBeforeOrAfter(
+                    replacementValue,
+                    "after",
+                    node?.position?.end.offset || 0
                   );
                   setReplacementValue("");
                 }

@@ -222,5 +222,7 @@
     "questionEditor": "Editor de preguntas",
     "evaluationCriteria": "Criterio de evaluación",
     "examples": "Ejemplos",
-    "simplifyCode": "Simplificar código"
+    "simplifyCode": "Simplificar código",
+    "insertBefore": "Insertar antes",
+    "insertAfter": "Insertar después"
 }
