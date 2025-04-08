@@ -18,7 +18,6 @@ import { Loader } from "../Loader/Loader";
 import { TEditorTab } from "../../../utils/storeTypes";
 import { Markdowner } from "../Markdowner/Markdowner";
 
-
 const languageMap: { [key: string]: string } = {
   ".js": "javascript",
   ".py": "python",
@@ -406,6 +405,7 @@ export const Toolbar = ({ editorStatus }: EditorFooterProps) => {
     isTesteable,
     handlePositionChange,
     currentExercisePosition,
+    exercises,
   } = useStore((state) => ({
     lastState: state.lastState,
     getCurrentExercise: state.getCurrentExercise,
@@ -414,6 +414,7 @@ export const Toolbar = ({ editorStatus }: EditorFooterProps) => {
     isTesteable: state.isTesteable,
     handlePositionChange: state.handlePositionChange,
     currentExercisePosition: state.currentExercisePosition,
+    exercises: state.exercises,
   }));
 
   const ex = getCurrentExercise();
@@ -422,6 +423,7 @@ export const Toolbar = ({ editorStatus }: EditorFooterProps) => {
     lastState === "success" && ex.done && editorStatus === "MODIFIED";
 
   const onlyContinue = !isBuildable && !isTesteable;
+  const isLastExercise = currentExercisePosition === exercises.length - 1;
 
   return (
     <div className={`editor-footer ${editorStatus} ${lastState}`}>
@@ -442,7 +444,7 @@ export const Toolbar = ({ editorStatus }: EditorFooterProps) => {
         </div>
       )}
 
-      {editorStatus === "MODIFIED" && !letPass && (
+      {editorStatus === "MODIFIED" && !letPass && !isLastExercise && (
         <div className="footer-actions">
           {onlyContinue ? (
             <SimpleButton
