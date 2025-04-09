@@ -514,6 +514,7 @@ The user's set up the application in "${language}" language, give your feedback 
     try {
       const config = await FetchManager.getExercises();
 
+      console.log("CONFIG RETUNEDE BY FETCHMANAGER", config);
       if (!config) return;
 
       // console.debug("AUTHENTICATION", config.config.authentication);
@@ -529,14 +530,18 @@ The user's set up the application in "${language}" language, give your feedback 
         set({ maxQuizRetries: config.config.assessment.maxQuizRetries });
       }
 
-      if (config.config.warnings.agent && environment !== "localStorage") {
+      if (
+        config.config.warnings &&
+        config.config.warnings.agent &&
+        environment !== "localStorage"
+      ) {
         set({
           dialogData: { message: config.config.warnings.agent, format: "md" },
         });
         setOpenedModals({ dialog: true });
       }
 
-      if (config.config.warnings.extension) {
+      if (config.config.warnings && config.config.warnings.extension) {
         set({
           dialogData: {
             message: config.config.warnings.extension,
@@ -570,7 +575,11 @@ The user's set up the application in "${language}" language, give your feedback 
       set({ lessonTitle: config.config.title.us });
       set({ configObject: config });
 
-      if (config.config.editor.agent && environment !== "localStorage") {
+      if (
+        config.config.editor &&
+        config.config.editor.agent &&
+        environment !== "localStorage"
+      ) {
         set({ agent: config.config.editor.agent });
       }
 

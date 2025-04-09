@@ -39,19 +39,32 @@ export const FetchManager = {
   getExercises: async () => {
     const configUrl =
       FetchManager.ENVIRONMENT === "localhost" ? "config" : "config.json";
-    const url =
+    let url =
       FetchManager.ENVIRONMENT === "localhost"
         ? `${FetchManager.HOST}/${configUrl}`
         : "/config.json";
+
+    // Look if there is a param slug in the query string
+    const params = getParamsObject();
+    const slug = params.slug;
+    if (slug) {
+      url = `${url}?slug=${slug}`;
+    }
+
     const res = await fetch(url);
     const config = await res.json();
     return config;
   },
 
   getReadme: async (slug: string, language: string) => {
-    const url =
+    const params = getParamsObject();
+    const slugFromParams = params.slug;
+
+    let url =
       FetchManager.ENVIRONMENT === "localhost"
-        ? `${FetchManager.HOST}/exercise/${slug}/readme?lang=${language}`
+        ? `${FetchManager.HOST}/exercise/${slug}/readme?lang=${language}${
+            slugFromParams ? `&slug=${slugFromParams}` : ""
+          }`
         : `/exercises/${slug}/README.${language === "us" ? "" : "es."}md`;
 
     const response = await fetch(url);

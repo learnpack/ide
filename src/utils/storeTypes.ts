@@ -16,6 +16,7 @@ export type TPossibleParams = {
   theme?: string;
   purpose?: string;
   autoclose?: string;
+  slug?: string;
 };
 
 export type TParamsActions = {
