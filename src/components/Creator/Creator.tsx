@@ -348,7 +348,7 @@ export const CreatorWrapper = ({
   return (
     <div
       className={`creator-wrapper ${
-        insertPosition === "before" ? "inverted" : ""
+        insertPosition === "before" && replacementValue ? "inverted" : ""
       } ${tagName}`}
     >
       {isOpen && (

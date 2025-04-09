@@ -72,6 +72,7 @@ const AddExerciseButton = ({
     fetchExercises: state.fetchExercises,
   }));
   const [isAdding, setIsAdding] = useState(false);
+  const exerciseIndexRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
 
   const handleGenerate = (e: React.FormEvent<HTMLFormElement>) => {
@@ -79,12 +80,8 @@ const AddExerciseButton = ({
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
     const exerciseName = formData.get("exerciseName");
-    const exerciseIndex =
-      prevExercise && typeof prevExercise.title === "string"
-        ? incrementDecimalPart(
-            getExerciseIndexFromTitle(prevExercise.title) as string
-          )
-        : "00.1";
+    const exerciseIndex = exerciseIndexRef.current?.innerText;
+
     if (!fixTitleFormat((exerciseIndex + "-" + exerciseName) as string)) {
       toast.error(t("invalidExerciseName"));
       return;
@@ -132,17 +129,15 @@ const AddExerciseButton = ({
           onSubmit={handleGenerate}
           className=" bg-soft-blue rounded padding-small w-100 flex-x gap-small"
         >
-          {prevExercise &&
-          prevExercise.title &&
-          typeof prevExercise.title === "string" ? (
-            <div className="exercise-circle">
-              {incrementDecimalPart(
-                getExerciseIndexFromTitle(prevExercise.title) as string
-              )}
-            </div>
-          ) : (
-            <div className="exercise-circle">00.1</div>
-          )}
+          <div
+            ref={exerciseIndexRef}
+            className="exercise-circle"
+            contentEditable={true}
+          >
+            {incrementDecimalPart(
+              getExerciseIndexFromTitle(prevExercise.title) as string
+            )}
+          </div>
           <input
             type="text"
             className="input"
@@ -239,7 +234,7 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
   };
 
   return (
-    <ul className="exercise-list">
+    <div className="exercise-list">
       {selectedExercises.length > 0 && (
         <div className="flex-y gap-small align-center">
           <div className="flex-x gap-small align-center">
@@ -259,7 +254,7 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
         </div>
       )}
       {exercises.map((item, index) => (
-        <div key={index} className="flex-y align-center gap-small">
+        <div key={index} className="flex-y align-center gap-small ">
           <ExerciseCard
             key={index + item.slug}
             {...item}
@@ -276,7 +271,7 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
           )}
         </div>
       ))}
-    </ul>
+    </div>
   );
 }
 
@@ -355,9 +350,9 @@ function ExerciseCard({
     }
   };
 
-  console.log(sidebar?.[slug]?.[language], "Sidebar");
+  // console.log(sidebar?.[slug]?.[language], "Sidebar");
   return (
-    <li
+    <div
       className={`exercise-card ${selected ? "bg-2" : "bg-white"}`}
       onClick={
         mode === "student"
@@ -449,7 +444,7 @@ function ExerciseCard({
           </>
         )}
       </div>
-    </li>
+    </div>
   );
 }
 
