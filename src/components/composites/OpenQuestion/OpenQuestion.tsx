@@ -13,9 +13,16 @@ import useStore from "../../../utils/store";
 import SimpleButton from "../../mockups/SimpleButton";
 import { Modal } from "../../mockups/Modal";
 import { TMetadata } from "../Markdowner/types";
+import { AutoResizeTextarea } from "../AutoResizeTextarea/AutoResizeTextarea";
+import { Markdowner } from "../Markdowner/Markdowner";
 
 const splitInLines = (code: string) => {
   return code.split("\n").filter((line) => line.trim() !== "");
+};
+
+type TFeedback = {
+  exit_code: number;
+  feedback: string;
 };
 
 export const Question = ({
@@ -38,13 +45,14 @@ export const Question = ({
     mode: state.mode,
   }));
 
-  const [exitCode, setExitCode] = useState<number | null>(null);
+  const [feedback, setFeedback] = useState<TFeedback | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [examples, setExamples] = useState<string[]>(splitInLines(code));
+  const [answer, setAnswer] = useState("");
   const answerRef = useRef<HTMLTextAreaElement>(null);
 
   const evaluateAnswer = async () => {
-    if (!answerRef.current?.value) {
+    if (!answer) {
       toast.error(t("pleaseEnterAnAnswer"));
       return;
     }
@@ -52,11 +60,14 @@ export const Question = ({
     const result = await checkAnswer(token, {
       eval: metadata.eval as string,
       lesson_content: wholeMD,
-      student_response: answerRef.current.value,
+      student_response: answer,
       examples: examples.join("\n"),
     });
     console.log(result);
-    setExitCode(result.exit_code);
+    setFeedback({
+      exit_code: result.exit_code,
+      feedback: result.feedback,
+    });
     if (result.exit_code === 0) {
       Notifier.confetti();
       playEffect("success");
@@ -88,18 +99,16 @@ ${newExamples.join("\n")}
   };
 
   return (
-    <div
-      className={`stdin rounded ${exitCode === 0 && "bg-soft-green"} ${
-        exitCode === 1 && "bg-soft-red"
-      }`}
-    >
-      <section className="d-flex gap-small align-center">
-        <textarea
-          ref={answerRef}
-          className="w-100 input"
-          name="answer"
+    <div>
+      <section className="d-flex gap-small align-center pos-relative">
+        <AutoResizeTextarea
+          className="w-100"
+          minHeight={"90px"}
+          value={answer}
           placeholder={t("yourAnswerHere")}
+          onChange={(e) => setAnswer(e.target.value)}
         />
+
         <SpeechToTextButton onTranscription={handleTranscription} />
       </section>
       <div className="d-flex gap-small padding-small">
@@ -109,7 +118,7 @@ ${newExamples.join("\n")}
           title={isLoading ? t("evaluating") : t("submitForReview")}
           svg={svgs.rigoSoftBlue}
           action={evaluateAnswer}
-          extraClass="active-on-hover padding-small rounded"
+          extraClass=" border-blue active-on-hover padding-small rounded "
         />
         {isCreator && mode === "creator" && (
           <AddExampleButton
@@ -118,6 +127,29 @@ ${newExamples.join("\n")}
             addExamples={addExamples}
             examples={examples}
           />
+        )}
+      </div>
+      <div>
+        {feedback && (
+          <div
+            className={`flex-y gap-small padding-medium rounded  ${
+              feedback.exit_code === 0 && "bg-soft-green text-dark-green"
+            } ${feedback.exit_code === 1 && "bg-soft-red text-dark-red"}`}
+          >
+            {feedback.exit_code > 0 && (
+              <div className="d-flex gap-small align-center">
+                <SimpleButton
+                  extraClass="text-red"
+                  svg={svgs.closeIcon}
+                  action={() => {}}
+                />
+                <h3 className="m-0 ">{t("yourAnswerNeedsImprovement")}</h3>
+              </div>
+            )}
+            <div className="margin-left-medium">
+              <Markdowner markdown={feedback.feedback} allowCreate={false} />
+            </div>
+          </div>
         )}
       </div>
     </div>

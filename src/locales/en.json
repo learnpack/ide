@@ -217,5 +217,8 @@
     "examples": "Examples",
     "simplifyCode": "Simplify code",
     "insertBefore": "Insert before",
-    "insertAfter": "Insert after"
+    "insertAfter": "Insert after",
+    "pleaseEnterAnAnswer": "Please enter an answer",
+    "yourAnswerNeedsImprovement": "Your answer needs some improvements",
+    "thisIsANewElement": "This is a new element, click on the action box to fill it automatically or manually"
 }

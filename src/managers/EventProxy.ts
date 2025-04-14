@@ -480,7 +480,7 @@ class APIError extends Error {
   }
 }
 
-const fetchWithHandling = async (
+const rigoFetch = async (
   url: string,
   token: string,
   inputs: object,
@@ -528,7 +528,7 @@ type TBuildInputs = {
 };
 
 export const buildRigo = (token: string, inputs: TBuildInputs) => {
-  return fetchWithHandling(
+  return rigoFetch(
     `${RIGOBOT_HOST}/v1/prompting/completion/324/`,
     token,
     inputs
@@ -536,7 +536,7 @@ export const buildRigo = (token: string, inputs: TBuildInputs) => {
 };
 
 const testRigo = (token: string, inputs: object) => {
-  return fetchWithHandling(
+  return rigoFetch(
     `${RIGOBOT_HOST}/v1/prompting/completion/126/`,
     token,
     inputs
@@ -559,7 +559,7 @@ type TCheckAnswerOutputs = {
 };
 
 export const checkAnswer = (token: string, inputs: TCheckAnswerInputs) => {
-  return fetchWithHandling(
+  return rigoFetch(
     `${RIGOBOT_HOST}/v1/prompting/completion/786/`,
     token,
     inputs
@@ -581,7 +581,7 @@ export const suggestExamples = (
   token: string,
   inputs: TSuggestExamplesInputs
 ) => {
-  return fetchWithHandling(
+  return rigoFetch(
     `${RIGOBOT_HOST}/v1/prompting/completion/885/`,
     token,
     inputs

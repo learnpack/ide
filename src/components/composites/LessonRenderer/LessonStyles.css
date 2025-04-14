@@ -29,6 +29,14 @@
 
 .creator-wrapper {
   position: relative;
+
+  & .display-on-hover {
+    display: none;
+  }
+}
+
+.creator-wrapper:hover .display-on-hover {
+  display: block;
 }
 .inverted {
   transform: scaleY(-1);

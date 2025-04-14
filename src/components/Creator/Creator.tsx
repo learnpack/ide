@@ -7,6 +7,7 @@ import SimpleButton from "../mockups/SimpleButton";
 import { svgs } from "../../assets/svgs";
 import { Markdowner } from "../composites/Markdowner/Markdowner";
 import { Loader } from "../composites/Loader/Loader";
+import { AutoResizeTextarea } from "../composites/AutoResizeTextarea/AutoResizeTextarea";
 
 type TPromp = {
   type: "button" | "select" | "input";
@@ -44,16 +45,16 @@ export const CreatorWrapper = ({
   // const [showButtons, setShowButtons] = useState(false);
   const [replacementValue, setReplacementValue] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [insertPosition, setInsertPosition] = useState<
-    "before" | "after" | "current"
-  >("current");
+  const [prompt, setPrompt] = useState("");
+  // const [insertPosition, setInsertPosition] = useState<
+  //   "before" | "after" | "current"
+  // >("current");
 
   const elemRef = useRef<HTMLDivElement>(null);
   const optionsRef = useRef<HTMLDivElement>(null);
   const targetRef = useRef<HTMLDivElement>(null);
 
   const toneRef = useRef<HTMLSelectElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const { t } = useTranslation();
 
@@ -202,7 +203,7 @@ export const CreatorWrapper = ({
 
   const askAIAnything = (question: string) => {
     setIsGenerating(true);
-    let elementText = elemRef.current?.innerHTML;
+  let elementText = elemRef.current?.innerHTML;
 
     if (node?.position?.start?.offset && node?.position?.end?.offset) {
       elementText = getPortionFromText(
@@ -212,22 +213,12 @@ export const CreatorWrapper = ({
       );
     }
     if (elementText && targetRef.current && question) {
-      let extraParams = {};
-      if (insertPosition !== "current") {
-        extraParams = {
-          before_or_after: insertPosition,
-        };
-      }
       RigoAI.useTemplate({
-        slug:
-          insertPosition === "current"
-            ? "ask-anything-in-lesson"
-            : "insert-before-or-after",
+        slug: "ask-anything-in-lesson",
         inputs: {
           prompt: question,
           whole_lesson: currentContent.body,
           text_selected: elementText,
-          ...extraParams,
         },
         target: targetRef.current,
         onComplete: (success: boolean, data: any) => {
@@ -346,121 +337,107 @@ export const CreatorWrapper = ({
   ];
 
   return (
-    <div
-      className={`creator-wrapper ${
-        insertPosition === "before" && replacementValue ? "inverted" : ""
-      } ${tagName}`}
-    >
+    <div className={`creator-wrapper  ${tagName}`}>
+      <SimpleButton
+        svg={svgs.plus}
+        extraClass="top-centered display-on-hover"
+        action={async () => {
+          if (node?.position?.start && node?.position?.end) {
+            await insertBeforeOrAfter(
+              t("thisIsANewElement"),
+              "before",
+              node?.position?.start.offset || 0
+            );
+          }
+          setIsOpen(!isOpen);
+        }}
+      />
       {isOpen && (
         <div ref={optionsRef} className="creator-options">
           <div className={` rigo-input`}>
             <SimpleButton
               svg={svgs.rigoSoftBlue}
-              action={() => askAIAnything(inputRef.current?.value || "")}
+              action={() => askAIAnything(prompt)}
               extraClass={"big-circle rigo-button"}
             />
-            <textarea
+            <AutoResizeTextarea
               placeholder={t("editWithRigobotPlaceholder")}
-              ref={inputRef}
-              rows={2}
               autoFocus
+              className="rigo-textarea"
               onKeyUp={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
-                  askAIAnything(inputRef.current?.value || "");
+                  askAIAnything(prompt);
                 }
               }}
-              className="rigo-textarea"
-            ></textarea>
+              minHeight={60}
+              value={prompt}
+              onChange={(e) => {
+                setPrompt(e.target.value);
+              }}
+            />
           </div>
           <div className="flex-y gap-small creator-options-buttons">
-            {insertPosition !== "after" && (
-              <SimpleButton
-                svg={svgs.upArrow}
-                text={t("insertBefore")}
-                action={() => {
-                  if (insertPosition === "before") {
-                    setInsertPosition("current");
-                  } else {
-                    setInsertPosition("before");
-                    inputRef.current!.focus();
-                  }
-                }}
-                extraClass={`${
-                  insertPosition === "before"
-                    ? "bg-blue-rigo text-white"
-                    : "svg-blue"
-                } text-secondary  rounded padding-small active-on-hover `}
-              />
-            )}
-            {insertPosition === "current" &&
-              promps
-                .filter((prompt) => {
-                  if (prompt.allowedElements?.includes("all")) return true;
-                  if (prompt.allowedElements?.includes(tagName)) return true;
-                  return false;
-                })
-                .map((prompt, index) =>
-                  prompt.type === "button" ? (
+            {promps
+              .filter((prompt) => {
+                if (prompt.allowedElements?.includes("all")) return true;
+                if (prompt.allowedElements?.includes(tagName)) return true;
+                return false;
+              })
+              .map((prompt, index) =>
+                prompt.type === "button" ? (
+                  <SimpleButton
+                    svg={prompt.svg}
+                    key={`${prompt.text}-${index}`}
+                    action={prompt.action}
+                    extraClass={prompt.extraClass}
+                    text={prompt.text}
+                  />
+                ) : prompt.type === "select" ? (
+                  <div
+                    className={`flex-x gap-small `}
+                    key={`${prompt.text}-${index}`}
+                  >
                     <SimpleButton
-                      svg={prompt.svg}
                       key={`${prompt.text}-${index}`}
-                      action={prompt.action}
+                      svg={prompt.svg}
+                      action={() => prompt.action(toneRef.current?.value || "")}
                       extraClass={prompt.extraClass}
                       text={prompt.text}
                     />
-                  ) : prompt.type === "select" ? (
-                    <div
-                      className={`flex-x gap-small `}
-                      key={`${prompt.text}-${index}`}
+                    <select
+                      ref={toneRef}
+                      key={prompt.text}
+                      className={`rounded `}
+                      // onChange={(e) => prompt.action(e.target.value)}
                     >
-                      <SimpleButton
-                        key={`${prompt.text}-${index}`}
-                        svg={prompt.svg}
-                        action={() =>
-                          prompt.action(toneRef.current?.value || "")
-                        }
-                        extraClass={prompt.extraClass}
-                        text={prompt.text}
-                      />
-                      <select
-                        ref={toneRef}
-                        key={prompt.text}
-                        className={`rounded `}
-                        // onChange={(e) => prompt.action(e.target.value)}
-                      >
-                        {prompt.options?.map((option) => (
-                          <option key={option} value={option}>
-                            {t(option)}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  ) : null
-                )}
-
-            {insertPosition !== "before" && (
-              <SimpleButton
-                svg={svgs.downArrow}
-                text={t("insertAfter")}
-                action={() => {
-                  if (insertPosition === "after") {
-                    setInsertPosition("current");
-                  } else {
-                    setInsertPosition("after");
-                    inputRef.current!.focus();
-                  }
-                }}
-                extraClass={`${
-                  insertPosition === "after"
-                    ? "text-white bg-blue-rigo"
-                    : "text-secondary svg-blue"
-                }   rounded padding-small active-on-hover `}
-              />
-            )}
+                      {prompt.options?.map((option) => (
+                        <option key={option} value={option}>
+                          {t(option)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : null
+              )}
           </div>
         </div>
       )}
+
+      <SimpleButton
+        svg={svgs.plus}
+        extraClass="bottom-centered display-on-hover"
+        action={async () => {
+          if (node?.position?.start && node?.position?.end) {
+            await insertBeforeOrAfter(
+              t("thisIsANewElement"),
+              "after",
+              node?.position?.end.offset || 0
+            );
+          }
+          setIsOpen(!isOpen);
+        }}
+      />
 
       <div className="text-in-editor" ref={elemRef}>
         <SimpleButton
@@ -488,31 +465,11 @@ export const CreatorWrapper = ({
           <div className="flex-x gap-small target-buttons justify-center">
             <SimpleButton
               action={async () => {
-                if (
-                  node?.position?.start &&
-                  node?.position?.end &&
-                  insertPosition === "current"
-                ) {
+                if (node?.position?.start && node?.position?.end) {
                   await replaceInReadme(
                     replacementValue,
                     node?.position?.start,
                     node?.position?.end
-                  );
-                  setReplacementValue("");
-                }
-                if (insertPosition === "before" && node?.position?.start) {
-                  await insertBeforeOrAfter(
-                    replacementValue,
-                    "before",
-                    node?.position?.start.offset || 0
-                  );
-                  setReplacementValue("");
-                }
-                if (insertPosition === "after" && node?.position?.end) {
-                  await insertBeforeOrAfter(
-                    replacementValue,
-                    "after",
-                    node?.position?.end.offset || 0
                   );
                   setReplacementValue("");
                 }

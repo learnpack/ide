@@ -42,6 +42,7 @@ export const SpeechToTextButton: React.FC<SpeechToTextButtonProps> = ({
       (window as any).webkitSpeechRecognition;
 
     if (SpeechRecognitionAPI && agent !== "vscode") {
+    // if (SpeechRecognitionAPI) {
       setIsSupported(true);
       recognitionRef.current = new SpeechRecognitionAPI();
       const recognition = recognitionRef.current;
@@ -53,7 +54,7 @@ export const SpeechToTextButton: React.FC<SpeechToTextButtonProps> = ({
 
         recognition.onresult = (event: SpeechRecognitionEvent) => {
           const transcript = event.results[0][0].transcript;
-          onTranscription?.(transcript); // Llamar al callback con el texto transcrito
+          onTranscription?.(transcript);
         };
 
         recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
@@ -86,13 +87,17 @@ export const SpeechToTextButton: React.FC<SpeechToTextButtonProps> = ({
     setIsRecording(!isRecording);
   };
 
+  console.log(isSupported, "isSupported");
+
   return (
     isSupported && (
       <SimpleButton
         title={isRecording ? "Stop recording" : "Start recording"}
         svg={isRecording ? svgs.microphoneOff : svgs.microphone}
         action={toggleRecording}
-        extraClass=" padding-small rounded "
+        extraClass={`${
+          isRecording ? "bg-soft-red" : "bg-gray"
+        } padding-medium rounded big-circle  d-flex align-center justify-center pos-absolute right-bottom-corner `}
         disabled={!isSupported}
       />
     )
