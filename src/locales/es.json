@@ -227,5 +227,7 @@
     "insertAfter": "Insertar después",
     "pleaseEnterAnAnswer": "Por favor ingresa una respuesta",
     "yourAnswerNeedsImprovement": "Tu respuesta necesita algunas mejoras",
-    "thisIsANewElement": "Este es un nuevo elemento, haz click en la caja de acción para llenarlo automáticamente o manualmente"
+    "thisIsANewElement": "Este es un nuevo elemento, haz click en la caja de acción para llenarlo automáticamente o manualmente",
+    "requestChanges": "Solicitar cambios",
+    "requestChangesPlaceholder": "Escribe tu prompt aquí"
 }

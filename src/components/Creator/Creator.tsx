@@ -24,6 +24,12 @@ const getPortionFromText = (text: string, start: number, end: number) => {
   return text.slice(start, end);
 };
 
+type TInteraction = {
+  initial: string;
+  prompt: string;
+  final: string;
+};
+
 export const CreatorWrapper = ({
   children,
   tagName,
@@ -46,6 +52,7 @@ export const CreatorWrapper = ({
   const [replacementValue, setReplacementValue] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [prompt, setPrompt] = useState("");
+  const [interactions, setInteractions] = useState<TInteraction[]>([]);
   // const [insertPosition, setInsertPosition] = useState<
   //   "before" | "after" | "current"
   // >("current");
@@ -203,7 +210,8 @@ export const CreatorWrapper = ({
 
   const askAIAnything = (question: string) => {
     setIsGenerating(true);
-  let elementText = elemRef.current?.innerHTML;
+
+    let elementText = elemRef.current?.innerHTML;
 
     if (node?.position?.start?.offset && node?.position?.end?.offset) {
       elementText = getPortionFromText(
@@ -214,18 +222,24 @@ export const CreatorWrapper = ({
     }
     if (elementText && targetRef.current && question) {
       RigoAI.useTemplate({
-        slug: "ask-anything-in-lesson",
+        slug: "request-changes-in-lesson",
         inputs: {
           prompt: question,
           whole_lesson: currentContent.body,
           text_selected: elementText,
+          prev_interactions: JSON.stringify(interactions),
         },
         target: targetRef.current,
         onComplete: (success: boolean, data: any) => {
           if (success) {
             setIsGenerating(false);
             setReplacementValue(data.ai_response);
-            // setShowButtons(true);
+            const interaction: TInteraction = {
+              initial: elementText,
+              prompt: question,
+              final: data.ai_response,
+            };
+            setInteractions((prev) => [...prev, interaction]);
           }
         },
       });
@@ -478,6 +492,7 @@ export const CreatorWrapper = ({
               svg={svgs.iconCheck}
               text={t("acceptChanges")}
             />
+            <ChangesRequester sendPrompt={askAIAnything} />
             <SimpleButton
               action={() => {
                 targetRef.current!.innerHTML = "";
@@ -490,6 +505,47 @@ export const CreatorWrapper = ({
           </div>
         )}
       </div>
+    </div>
+  );
+};
+
+const ChangesRequester = ({
+  sendPrompt,
+}: {
+  sendPrompt: (prompt: string) => void;
+}) => {
+  const { t } = useTranslation();
+  const [prompt, setPrompt] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="changes-requester">
+      <SimpleButton
+        action={() => {
+          if (isOpen) {
+            sendPrompt(prompt);
+            setPrompt("");
+          }
+          setIsOpen(!isOpen);
+        }}
+        extraClass="padding-small border-gray rounded scale-on-hover"
+        svg={svgs.rigoSoftBlue}
+        text={isOpen ? undefined : t("requestChanges")}
+      />
+      {isOpen && (
+        <AutoResizeTextarea
+          placeholder={t("requestChangesPlaceholder")}
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          onKeyUp={(e) => {
+            if (e.key === "Enter") {
+              sendPrompt(prompt);
+              setPrompt("");
+              setIsOpen(false);
+            }
+          }}
+        />
+      )}
     </div>
   );
 };
