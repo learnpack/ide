@@ -1719,15 +1719,13 @@ The user's set up the application in "${language}" language, give your feedback 
 
     set({ isCreator });
 
-    if (isCreator) {
-      RigoAI.init({
-        chatHash: "529ca5a219084bc7b93c172ad78ef92a",
-        purposeSlug: "learnpack-lesson-writer",
-        userToken: token,
-        context:
-          "You are a helpful lesson writer assistant. Please provide your response always in MARKDOWN. ",
-      });
-    }
+    RigoAI.init({
+      chatHash: "529ca5a219084bc7b93c172ad78ef92a",
+      purposeSlug: "learnpack-lesson-writer",
+      userToken: token,
+      context:
+        "You are a helpful teacher assistant. Please provide your responses always in MARKDOWN. ",
+    });
     return { ai_compilation, ai_conversation_message, ai_generation };
   },
   reportEnrichDataLayer: (event: string, extraData: object) => {

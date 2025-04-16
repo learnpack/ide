@@ -10,6 +10,7 @@ import {
 import { FetchManager } from "./fetchManager";
 import { LocalStorage } from "./localStorage";
 import Socket from "./socket";
+import { RigoAI } from "../components/Rigobot/AI";
 
 export type TEnvironment = "localhost" | "localStorage" | "creatorWeb";
 
@@ -113,6 +114,15 @@ const localStorageEventEmitter = {
     }
   },
 };
+
+function expandRepeatTags(text: string): string {
+  const repeatRegex = /<REPEAT\s+"(.*?)"\s+(\d+)\s*\/>/g;
+
+  return text.replace(repeatRegex, (_, content: string, countStr: string) => {
+    const count = parseInt(countStr, 10);
+    return Array(count).fill(content).join("\n");
+  });
+}
 
 localStorageEventEmitter.on("build", async (data) => {
   try {
@@ -220,57 +230,60 @@ localStorageEventEmitter.on("build", async (data) => {
       inputs: JSON.stringify(inputsObject),
     };
 
-    const json = await buildRigo(data.token, inputs);
-    json.ai_required = true;
-    json.starting_at = starting_at;
-    const ended_at = new Date().getTime();
-    json.ended_at = ended_at;
-    if (json.exit_code > 0) {
-      localStorageEventEmitter.emitStatus("compiler-error", json);
-    } else {
-      localStorageEventEmitter.emitStatus("compiler-success", json);
-    }
+    // const target = document.querySelector("#learnpack-editor");
+    console.log("COMPLETING WITH RIGOBOT AI");
 
-    let logs = [json];
+    RigoAI.useTemplate({
+      slug: "structured-build-learnpack",
+      inputs,
+      // target: ,
+      onComplete: (success, rigoData) => {
+        console.log("RIGOBOT AI COMPLETE the build", success, rigoData);
 
-    if (json.reasoning) {
-      console.log("RIGOBOT REASONING:", json.reasoning);
-    }
-
-    if (logs !== null) {
-      let terminalContent = ``;
-      logs.forEach((log: any) => {
-        terminalContent += `\`\`\`stdout\n${log.stdout}\n\`\`\`\n`;
-        if (log.stderr) {
-          terminalContent += `\`\`\`stderr\n${log.stderr}\n\`\`\`\n`;
+        const json = rigoData.data.parsed;
+        json.ai_required = true;
+        json.starting_at = starting_at;
+        const ended_at = new Date().getTime();
+        json.ended_at = ended_at;
+        if (json.exit_code > 0) {
+          localStorageEventEmitter.emitStatus("compiler-error", json);
+        } else {
+          localStorageEventEmitter.emitStatus("compiler-success", json);
         }
-      });
 
-      const terminalTab = {
-        id: "terminal",
-        content: terminalContent,
-        name: "terminal",
-        isActive: false,
-        from: "build",
-        status: "ready",
-      };
-      data.updateEditorTabs(terminalTab);
-    }
+        let logs = [json];
+
+        if (json.reasoning) {
+          console.log("RIGOBOT AI REASONING:", json.reasoning);
+        }
+
+        if (logs !== null) {
+          // toast.success("RIGOBOT AI SUCCESS IN THE BUILD EVENT");
+          let terminalContent = ``;
+          logs.forEach((log: any) => {
+            terminalContent += `\`\`\`stdout\n${log.stdout}\n\`\`\`\n`;
+            if (log.stderr) {
+              terminalContent += `\`\`\`stderr\n${log.stderr}\n\`\`\`\n`;
+            }
+          });
+
+          terminalContent = expandRepeatTags(terminalContent);
+          const terminalTab = {
+            id: "terminal",
+            content: terminalContent,
+            name: "terminal",
+            isActive: false,
+            from: "build",
+            status: "ready",
+          };
+          console.log("UPDATING EDITOR TABS", terminalTab);
+          console.log("data", data.updateEditorTabs);
+
+          data.updateEditorTabs(terminalTab);
+        }
+      },
+    });
   } catch (error) {
-    // console.table({
-    //   "Something unexpected happened in the build event": e,
-    // });
-    // toast.error("Something unexpected happened in the build event");
-    // const errorDatalayer = {
-    //   dataLayer: {
-    //     event: "learnpack_unexpected_error",
-    //     origin: "cloud_build",
-    //     agent: "cloud",
-    //     error: e,
-    //   },
-    // };
-    // reportDataLayer(errorDatalayer);
-
     if (error instanceof TokenExpired) {
       console.warn("Token expired. Logging out...");
 
@@ -400,10 +413,10 @@ localStorageEventEmitter.on("test", async (data) => {
 
     let terminalContent = "";
 
-    terminalContent += json.stdout + "\n";
-    terminalContent += json.stderr + "\n\n";
+    terminalContent += `\`\`\`stdout\n${json.stdout}\n\`\`\`\n`;
+    terminalContent += `\`\`\`stderr\n${json.stderr}\n\`\`\`\n`;
     if (json.testResults) {
-      terminalContent += json.testResults + "\n\n";
+      terminalContent += json.testResults;
     }
     if (json.message) {
       const separator = "# Rigo Feedback \n\n";
@@ -416,7 +429,7 @@ localStorageEventEmitter.on("test", async (data) => {
 
     const terminalTab = {
       id: generateUUID(),
-      content: terminalContent,
+      content: expandRepeatTags(terminalContent),
       name: "terminal",
       isActive: false,
       from: "test",
