@@ -1079,6 +1079,10 @@ The user's set up the application in "${language}" language, give your feedback 
       return;
     }
 
+    if (isNaN(desiredPosition)) {
+      desiredPosition = 0;
+    }
+
     const gradingMode = configObject.config.grading;
     const lastExercise = exercises.length - 1;
 

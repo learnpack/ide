@@ -52,26 +52,31 @@ export const getEnvironment = async () => {
   try {
     const response = await fetch(`${host}/config`);
     if (response.ok) {
-      ENVIRONMENT = "localhost";
+      let environment: TEnvironment = "localhost";
+
+      const isCreatorWeb = response.headers.get("X-Creator-Web");
+
+      if (isCreatorWeb) {
+        environment = "creatorWeb";
+      }
+
+      ENVIRONMENT = environment;
 
       const myEvent = new CustomEvent("environment-change", {
-        detail: { environment: "localhost" },
+        detail: { environment },
       });
 
-      // Dispatch the event
       document.dispatchEvent(myEvent);
 
-      return "localhost";
-    } else throw Error("The response was unsuccesfull");
+      return environment;
+    } else throw Error("The response was unsuccessful");
   } catch (e) {
-    // console.log(e);
     ENVIRONMENT = "localStorage";
 
     const myEvent = new CustomEvent("environment-change", {
       detail: { environment: "localStorage" },
     });
 
-    // Dispatch the event
     document.dispatchEvent(myEvent);
     return "localStorage";
   }

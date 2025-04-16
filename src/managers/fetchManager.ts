@@ -19,6 +19,7 @@ import { TSidebar } from "../utils/storeTypes";
 type TMethods = {
   localStorage: () => Promise<any>;
   localhost: () => Promise<any>;
+  creatorWeb: () => Promise<any>;
 };
 
 export const FetchManager = {
@@ -38,9 +39,13 @@ export const FetchManager = {
   },
   getExercises: async () => {
     const configUrl =
-      FetchManager.ENVIRONMENT === "localhost" ? "config" : "config.json";
+      FetchManager.ENVIRONMENT === "localhost" ||
+      FetchManager.ENVIRONMENT === "creatorWeb"
+        ? "config"
+        : "config.json";
     let url =
-      FetchManager.ENVIRONMENT === "localhost"
+      FetchManager.ENVIRONMENT === "localhost" ||
+      FetchManager.ENVIRONMENT === "creatorWeb"
         ? `${FetchManager.HOST}/${configUrl}`
         : "/config.json";
 
@@ -61,7 +66,8 @@ export const FetchManager = {
     const slugFromParams = params.slug;
 
     let url =
-      FetchManager.ENVIRONMENT === "localhost"
+      FetchManager.ENVIRONMENT === "localhost" ||
+      FetchManager.ENVIRONMENT === "creatorWeb"
         ? `${FetchManager.HOST}/exercise/${slug}/readme?lang=${language}${
             slugFromParams ? `&slug=${slugFromParams}` : ""
           }`
@@ -69,7 +75,10 @@ export const FetchManager = {
 
     const response = await fetch(url);
 
-    if (FetchManager.ENVIRONMENT === "localhost") {
+    if (
+      FetchManager.ENVIRONMENT === "localhost" ||
+      FetchManager.ENVIRONMENT === "creatorWeb"
+    ) {
       const json = await response.json();
       return json;
     }
@@ -123,6 +132,12 @@ export const FetchManager = {
         const exercise = config.exercises.find((e: any) => e.slug === slug);
         return exercise;
       },
+      creatorWeb: async () => {
+        const slug = getParamsObject().slug;
+        const respose = await fetch(`/steps/${slug}?slug=${slug}`);
+        const exercise = await respose.json();
+        return exercise;
+      },
     };
 
     return await methods[FetchManager.ENVIRONMENT as keyof TMethods]();
@@ -143,6 +158,12 @@ export const FetchManager = {
       },
       localStorage: async () => {
         // console.log("SAVING FILE IN LS");
+      },
+      creatorWeb: async () => {
+        const slug = getParamsObject().slug;
+        const respose = await fetch(`/steps/${slug}?slug=${slug}`);
+        const exercise = await respose.json();
+        return exercise;
       },
     };
 
@@ -191,6 +212,28 @@ export const FetchManager = {
         }
         return { ...json, user };
       },
+      creatorWeb: async () => {
+        const session = LocalStorage.get("session");
+        if (!session) {
+          console.log("No session in LS");
+
+          throw Error("The user is not logged in");
+        }
+
+        const user = await validateUser(session.token);
+
+        if (!user) {
+          LocalStorage.remove("session");
+          throw Error("The token is invalid or inactive!");
+        }
+
+        const loggedFormat = {
+          payload: { ...session },
+          rigoToken: session.rigobot.key,
+          user,
+        };
+        return loggedFormat;
+      },
     };
 
     return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
@@ -219,6 +262,10 @@ export const FetchManager = {
         return true;
       },
       localStorage: async () => {
+        LocalStorage.set("TAB_HASH", tabHash);
+        return true;
+      },
+      creatorWeb: async () => {
         LocalStorage.set("TAB_HASH", tabHash);
         return true;
       },
@@ -278,6 +325,13 @@ export const FetchManager = {
         }
         return sessionKey;
       },
+      creatorWeb: async () => {
+        let sessionKey = LocalStorage.get("LEARNPACK_SESSION_KEY");
+        if (!sessionKey) {
+          return null;
+        }
+        return sessionKey;
+      },
     };
     return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
   },
@@ -306,6 +360,9 @@ export const FetchManager = {
       localStorage: async () => {
         LocalStorage.set("LEARNPACK_SESSION_KEY", sessionKey);
       },
+      creatorWeb: async () => {
+        LocalStorage.set("LEARNPACK_SESSION_KEY", sessionKey);
+      },
     };
     return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
   },
@@ -332,6 +389,17 @@ export const FetchManager = {
           return {};
         }
       },
+      creatorWeb: async () => {
+        try {
+          const slug = getParamsObject().slug;
+          const sidebar = await fetch(`/translations/sidebar?slug=${slug}`);
+          const json = await sidebar.json();
+          return json;
+        } catch (e) {
+          console.error(e, "error getting sidebar");
+          return {};
+        }
+      },
     };
     return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
   },
@@ -341,6 +409,9 @@ export const FetchManager = {
         return await loginLocalhost(loginInfo, FetchManager.HOST);
       },
       localStorage: async () => {
+        return await loginLocalStorage(loginInfo);
+      },
+      creatorWeb: async () => {
         return await loginLocalStorage(loginInfo);
       },
     };
@@ -378,7 +449,10 @@ export const FetchManager = {
         token: breathecodeToken,
         tabHash: tabHash,
       });
-    } else if (FetchManager.ENVIRONMENT === "localStorage") {
+    } else if (
+      FetchManager.ENVIRONMENT === "localStorage" ||
+      FetchManager.ENVIRONMENT === "creatorWeb"
+    ) {
       LocalStorage.set("session", {
         token: breathecodeToken,
         email: loggedFormat.user.email,
@@ -411,6 +485,21 @@ export const FetchManager = {
         toast.error("IMPOSSIBLE TO REPLACE README IN LS");
         // console.log("REPLACING README IN LS");
       },
+      creatorWeb: async () => {
+        const courseSlug = getParamsObject().slug;
+        const url = `${FetchManager.HOST}/exercise/${slug}/file/README.${
+          language === "us" ? "" : "es."
+        }md?slug=${courseSlug}`;
+        const res = await fetch(url, {
+          method: "PUT",
+          body: newReadme,
+        });
+        if (!res.ok) {
+          return false;
+        }
+        // await res.json();
+        return true;
+      },
     };
     return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
   },
@@ -432,12 +521,24 @@ export const FetchManager = {
           FetchManager.LOGOUT_CALLBACK();
         }
       },
+      creatorWeb: async () => {
+        LocalStorage.remove("session");
+        const params = getParamsObject();
+        if (params.token) {
+          delete params.token;
+        }
+        setWindowHash(params);
+      },
     };
 
     methods[FetchManager.ENVIRONMENT as keyof TMethods]();
   },
 
-  translateExercises: async (exerciseSlugs: string[], languages: string) => {
+  translateExercises: async (
+    exerciseSlugs: string[],
+    languages: string,
+    token: string
+  ) => {
     const methods: TMethods = {
       localhost: async () => {
         const url = `${FetchManager.HOST}/actions/translate`;
@@ -453,6 +554,31 @@ export const FetchManager = {
       },
       localStorage: async () => {
         toast.error("IMPOSSIBLE TO TRANSLATE EXERCISES IN LS");
+      },
+      creatorWeb: async () => {
+        const courseSlug = getParamsObject().slug;
+        console.log(token, "token to translate");
+
+        try {
+          const url = `${FetchManager.HOST}/actions/translate?slug=${courseSlug}`;
+          const res = await fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              exerciseSlugs,
+              languages,
+              rigoToken: token,
+            }),
+          });
+          const json = await res.json();
+          console.log(json, "json for translation");
+          return json;
+        } catch (e) {
+          console.error(e, "error translating exercises");
+          return {};
+        }
       },
     };
     return methods[FetchManager.ENVIRONMENT as keyof TMethods]();

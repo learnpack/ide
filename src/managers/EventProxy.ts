@@ -11,7 +11,7 @@ import { FetchManager } from "./fetchManager";
 import { LocalStorage } from "./localStorage";
 import Socket from "./socket";
 
-export type TEnvironment = "localhost" | "localStorage";
+export type TEnvironment = "localhost" | "localStorage" | "creatorWeb";
 
 type EventCallback = (data: any) => void;
 
@@ -459,6 +459,9 @@ export const EventProxy = {
         return Socket.createScope("compiler");
       },
       localStorage: () => {
+        return localStorageEventEmitter;
+      },
+      creatorWeb: () => {
         return localStorageEventEmitter;
       },
     };
