@@ -284,6 +284,22 @@ export const CreatorWrapper = ({
     setIsOpen(false);
   };
 
+  const acceptChanges = async () => {
+    if (node?.position?.start && node?.position?.end) {
+      await replaceInReadme(
+        replacementValue,
+        node?.position?.start,
+        node?.position?.end
+      );
+      setReplacementValue("");
+    }
+  };
+
+  const rejectChanges = () => {
+    targetRef.current!.innerHTML = "";
+    setReplacementValue("");
+  };
+
   const promps: TPromp[] = [
     {
       type: "button",
@@ -475,32 +491,12 @@ export const CreatorWrapper = ({
         {isGenerating && (
           <Loader text={t("thinking")} svg={svgs.rigoSoftBlue} />
         )}
-        {replacementValue && (
+        {replacementValue && !isGenerating && (
           <div className="flex-x gap-small target-buttons justify-center">
-            <SimpleButton
-              action={async () => {
-                if (node?.position?.start && node?.position?.end) {
-                  await replaceInReadme(
-                    replacementValue,
-                    node?.position?.start,
-                    node?.position?.end
-                  );
-                  setReplacementValue("");
-                }
-              }}
-              extraClass="padding-small border-gray rounded scale-on-hover"
-              svg={svgs.iconCheck}
-              text={t("acceptChanges")}
-            />
-            <ChangesRequester sendPrompt={askAIAnything} />
-            <SimpleButton
-              action={() => {
-                targetRef.current!.innerHTML = "";
-                setReplacementValue("");
-              }}
-              extraClass="padding-small border-gray rounded  scale-on-hover"
-              svg={svgs.iconClose}
-              text={t("rejectChanges")}
+            <ChangesRequester
+              sendPrompt={askAIAnything}
+              acceptChanges={acceptChanges}
+              rejectChanges={rejectChanges}
             />
           </div>
         )}
@@ -511,8 +507,13 @@ export const CreatorWrapper = ({
 
 const ChangesRequester = ({
   sendPrompt,
+
+  acceptChanges,
+  rejectChanges,
 }: {
   sendPrompt: (prompt: string) => void;
+  acceptChanges: () => void;
+  rejectChanges: () => void;
 }) => {
   const { t } = useTranslation();
   const [prompt, setPrompt] = useState("");
@@ -520,31 +521,68 @@ const ChangesRequester = ({
 
   return (
     <div className="changes-requester">
-      <SimpleButton
-        action={() => {
-          if (isOpen) {
-            sendPrompt(prompt);
-            setPrompt("");
-          }
-          setIsOpen(!isOpen);
-        }}
-        extraClass="padding-small border-gray rounded scale-on-hover"
-        svg={svgs.rigoSoftBlue}
-        text={isOpen ? undefined : t("requestChanges")}
-      />
-      {isOpen && (
-        <AutoResizeTextarea
-          placeholder={t("requestChangesPlaceholder")}
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          onKeyUp={(e) => {
-            if (e.key === "Enter") {
+      {isOpen ? (
+        <div className="rigo-input pos-relative">
+          <SimpleButton
+            action={() => {
               sendPrompt(prompt);
               setPrompt("");
-              setIsOpen(false);
-            }
-          }}
-        />
+              setIsOpen(!isOpen);
+            }}
+            extraClass="big-circle rigo-button"
+            svg={svgs.rigoSoftBlue}
+          />
+          <SimpleButton
+            action={() => {
+              setPrompt("");
+              setIsOpen(!isOpen);
+            }}
+            extraClass=" float-right text-dark-red"
+            svg={svgs.closeX}
+          />
+          <AutoResizeTextarea
+            placeholder={t("requestChangesPlaceholder")}
+            value={prompt}
+            minHeight={"60px"}
+            className="rigo-textarea"
+            onChange={(e) => setPrompt(e.target.value)}
+            onKeyUp={(e) => {
+              if (e.key === "Enter") {
+                sendPrompt(prompt);
+                setPrompt("");
+                setIsOpen(false);
+              }
+            }}
+          />
+        </div>
+      ) : (
+        <div className="flex-x gap-small">
+          <SimpleButton
+            action={acceptChanges}
+            extraClass="padding-small border-gray rounded scale-on-hover"
+            svg={svgs.iconCheck}
+            text={t("acceptChanges")}
+          />
+
+          <SimpleButton
+            action={() => {
+              if (isOpen) {
+                sendPrompt(prompt);
+                setPrompt("");
+              }
+              setIsOpen(!isOpen);
+            }}
+            extraClass="padding-small border-gray rounded scale-on-hover"
+            svg={svgs.rigoSoftBlue}
+            text={isOpen ? undefined : t("requestChanges")}
+          />
+          <SimpleButton
+            action={rejectChanges}
+            extraClass="padding-small border-gray rounded  scale-on-hover"
+            svg={svgs.iconClose}
+            text={t("rejectChanges")}
+          />
+        </div>
       )}
     </div>
   );
