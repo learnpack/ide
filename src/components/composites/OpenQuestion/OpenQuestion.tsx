@@ -111,14 +111,14 @@ ${newExamples.join("\n")}
 
         <SpeechToTextButton onTranscription={handleTranscription} />
       </section>
-      <div className="d-flex gap-small padding-small">
+      <div className="d-flex gap-small padding-small justify-between row-reverse">
         <SimpleButton
           disabled={isLoading}
           text={isLoading ? t("evaluating") : t("submitForReview")}
           title={isLoading ? t("evaluating") : t("submitForReview")}
           svg={svgs.rigoSoftBlue}
           action={evaluateAnswer}
-          extraClass=" border-blue active-on-hover padding-small rounded "
+          extraClass=" border-blue active-on-hover padding-small rounded align-self-end"
         />
         {isCreator && mode === "creator" && (
           <AddExampleButton

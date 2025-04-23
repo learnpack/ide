@@ -12,6 +12,7 @@ import {
 } from "../../../utils/creator";
 import { FetchManager } from "../../../managers/fetchManager";
 import { TMode } from "../../../utils/storeTypes";
+import { normalizeVersionString } from "../../../utils/lib";
 interface IExerciseList {
   closeSidebar: () => void;
   mode: "creator" | "student";
@@ -397,7 +398,7 @@ function ExerciseCard({
         ) : (
           <>
             <button className={`exercise-circle ${done ? "done" : ""}`}>
-              <span>{title.split("-")[0]}</span>
+              <span>{normalizeVersionString(title.split("-")[0])}</span>
             </button>
             <span>{titlefy(sidebar?.[slug]?.[language] || title)}</span>
           </>

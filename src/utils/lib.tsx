@@ -397,3 +397,20 @@ export const playEffect = (mood: "success" | "error") => {
     console.error("Error playing sound", error);
   }
 };
+
+
+export function removeFrontMatter(content: string): string {
+  const frontMatterRegex = /^---\s*[\s\S]*?\s*---\s*/;
+  return content.replace(frontMatterRegex, '').trimStart();
+}
+
+
+export function normalizeVersionString(input: string): string {
+  const [intPart, decPart] = input.split('.');
+
+  if (decPart === '0') {
+    return intPart;
+  }
+
+  return `${intPart}.${decPart}`;
+}

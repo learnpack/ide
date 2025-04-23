@@ -946,3 +946,11 @@ a {
   left: 50%;
   transform: translateX(-50%);
 }
+
+.align-self-end {
+  align-self: flex-end;
+}
+
+.row-reverse {
+  flex-direction: row-reverse;
+}

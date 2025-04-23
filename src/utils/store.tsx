@@ -25,6 +25,7 @@ import {
   convertUrlToBase64,
   playEffect,
   FASTAPI_HOST,
+  removeFrontMatter,
 } from "./lib";
 import {
   IStore,
@@ -189,7 +190,6 @@ const useStore = create<IStore>((set, get) => ({
       checkLoggedStatus,
       setListeners,
       figureEnvironment,
-      getUserConsumables,
       // startTelemetry,
     } = get();
     figureEnvironment().then(() =>
@@ -208,9 +208,6 @@ const useStore = create<IStore>((set, get) => ({
         })
         .then(() => {
           return setListeners();
-        })
-        .then(() => {
-          getUserConsumables();
         })
         .then(() => {
           RigoAI.load();
@@ -398,6 +395,7 @@ const useStore = create<IStore>((set, get) => ({
       checkParams,
       getOrCreateActiveSession,
       startTelemetry,
+      getUserConsumables,
     } = get();
 
     const params = checkParams({ justReturn: true });
@@ -422,8 +420,9 @@ const useStore = create<IStore>((set, get) => ({
       if (opts && opts.startConversation) {
         startConversation(Number(currentExercisePosition));
       }
-      getOrCreateActiveSession();
 
+      getOrCreateActiveSession();
+      getUserConsumables();
       await startTelemetry();
 
       return true;
@@ -773,6 +772,7 @@ The user's set up the application in "${language}" language, give your feedback 
       language,
       reportEnrichDataLayer,
       getOrCreateActiveSession,
+      getUserConsumables,
     } = get();
 
     try {
@@ -801,6 +801,7 @@ The user's set up the application in "${language}" language, give your feedback 
         path: window.location.href,
         agent: "cloud",
       });
+      getUserConsumables();
     } catch (error) {
       if (error instanceof MissingRigobotAccountError) {
         setOpenedModals({ login: false, rigobotInvite: true });
@@ -810,8 +811,8 @@ The user's set up the application in "${language}" language, give your feedback 
         return false;
       }
     }
-    // @ts-ignore
-    startConversation(currentExercisePosition);
+
+    startConversation(Number(currentExercisePosition));
     setOpenedModals({ login: false });
     getOrCreateActiveSession();
     return true;
@@ -1829,6 +1830,12 @@ The user's set up the application in "${language}" language, give your feedback 
 
     const newReadme = remakeMarkdown(readme.attributes, body);
 
+    set({
+      currentContent: {
+        body: removeFrontMatter(newReadme),
+        bodyBegin: readme.bodyBegin,
+      },
+    });
     await FetchManager.replaceReadme(
       getCurrentExercise().slug,
       language,
@@ -1878,6 +1885,12 @@ The user's set up the application in "${language}" language, give your feedback 
 
     const newReadme = remakeMarkdown(readme.attributes, body);
 
+    set({
+      currentContent: {
+        body: removeFrontMatter(newReadme),
+        bodyBegin: readme.bodyBegin,
+      },
+    });
     await FetchManager.replaceReadme(
       getCurrentExercise().slug,
       language,
