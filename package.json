@@ -1,7 +1,7 @@
 {
   "name": "learnpack-ai",
   "private": true,
-  "version": "5.0.149",
+  "version": "5.0.150",
   "scripts": {
     "dev": "node src/utils/development.js --turn on && vite",
     "build": "node src/utils/development.js --turn off && tsc && vite build && node src/utils/uploadLearnpack.js && node bin/publish.js && node src/utils/createVersionsFile.js ",
@@ -30,6 +30,7 @@
     "react-router-dom": "^6.27.0",
     "react-syntax-highlighter": "^15.6.1",
     "rehype-katex": "^7.0.1",
+    "remark-emoji": "^5.0.1",
     "remark-gfm": "^4.0.0",
     "remark-math": "^6.0.0",
     "socket.io": "^4.7.2",

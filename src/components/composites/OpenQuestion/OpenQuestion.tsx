@@ -50,6 +50,15 @@ export const Question = ({
   const [examples, setExamples] = useState<string[]>(splitInLines(code));
   const [answer, setAnswer] = useState("");
   const answerRef = useRef<HTMLTextAreaElement>(null);
+  const feedbackRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (feedbackRef.current && mode !== "creator") {
+      feedbackRef.current.scrollIntoView({
+        behavior: "smooth",
+      });
+    }
+  }, [feedback]);
 
   const evaluateAnswer = async () => {
     if (!answer) {
@@ -63,7 +72,6 @@ export const Question = ({
       student_response: answer,
       examples: examples.join("\n"),
     });
-    console.log(result);
     setFeedback({
       exit_code: result.exit_code,
       feedback: result.feedback,
@@ -104,7 +112,7 @@ ${newExamples.join("\n")}
         <AutoResizeTextarea
           className="w-100"
           minHeight={"90px"}
-          value={answer}
+          defaultValue={answer}
           placeholder={t("yourAnswerHere")}
           onChange={(e) => setAnswer(e.target.value)}
         />
@@ -113,12 +121,12 @@ ${newExamples.join("\n")}
       </section>
       <div className="d-flex gap-small padding-small justify-between row-reverse">
         <SimpleButton
-          disabled={isLoading}
+          disabled={isLoading || !answer}
           text={isLoading ? t("evaluating") : t("submitForReview")}
           title={isLoading ? t("evaluating") : t("submitForReview")}
           svg={svgs.rigoSoftBlue}
           action={evaluateAnswer}
-          extraClass=" border-blue active-on-hover padding-small rounded align-self-end"
+          extraClass="active-on-hover padding-small rounded align-self-end bg-blue-rigo text-white"
         />
         {isCreator && mode === "creator" && (
           <AddExampleButton
@@ -129,7 +137,7 @@ ${newExamples.join("\n")}
           />
         )}
       </div>
-      <div>
+      <div ref={feedbackRef}>
         {feedback && (
           <div
             className={`flex-y gap-small padding-medium rounded  ${

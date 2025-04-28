@@ -32,6 +32,7 @@ export const Container = () => {
   const handleNext = useStore((s) => s.handleNext);
   const setTerminalShouldShow = useStore((s) => s.setTerminalShouldShow);
   const agent = useStore((s) => s.agent);
+  const mode = useStore((s) => s.mode);
 
   const { t } = useTranslation();
 
@@ -142,14 +143,13 @@ export const Container = () => {
   };
 
   useEffect(() => {
-    if (instructionsSectionRef.current) {
+    if (instructionsSectionRef.current && mode !== "creator") {
       instructionsSectionRef.current.scrollTo({
         top: 0,
         behavior: "smooth",
       });
     }
-  }, [currentContent]);
-
+  }, [currentContent, mode]);
 
   return (
     <>

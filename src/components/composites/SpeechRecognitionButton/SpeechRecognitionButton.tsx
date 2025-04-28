@@ -87,7 +87,6 @@ export const SpeechToTextButton: React.FC<SpeechToTextButtonProps> = ({
     setIsRecording(!isRecording);
   };
 
-  console.log(isSupported, "isSupported");
 
   return (
     isSupported && (

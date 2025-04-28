@@ -224,6 +224,14 @@
   border-radius: 10px;
 }
 
+.quiz-container .button-wrapper {
+  margin-top: 10px;
+  position: sticky;
+  bottom: 50px;
+  /* background-color: var(--bg-color); */
+  padding: 10px;
+}
+
 .quiz-answer {
   padding: 10px;
   border-radius: 50vh;

@@ -229,5 +229,6 @@
     "yourAnswerNeedsImprovement": "Tu respuesta necesita algunas mejoras",
     "thisIsANewElement": "Este es un nuevo elemento, haz click en la caja de acción para llenarlo automáticamente o manualmente",
     "requestChanges": "Solicitar cambios",
-    "requestChangesPlaceholder": "Escribe tu prompt aquí"
+    "requestChangesPlaceholder": "Escribe tu prompt aquí",
+    "editAsMarkdown": "Editar manualmente como Markdown"
 }

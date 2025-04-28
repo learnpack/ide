@@ -51,6 +51,7 @@ const makeQuizSubmission = (
 export const QuizRenderer = ({ children }: { children: any }) => {
   const { t } = useTranslation();
   const [showResults, setShowResults] = useState<boolean>(false);
+  const [readyToSubmit, setReadyToSubmit] = useState<boolean>(false);
 
   const {
     registerTelemetryEvent,
@@ -67,6 +68,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
   }));
 
   const liChildren = children.filter((child: any) => child.type === "li");
+
   const quiz = useRef<TQuiz>({
     hash: "",
     attempts: [],
@@ -76,6 +78,8 @@ export const QuizRenderer = ({ children }: { children: any }) => {
   const onGroupReady = (group: TQuizGroup) => {
     quiz.current.groups[group.title] = group;
     setShowResults(false);
+    Object.values(quiz.current.groups).length === liChildren.length &&
+      setReadyToSubmit(true);
   };
 
   const onSubmitQuiz = async () => {
@@ -147,12 +151,15 @@ export const QuizRenderer = ({ children }: { children: any }) => {
           </QuizQuestion>
         );
       })}
-      <div className="flex-x justify-center align-center gap-small">
-        <SimpleButton
-          extraClass="quiz-button active-on-hover"
-          action={onSubmitQuiz}
-          text={t("submit-quiz")}
-        />
+      <div className="flex-x justify-center align-center gap-small button-wrapper">
+        {readyToSubmit && (
+          <SimpleButton
+            extraClass="quiz-button active-on-hover bg-blue-rigo text-white"
+            action={onSubmitQuiz}
+            svg={svgs.send}
+            text={t("submit-quiz")}
+          />
+        )}
         <AskForHint getContext={handleRigoClick} from={"quiz"} />
       </div>
     </div>
@@ -283,6 +290,20 @@ const QuizAnswer = ({
   const input = children.find((child: any) => child.type === "input");
 
   if (!input) {
+    const paragraph = children.find((child: any) => {
+      return child?.key && child?.key.startsWith("p-");
+    });
+    if (paragraph) {
+      return (
+        <QuizAnswer
+          children={paragraph.props.children}
+          onAnswer={onAnswer}
+          onAnswerReady={onAnswerReady}
+          currentAnswer={currentAnswer}
+          showResults={showResults}
+        />
+      );
+    }
     return null;
   }
   const isCorrect = input.props.checked;

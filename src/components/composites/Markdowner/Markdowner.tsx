@@ -4,6 +4,7 @@ import { TMetadata } from "./types";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import useStore from "../../../utils/store";
+import emoji from "remark-emoji";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark as prismStyle } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { QuizRenderer } from "../QuizRenderer/QuizRenderer";
@@ -82,7 +83,7 @@ export const Markdowner = ({
   return (
     <Markdown
       skipHtml={true}
-      remarkPlugins={[remarkGfm, remarkMath]}
+      remarkPlugins={[remarkGfm, remarkMath, emoji]}
       rehypePlugins={[rehypeKatex]}
       components={{
         a: ({ href, children }) => {
@@ -147,6 +148,16 @@ export const Markdowner = ({
             );
           }
           return <p>{children}</p>;
+        },
+        blockquote: ({ children, node }) => {
+          if (creatorModeActivated) {
+            return (
+              <CreatorWrapper node={node} tagName="blockquote">
+                <blockquote>{children}</blockquote>
+              </CreatorWrapper>
+            );
+          }
+          return <blockquote>{children}</blockquote>;
         },
         // @ts-ignore
         ol: ({ children, node }) => {

@@ -39,13 +39,13 @@ export const CreatorWrapper = ({
   tagName: string;
   node: Element | undefined;
 }) => {
-  const { currentContent } = useStore((state) => ({
-    currentContent: state.currentContent,
-  }));
-  const { replaceInReadme, insertBeforeOrAfter } = useStore((state) => ({
-    replaceInReadme: state.replaceInReadme,
-    insertBeforeOrAfter: state.insertBeforeOrAfter,
-  }));
+  const { replaceInReadme, insertBeforeOrAfter, currentContent } = useStore(
+    (state) => ({
+      replaceInReadme: state.replaceInReadme,
+      insertBeforeOrAfter: state.insertBeforeOrAfter,
+      currentContent: state.currentContent,
+    })
+  );
 
   const [isOpen, setIsOpen] = useState(false);
   // const [showButtons, setShowButtons] = useState(false);
@@ -53,9 +53,7 @@ export const CreatorWrapper = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [interactions, setInteractions] = useState<TInteraction[]>([]);
-  // const [insertPosition, setInsertPosition] = useState<
-  //   "before" | "after" | "current"
-  // >("current");
+  const [isEditingAsMarkdown, setIsEditingAsMarkdown] = useState(false);
 
   const elemRef = useRef<HTMLDivElement>(null);
   const optionsRef = useRef<HTMLDivElement>(null);
@@ -366,6 +364,17 @@ export const CreatorWrapper = ({
     },
   ];
 
+  const getPortion = () => {
+    if (node?.position?.start?.offset && node?.position?.end?.offset) {
+      return getPortionFromText(
+        currentContent.body,
+        node?.position?.start.offset || 0,
+        node?.position?.end.offset || 0
+      );
+    }
+    return "";
+  };
+
   return (
     <div className={`creator-wrapper  ${tagName}`}>
       <SimpleButton
@@ -401,7 +410,7 @@ export const CreatorWrapper = ({
                 }
               }}
               minHeight={60}
-              value={prompt}
+              defaultValue={prompt}
               onChange={(e) => {
                 setPrompt(e.target.value);
               }}
@@ -450,6 +459,16 @@ export const CreatorWrapper = ({
                   </div>
                 ) : null
               )}
+            <SimpleButton
+              extraClass=" text-secondary  rounded padding-small active-on-hover svg-blue"
+              action={() => {
+                setIsEditingAsMarkdown(!isEditingAsMarkdown);
+                setReplacementValue(getPortion());
+                setIsOpen(false);
+              }}
+              svg={svgs.edit}
+              text={t("editAsMarkdown")}
+            />
           </div>
         </div>
       )}
@@ -475,7 +494,16 @@ export const CreatorWrapper = ({
           extraClass="creator-options-opener"
           action={() => setIsOpen(!isOpen)}
         />
-        {children}
+        {isEditingAsMarkdown ? (
+          <AutoResizeTextarea
+            defaultValue={getPortion()}
+            onChange={(e) => setReplacementValue(e.target.value)}
+            className="w-100"
+            minHeight={"100px"}
+          />
+        ) : (
+          children
+        )}
       </div>
       <div
         className={`creator-target  ${
@@ -542,7 +570,7 @@ const ChangesRequester = ({
           />
           <AutoResizeTextarea
             placeholder={t("requestChangesPlaceholder")}
-            value={prompt}
+            defaultValue={prompt}
             minHeight={"60px"}
             className="rigo-textarea"
             onChange={(e) => setPrompt(e.target.value)}

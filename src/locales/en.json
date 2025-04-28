@@ -222,5 +222,6 @@
     "yourAnswerNeedsImprovement": "Your answer needs some improvements",
     "thisIsANewElement": "This is a new element, click on the action box to fill it automatically or manually",
     "requestChanges": "Request changes",
-    "requestChangesPlaceholder": "Write your prompt here"
+    "requestChangesPlaceholder": "Write your prompt here",
+    "editAsMarkdown": "Manually edit as Markdown"
 }

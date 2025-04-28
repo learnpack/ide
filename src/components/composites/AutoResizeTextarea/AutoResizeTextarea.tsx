@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
 
 export const AutoResizeTextarea = ({
-  value,
+  // value,
+  defaultValue,
   onChange,
   placeholder,
   className = "",
@@ -10,24 +11,24 @@ export const AutoResizeTextarea = ({
   style = {},
   ...props
 }: React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
-  value: string;
+  defaultValue: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   minHeight?: string | number;
 }) => {
   const ref = useRef<HTMLTextAreaElement>(null);
-
   useEffect(() => {
     if (ref.current) {
       ref.current.style.height = "auto";
       ref.current.style.height = `${ref.current.scrollHeight}px`;
+      ref.current.value = defaultValue;
     }
-  }, [value]);
+  }, [defaultValue]);
 
   return (
     <textarea
       {...props}
       ref={ref}
-      value={value}
+      // value={value}
       onChange={onChange}
       placeholder={placeholder}
       rows={rows}

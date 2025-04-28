@@ -1135,8 +1135,8 @@ export const svgs = {
   ),
   send: (
     <svg
-      width="30"
-      height="31"
+      width="22"
+      height="22"
       viewBox="0 0 30 31"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
