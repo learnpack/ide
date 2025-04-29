@@ -398,17 +398,15 @@ export const playEffect = (mood: "success" | "error") => {
   }
 };
 
-
 export function removeFrontMatter(content: string): string {
   const frontMatterRegex = /^---\s*[\s\S]*?\s*---\s*/;
-  return content.replace(frontMatterRegex, '').trimStart();
+  return content.replace(frontMatterRegex, "").trimStart();
 }
 
-
 export function normalizeVersionString(input: string): string {
-  const [intPart, decPart] = input.split('.');
+  const [intPart, decPart] = input.split(".");
 
-  if (decPart === '0') {
+  if (decPart === "0" || decPart === undefined) {
     return intPart;
   }
 

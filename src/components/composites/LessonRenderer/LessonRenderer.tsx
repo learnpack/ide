@@ -45,8 +45,10 @@ export const LessonRenderer = memo(
             </div>
           )}
         {/* {ENVIRONMENT === "localhost" && editorTabs.length > 0 && ( */}
-        {(ENVIRONMENT === "localhost" && agent === "vscode") ||
-          (ENVIRONMENT === "creatorWeb" && <Toolbar editorStatus="MODIFIED" />)}
+        {ENVIRONMENT === "localhost" && agent === "vscode" && (
+          <Toolbar editorStatus="MODIFIED" />
+        )}
+        {ENVIRONMENT === "creatorWeb" && <Toolbar editorStatus="MODIFIED" />}
       </div>
     );
   }
