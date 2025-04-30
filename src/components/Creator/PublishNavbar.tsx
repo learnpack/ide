@@ -8,8 +8,12 @@ export const PublishNavbar = () => {
   const lessonTitle = useStore((state) => state.lessonTitle);
 
   useEffect(() => {
-    document.documentElement.style.setProperty("--header-height", "150px");
-  }, []);
+    if (isCreator) {
+      document.documentElement.style.setProperty("--header-height", "150px");
+    } else {
+      document.documentElement.style.setProperty("--header-height", "80px");
+    }
+  }, [isCreator]);
 
   if (!isCreator) return null;
   return (

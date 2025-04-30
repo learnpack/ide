@@ -72,10 +72,11 @@ export const Markdowner = ({
   markdown: string;
   allowCreate?: boolean;
 }) => {
-  const { openLink, mode, isCreator } = useStore((state) => ({
+  const { openLink, mode, isCreator, config } = useStore((state) => ({
     openLink: state.openLink,
     mode: state.mode,
     isCreator: state.isCreator,
+    config: state.configObject,
   }));
 
   const creatorModeActivated = isCreator && mode === "creator" && allowCreate;
@@ -209,6 +210,14 @@ export const Markdowner = ({
           }
 
           return <ul onClick={() => console.log(node)}>{children}</ul>;
+        },
+        img: ({ src, alt }) => {
+          if (src) {
+            return (
+              <img src={src + "?slug=" + config?.config?.slug} alt={alt} />
+            );
+          }
+          return <span>{alt}</span>;
         },
 
         pre(props) {
