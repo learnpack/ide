@@ -7,12 +7,11 @@ export const PublishNavbar = () => {
   const isCreator = useStore((state) => state.isCreator);
   const lessonTitle = useStore((state) => state.lessonTitle);
 
-  if (!isCreator) return null;
-
   useEffect(() => {
     document.documentElement.style.setProperty("--header-height", "150px");
   }, []);
 
+  if (!isCreator) return null;
   return (
     <div className="flex-x justify-between">
       <div></div>
