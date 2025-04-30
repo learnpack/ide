@@ -223,5 +223,16 @@
     "thisIsANewElement": "This is a new element, click on the action box to fill it automatically or manually",
     "requestChanges": "Request changes",
     "requestChangesPlaceholder": "Write your prompt here",
-    "editAsMarkdown": "Manually edit as Markdown"
+    "editAsMarkdown": "Manually edit as Markdown",
+    "share": "Share",
+    "publish": "Publish",
+    "preview-as-student": "Preview as student",
+    "is-publishing-your-tutorial": "is publishing your tutorial.",
+    "it-may-take-a-moment": "It may take a moment...",
+    "edit": "Edit",
+    "share-tutorial": "Share tutorial",
+    "public": "Public",
+    "anyone-with-link": "Anyone with link",
+    "who-has-access": "Who has access",
+    "you-can-also-share-via": "You can also share via"
 }

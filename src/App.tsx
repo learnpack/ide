@@ -12,6 +12,7 @@ import { Container } from "./components/Container/Container";
 import useStore from "./utils/store";
 import i18n from "./utils/i18n";
 import mermaid from "mermaid";
+import { PublishNavbar } from "./components/Creator/PublishNavbar";
 
 export default function Home() {
   const { start, handleEnvironmentChange, theme, isIframe, language } =
@@ -43,6 +44,7 @@ export default function Home() {
       id="main-container"
       className={`${theme} ${isIframe ? "iframe-mode" : ""}`}
     >
+      <PublishNavbar />
       <ShortcutsListener>
         <ModalsContainer />
         <SocketHandler />

@@ -164,7 +164,7 @@
 }
 
 .rounded {
-  border-radius: var(--standard-border-radius);
+  border-radius: var(--standard-border-radius)
 }
 
 .rigo-thumbnail {

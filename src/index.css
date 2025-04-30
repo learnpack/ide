@@ -1,12 +1,9 @@
-/* @tailwind base;
-@tailwind components;
-@tailwind utilities; */
-
 :root {
   --bg-color-dark-gray: #a1a1a1;
   --bg-color: #f9f9f9;
   --app-bg-color: white;
   --color-active: #02a9ea;
+  --header-height: 90px;
 
   --4geeks-yellow: #ffd900;
   --color-warning: #ffd900;
@@ -229,6 +226,9 @@ a {
 .border-blue {
   border: 1px solid var(--color-active);
 }
+.border-none {
+  border: none !important;
+}
 .color-blue {
   color: var(--color-active);
 }
@@ -429,6 +429,7 @@ a {
   width: var(--app-width);
   margin-inline: auto;
   height: 99dvh;
+  /* padding: 20px; */
 }
 
 #main-container.iframe-mode {
@@ -582,7 +583,7 @@ a {
 }
 
 .text-blue {
-  color: var(--color-active);
+  color: var(--color-blue-rigo);
 }
 
 .circle-small {
@@ -953,4 +954,17 @@ a {
 
 .row-reverse {
   flex-direction: row-reverse;
+}
+
+.vertical-line {
+  /* border-left: 2px solid var(--4geeks-yellow); */
+  height: 20px;
+  width: 1px;
+  background-color: #0060ba;
+  display: inline-block;
+}
+
+.big-svg svg {
+  width: 50px !important;
+  height: 50px !important;
 }

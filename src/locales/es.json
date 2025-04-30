@@ -230,5 +230,16 @@
     "thisIsANewElement": "Este es un nuevo elemento, haz click en la caja de acción para llenarlo automáticamente o manualmente",
     "requestChanges": "Solicitar cambios",
     "requestChangesPlaceholder": "Escribe tu prompt aquí",
-    "editAsMarkdown": "Editar manualmente como Markdown"
+    "editAsMarkdown": "Editar manualmente como Markdown",
+    "share": "Compartir",
+    "publish": "Publicar",
+    "preview-as-student": "Previsualizar como estudiante",
+    "is-publishing-your-tutorial": "Está publicando tu tutorial.",
+    "it-may-take-a-moment": "Esto puede tardar un momento...",
+    "edit": "Editar",
+    "share-tutorial": "Compartir tutorial",
+    "public": "Público",
+    "anyone-with-link": "Cualquiera con el enlace",
+    "who-has-access": "Quién tiene acceso",
+    "you-can-also-share-via": "También puedes compartir a través de"
 }

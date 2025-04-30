@@ -1,0 +1,14 @@
+.container {
+    width: 100%;
+    background-color: #e0e0e0;       /* gris claro */
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .filler {
+    height: 100%;
+    background-color: var(--color-blue-rigo);       /* azul */
+    border-radius: 4px 0 0 4px;      /* solo en la parte inicial */
+    transition: width 0.3s ease;     /* animación suave */
+  }
+  

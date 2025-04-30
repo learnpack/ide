@@ -31,12 +31,6 @@ export const ShortcutsListener = ({ children }: ShortcutListenerProps) => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // if (event.ctrlKey && event.key === "ArrowRight" && !event.shiftKey) {
-      //   handlePositionChange(Number(currentExercisePosition) + 1);
-      // }
-      // if (event.ctrlKey && event.key === "ArrowLeft" && !event.shiftKey) {
-      //   handlePositionChange(Number(currentExercisePosition) - 1);
-      // }
       if (
         event.ctrlKey &&
         !event.shiftKey &&
@@ -80,5 +74,5 @@ export const ShortcutsListener = ({ children }: ShortcutListenerProps) => {
     };
   }, [currentExercisePosition, openedModals.chat]);
 
-  return <div className="shortcut">{children}</div>;
+  return <div className="shortcut-listener">{children}</div>;
 };

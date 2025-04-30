@@ -3,8 +3,8 @@
   gap: 8px;
   background-color: var(--bg-color);
   flex-wrap: nowrap;
-  min-height: calc(100dvh - 100px);
-  max-height: calc(100dvh - 60px);
+  min-height: calc(100dvh - 200px);
+  max-height: calc(100dvh - var(--header-height));
 }
 
 .container > div {
