@@ -202,7 +202,7 @@
     "removeThis": "Remove this",
     "sure?": "Sure?",
     "send": "Send",
-    "missingExamples": "Missing examples",
+    "missingExamples": "Please add examples",
     "missingExamplesExplanation": "In order to make the evaluation process more accurate, we need to add examples of correct inputs. Please evaluate the following examples and add more if needed.",
     "accept": "Accept",
     "reject": "Reject",
@@ -234,5 +234,7 @@
     "public": "Public",
     "anyone-with-link": "Anyone with link",
     "who-has-access": "Who has access",
-    "you-can-also-share-via": "You can also share via"
+    "you-can-also-share-via": "You can also share via",
+    "continue-editing": "Continue editing",
+    "publishMyTutorial": "Publish my tutorial"
 }

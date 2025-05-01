@@ -209,7 +209,7 @@
     "removeThis": "Eliminar este",
     "sure?": "¿Seguro?",
     "send": "Enviar",
-    "missingExamples": "Faltan ejemplos",
+    "missingExamples": "Por favor agrega ejemplos",
     "missingExamplesExplanation": "Para hacer el proceso de evaluación más preciso, necesitamos agregar ejemplos de entradas correctas. Por favor evalúa los siguientes ejemplos y agrega más si es necesario.",
     "accept": "Aceptar",
     "reject": "Rechazar",
@@ -241,5 +241,7 @@
     "public": "Público",
     "anyone-with-link": "Cualquiera con el enlace",
     "who-has-access": "Quién tiene acceso",
-    "you-can-also-share-via": "También puedes compartir a través de"
+    "you-can-also-share-via": "También puedes compartir a través de",
+    "continue-editing": "Continuar editando",
+    "publishMyTutorial": "Publicar mi tutorial"
 }

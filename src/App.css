@@ -17,7 +17,7 @@
   align-items: center;
   gap: 10px;
   font-size: var(--font-size-medium);
-  opacity: 0.9;
+  opacity: 1;
   transition: opacity 0.1s ease-in-out;
   border: 1px solid transparent;
 }
@@ -164,7 +164,7 @@
 }
 
 .rounded {
-  border-radius: var(--standard-border-radius)
+  border-radius: var(--standard-border-radius);
 }
 
 .rigo-thumbnail {
@@ -230,6 +230,8 @@
   bottom: 50px;
   /* background-color: var(--bg-color); */
   padding: 10px;
+  display: flex;
+  justify-content: right;
 }
 
 .quiz-answer {

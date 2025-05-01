@@ -140,10 +140,9 @@ ol > li {
 }
 blockquote {
   border-left: 2px solid var(--color-active);
-  padding: 2px 6px;
+  padding: 1px 10px;
   border-radius: 5px;
-  margin-top: 10px;
-  background-color: var(--color-hovered);
+  background-color: var(--bg-2);
 }
 button {
   cursor: pointer;
@@ -967,4 +966,16 @@ a {
 .big-svg svg {
   width: 50px !important;
   height: 50px !important;
+}
+
+.padding-x-small {
+  padding-inline: 10px;
+}
+
+.d-inline-flex {
+  display: inline-flex;
+}
+
+.bg-lesson {
+  background-color: var(--app-bg-color);
 }

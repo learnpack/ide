@@ -6,6 +6,7 @@ import {
   RIGOBOT_HOST,
   setWindowHash,
   TokenExpiredError,
+  getSlugFromPath,
 } from "../utils/lib";
 import { TEnvironment } from "./EventProxy";
 import frontMatter from "front-matter";
@@ -49,9 +50,8 @@ export const FetchManager = {
         ? `${FetchManager.HOST}/${configUrl}`
         : "/config.json";
 
-    // Look if there is a param slug in the query string
-    const params = getParamsObject();
-    const slug = params.slug;
+    const slug = getSlugFromPath();
+
     if (slug) {
       url = `${url}?slug=${slug}`;
     }
@@ -62,14 +62,12 @@ export const FetchManager = {
   },
 
   getReadme: async (slug: string, language: string) => {
-    const params = getParamsObject();
-    const slugFromParams = params.slug;
-
+    const exerciseSlug = getSlugFromPath();
     let url =
       FetchManager.ENVIRONMENT === "localhost" ||
       FetchManager.ENVIRONMENT === "creatorWeb"
         ? `${FetchManager.HOST}/exercise/${slug}/readme?lang=${language}${
-            slugFromParams ? `&slug=${slugFromParams}` : ""
+            exerciseSlug ? `&slug=${exerciseSlug}` : ""
           }`
         : `/exercises/${slug}/README.${language === "us" ? "" : "es."}md`;
 
@@ -133,8 +131,8 @@ export const FetchManager = {
         return exercise;
       },
       creatorWeb: async () => {
-        const slug = getParamsObject().slug;
-        const respose = await fetch(`/steps/${slug}?slug=${slug}`);
+        const exerciseSlug = getSlugFromPath();
+        const respose = await fetch(`/steps/${slug}?slug=${exerciseSlug}`);
         const exercise = await respose.json();
         return exercise;
       },
@@ -160,8 +158,8 @@ export const FetchManager = {
         // console.log("SAVING FILE IN LS");
       },
       creatorWeb: async () => {
-        const slug = getParamsObject().slug;
-        const respose = await fetch(`/steps/${slug}?slug=${slug}`);
+        const exerciseSlug = getSlugFromPath();
+        const respose = await fetch(`/steps/${slug}?slug=${exerciseSlug}`);
         const exercise = await respose.json();
         return exercise;
       },
@@ -391,8 +389,10 @@ export const FetchManager = {
       },
       creatorWeb: async () => {
         try {
-          const slug = getParamsObject().slug;
-          const sidebar = await fetch(`/translations/sidebar?slug=${slug}`);
+          const exerciseSlug = getSlugFromPath();
+          const sidebar = await fetch(
+            `/translations/sidebar?slug=${exerciseSlug}`
+          );
           const json = await sidebar.json();
           return json;
         } catch (e) {
@@ -486,10 +486,10 @@ export const FetchManager = {
         // console.log("REPLACING README IN LS");
       },
       creatorWeb: async () => {
-        const courseSlug = getParamsObject().slug;
+        const exerciseSlug = getSlugFromPath();
         const url = `${FetchManager.HOST}/exercise/${slug}/file/README.${
           language === "us" ? "" : "es."
-        }md?slug=${courseSlug}`;
+        }md?slug=${exerciseSlug}`;
         const res = await fetch(url, {
           method: "PUT",
           body: newReadme,
@@ -556,11 +556,9 @@ export const FetchManager = {
         toast.error("IMPOSSIBLE TO TRANSLATE EXERCISES IN LS");
       },
       creatorWeb: async () => {
-        const courseSlug = getParamsObject().slug;
-        console.log(token, "token to translate");
-
+        const exerciseSlug = getSlugFromPath();
         try {
-          const url = `${FetchManager.HOST}/actions/translate?slug=${courseSlug}`;
+          const url = `${FetchManager.HOST}/actions/translate?slug=${exerciseSlug}`;
           const res = await fetch(url, {
             method: "POST",
             headers: {
@@ -573,7 +571,7 @@ export const FetchManager = {
             }),
           });
           const json = await res.json();
-          console.log(json, "json for translation");
+
           return json;
         } catch (e) {
           console.error(e, "error translating exercises");

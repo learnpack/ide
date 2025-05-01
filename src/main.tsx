@@ -32,6 +32,11 @@ const router = createBrowserRouter([
         element: <PreviewHTMLPage />,
         loader: previewLoader,
       },
+      {
+        path: "/preview/:slug",
+        element: <App />,
+        loader: previewLoader,
+      },
     ],
   },
 ]);

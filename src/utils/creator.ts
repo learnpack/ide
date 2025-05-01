@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getParamsObject } from "./lib";
+import { getSlugFromPath } from "./lib";
 
 export const LEARNPACK_LOCAL_URL = "http://localhost:3000";
 
@@ -9,9 +9,9 @@ export const createExercise = async (
   language: string
 ) => {
   try {
-    const courseSlug = getParamsObject().slug;
+    const courseSlug = getSlugFromPath();
     const response = await axios.post(
-      `${LEARNPACK_LOCAL_URL}/exercise/${slug}/create?slug=${courseSlug}`,
+      `/exercise/${slug}/create?slug=${courseSlug}`,
       {
         title: slug,
         readme,
@@ -27,9 +27,9 @@ export const createExercise = async (
 
 export const deleteExercise = async (slug: string) => {
   try {
-    const courseSlug = getParamsObject().slug;
+    const courseSlug = getSlugFromPath();
     const response = await axios.delete(
-      `${LEARNPACK_LOCAL_URL}/exercise/${slug}/delete?slug=${courseSlug}`
+      `/exercise/${slug}/delete?slug=${courseSlug}`
     );
     return response.data;
   } catch (error) {
@@ -40,17 +40,25 @@ export const deleteExercise = async (slug: string) => {
 
 export const renameExercise = async (slug: string, newSlug: string) => {
   try {
-    const courseSlug = getParamsObject().slug;
-    const response = await axios.put(
-      `${LEARNPACK_LOCAL_URL}/actions/rename?slug=${courseSlug}`,
-      {
-        slug,
-        newSlug,
-      }
-    );
+    const courseSlug = getSlugFromPath();
+    const response = await axios.put(`/actions/rename?slug=${courseSlug}`, {
+      slug,
+      newSlug,
+    });
     return response.data;
   } catch (error) {
     console.error("Error renaming exercise:", error);
+    throw error;
+  }
+};
+
+export const publishTutorial = async () => {
+  try {
+    const slug = getSlugFromPath();
+    const response = await axios.post(`/actions/publish?slug=${slug}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error publishing tutorial:", error);
     throw error;
   }
 };

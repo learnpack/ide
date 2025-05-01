@@ -296,6 +296,7 @@ export const CreatorWrapper = ({
   const rejectChanges = () => {
     targetRef.current!.innerHTML = "";
     setReplacementValue("");
+    setIsEditingAsMarkdown(false);
   };
 
   const promps: TPromp[] = [

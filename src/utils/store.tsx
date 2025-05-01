@@ -113,7 +113,7 @@ const useStore = create<IStore>((set, get) => ({
   hasSolution: false,
   shouldBeTested: false,
   status: "",
-  agent: "vscode" as TAgent,
+  agent: "cloud" as TAgent,
   showFeedback: false,
   token: "",
   bc_token: "",

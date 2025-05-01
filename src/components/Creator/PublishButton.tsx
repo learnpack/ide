@@ -72,13 +72,9 @@ const PublishButton = () => {
   return (
     <div ref={containerRef} className={styles.container}>
       <div className="flex-x align-center justify-center">
+        {/* <span className={styles.verticalLine}></span> */}
         <SimpleButton
           text={t("publish")}
-          action={handlePublish}
-          extraClass="svg-white text-white row-reverse padding-small"
-        />
-        <span className={styles.verticalLine}></span>
-        <SimpleButton
           action={handleToggleDropdown}
           extraClass="svg-white text-white row-reverse padding-small"
           svg={svgs.downTriangle}
@@ -88,11 +84,17 @@ const PublishButton = () => {
       {dropdownOpen && (
         <div className={styles.menu}>
           <SimpleButton
+            text={t("publishMyTutorial")}
+            action={handlePublish}
+            svg={svgs.publish}
+            extraClass="svg-blue text-blue active-on-hover w-100 rounded padding-small"
+          />
+          <SimpleButton
             action={() => {
               mode === "student" ? setMode("creator") : setMode("student");
             }}
-            text={mode === "student" ? t("edit") : t("preview-as-student")}
-            extraClass="svg-blue text-blue "
+            text={mode === "student" ? t("continue-editing") : t("preview-as-student")}
+            extraClass="svg-blue text-blue active-on-hover w-100 rounded padding-small"
             svg={mode === "student" ? svgs.edit : svgs.runCustom}
           />
         </div>

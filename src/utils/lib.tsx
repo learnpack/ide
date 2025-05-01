@@ -412,3 +412,17 @@ export function normalizeVersionString(input: string): string {
 
   return `${intPart}.${decPart}`;
 }
+
+export function getSlugFromPath() {
+  const segments = window.location.pathname
+    .split("/") // ["", "preview", "mi-slug"]
+    .filter(Boolean); // ["preview", "mi-slug"]
+
+  // Si la primera parte es "preview", devolvemos la siguiente
+  if (segments[0] === "preview" && segments[1]) {
+    return segments[1];
+  }
+
+  // Si no, devolvemos el último segmento (por si cambian la estructura)
+  return segments.pop() || null;
+}

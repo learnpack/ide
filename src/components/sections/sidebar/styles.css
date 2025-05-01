@@ -16,7 +16,7 @@
   .sidebar-component {
     width: min(100vw - 5px, 460px) !important;
     position: relative;
-    height: calc(100vh - 100px);
+    height: calc(100vh - var(--header-height));
   }
 
   .sidebar-component .footer {

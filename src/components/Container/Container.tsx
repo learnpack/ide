@@ -1,6 +1,5 @@
 import styles from "./Container.module.css";
 import CodeEditor from "../composites/Editor/Editor";
-// import LessonContainer from "../sections/lesson/LessonContainer";
 import { useTranslation } from "react-i18next";
 import useStore from "../../utils/store";
 import { useState, useEffect, useRef } from "react";
@@ -29,7 +28,6 @@ export const Container = () => {
   const showSidebar = useStore((s) => s.showSidebar);
   const currentContent = useStore((s) => s.currentContent);
   const lastState = useStore((s) => s.lastState);
-  const handleNext = useStore((s) => s.handleNext);
   const setTerminalShouldShow = useStore((s) => s.setTerminalShouldShow);
   const agent = useStore((s) => s.agent);
   const mode = useStore((s) => s.mode);
@@ -131,17 +129,6 @@ export const Container = () => {
     }
   }, [isRigoOpened, showSidebar]);
 
-  const handleLessonContinue = () => {
-    if (isMobile && editorTabs.length > 0) {
-      setVisibleTab("code");
-      return;
-    } else if (!isMobile && editorTabs.length > 0) {
-      console.log("Start coding at the right!");
-    } else {
-      handleNext();
-    }
-  };
-
   useEffect(() => {
     if (instructionsSectionRef.current && mode !== "creator") {
       instructionsSectionRef.current.scrollTo({
@@ -216,8 +203,6 @@ export const Container = () => {
                   {t("instructions")}{" "}
                 </h3>
               }
-              continueAction={handleLessonContinue}
-              editorTabs={editorTabs}
             />
           </section>
 

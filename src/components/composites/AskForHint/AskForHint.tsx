@@ -31,7 +31,7 @@ export const AskForHint: React.FC<{
   return (
     <div className="ask-for-hint">
       <SimpleButton
-        extraClass="border-blue padding-medium rounded active-on-hover"
+        extraClass="border-blue padding-medium rounded active-on-hover bg-lesson"
         action={handleClick}
         text={t("ask-rigo-for-a-hint")}
         svg={svgs.rigoSvg}

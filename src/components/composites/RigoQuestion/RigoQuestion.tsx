@@ -37,7 +37,7 @@ export const RigoQuestion = ({
             extractQueryFromUrlAndformatAsMessage(href) || (children as string),
         });
       }}
-      className="d-flex align-items-center gap-small padding-small rounded bg-blue-opaque fit-content active-on-hover"
+      className="d-inline-flex align-items-center gap-small padding-small rounded bg-blue-opaque fit-content active-on-hover"
     >
       <span>{svgs.rigoSvg}</span>
       <span>{children}</span>
