@@ -979,3 +979,7 @@ a {
 .bg-lesson {
   background-color: var(--app-bg-color);
 }
+.above-all {
+  z-index: 1000;
+}
+

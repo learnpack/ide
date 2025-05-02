@@ -52,10 +52,24 @@ export const renameExercise = async (slug: string, newSlug: string) => {
   }
 };
 
-export const publishTutorial = async () => {
+export const publishTutorial = async (
+  breathecodeToken: string,
+  rigoToken: string
+) => {
   try {
     const slug = getSlugFromPath();
-    const response = await axios.post(`/actions/publish?slug=${slug}`);
+    const headers = {
+      "x-breathecode-token": breathecodeToken,
+      "x-rigo-token": rigoToken,
+    };
+    const response = await axios.post(
+      `${LEARNPACK_LOCAL_URL}/actions/publish/${slug}`,
+      {
+        categoryId: "663296363296363296363296",
+        academyId: "663296363296363296363296",
+      },
+      { headers }
+    );
     return response.data;
   } catch (error) {
     console.error("Error publishing tutorial:", error);

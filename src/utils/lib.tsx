@@ -50,7 +50,8 @@ export const getEnvironment = async () => {
   const host = getHost();
 
   try {
-    const response = await fetch(`${host}/config`);
+    const slug = getSlugFromPath();
+    const response = await fetch(`${host}/config?slug=${slug}`);
     if (response.ok) {
       let environment: TEnvironment = "localhost";
 

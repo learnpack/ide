@@ -571,7 +571,8 @@ The user's set up the application in "${language}" language, give your feedback 
         }
       }
 
-      set({ lessonTitle: config.config.title.us });
+      if (config.config.title.us) set({ lessonTitle: config.config.title.us });
+
       set({ configObject: config });
 
       if (

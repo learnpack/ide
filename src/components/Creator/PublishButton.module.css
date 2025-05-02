@@ -4,6 +4,7 @@
   text-align: left;
   background-color: var(--color-blue-rigo);
   border-radius: 3px;
+  z-index: 2;
 }
 
 .button {

@@ -444,9 +444,9 @@ export const Toolbar = ({ editorStatus }: EditorFooterProps) => {
         </div>
       )}
 
-      {editorStatus === "MODIFIED" && !letPass && !isLastExercise && (
+      {editorStatus === "MODIFIED" && !letPass && (
         <div className="footer-actions">
-          {onlyContinue ? (
+          {onlyContinue && !isLastExercise ? (
             <SimpleButton
               text={t("Continue")}
               extraClass="w-100 bg-blue text-white big"

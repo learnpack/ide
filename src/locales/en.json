@@ -236,5 +236,8 @@
     "who-has-access": "Who has access",
     "you-can-also-share-via": "You can also share via",
     "continue-editing": "Continue editing",
-    "publishMyTutorial": "Publish my tutorial"
+    "publishMyTutorial": "Publish my tutorial",
+    "tutorial-published-successfully": "Tutorial published successfully",
+    "close": "Close",
+    "visit-tutorial-here": "Visit tutorial here"
 }

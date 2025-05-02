@@ -243,5 +243,8 @@
     "who-has-access": "Quién tiene acceso",
     "you-can-also-share-via": "También puedes compartir a través de",
     "continue-editing": "Continuar editando",
-    "publishMyTutorial": "Publicar mi tutorial"
+    "publishMyTutorial": "Publicar mi tutorial",
+    "tutorial-published-successfully": "Tutorial publicado correctamente",
+    "close": "Cerrar",
+    "visit-tutorial-here": "Visita el tutorial aquí"
 }
