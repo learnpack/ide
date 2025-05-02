@@ -63,7 +63,7 @@ export const publishTutorial = async (
       "x-rigo-token": rigoToken,
     };
     const response = await axios.post(
-      `${LEARNPACK_LOCAL_URL}/actions/publish/${slug}`,
+      `/actions/publish/${slug}`,
       {
         categoryId: "663296363296363296363296",
         academyId: "663296363296363296363296",
