@@ -10,6 +10,7 @@ const slugToTitle = (slug: string) => {
 export const PublishNavbar = () => {
   const isCreator = useStore((state) => state.isCreator);
   const lessonTitle = useStore((state) => state.lessonTitle);
+  const environment = useStore((state) => state.environment);
 
   useEffect(() => {
     if (isCreator) {
@@ -19,7 +20,7 @@ export const PublishNavbar = () => {
     }
   }, [isCreator]);
 
-  if (!isCreator) return null;
+  if (!isCreator || environment !== "creatorWeb") return null;
   return (
     <div className="flex-x justify-between padding-medium">
       <div className="w-100 flex-x justify-center">

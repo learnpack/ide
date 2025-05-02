@@ -7,9 +7,7 @@ import { RigoToggler } from "../Rigobot/Rigobot";
 import LanguageButton from "../sections/header/LanguageButton";
 import styles from "./NewHeader.module.css";
 import { ToggleSidebar } from "../sections/sidebar/ToggleSidebar";
-// import { ScreenShareSmart } from "../ScreenShare/ScreenShare";
 
-// import toast from "react-hot-toast";
 
 export const NewHeader = () => {
   const {
@@ -24,10 +22,13 @@ export const NewHeader = () => {
     updateEditorTabs,
     compilerSocket,
     videoTutorial,
+    isCreator,
     setShowVideoTutorial,
     reportEnrichDataLayer,
     mode,
+    setMode,
     setOpenedModals,
+    environment,
   } = useStore((state) => ({
     handlePositionChange: state.handlePositionChange,
     currentExercisePosition: state.currentExercisePosition,
@@ -43,7 +44,10 @@ export const NewHeader = () => {
     setShowVideoTutorial: state.setShowVideoTutorial,
     reportEnrichDataLayer: state.reportEnrichDataLayer,
     mode: state.mode,
+    isCreator: state.isCreator,
     setOpenedModals: state.setOpenedModals,
+    setMode: state.setMode,
+    environment: state.environment,
   }));
 
   const { t } = useTranslation();
@@ -91,6 +95,15 @@ export const NewHeader = () => {
       </section>
       <section>{svgs.learnpackLogo}</section>
       <section className="flex-x align-center">
+        {isCreator && environment === "localhost" && (
+          <SimpleButton
+            action={() => {
+              mode === "student" ? setMode("creator") : setMode("student");
+            }}
+            extraClass="svg-blue"
+            svg={mode === "student" ? svgs.edit : svgs.runCustom}
+          />
+        )}
         {!isIframe && language && <LanguageButton />}
         {hasSolution && (
           <SimpleButton

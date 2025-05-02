@@ -491,8 +491,8 @@ export const CreatorWrapper = ({
 
       <div className="text-in-editor" ref={elemRef}>
         <SimpleButton
-          svg={svgs.optionsGrid}
-          extraClass="creator-options-opener"
+          svg={svgs.edit}
+          extraClass="creator-options-opener svg-blue active-on-hover"
           action={() => setIsOpen(!isOpen)}
         />
         {isEditingAsMarkdown ? (

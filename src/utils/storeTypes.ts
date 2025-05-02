@@ -190,7 +190,7 @@ export interface IStore {
   agent: TAgent;
   learnpackPurposeId: number | string;
   status: string;
-  environment: "localhost" | "localStorage";
+  environment: "localhost" | "localStorage" | "creatorWeb";
   dialogData: TDialog;
   lessonTitle: string;
   lastStartedAt: Date | null;
