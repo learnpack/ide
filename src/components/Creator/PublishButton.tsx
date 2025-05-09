@@ -10,7 +10,9 @@ import { publishTutorial } from "../../utils/creator";
 import { toast } from "react-hot-toast";
 import { playEffect } from "../../utils/lib";
 import { Notifier } from "../../managers/Notifier";
-import { OpenWindowLink } from "../composites/OpenWindowLink";
+// import { OpenWindowLink } from "../composites/OpenWindowLink";
+// import { ShareModal } from "./ShareButton";
+// // import { DeleteButton } from "./DeleteButton";
 
 // Modal interna que recibe onClose para cerrar
 const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
@@ -18,6 +20,7 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
   const [publishing, setPublishing] = useState(false);
   const token = useStore((state) => state.token);
   const bctoken = useStore((state) => state.bc_token);
+  const openLink = useStore((state) => state.openLink);
 
   const [deployedUrl, setDeployedUrl] = useState("");
 
@@ -28,12 +31,16 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
 
       toast.success(t("tutorial-published-successfully"));
       setDeployedUrl(res.url);
+      // setDeployedUrl("https://www.google.com");
+
       playEffect("success");
       Notifier.confetti();
     } catch (error) {
       toast.error(t("error-publishing-tutorial"));
       console.error(error, "ERROR FROM PUBLISH BUTTON");
     } finally {
+      console.log("finally");
+
       setPublishing(false);
     }
   };
@@ -46,7 +53,7 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
         extraClass="svg-blue text-blue active-on-hover w-100 rounded padding-small"
       />
       {publishing && (
-        <Modal>
+        <Modal extraClass="bg-2">
           <div className="flex-y gap-big padding-small">
             <h1 className="text-center big-svg m-0 palpitate">
               {svgs.rigoSoftBlue}
@@ -58,7 +65,7 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
               </p>
               <p className="m-0">{t("it-may-take-a-moment")}</p>
             </h3>
-            <ProgressBar progress={50} height={8} />
+            <ProgressBar duration={4} height={8} />
             <div className="justify-center flex-x">
               <SimpleButton
                 text={t("cancel")}
@@ -72,16 +79,79 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
       {deployedUrl && (
         <Modal outsideClickHandler={onClose}>
           <div className="flex-y gap-big padding-small">
-            <h1 className="text-center big-svg m-0">{svgs.rigoSoftBlue}</h1>
+            <h1 className="text-center big-svg m-0">{svgs.congrats}</h1>
             <h3 className="text-center m-0">
               {t("tutorial-published-successfully")}
             </h3>
-            <h3 className="m-0 text-center">
-              <OpenWindowLink
-                href={deployedUrl + "?token=" + bctoken}
-                text={t("visit-tutorial-here")}
+            <p className="text-center m-0">
+              {t("congratulations-your-tutorial-is-published")}
+            </p>
+            <h4 className="text-center">{t("share-your-tutorial")}</h4>
+            <div className="flex-x gap-small align-center justify-between border-gray rounded padding-small">
+              <p className="m-0 ">{deployedUrl}</p>
+              <div className="flex-x gap-small">
+                <SimpleButton
+                  title={t("visit-tutorial-here")}
+                  extraClass=""
+                  svg={svgs.sendSvg}
+                  action={() => {
+                    openLink(deployedUrl + "?token=" + bctoken);
+                  }}
+                />
+                <SimpleButton
+                  title={t("copy-tutorial-link")}
+                  extraClass=""
+                  svg={svgs.copy}
+                  action={() => {
+                    navigator.clipboard.writeText(deployedUrl);
+                    toast.success(t("tutorial-link-copied"));
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+          <div>
+            <p className="text-center">{t("you-can-also-share-via")}</p>
+            <div className="flex-x justify-center align-center gap-big">
+              <SimpleButton
+                text={"X"}
+                svg={svgs.twitter}
+                title={t("share-on-twitter")}
+                action={() => {
+                  const url = encodeURIComponent(deployedUrl);
+                  const text = encodeURIComponent(t("check-out-my-tutorial"));
+                  window.open(
+                    `https://twitter.com/intent/tweet?url=${url}&text=${text}`,
+                    "_blank"
+                  );
+                }}
               />
-            </h3>
+              <SimpleButton
+                text={"Linkedin"}
+                svg={svgs.linkedin}
+                title={t("share-on-linkedin")}
+                action={() => {
+                  const url = encodeURIComponent(deployedUrl);
+                  const title = encodeURIComponent(t("check-out-my-tutorial"));
+                  window.open(
+                    `https://www.linkedin.com/sharing/share-offsite/?url=${url}&title=${title}`,
+                    "_blank"
+                  );
+                }}
+              />
+              <SimpleButton
+                text={"Facebook"}
+                svg={svgs.facebook}
+                title={t("share-on-facebook")}
+                action={() => {
+                  const url = encodeURIComponent(deployedUrl);
+                  window.open(
+                    `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+                    "_blank"
+                  );
+                }}
+              />
+            </div>
           </div>
         </Modal>
       )}
@@ -95,8 +165,8 @@ const PublishButton = () => {
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const mode = useStore((state) => state.mode);
-  const setMode = useStore((state) => state.setMode);
+  // const mode = useStore((state) => state.mode);
+  // const setMode = useStore((state) => state.setMode);
 
   // Cerrar dropdown al click fuera
   useEffect(() => {
@@ -118,14 +188,14 @@ const PublishButton = () => {
   const handleToggleDropdown = () => setDropdownOpen((v) => !v);
 
   return (
-    <div ref={containerRef} className={styles.container}>
+    <div ref={containerRef} className="pos-relative z-index-2">
       <div className="flex-x align-center justify-center">
         {/* <span className={styles.verticalLine}></span> */}
         <SimpleButton
           text={t("publish")}
           action={handleToggleDropdown}
-          extraClass="svg-white text-white row-reverse padding-small"
-          svg={svgs.downTriangle}
+          extraClass="svg-white text-white row-reverse padding-small rounded bg-blue-rigo"
+          // svg={svgs.downTriangle}
         />
       </div>
 
@@ -136,7 +206,7 @@ const PublishButton = () => {
               setDropdownOpen(false);
             }}
           />
-          <SimpleButton
+          {/* <SimpleButton
             action={() => {
               mode === "student" ? setMode("creator") : setMode("student");
             }}
@@ -147,7 +217,8 @@ const PublishButton = () => {
             }
             extraClass="svg-blue text-blue active-on-hover w-100 rounded padding-small"
             svg={mode === "student" ? svgs.edit : svgs.runCustom}
-          />
+          /> */}
+          {/* <DeleteButton /> */}
         </div>
       )}
     </div>

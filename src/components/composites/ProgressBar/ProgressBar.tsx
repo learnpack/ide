@@ -1,32 +1,48 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./ProgressBar.module.css";
 
 interface ProgressBarProps {
-  /** Valor entre 0 y 100 */
-  progress: number;
-  /** Altura opcional en píxels (por defecto 8px) */
+  /** Duración en segundos */
+  duration: number;
+  /** Altura opcional en píxeles (por defecto 8px) */
   height?: number;
 }
 
 const ProgressBar: React.FC<ProgressBarProps> = ({
-  progress,
+  duration,
   height = 8,
 }) => {
-  // Clamp para que no se pase de 0–100
-  const safeProgress = Math.min(100, Math.max(0, progress));
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const totalSteps = 100;
+    const intervalTime = (duration * 1000) / totalSteps; // Tiempo por cada paso
+    let currentProgress = 0;
+
+    const interval = setInterval(() => {
+      if (currentProgress < totalSteps) {
+        currentProgress++;
+        setProgress(currentProgress);
+      } else {
+        clearInterval(interval);
+      }
+    }, intervalTime);
+
+    return () => clearInterval(interval); // Limpiar intervalo al desmontar
+  }, [duration]);
 
   return (
     <div
       className={styles.container}
       style={{ height: `${height}px` }}
       aria-label="progressbar"
-      aria-valuenow={safeProgress}
+      aria-valuenow={progress}
       aria-valuemin={0}
       aria-valuemax={100}
     >
       <div
         className={styles.filler}
-        style={{ width: `${safeProgress}%` }}
+        style={{ width: `${progress}%` }}
       />
     </div>
   );

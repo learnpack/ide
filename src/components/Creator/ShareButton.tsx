@@ -4,7 +4,7 @@ import SimpleButton from "../mockups/SimpleButton";
 import { svgs } from "../../assets/svgs";
 import { Modal } from "../mockups/Modal";
 
-const ShareModal = ({ closeModal }: { closeModal: () => void }) => {
+export const ShareModal = ({ closeModal }: { closeModal: () => void }) => {
   const { t } = useTranslation();
   return (
     <Modal outsideClickHandler={closeModal}>

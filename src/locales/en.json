@@ -227,7 +227,7 @@
     "share": "Share",
     "publish": "Publish",
     "preview-as-student": "Preview as student",
-    "is-publishing-your-tutorial": "is publishing your tutorial.",
+    "is-publishing-your-tutorial": "is publishing your course...",
     "it-may-take-a-moment": "It may take a moment...",
     "edit": "Edit",
     "share-tutorial": "Share tutorial",
@@ -239,5 +239,15 @@
     "publishMyTutorial": "Publish my tutorial",
     "tutorial-published-successfully": "Tutorial published successfully",
     "close": "Close",
-    "visit-tutorial-here": "Visit tutorial here"
+    "visit-tutorial-here": "Visit tutorial here",
+    "delete": "Delete",
+    "congratulations-your-tutorial-is-published": "Congratulations! Your course is ready to start taking learners and participate in our shared revenue program.",
+    "my-tutorials": "My tutorials",
+    "you-are-in-edit-mode": "You are in edit mode",
+    "you-are-in-student-mode": "You are in student mode",
+    "copy-tutorial-link": "Copy tutorial link",
+    "share-your-tutorial": "Share your tutorial",
+    "tutorial-link-copied": "Tutorial link copied",
+    "check-out-my-tutorial": "Check out my tutorial!",
+    "error-publishing-tutorial": "Error publishing tutorial"
 }

@@ -10,6 +10,7 @@
   --opaque-blue-editor: #a5d9f8;
 
   --color-blue-opaque: #eef9fe;
+  --heavy-blue: #9fbdf0;
 
   --color-blue: #c1dfed;
 
@@ -550,6 +551,9 @@ a {
 .svg-success svg path {
   stroke: var(--color-success) !important;
 }
+.svg-danger svg path {
+  stroke: var(--color-fail) !important;
+}
 .hover:hover {
   background-color: rgba(163, 158, 158, 0.326) !important;
 }
@@ -583,6 +587,10 @@ a {
 
 .text-blue {
   color: var(--color-blue-rigo);
+}
+
+.text-danger {
+  color: var(--color-fail);
 }
 
 .circle-small {
@@ -983,3 +991,6 @@ a {
   z-index: 1000;
 }
 
+.border-heavy-blue {
+  border: 1px solid var(--heavy-blue);
+}

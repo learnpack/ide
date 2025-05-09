@@ -167,6 +167,14 @@
   border-radius: var(--standard-border-radius);
 }
 
+.rounded-medium {
+  border-radius: 10px !important;
+}
+
+.rounded-big {
+  border-radius: 15px !important;
+}
+
 .rigo-thumbnail {
   position: fixed;
   bottom: 20px;
@@ -315,4 +323,16 @@
   display: flex;
   gap: 6px;
   align-items: center;
+}
+
+.z-index-2 {
+  z-index: 2;
+}
+
+.w-min-content {
+  width: fit-content;
+}
+
+.nowrap {
+  white-space: nowrap;
 }

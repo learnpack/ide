@@ -7,7 +7,7 @@ import { RigoToggler } from "../Rigobot/Rigobot";
 import LanguageButton from "../sections/header/LanguageButton";
 import styles from "./NewHeader.module.css";
 import { ToggleSidebar } from "../sections/sidebar/ToggleSidebar";
-
+import { slugToTitle } from "../Rigobot/utils";
 
 export const NewHeader = () => {
   const {
@@ -29,6 +29,7 @@ export const NewHeader = () => {
     setMode,
     setOpenedModals,
     environment,
+    lessonTitle,
   } = useStore((state) => ({
     handlePositionChange: state.handlePositionChange,
     currentExercisePosition: state.currentExercisePosition,
@@ -48,6 +49,7 @@ export const NewHeader = () => {
     setOpenedModals: state.setOpenedModals,
     setMode: state.setMode,
     environment: state.environment,
+    lessonTitle: state.lessonTitle,
   }));
 
   const { t } = useTranslation();
@@ -93,7 +95,9 @@ export const NewHeader = () => {
         </button>
         {DEV_MODE && <button onClick={test}>TEST</button>}
       </section>
-      <section>{svgs.learnpackLogo}</section>
+      <section>
+        <p className="m-0">{slugToTitle(lessonTitle)}</p>
+      </section>
       <section className="flex-x align-center">
         {isCreator && environment === "localhost" && (
           <SimpleButton

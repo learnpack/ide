@@ -76,3 +76,21 @@ export const publishTutorial = async (
     throw error;
   }
 };
+
+export const deleteTutorial = async (
+  breathecodeToken: string,
+  rigoToken: string
+) => {
+  try {
+    const slug = getSlugFromPath();
+    const headers = {
+      "x-breathecode-token": breathecodeToken,
+      "x-rigo-token": rigoToken,
+    };
+    const response = await axios.delete(`/packages/${slug}`, { headers });
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting tutorial:", error);
+    throw error;
+  }
+};

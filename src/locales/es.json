@@ -234,7 +234,7 @@
     "share": "Compartir",
     "publish": "Publicar",
     "preview-as-student": "Previsualizar como estudiante",
-    "is-publishing-your-tutorial": "Está publicando tu tutorial.",
+    "is-publishing-your-tutorial": "Está publicando tu curso...",
     "it-may-take-a-moment": "Esto puede tardar un momento...",
     "edit": "Editar",
     "share-tutorial": "Compartir tutorial",
@@ -246,5 +246,15 @@
     "publishMyTutorial": "Publicar mi tutorial",
     "tutorial-published-successfully": "Tutorial publicado correctamente",
     "close": "Cerrar",
-    "visit-tutorial-here": "Visita el tutorial aquí"
+    "visit-tutorial-here": "Visita el tutorial aquí",
+    "delete": "Eliminar",
+    "congratulations-your-tutorial-is-published": "¡Felicidades! Tu curso está listo para comenzar a tomar estudiantes y participar en nuestro programa de ingresos compartidos.",
+    "my-tutorials": "Mis tutoriales",
+    "you-are-in-edit-mode": "Estás en modo edición",
+    "you-are-in-student-mode": "Estás en modo estudiante",
+    "copy-tutorial-link": "Copiar enlace del tutorial",
+    "share-your-tutorial": "Comparte tu tutorial",
+    "tutorial-link-copied": "Enlace del tutorial copiado",
+    "check-out-my-tutorial": "¡Mira mi tutorial!",
+    "error-publishing-tutorial": "Error al publicar tutorial"
 }

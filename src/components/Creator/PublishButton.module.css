@@ -1,11 +1,4 @@
-.container {
-  position: relative;
-  display: inline-block;
-  text-align: left;
-  background-color: var(--color-blue-rigo);
-  border-radius: 3px;
-  z-index: 2;
-}
+
 
 .button {
   background-color: var(--color-blue-rigo);
