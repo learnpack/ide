@@ -192,10 +192,10 @@ const PublishButton = () => {
       <div className="flex-x align-center justify-center">
         {/* <span className={styles.verticalLine}></span> */}
         <SimpleButton
-          text={t("publish")}
+          text={t("share")}
           action={handleToggleDropdown}
           extraClass="svg-white text-white row-reverse padding-small rounded bg-blue-rigo"
-          // svg={svgs.downTriangle}
+          svg={svgs.share}
         />
       </div>
 

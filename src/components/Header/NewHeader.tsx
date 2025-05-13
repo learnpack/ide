@@ -121,21 +121,23 @@ export const NewHeader = () => {
             action={hasSolution ? openSolutionFile : () => {}}
           />
         )}
-        <SimpleButton
-          title={`Video tutorial ${videoTutorial ? "" : t("not available")}`}
-          disabled={!videoTutorial && mode === "student"}
-          svg={svgs.video}
-          action={async () => {
-            if (mode === "student") {
-              setShowVideoTutorial(true);
-              reportEnrichDataLayer("learnpack_open_video", {});
-            } else {
-              setOpenedModals({
-                addVideoTutorial: true,
-              });
-            }
-          }}
-        />
+        {videoTutorial && (
+          <SimpleButton
+            title={`Video tutorial ${videoTutorial ? "" : t("not available")}`}
+            disabled={!videoTutorial && mode === "student"}
+            svg={svgs.video}
+            action={async () => {
+              if (mode === "student") {
+                setShowVideoTutorial(true);
+                reportEnrichDataLayer("learnpack_open_video", {});
+              } else {
+                setOpenedModals({
+                  addVideoTutorial: true,
+                });
+              }
+            }}
+          />
+        )}
 
         <RigoToggler />
         <ToggleSidebar />

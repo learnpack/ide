@@ -994,3 +994,17 @@ a {
 .border-heavy-blue {
   border: 1px solid var(--heavy-blue);
 }
+
+.text-trimmed {
+  white-space: nowrap;
+  word-break: break-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.w-150px {
+  width: 150px;
+}
+.w-250px {
+  width: min(250px, 100%);
+}
