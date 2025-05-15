@@ -58,7 +58,7 @@ export const PublishNavbar = () => {
           extraClass="svg-blue text-blue rounded nowrap"
         />
       </div>
-      <PublishWarning />
+      {/* <PublishWarning /> */}
       <div className="flex-x align-center gap-big">
         {/* <ShareButton /> */}
         <PublishButton />

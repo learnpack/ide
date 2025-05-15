@@ -1690,7 +1690,7 @@ The user's set up the application in "${language}" language, give your feedback 
     return result;
   },
   getUserConsumables: async () => {
-    const { bc_token, token, environment } = get();
+    const { bc_token, token, environment, checkParams } = get();
 
     if (!bc_token) {
       return;
@@ -1728,6 +1728,13 @@ The user's set up the application in "${language}" language, give your feedback 
       context:
         "You are a helpful teacher assistant. Please provide your responses always in MARKDOWN. ",
     });
+
+    if (isCreator) {
+      const params = checkParams({ justReturn: true });
+      if (params.mode && params.mode === "teacher") {
+        set({ mode: "creator" });
+      }
+    }
     return { ai_compilation, ai_conversation_message, ai_generation };
   },
   reportEnrichDataLayer: (event: string, extraData: object) => {

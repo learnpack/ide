@@ -17,6 +17,7 @@ export type TPossibleParams = {
   purpose?: string;
   autoclose?: string;
   slug?: string;
+  mode?: "teacher" | "student";
 };
 
 export type TParamsActions = {
