@@ -1023,3 +1023,7 @@ a {
     display: none !important;
   }
 }
+
+.rounded-full {
+  border-radius: 50%;
+}

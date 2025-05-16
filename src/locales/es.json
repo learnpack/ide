@@ -272,5 +272,7 @@
     "generatingMessage7": "Preparando tu lección... ¡estará listo pronto!",
     "generatingMessage8": "¡Casi listo! Tu lección está siendo ajustada para ti.",
     "generatingMessage9": "¡Creando conocimiento! Tu lección está llegando juntos.",
-    "generatingMessage10": "¡La paciencia es clave! Tu lección estará lista pronto."
+    "generatingMessage10": "¡La paciencia es clave! Tu lección estará lista pronto.",
+    "this-lesson-is-being-processed-and-will-be-ready-soon": "Esta lección está siendo procesada y estará lista pronto.",
+    "processing": "Procesando"
 }
