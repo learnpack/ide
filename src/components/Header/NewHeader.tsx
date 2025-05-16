@@ -95,7 +95,7 @@ export const NewHeader = () => {
         </button>
         {DEV_MODE && <button onClick={test}>TEST</button>}
       </section>
-      <section>
+      <section className="hidden-mobile">
         <p className="m-0">{slugToTitle(lessonTitle)}</p>
       </section>
       <section className="flex-x align-center">

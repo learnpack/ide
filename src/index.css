@@ -716,6 +716,15 @@ a {
 .text-small {
   font-size: 12px;
 }
+.text-medium {
+  font-size: 16px;
+}
+.text-big {
+  font-size: 20px;
+}
+.text-large {
+  font-size: 24px;
+}
 .margin-children-none > * {
   margin: 0 !important;
 }
@@ -1007,4 +1016,10 @@ a {
 }
 .w-250px {
   width: min(250px, 100%);
+}
+
+@media only screen and (max-width: 768px) {
+  .hidden-mobile {
+    display: none !important;
+  }
 }

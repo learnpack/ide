@@ -392,6 +392,7 @@ export const ChatTab = () => {
         <section className="chat-footer">
           <section className="chat-input">
             <input
+              className="text-big"
               ref={inputRef}
               placeholder={t("Ask me something here")}
               onChange={(e) => {

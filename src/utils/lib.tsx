@@ -5,7 +5,7 @@ import TaskLists from "markdown-it-task-lists";
 import TagManager from "react-gtm-module";
 import * as yaml from "js-yaml";
 // import toast from "react-hot-toast";
-export const DEV_MODE =true;
+export const DEV_MODE =false;
 
 export const FASTAPI_HOST = "https://ai.4geeks.com";
 // export const FASTAPI_HOST = "http://localhost:8003";

@@ -19,6 +19,7 @@ import { useState } from "react";
 
 import MermaidRenderer from "../MermaidRenderer/MermaidRenderer";
 import { Question } from "../OpenQuestion/OpenQuestion";
+import RealtimeLesson from "../../Creator/RealtimeLesson";
 const isRigoQuestion = (href: string) => {
   return href.startsWith("https://4geeks.com/ask?query=");
 };
@@ -337,6 +338,10 @@ const CustomCodeBlock = ({
   }
   if (language === "mermaid") {
     return <MermaidRenderer code={code} />;
+  }
+
+  if (language === "loader") {
+    return <RealtimeLesson />;
   }
 
   const metadataComponents = {

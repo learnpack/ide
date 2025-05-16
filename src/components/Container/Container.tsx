@@ -189,21 +189,7 @@ export const Container = () => {
                   : "none",
             }}
           >
-            <LessonRenderer
-              header={
-                <h3
-                  style={{
-                    display:
-                      !isMobile && !isRigoOpened && !showSidebar
-                        ? "block"
-                        : "none",
-                  }}
-                  className={"hiddenOnMobile " + "active-hr"}
-                >
-                  {t("instructions")}{" "}
-                </h3>
-              }
-            />
+            <LessonRenderer />
           </section>
 
           {editorTabs.length > 0 &&

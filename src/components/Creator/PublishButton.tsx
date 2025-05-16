@@ -10,11 +10,92 @@ import { publishTutorial } from "../../utils/creator";
 import { toast } from "react-hot-toast";
 import { playEffect } from "../../utils/lib";
 import { Notifier } from "../../managers/Notifier";
-// import { OpenWindowLink } from "../composites/OpenWindowLink";
-// import { ShareModal } from "./ShareButton";
-// // import { DeleteButton } from "./DeleteButton";
 
-// Modal interna que recibe onClose para cerrar
+const PublishConfirmationModal: FC<{
+  onClose: () => void;
+  onPublish: () => Promise<void>;
+}> = ({ onClose, onPublish }) => {
+  const { t } = useTranslation();
+  const [isOpen, setIsOpen] = useState(false);
+  const getUserConsumables = useStore((state) => state.getUserConsumables);
+  const bcToken = useStore((state) => state.bc_token);
+  const openLink = useStore((state) => state.openLink);
+  const [hasEnoughConsumables, setHasEnoughConsumables] = useState(false);
+
+  useEffect(() => {
+    checkConsumables();
+  }, []);
+
+  const checkConsumables = async () => {
+    const consumables = await getUserConsumables();
+    console.log(consumables, "CONSUMABLES");
+    if (consumables.ai_generation > 0 || consumables.ai_generation === -1) {
+      setHasEnoughConsumables(true);
+    }
+  };
+
+  return (
+    <>
+      <SimpleButton
+        text={t("publishMyTutorial")}
+        action={() => setIsOpen(true)}
+        svg={svgs.publish}
+        extraClass="svg-blue text-blue active-on-hover w-100 rounded padding-small"
+      />
+      {isOpen && hasEnoughConsumables && (
+        <Modal outsideClickHandler={() => setIsOpen(false)} extraClass="bg-2">
+          <div className="flex-y gap-big padding-small">
+            <h2 className="text-center big-svg m-0 flex-x align-center justify-center gap-big">
+              {svgs.happyRigo}
+              <span>{t("almost-there")}</span>
+            </h2>
+            <p className="padding-smll text-blue bg-soft-blue rounded padding-small text-big text-center">
+              {t("share-it-with-your-audience")}
+            </p>
+            <p className="text-center text-large">
+              {t("ready-to-turn-your-knowledge-into-income")}
+            </p>
+
+            <div className="flex-x gap-small justify-center align-center">
+              <SimpleButton
+                extraClass="text-blue row-reverse padding-medium rounded"
+                text={t("cancel")}
+                action={onClose}
+              />
+              <SimpleButton
+                extraClass=" row-reverse bg-blue-rigo text-white padding-medium rounded"
+                svg={svgs.publish}
+                text={t("publish")}
+                action={onPublish}
+              />
+            </div>
+          </div>
+        </Modal>
+      )}
+      {isOpen && !hasEnoughConsumables && (
+        <Modal outsideClickHandler={() => setIsOpen(false)} extraClass="bg-2">
+          <div className="flex-y gap-big align-center justify-center">
+            <div className="flex-x align-center justify-center">
+              {svgs.sadRigo}
+            </div>
+            <p className="text-big">{t("not-enough-consumables")}</p>
+
+            <SimpleButton
+              extraClass="text-white bg-blue-rigo padding-medium rounded fit-content"
+              text={t("buy-more-consumables")}
+              action={() => {
+                openLink(
+                  `https://www.learnpack.co/my-tutorials?token=${bcToken}`
+                );
+                setIsOpen(false);
+              }}
+            />
+          </div>
+        </Modal>
+      )}
+    </>
+  );
+};
 const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
   const { t } = useTranslation();
   const [publishing, setPublishing] = useState(false);
@@ -46,12 +127,7 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
   };
   return (
     <div onMouseDown={(e) => e.stopPropagation()}>
-      <SimpleButton
-        text={t("publishMyTutorial")}
-        action={handlePublish}
-        svg={svgs.publish}
-        extraClass="svg-blue text-blue active-on-hover w-100 rounded padding-small"
-      />
+      <PublishConfirmationModal onClose={onClose} onPublish={handlePublish} />
       {publishing && (
         <Modal extraClass="bg-2">
           <div className="flex-y gap-big padding-small">
@@ -79,7 +155,7 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
       {deployedUrl && (
         <Modal outsideClickHandler={onClose}>
           <div className="flex-y gap-big padding-small">
-            <h1 className="text-center big-svg m-0">{svgs.congrats}</h1>
+            <h1 className="text-center  m-0">{svgs.congratsRigo}</h1>
             <h3 className="text-center m-0">
               {t("tutorial-published-successfully")}
             </h3>

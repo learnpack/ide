@@ -1,4 +1,4 @@
-import { ReactNode, memo } from "react";
+import { memo } from "react";
 import { ENVIRONMENT } from "../../../utils/lib";
 import { Toolbar } from "../Editor/Editor";
 import { Markdowner } from "../Markdowner/Markdowner";
@@ -32,13 +32,12 @@ const ContinueButton = () => {
   );
 };
 
-export const LessonRenderer = memo(({ header }: { header: ReactNode }) => {
+export const LessonRenderer = memo(() => {
   const currentContent = useStore((s) => s.currentContent);
   const agent = useStore((s) => s.agent);
 
   return (
     <div className="lesson-content">
-      {header}
       <Markdowner markdown={currentContent.body} allowCreate={true} />
       <ContinueButton />
 

@@ -643,6 +643,11 @@ The user's set up the application in "${language}" language, give your feedback 
       }
     }
 
+    if (paramsObject.token) {
+      const withoutToken = { ...paramsObject };
+      delete withoutToken.token;
+      setWindowHash({ ...withoutToken });
+    }
     return paramsObject;
   },
 
@@ -1779,13 +1784,34 @@ The user's set up the application in "${language}" language, give your feedback 
     return sidebar;
   },
   test: async () => {
+    const { configObject} = get();
     // Notifier.success("Succesfully tested");
-    // const { fetchExercises } = get();
+
     // console.log(token, "Token");
     // set({ token: "123456" });
     // toast.success("Token fucked");
     // setOpenedModals({ testStruggles: true });
-    await FetchManager.logout();
+    // await FetchManager.logout();
+    const isGeneratingText = `
+\`\`\`loader slug="01-some-title"
+\`\`\`
+    `;
+    set({ currentContent: { body: isGeneratingText, bodyBegin: 0 } });
+
+    setTimeout(async () => {
+      const res = await fetch(
+        `http://localhost:3000/test/${configObject.config.slug}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log(res);
+    }, 3000);
+
     // await fetchExercises();
     // try {
     //   await validateRigobotToken(token);
