@@ -1,9 +1,10 @@
 import { svgs } from "../../assets/svgs";
 import { Loader } from "../composites/Loader/Loader";
 import { useTranslation } from "react-i18next";
-import CourseCreationSocket from "./CourseCreationSocket";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useStore from "../../utils/store";
+import CreatorSocket from "../../managers/creatorSocket";
+const socketClient = new CreatorSocket("");
 
 function getRandomGeneratingMessageKey(): string {
   const keys: string[] = [
@@ -25,19 +26,38 @@ function getRandomGeneratingMessageKey(): string {
 export default function RealtimeLesson() {
   const { t } = useTranslation();
   const getCurrentExercise = useStore((state) => state.getCurrentExercise);
+  const config = useStore((state) => state.configObject);
+  const fetchReadme = useStore((state) => state.fetchReadme);
   const [updates, setUpdates] = useState<string[]>([
     `🚀 Generating lesson for ${getCurrentExercise()?.slug}`,
   ]);
 
+  const handleUpdate = (data: any) => {
+    console.log(data, "data");
+    if (data.status === "done") {
+      fetchReadme();
+    }
+    if (data.lesson === getCurrentExercise()?.slug) {
+      setUpdates((prev) => [...prev, data.log]);
+    }
+  };
+
+  useEffect(() => {
+    if (!config?.config?.slug) return;
+
+    socketClient.connect();
+    socketClient.on("course-creation", handleUpdate);
+
+    socketClient.emit("register", { courseSlug: config.config.slug });
+
+    return () => {
+      socketClient.off("course-creation", handleUpdate);
+      socketClient.disconnect();
+    };
+  }, []);
+
   return (
     <div className="flex-y gap-big padding-big">
-      <CourseCreationSocket
-        onUpdate={(data) => {
-          if (data.lesson === getCurrentExercise()?.slug) {
-            setUpdates((prev) => [...prev, data.log]);
-          }
-        }}
-      />
       <Loader text={t(getRandomGeneratingMessageKey())} svg={svgs.rigoSvg} />
       <div className="stdout rounded">
         {updates.map((update) => (
