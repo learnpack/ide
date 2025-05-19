@@ -145,23 +145,24 @@ export const Container = () => {
       <main className={styles.container}>
         <div
           style={{
-            paddingTop: isRigoOpened || isMobile || showSidebar ? "40px" : "0",
+            paddingTop: isMobile && editorTabs.length > 0 ? "40px" : "0",
           }}
           className={styles.content}
         >
           <div
             style={{
-              display:
-                isRigoOpened || isMobile || showSidebar ? "flex" : "none",
+              display: isMobile ? "flex" : "none",
             }}
             className={styles.appTabs}
           >
-            <div
-              onClick={() => onChangeTab("instructions")}
-              data-visible={visibleTab === "instructions" ? true : false}
-            >
-              {t("instructions")}
-            </div>
+            {editorTabs.length > 0 && (
+              <div
+                onClick={() => onChangeTab("instructions")}
+                data-visible={visibleTab === "instructions" ? true : false}
+              >
+                {t("instructions")}
+              </div>
+            )}
             {editorTabs.length > 0 && !(agent === "vscode") && (
               <>
                 <div

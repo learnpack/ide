@@ -643,11 +643,6 @@ The user's set up the application in "${language}" language, give your feedback 
       }
     }
 
-    if (paramsObject.token) {
-      const withoutToken = { ...paramsObject };
-      delete withoutToken.token;
-      setWindowHash({ ...withoutToken });
-    }
     return paramsObject;
   },
 
@@ -1734,12 +1729,19 @@ The user's set up the application in "${language}" language, give your feedback 
         "You are a helpful teacher assistant. Please provide your responses always in MARKDOWN. ",
     });
 
+    const params = checkParams({ justReturn: true });
     if (isCreator) {
-      const params = checkParams({ justReturn: true });
       if (params.mode && params.mode === "teacher") {
         set({ mode: "creator" });
       }
     }
+
+    if (params.token) {
+      const withoutToken = { ...params };
+      delete withoutToken.token;
+      setWindowHash({ ...withoutToken });
+    }
+
     return { ai_compilation, ai_conversation_message, ai_generation };
   },
   reportEnrichDataLayer: (event: string, extraData: object) => {
@@ -1784,7 +1786,7 @@ The user's set up the application in "${language}" language, give your feedback 
     return sidebar;
   },
   test: async () => {
-    const { configObject} = get();
+    const { configObject } = get();
     // Notifier.success("Succesfully tested");
 
     // console.log(token, "Token");

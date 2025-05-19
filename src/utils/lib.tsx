@@ -40,7 +40,6 @@ export const getHost = function (): string {
     HOST = "http://localhost:3000";
   }
 
-  // console.log("HOST", HOST);
   return HOST;
 };
 
@@ -404,14 +403,36 @@ export function removeFrontMatter(content: string): string {
   return content.replace(frontMatterRegex, "").trimStart();
 }
 
-export function normalizeVersionString(input: string): string {
-  const [intPart, decPart] = input.split(".");
+// export function normalizeVersionString(input: string): string {
+//   const [intPart, decPart] = input.split(".");
 
-  if (decPart === "0" || decPart === undefined) {
-    return intPart;
-  }
+//   if (decPart === "0" || decPart === undefined) {
+//     return intPart;
+//   }
 
-  return `${intPart}.${decPart}`;
+//   return `${intPart}.${decPart}`;
+// }
+
+export function cleanFloatString(input: string): string {
+  const num = parseFloat(input);
+  if (Number.isNaN(num)) return input; // Retorna la entrada si no es un número válido
+
+  // Para evitar problemas con -0
+  if (num === 0) return "0";
+
+  // Convertir a string y eliminar ceros a la izquierda en la parte entera
+  const parts = num.toString().split(".");
+
+  // Eliminar ceros a la izquierda en la parte entera (pero dejar al menos un dígito)
+  parts[0] = parts[0].replace(/^0+(?=\d)/, "");
+
+  return parts.join(".");
+}
+
+export function hasDecimalPart(input: string): boolean {
+  const num = parseFloat(input);
+  if (Number.isNaN(num)) return false;
+  return num % 1 > 0;
 }
 
 export function getSlugFromPath() {

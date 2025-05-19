@@ -45,15 +45,12 @@ const PublishConfirmationModal: FC<{
       {isOpen && hasEnoughConsumables && (
         <Modal outsideClickHandler={() => setIsOpen(false)} extraClass="bg-2">
           <div className="flex-y gap-big padding-small">
-            <h2 className="text-center big-svg m-0 flex-x align-center justify-center gap-big">
+            <h2 className="text-center big-svg m-0 flex-y align-center justify-center">
               {svgs.happyRigo}
               <span>{t("almost-there")}</span>
             </h2>
             <p className="padding-smll text-blue bg-soft-blue rounded padding-small text-big text-center">
               {t("share-it-with-your-audience")}
-            </p>
-            <p className="text-center text-large">
-              {t("ready-to-turn-your-knowledge-into-income")}
             </p>
 
             <div className="flex-x gap-small justify-center align-center">
@@ -64,7 +61,7 @@ const PublishConfirmationModal: FC<{
               />
               <SimpleButton
                 extraClass=" row-reverse bg-blue-rigo text-white padding-medium rounded"
-                svg={svgs.publish}
+                svg={"🚀"}
                 text={t("publish")}
                 action={onPublish}
               />
