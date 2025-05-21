@@ -92,13 +92,18 @@
 .chat-tab {
   background-color: white;
   overflow-y: auto;
-  border-radius: 10px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   width: min(100vw - 5px, 460px) !important;
   margin-inline: auto;
+}
 
+@media (max-width: 768px) {
+  .chat-tab {
+    width: calc(100vw - 20px) !important;
+    border-radius: 0;
+  }
 }
 
 .chat-tab-header {
@@ -107,6 +112,7 @@
   justify-content: space-between;
   align-items: center;
   height: 50px;
+  border-radius: 10px 10px 0 0;
   padding: 10px;
 }
 
