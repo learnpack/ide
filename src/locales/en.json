@@ -150,7 +150,7 @@
     "languagesCSV": "Spanish, Japanese",
     "exercisesTranslated": "Exercises translated successfully",
     "errorTranslatingExercises": "Error translating exercises",
-    "translatingExercises": "Translating exercises...",
+    "translatingExercises": "Translating content...",
     "invalidLanguage": "Invalid languages, write the languages to translate to, separated by commas",
     "threeStrugglesAlert": {
         "0": "Whoa, this one's playing hard to get! Want Rigobot to jump in, or keep rocking it solo?",
@@ -270,5 +270,6 @@
     "processing": "Processing",
     "other": "Other",
     "rigo-translate-message": "In which language do you want me to translate this course? Write any language in the input field.",
-    "language-placeholder": "Example: Spanish, Japanese, French, etc."
+    "language-placeholder": "Example: Spanish, Japanese, French, etc.",
+    "add-language": "add language"
 }

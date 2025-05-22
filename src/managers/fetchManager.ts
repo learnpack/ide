@@ -365,7 +365,7 @@ export const FetchManager = {
     return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
   },
 
-  getSidebar: async (): Promise<TSidebar> => {
+  getSidebar: async (rigoToken: string): Promise<TSidebar> => {
     const methods: TMethods = {
       localhost: async () => {
         try {
@@ -390,8 +390,15 @@ export const FetchManager = {
       creatorWeb: async () => {
         try {
           const exerciseSlug = getSlugFromPath();
+          const headers = {
+            "Content-Type": "application/json",
+            "x-rigo-token": rigoToken,
+          };
           const sidebar = await fetch(
-            `/translations/sidebar?slug=${exerciseSlug}`
+            `${FetchManager.HOST}/translations/sidebar?slug=${exerciseSlug}`,
+            {
+              headers,
+            }
           );
           const json = await sidebar.json();
           return json;

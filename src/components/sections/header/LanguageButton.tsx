@@ -8,9 +8,27 @@ import { Modal } from "../../mockups/Modal";
 import { toast } from "react-hot-toast";
 import { FetchManager } from "../../../managers/fetchManager";
 
-const svgsLanguageMap: any = {
+const svgsLanguageMap: Record<string, JSX.Element> = {
   es: svgs.spainFlag,
   us: svgs.usaFlag,
+  fr: <img src="https://flagcdn.com/w40/fr.png" alt="French" />,
+  de: <img src="https://flagcdn.com/w40/de.png" alt="German" />,
+  it: <img src="https://flagcdn.com/w40/it.png" alt="Italian" />,
+  pt: <img src="https://flagcdn.com/w40/pt.png" alt="Portuguese" />,
+  ja: <img src="https://flagcdn.com/w40/jp.png" alt="Japanese" />,
+  zh: <img src="https://flagcdn.com/w40/cn.png" alt="Chinese" />,
+  ko: <img src="https://flagcdn.com/w40/kr.png" alt="Korean" />,
+  ru: <img src="https://flagcdn.com/w40/ru.png" alt="Russian" />,
+  ar: <img src="https://flagcdn.com/w40/sa.png" alt="Arabic" />,
+  nl: <img src="https://flagcdn.com/w40/nl.png" alt="Dutch" />,
+  sv: <img src="https://flagcdn.com/w40/se.png" alt="Swedish" />,
+  no: <img src="https://flagcdn.com/w40/no.png" alt="Norwegian" />,
+  da: <img src="https://flagcdn.com/w40/dk.png" alt="Danish" />,
+  fi: <img src="https://flagcdn.com/w40/fi.png" alt="Finnish" />,
+  pl: <img src="https://flagcdn.com/w40/pl.png" alt="Polish" />,
+  tr: <img src="https://flagcdn.com/w40/tr.png" alt="Turkish" />,
+  hi: <img src="https://flagcdn.com/w40/in.png" alt="Hindi" />,
+  th: <img src="https://flagcdn.com/w40/th.png" alt="Thai" />,
 };
 
 export default function LanguageButton() {
@@ -140,10 +158,10 @@ const AddLanguageModal = () => {
   return (
     <>
       <SimpleButton
-        text={t("other")}
+        text={t("add-language")}
         svg={svgs.plus}
         action={handleAddLanguage}
-        extraClass=""
+        extraClass="w-200px"
       />
       {isOpen && (
         <Modal extraClass="bg-2">

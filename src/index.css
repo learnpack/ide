@@ -1014,6 +1014,9 @@ a {
 .w-150px {
   width: 150px;
 }
+.w-200px {
+  width: 200px;
+}
 .w-250px {
   width: min(250px, 100%);
 }

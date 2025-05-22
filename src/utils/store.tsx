@@ -1781,7 +1781,8 @@ The user's set up the application in "${language}" language, give your feedback 
   },
 
   getSidebar: async () => {
-    const sidebar = await FetchManager.getSidebar();
+    const { token } = get();
+    const sidebar = await FetchManager.getSidebar(token);
     set({ sidebar });
     return sidebar;
   },

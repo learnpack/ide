@@ -157,7 +157,7 @@
     "languagesCSV": "Español, Japonés",
     "exercisesTranslated": "Ejercicios traducidos correctamente",
     "errorTranslatingExercises": "Error al traducir ejercicios",
-    "translatingExercises": "Traduciendo ejercicios...",
+    "translatingExercises": "Traduciendo contenido...",
     "invalidLanguage": "Idiomas inválidos, escribe los idiomas a traducir, separados por comas",
     "threeStrugglesAlert": {
         "0": "¡Vaya, este se está haciendo difícil de conseguir! ¿Quieres que Rigobot intervenga o prefieres seguir rockeando solo?",
@@ -277,5 +277,6 @@
     "processing": "Procesando",
     "other": "Otro",
     "rigo-translate-message": "En qué idioma quieres que traduzca este curso? Escribe cualquier idioma en el campo de entrada.",
-    "language-placeholder": "Ejemplo: 'Español', 'Japonés', 'Francés', etc."
+    "language-placeholder": "Ejemplo: 'Español', 'Japonés', 'Francés', etc.",
+    "add-language": "agregar idioma"
 }
