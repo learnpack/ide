@@ -14,7 +14,9 @@ import { MustLoginModal } from "./MustLogin";
 import { CloseWindow } from "./CloseWindow";
 import { TestStrugglesModal } from "./StreakStruggles";
 import { LimitAiCompilations } from "./LimitAiCompilations";
-import { AddVideoTutorial } from "./AddVideoTutorial"
+import { AddVideoTutorial } from "./AddVideoTutorial";
+import { NotAuthorModal } from "./NotAuthorModal";
+import { PackageNotFoundModal } from "./PackageNotFound";
 
 export const ModalsContainer = () => {
   const { openedModals } = useStore((state) => ({
@@ -37,6 +39,8 @@ export const ModalsContainer = () => {
       {openedModals.limitReached && <LimitAiCompilations />}
       {openedModals.testStruggles && <TestStrugglesModal />}
       {openedModals.addVideoTutorial && <AddVideoTutorial />}
+      {openedModals.notAuthor && <NotAuthorModal />}
+      {openedModals.packageNotFound && <PackageNotFoundModal />}
     </>
   );
 };

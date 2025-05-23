@@ -238,6 +238,7 @@ export interface IStore {
   userConsumables: TUserConsumables;
   maxQuizRetries: number;
   mode: TMode;
+  mustLoginMessageKey: string;
   isCreator: boolean;
   sidebar: TSidebar;
   getSidebar: () => Promise<TSidebar>;

@@ -38,7 +38,7 @@ export const FetchManager = {
       FetchManager.LOGOUT_CALLBACK = logoutCallback;
     }
   },
-  getExercises: async () => {
+  getExercises: async (rigoToken: string) => {
     const configUrl =
       FetchManager.ENVIRONMENT === "localhost" ||
       FetchManager.ENVIRONMENT === "creatorWeb"
@@ -56,7 +56,11 @@ export const FetchManager = {
       url = `${url}?slug=${slug}`;
     }
 
-    const res = await fetch(url);
+    const res = await fetch(url, {
+      headers: {
+        "x-rigo-token": rigoToken,
+      },
+    });
     const config = await res.json();
     return config;
   },

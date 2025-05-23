@@ -6,8 +6,9 @@ import SimpleButton from "../../mockups/SimpleButton";
 
 export const MustLoginModal = () => {
   const { t } = useTranslation();
-  const { setOpenedModals } = useStore((s) => ({
+  const { setOpenedModals, mustLoginMessageKey } = useStore((s) => ({
     setOpenedModals: s.setOpenedModals,
+    mustLoginMessageKey: s.mustLoginMessageKey,
   }));
 
   const handleClickOutside = () => {
@@ -21,7 +22,7 @@ export const MustLoginModal = () => {
   return (
     <Modal outsideClickHandler={handleClickOutside}>
       <h2 className="text-center">{t("you-must-login-title")}</h2>
-      <p>{t("you-must-login-message")}</p>
+      <p>{t(mustLoginMessageKey)}</p>
       <div className="d-flex justify-center gap-big">
         <SimpleButton
           action={handleLogin}

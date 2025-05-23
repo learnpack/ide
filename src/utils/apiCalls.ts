@@ -44,7 +44,7 @@ export const updateSession = async (
     return response.data;
   } catch (error) {
     console.error("Error updating session:", error);
-    throw error; 
+    throw error;
   }
 };
 
@@ -122,3 +122,23 @@ export async function useConsumableCall(
     return false;
   }
 }
+
+export const isPackageAuthor = async (
+  token: string,
+  packageSlug: string
+): Promise<{ isAuthor: boolean; status: number }> => {
+  const url = `${RIGOBOT_HOST}/v1/learnpack/package/${packageSlug}/`;
+
+  const headers = {
+    Authorization: `Token ${token}`,
+  };
+
+  try {
+    const response = await axios.get(url, { headers });
+    return { isAuthor: response.status === 200, status: response.status };
+  } catch (error: any) {
+    const status = error?.response?.status || 500;
+    console.error("Error fetching package:", error);
+    return { isAuthor: false, status };
+  }
+};

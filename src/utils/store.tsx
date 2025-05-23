@@ -26,6 +26,7 @@ import {
   playEffect,
   FASTAPI_HOST,
   removeFrontMatter,
+  getSlugFromPath,
 } from "./lib";
 import {
   IStore,
@@ -46,6 +47,7 @@ import {
   getConsumables,
   getSession,
   updateSession,
+  isPackageAuthor,
 } from "./apiCalls";
 import TelemetryManager from "../managers/telemetry";
 import { RigoAI } from "../components/Rigobot/AI";
@@ -80,6 +82,7 @@ const useStore = create<IStore>((set, get) => ({
     us: "en",
     es: "sp",
   },
+  mustLoginMessageKey: "you-must-login-message",
   learnpackPurposeId: defaultParams.purpose || 26,
   exercises: [],
   currentContent: {
@@ -192,27 +195,25 @@ const useStore = create<IStore>((set, get) => ({
       figureEnvironment,
       // startTelemetry,
     } = get();
-    figureEnvironment().then(() =>
-      fetchExercises()
-        // @ts-ignore
-        .then(() => {
-          return checkParams({ justReturn: false });
-        })
-        .then((params: TPossibleParams) => {
-          if (!params.currentExercise) {
-            return fetchReadme();
-          }
-        })
-        .then(() => {
-          return checkLoggedStatus({ startConversation: true });
-        })
-        .then(() => {
-          return setListeners();
-        })
-        .then(() => {
-          RigoAI.load();
-        })
-    );
+    figureEnvironment()
+      .then(() => {
+        return checkLoggedStatus({ startConversation: true });
+      })
+      .then(() => {
+        return fetchExercises();
+      })
+      .then(() => checkParams({ justReturn: false }))
+      .then((params: TPossibleParams) => {
+        if (!params.currentExercise) {
+          return fetchReadme();
+        }
+      })
+      .then(() => {
+        return setListeners();
+      })
+      .then(() => {
+        RigoAI.load();
+      });
   },
   setListeners: async () => {
     const {
@@ -508,10 +509,29 @@ The user's set up the application in "${language}" language, give your feedback 
   },
 
   fetchExercises: async () => {
-    const { user_id, setOpenedModals, environment } = get();
+    const { user_id, setOpenedModals, environment, token } = get();
+
+    if (environment === "creatorWeb") {
+      const slug = getSlugFromPath();
+      if (!token || token === "") {
+        setOpenedModals({ mustLogin: true });
+        set({ mustLoginMessageKey: "to-access-this-course-you-need-to-login" });
+        return;
+      }
+      const { isAuthor, status } = await isPackageAuthor(token, slug as string);
+
+      if (!isAuthor) {
+        if (status === 403) {
+          setOpenedModals({ notAuthor: true });
+        } else {
+          setOpenedModals({ packageNotFound: true });
+        }
+        return;
+      }
+    }
 
     try {
-      const config = await FetchManager.getExercises();
+      const config = await FetchManager.getExercises(token);
 
       console.log("CONFIG RETUNEDE BY FETCHMANAGER", config);
       if (!config) return;
