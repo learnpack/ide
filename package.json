@@ -1,7 +1,7 @@
 {
   "name": "learnpack-ai",
   "private": true,
-  "version": "5.0.169",
+  "version": "5.0.170",
   "scripts": {
     "dev": "node src/utils/development.js --turn on && vite",
     "build": "node src/utils/development.js --turn off && tsc && vite build && node src/utils/uploadLearnpack.js && node bin/publish.js && node src/utils/createVersionsFile.js ",
@@ -15,6 +15,7 @@
     "axios": "^1.7.7",
     "front-matter": "^4.0.2",
     "highlight.js": "^11.11.1",
+    "html2canvas": "^1.4.1",
     "i18next": "^23.10.1",
     "js-yaml": "^4.1.0",
     "mermaid": "^11.6.0",

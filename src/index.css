@@ -1030,3 +1030,19 @@ a {
 .rounded-full {
   border-radius: 50%;
 }
+
+.text-7xl {
+  font-size: 4rem;
+  font-weight: 900;
+  font-family: "Inter", sans-serif;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+.px-big {
+  padding-inline: 60px;
+}
+
+.mt-50px {
+  margin-top: 50px;
+}

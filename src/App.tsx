@@ -13,17 +13,24 @@ import useStore from "./utils/store";
 import i18n from "./utils/i18n";
 import mermaid from "mermaid";
 import { PublishNavbar } from "./components/Creator/PublishNavbar";
+import PreviewGenerator from "./components/composites/PreviewImageGenerator/PreviewImageGenerator";
 
 export default function Home() {
-  const { start, handleEnvironmentChange, theme, isIframe, language } =
-    useStore((s) => ({
-      environment: s.environment,
-      start: s.start,
-      handleEnvironmentChange: s.handleEnvironmentChange,
-      theme: s.theme,
-      isIframe: s.isIframe,
-      language: s.language,
-    }));
+  const {
+    start,
+    handleEnvironmentChange,
+    theme,
+    isIframe,
+    language,
+    environment,
+  } = useStore((s) => ({
+    environment: s.environment,
+    start: s.start,
+    handleEnvironmentChange: s.handleEnvironmentChange,
+    theme: s.theme,
+    isIframe: s.isIframe,
+    language: s.language,
+  }));
 
   useEffect(() => {
     start();
@@ -45,6 +52,7 @@ export default function Home() {
       className={`${theme} ${isIframe ? "iframe-mode" : ""}`}
     >
       <PublishNavbar />
+      {environment === "creatorWeb" && <PreviewGenerator />}
       <ShortcutsListener>
         <ModalsContainer />
         <SocketHandler />

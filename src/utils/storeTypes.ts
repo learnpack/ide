@@ -151,7 +151,10 @@ export type TUser = {
   id: number;
   email: string;
   first_name: string;
-  // last_name: string;
+  last_name: string;
+  profile?: {
+    avatar_url: string;
+  };
 };
 
 type TUserConsumables = {

@@ -4,6 +4,7 @@ import { TPossibleParams } from "./storeTypes";
 import TaskLists from "markdown-it-task-lists";
 import TagManager from "react-gtm-module";
 import * as yaml from "js-yaml";
+import axios from "axios";
 // import toast from "react-hot-toast";
 export const DEV_MODE =false;
 
@@ -448,3 +449,55 @@ export function getSlugFromPath() {
   // Si no, devolvemos el último segmento (por si cambian la estructura)
   return segments.pop() || null;
 }
+
+export const uploadImageToBucket = async (imageUrl: string, path: string) => {
+  try {
+    const response = await axios.post(
+      `${DEV_MODE ? "http://localhost:3000" : ""}/upload-image`,
+      {
+        image_url: imageUrl,
+        destination: path,
+      }
+    );
+    console.log("Image uploaded to bucket", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error uploading image to bucket", error);
+    return null;
+  }
+};
+
+export const uploadBlobToBucket = async (blob: Blob, path: string) => {
+  console.log("Uploading blob to bucket", blob, path);
+
+  const formData = new FormData();
+  formData.append("file", blob, "preview.png");
+  formData.append("destination", path);
+
+  const response = await fetch(
+    `${DEV_MODE ? "http://localhost:3000" : ""}/upload-image-file`,
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+
+  if (!response.ok) {
+    console.error("Error uploading image to bucket", response);
+    throw new Error("Failed to upload image");
+  }
+
+  return await response.json();
+};
+
+export const checkPreviewImage = async (slug: string) => {
+  try {
+    const response = await axios.get(
+      `${DEV_MODE ? "http://localhost:3000" : ""}/check-preview-image/${slug}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error checking preview image", error);
+    return null;
+  }
+};
