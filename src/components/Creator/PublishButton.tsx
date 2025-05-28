@@ -93,8 +93,65 @@ const PublishConfirmationModal: FC<{
     </>
   );
 };
+
+const EmbedCodeModal: FC<{ deployedUrl: string }> = ({ deployedUrl }) => {
+  const { t } = useTranslation();
+  const embedCodeRef = useRef<HTMLTextAreaElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const embedCode = useRef(
+    `<iframe src="${deployedUrl}?iframe=true&lang=en&theme=dark" style="border:0px #ffffff none;" name="myiFrame" scrolling="no" frameborder="0" marginheight="0px" marginwidth="0px" height="800px" width="600px" allowfullscreen></iframe>`
+  );
+  return (
+    <>
+      <SimpleButton
+        text={t("import-to-your-lms")}
+        action={() => setIsOpen(true)}
+        extraClass="svg-blue text-blue active-on-hover w-100 rounded text-center justify-center padding-medium border-blue"
+      />
+      {isOpen && (
+        <Modal outsideClickHandler={() => setIsOpen(false)} extraClass="bg-2">
+          <div className="flex-y gap-medium ">
+            <h3 className="text-center">{t("import-to-your-lms")}</h3>
+            <p>{t("import-to-your-lms-description")}</p>
+
+            <textarea
+              ref={embedCodeRef}
+              readOnly
+              rows={6}
+              className="w-100 textarea"
+              value={embedCode.current}
+            />
+            <SimpleButton
+              extraClass="row-reverse border-blue bg-blue-rigo text-white padding-medium rounded align-center justify-center"
+              text={t("copy")}
+              svg={svgs.copy}
+              action={() => {
+                navigator.clipboard.writeText(embedCode.current);
+                toast.success(t("embed-code-copied"));
+              }}
+            />
+            <div className="justify-center align-center flex-x rounded padding-small gap-small ">
+              {svgs.congratsRigo}
+              <p className="bg-1 rounded padding-medium">
+                {t("as-your-students-interact-with-the-tutor")}{" "}
+                <a
+                  href="https://learnpack.co/revenue-sharing-program"
+                  target="_blank"
+                >
+                  {t("revenue-sharing-program")}
+                </a>
+              </p>
+            </div>
+          </div>
+        </Modal>
+      )}
+    </>
+  );
+};
+
 const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
   const { t } = useTranslation();
+  const embedCodeRef = useRef<HTMLTextAreaElement>(null);
   const [publishing, setPublishing] = useState(false);
   const token = useStore((state) => state.token);
   const bctoken = useStore((state) => state.bc_token);
@@ -122,6 +179,16 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
       setPublishing(false);
     }
   };
+
+  useEffect(() => {
+    if (embedCodeRef.current) {
+      // Adjust the height of the textarea to fit the content
+      embedCodeRef.current.style.height = "auto";
+      embedCodeRef.current.style.height =
+        embedCodeRef.current.scrollHeight + "px";
+    }
+  }, [deployedUrl, embedCodeRef.current]);
+
   return (
     <div onMouseDown={(e) => e.stopPropagation()}>
       <PublishConfirmationModal onClose={onClose} onPublish={handlePublish} />
@@ -183,9 +250,9 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
               </div>
             </div>
           </div>
-          <div>
+          <div className="flex-y gap-medium">
             <p className="text-center">{t("you-can-also-share-via")}</p>
-            <div className="flex-x justify-center align-center gap-big">
+            <div className="flex-x justify-center align-center gap-big wrap-wrap">
               <SimpleButton
                 text={"X"}
                 svg={svgs.twitter}
@@ -224,7 +291,46 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
                   );
                 }}
               />
+              <SimpleButton
+                text={"Reddit"}
+                svg={svgs.reddit}
+                title={t("share-on-reddit")}
+                action={() => {
+                  const url = encodeURIComponent(deployedUrl);
+                  window.open(
+                    `https://www.reddit.com/submit?url=${url}&title=${encodeURIComponent(
+                      t("check-out-my-tutorial")
+                    )}`,
+                    "_blank"
+                  );
+                }}
+              />
+
+              <SimpleButton
+                text={"WhatsApp"}
+                svg={svgs.whatsapp}
+                title={t("share-on-whatsapp")}
+                action={() => {
+                  const url = encodeURIComponent(deployedUrl);
+                  window.open(
+                    `https://api.whatsapp.com/send?text=${url}`,
+                    "_blank"
+                  );
+                }}
+              />
+
+              <SimpleButton
+                text={"Email"}
+                svg={svgs.email}
+                title={t("share-via-email")}
+                action={() => {
+                  const url = encodeURIComponent(deployedUrl);
+                  window.open(`mailto:?body=${url}`, "_blank");
+                }}
+              />
             </div>
+            <div className="separator">{t("or")}</div>
+            <EmbedCodeModal deployedUrl={deployedUrl} />
           </div>
         </Modal>
       )}

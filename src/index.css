@@ -224,7 +224,7 @@ a {
 }
 
 .border-blue {
-  border: 1px solid var(--color-active);
+  border: 1px solid var(--color-blue-rigo);
 }
 .border-none {
   border: none !important;

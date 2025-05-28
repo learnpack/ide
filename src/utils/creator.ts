@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getSlugFromPath } from "./lib";
+import { DEV_MODE, getSlugFromPath } from "./lib";
 
 export const LEARNPACK_LOCAL_URL = "http://localhost:3000";
 
@@ -63,7 +63,7 @@ export const publishTutorial = async (
       "x-rigo-token": rigoToken,
     };
     const response = await axios.post(
-      `/actions/publish/${slug}`,
+      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/publish/${slug}`,
       {
         categoryId: "663296363296363296363296",
         academyId: "663296363296363296363296",

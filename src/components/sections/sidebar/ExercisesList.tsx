@@ -243,18 +243,24 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
     <div className="exercise-list">
       {selectedExercises.length > 0 && (
         <div className="flex-y gap-small align-center">
-          <div className="flex-x gap-small align-center">
-            <SimpleButton
-              extraClass=" active-on-hover rounded"
-              svg={svgs.translation}
-              text={t("translate")}
-              action={handleTranslate}
-            />
+          <div className="flex-x gap-small align-center bg-1 rounded padding-small w-100">
             <input
               ref={inputLanguageRef}
               type="text"
               placeholder={t("languagesCSV")}
-              className="rounded padding-small"
+              className="rounded padding-small w-100"
+            />
+            <SimpleButton
+              extraClass=" scale-on-hover rounded"
+              svg={svgs.iconCheck}
+              title={t("translate")}
+              action={handleTranslate}
+            />
+            <SimpleButton
+              extraClass=" scale-on-hover rounded"
+              svg={svgs.iconClose}
+              title={t("cancel")}
+              action={() => setSelectedExercises([])}
             />
           </div>
         </div>

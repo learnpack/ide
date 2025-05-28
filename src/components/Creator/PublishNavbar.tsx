@@ -12,12 +12,12 @@ export const PublishNavbar = () => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    if (isCreator) {
-      document.documentElement.style.setProperty("--header-height", "150px");
+    if (isCreator && environment === "creatorWeb") {
+      document.documentElement.style.setProperty("--header-height", "112px");
     } else {
-      document.documentElement.style.setProperty("--header-height", "80px");
+      document.documentElement.style.setProperty("--header-height", "90px");
     }
-  }, [isCreator]);
+  }, [isCreator, environment]);
 
   if (!isCreator || environment !== "creatorWeb") return null;
   return (

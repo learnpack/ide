@@ -275,5 +275,11 @@
     "add-language": "add language",
     "not-author-message": "Woops! You cannot see this course because you are not the author. Courses can be published to anyone, ask the course author for the public url?",
     "course-not-found": "Course not found",
-    "package-not-found-message": "The course you're trying to access does not exist or is no longer available."
+    "package-not-found-message": "The course you're trying to access does not exist or is no longer available.",
+    "copy": "Copy",
+    "embed-code-copied": "Embed code copied to clipboard",
+    "import-to-your-lms": "Import to your LMS",
+    "import-to-your-lms-description": "You can easily include learnpack courses into your LMS as an embed:",
+    "as-your-students-interact-with-the-tutor": "As your students interact with the tutor, all interactions will register and you will receive payments based on our",
+    "revenue-sharing-program": "revenue-sharing program"
 }
