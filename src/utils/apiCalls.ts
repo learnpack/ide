@@ -2,6 +2,10 @@ import axios from "axios";
 import { RIGOBOT_HOST, BREATHECODE_HOST } from "./lib";
 
 export const getSession = async (token: string, slug: string) => {
+  if (!slug) {
+    throw new Error("Slug is required");
+  }
+
   const url = `${RIGOBOT_HOST}/v1/learnpack/session/?slug=${slug}`;
 
   try {

@@ -700,6 +700,11 @@ The user's set up the application in "${language}" language, give your feedback 
       );
       set({ currentSolution: solution.fileContent });
     }
+
+    console.log(isBuildable, "IS BUILDABLE");
+    console.log(isTesteable, "IS TESTEABLE");
+    console.log(hasSolution, "HAS SOLUTION");
+
     set({
       isTesteable: isTesteable,
       isBuildable: isBuildable,
@@ -904,6 +909,7 @@ The user's set up the application in "${language}" language, give your feedback 
       get();
 
     const exercise = getCurrentExercise();
+
     // @ts-ignore
     const notHidden = exercise.files.filter((f) => !f.hidden);
     let editorTabsCopy = [...editorTabs];

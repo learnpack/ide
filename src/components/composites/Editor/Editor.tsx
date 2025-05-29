@@ -400,7 +400,7 @@ export const Toolbar = ({ editorStatus }: EditorFooterProps) => {
   const {
     lastState,
     getCurrentExercise,
-    allowedActions,
+    // allowedActions,
     isBuildable,
     isTesteable,
     handlePositionChange,
@@ -409,7 +409,7 @@ export const Toolbar = ({ editorStatus }: EditorFooterProps) => {
   } = useStore((state) => ({
     lastState: state.lastState,
     getCurrentExercise: state.getCurrentExercise,
-    allowedActions: state.allowedActions,
+    // allowedActions: state.allowedActions,
     isBuildable: state.isBuildable,
     isTesteable: state.isTesteable,
     handlePositionChange: state.handlePositionChange,
@@ -447,16 +447,18 @@ export const Toolbar = ({ editorStatus }: EditorFooterProps) => {
       {editorStatus === "MODIFIED" && !letPass && (
         <div className="footer-actions">
           {onlyContinue && !isLastExercise ? (
-            <SimpleButton
-              text={t("Continue")}
-              extraClass="w-100 bg-blue text-white big"
-              action={() =>
-                handlePositionChange(Number(currentExercisePosition) + 1)
-              }
-            />
+            <>
+              <SimpleButton
+                text={t("Continue")}
+                extraClass="w-100 bg-blue text-white big"
+                action={() =>
+                  handlePositionChange(Number(currentExercisePosition) + 1)
+                }
+              />
+            </>
           ) : (
             <>
-              <CompileOptions allowedActions={allowedActions} />
+              <CompileOptions />
               <ResetButton />
               <FeedbackButton direction="up" />
             </>

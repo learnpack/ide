@@ -4,13 +4,14 @@ import BuildButton from "./BuildButton";
 import { TestButton } from "./TestButton";
 import SimpleButton from "../../mockups/SimpleButton";
 import { svgs } from "../../../assets/svgs";
+import useStore from "../../../utils/store";
 
-export const CompileOptions = ({
-  allowedActions,
-}: {
-  allowedActions: string[];
-}) => {
+export const CompileOptions = () => {
   const { t } = useTranslation();
+  const { isBuildable, isTesteable } = useStore((state) => ({
+    isBuildable: state.isBuildable,
+    isTesteable: state.isTesteable,
+  }));
 
   return (
     <Dropdown
@@ -23,10 +24,8 @@ export const CompileOptions = ({
         />
       }
     >
-      {allowedActions.includes("build") && (
-        <BuildButton extraClass=" active big w-100" />
-      )}
-      {allowedActions.includes("test") && <TestButton />}
+      {isBuildable && <BuildButton extraClass=" active big w-100" />}
+      {isTesteable && <TestButton />}
     </Dropdown>
   );
 };

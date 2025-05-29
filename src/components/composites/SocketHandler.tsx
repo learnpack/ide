@@ -20,7 +20,7 @@ export function SocketHandler() {
     build,
     runExerciseTests,
     setUser,
-    setAllowedActions,
+    // setAllowedActions,
     // fetchExercises,
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
@@ -77,12 +77,12 @@ export function SocketHandler() {
       setUser(_session);
     });
 
-    compilerSocket.onStatus("ready", (data: any) => {
-      if (data.allowed) {
-        // console.log("allowed", data.allowed);
-        setAllowedActions(data.allowed);
-      }
-    });
+    // compilerSocket.onStatus("ready", (data: any) => {
+    //   // if (data.allowed) {
+    //   //   // console.log("allowed", data.allowed);
+    //   //   setAllowedActions(data.allowed);
+    //   // }
+    // });
   }, []);
 
   useEffect(() => {

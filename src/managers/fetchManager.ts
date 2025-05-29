@@ -7,6 +7,7 @@ import {
   setWindowHash,
   TokenExpiredError,
   getSlugFromPath,
+  DEV_MODE,
 } from "../utils/lib";
 import { TEnvironment } from "./EventProxy";
 import frontMatter from "front-matter";
@@ -95,30 +96,61 @@ export const FetchManager = {
     file: string,
     opts: { cached: boolean } = { cached: false }
   ) => {
-    let edited = false;
-    const url =
-      FetchManager.ENVIRONMENT === "localhost"
-        ? `${FetchManager.HOST}/exercise/${slug}/file/${file}`
-        : `/exercises/${slug}/${file}`;
+    const methods: {
+      localhost: () => Promise<{ fileContent: string; edited: boolean }>;
+      localStorage: () => Promise<{ fileContent: string; edited: boolean }>;
+      creatorWeb: () => Promise<{ fileContent: string; edited: boolean }>;
+    } = {
+      localhost: async () => {
+        const url = `${FetchManager.HOST}/exercise/${slug}/file/${file}`;
+        const response = await fetch(url);
+        const fileContent = await response.text();
+        return { fileContent, edited: false };
+      },
 
-    const response = await fetch(url);
+      localStorage: async () => {
+        let edited = false;
+        const url = `/exercises/${slug}/${file}`;
+        const response = await fetch(url);
+        const fileContent = await response.text();
 
-    if (FetchManager.ENVIRONMENT === "localStorage" && opts.cached) {
-      const cachedEditorTabs = LocalStorage.get(`editorTabs_${slug}`);
-      if (cachedEditorTabs) {
-        const cached = cachedEditorTabs.find((t: any) => {
-          return t.name === file;
-        });
-
-        if (cached) {
-          edited = true;
-          return { fileContent: cached.content, edited };
+        if (opts.cached) {
+          const cachedEditorTabs = LocalStorage.get(`editorTabs_${slug}`);
+          if (cachedEditorTabs) {
+            const cached = cachedEditorTabs.find((t: any) => t.name === file);
+            if (cached) {
+              edited = true;
+              return { fileContent: cached.content, edited };
+            }
+          }
         }
-      }
-    }
 
-    const fileContent = await response.text();
-    return { fileContent, edited };
+        return { fileContent, edited };
+      },
+
+      creatorWeb: async () => {
+        let edited = false;
+        const exerciseSlug = getSlugFromPath();
+        const url = `${FetchManager.HOST}/courses/${exerciseSlug}/exercises/${slug}/file/${file}`;
+        const response = await fetch(url);
+        const fileContent = await response.text();
+
+        if (opts.cached) {
+          const cachedEditorTabs = LocalStorage.get(`editorTabs_${slug}`);
+          if (cachedEditorTabs) {
+            const cached = cachedEditorTabs.find((t: any) => t.name === file);
+            if (cached) {
+              edited = true;
+              return { fileContent: cached.content, edited };
+            }
+          }
+        }
+
+        return { fileContent, edited };
+      },
+    };
+
+    return await methods[FetchManager.ENVIRONMENT as keyof typeof methods]();
   },
 
   getExerciseInfo: async (slug: string) => {
@@ -135,10 +167,20 @@ export const FetchManager = {
         return exercise;
       },
       creatorWeb: async () => {
-        const exerciseSlug = getSlugFromPath();
-        const respose = await fetch(`/steps/${slug}?slug=${exerciseSlug}`);
-        const exercise = await respose.json();
-        return exercise;
+        try {
+          const exerciseSlug = getSlugFromPath();
+          const respose = await fetch(
+            `${
+              DEV_MODE ? "http://localhost:3000" : ""
+            }/courses/${exerciseSlug}/exercises/${slug}/`
+          );
+          const exercise = await respose.json();
+          return exercise;
+        } catch (e) {
+          console.log("Error fetching exercise info in creatorWeb");
+          console.log(e);
+          return null;
+        }
       },
     };
 
@@ -193,6 +235,13 @@ export const FetchManager = {
           throw Error("The token is invalid or inactive!");
         }
 
+        const isValid = await validateRigobotToken(session.rigobot.key);
+
+        if (!isValid) {
+          LocalStorage.remove("session");
+          throw Error("The token is invalid or inactive!");
+        }
+
         const loggedFormat = {
           payload: { ...session },
           rigoToken: session.rigobot.key,
@@ -225,6 +274,15 @@ export const FetchManager = {
         const user = await validateUser(session.token);
 
         if (!user) {
+          LocalStorage.remove("session");
+          console.log("No user in session");
+
+          throw Error("The token is invalid or inactive!");
+        }
+
+        const isValid = await validateRigobotToken(session.rigobot.key);
+
+        if (!isValid) {
           LocalStorage.remove("session");
           throw Error("The token is invalid or inactive!");
         }
