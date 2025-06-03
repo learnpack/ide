@@ -193,6 +193,8 @@ const useStore = create<IStore>((set, get) => ({
       checkLoggedStatus,
       setListeners,
       figureEnvironment,
+      startTelemetry,
+      getOrCreateActiveSession,
       // startTelemetry,
     } = get();
     figureEnvironment()
@@ -213,6 +215,10 @@ const useStore = create<IStore>((set, get) => ({
       })
       .then(() => {
         RigoAI.load();
+      })
+      .then(() => {
+        getOrCreateActiveSession();
+        startTelemetry();
       });
   },
   setListeners: async () => {
@@ -394,8 +400,6 @@ const useStore = create<IStore>((set, get) => ({
       currentExercisePosition,
       setOpenedModals,
       checkParams,
-      getOrCreateActiveSession,
-      startTelemetry,
       getUserConsumables,
     } = get();
 
@@ -422,9 +426,7 @@ const useStore = create<IStore>((set, get) => ({
         startConversation(Number(currentExercisePosition));
       }
 
-      getOrCreateActiveSession();
       getUserConsumables();
-      await startTelemetry();
 
       return true;
     } catch (err) {
@@ -532,8 +534,6 @@ The user's set up the application in "${language}" language, give your feedback 
 
     try {
       const config = await FetchManager.getExercises(token);
-
-      console.log("CONFIG RETUNEDE BY FETCHMANAGER", config);
       if (!config) return;
 
       // console.debug("AUTHENTICATION", config.config.authentication);
@@ -700,10 +700,6 @@ The user's set up the application in "${language}" language, give your feedback 
       );
       set({ currentSolution: solution.fileContent });
     }
-
-    console.log(isBuildable, "IS BUILDABLE");
-    console.log(isTesteable, "IS TESTEABLE");
-    console.log(hasSolution, "HAS SOLUTION");
 
     set({
       isTesteable: isTesteable,
@@ -1330,7 +1326,11 @@ The user's set up the application in "${language}" language, give your feedback 
     }
 
     try {
+      console.log(configObject, "configObject");
+
       const session = await getSession(token, configObject.config.slug);
+      console.log(session, "session");
+
       if (!session.tab_hash) {
         await updateSession(
           token,
@@ -1604,6 +1604,8 @@ The user's set up the application in "${language}" language, give your feedback 
     }
 
     if (configObject.exercises && configObject.exercises.length > 0) {
+      console.log("Starting telemetry");
+
       const steps = configObject.exercises.map((e, index) => ({
         slug: e.slug,
         position: e.position || index,

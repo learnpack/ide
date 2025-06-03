@@ -32,7 +32,7 @@ const ContinueButton = () => {
   );
 };
 
-export const LessonRenderer = memo(() => {
+export const LessonRenderer = memo(() => {0
   const currentContent = useStore((s) => s.currentContent);
   const agent = useStore((s) => s.agent);
 

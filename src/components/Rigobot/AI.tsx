@@ -28,6 +28,8 @@ export const RigoAI = {
     userToken: string;
     context?: string;
   }) => {
+    console.log("Initilizing RigoAI");
+
     if (!RigoAI.started) RigoAI.load();
 
     // @ts-ignore
@@ -78,7 +80,7 @@ export const RigoAI = {
         if (onComplete) onComplete(success, data);
       },
     });
-    
+
     job.run();
   },
 

@@ -333,34 +333,7 @@ export const FetchManager = {
     return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
   },
   getTabHash: async () => {
-    // const methods: TMethods = {
-    // localhost: async () => {
-    //   const res = await fetch(`${FetchManager.HOST}/check/rigo/status`);
-    //   if (res.status === 400) {
-    //     const tabHash = createTabHashFromURL();
-    //     await FetchManager.setTabHash(tabHash);
-    //     return tabHash;
-    //   }
-    //   const json = await res.json();
-    //   if (json && json.payload && "tabHash" in json.payload) {
-    //     return json.payload.tabHash;
-    //   } else {
-    //     const tabHash = createTabHashFromURL();
-    //     await FetchManager.setTabHash(tabHash);
-    //     return tabHash;
-    //   }
-    // },
-    // localStorage: async () => {
-    //   let tabHash = LocalStorage.get("TAB_HASH");
-    //   if (!tabHash) {
-    //
-    //     await FetchManager.setTabHash(tabHash);
-    //   }
-    //   return tabHash;
-    // },
-    // };
     const tabHash = createTabHashFromURL();
-
     return tabHash;
   },
   getSessionKey: async () => {

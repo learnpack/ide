@@ -104,9 +104,10 @@ const EmbedCodeModal: FC<{ deployedUrl: string }> = ({ deployedUrl }) => {
   return (
     <>
       <SimpleButton
-        text={t("import-to-your-lms")}
+        title={t("import-to-your-lms")}
+        svg={svgs.html}
         action={() => setIsOpen(true)}
-        extraClass="svg-blue text-blue active-on-hover w-100 rounded text-center justify-center padding-medium border-blue"
+        extraClass=""
       />
       {isOpen && (
         <Modal outsideClickHandler={() => setIsOpen(false)} extraClass="bg-2">
@@ -220,13 +221,10 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
         <Modal outsideClickHandler={onClose}>
           <div className="flex-y gap-big padding-small">
             <h1 className="text-center  m-0">{svgs.congratsRigo}</h1>
-            <h3 className="text-center m-0">
-              {t("tutorial-published-successfully")}
-            </h3>
+            <h3 className="text-center m-0">{t("share-your-tutorial")}</h3>
             <p className="text-center m-0">
               {t("congratulations-your-tutorial-is-published")}
             </p>
-            <h4 className="text-center">{t("share-your-tutorial")}</h4>
             <div className="flex-x gap-small align-center justify-between border-gray rounded padding-small">
               <p className="m-0 ">{deployedUrl}</p>
               <div className="flex-x gap-small">
@@ -254,7 +252,7 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
             <p className="text-center">{t("you-can-also-share-via")}</p>
             <div className="flex-x justify-center align-center gap-big wrap-wrap">
               <SimpleButton
-                text={"X"}
+                // text={"X"}
                 svg={svgs.twitter}
                 title={t("share-on-twitter")}
                 action={() => {
@@ -267,7 +265,7 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
                 }}
               />
               <SimpleButton
-                text={"Linkedin"}
+                // text={"Linkedin"}
                 svg={svgs.linkedin}
                 title={t("share-on-linkedin")}
                 action={() => {
@@ -280,7 +278,7 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
                 }}
               />
               <SimpleButton
-                text={"Facebook"}
+                // text={"Facebook"}
                 svg={svgs.facebook}
                 title={t("share-on-facebook")}
                 action={() => {
@@ -292,7 +290,7 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
                 }}
               />
               <SimpleButton
-                text={"Reddit"}
+                // text={"Reddit"}
                 svg={svgs.reddit}
                 title={t("share-on-reddit")}
                 action={() => {
@@ -307,7 +305,7 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
               />
 
               <SimpleButton
-                text={"WhatsApp"}
+                // text={"WhatsApp"}
                 svg={svgs.whatsapp}
                 title={t("share-on-whatsapp")}
                 action={() => {
@@ -320,7 +318,7 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
               />
 
               <SimpleButton
-                text={"Email"}
+                // text={"Email"}
                 svg={svgs.email}
                 title={t("share-via-email")}
                 action={() => {
@@ -328,9 +326,8 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
                   window.open(`mailto:?body=${url}`, "_blank");
                 }}
               />
+              <EmbedCodeModal deployedUrl={deployedUrl} />
             </div>
-            <div className="separator">{t("or")}</div>
-            <EmbedCodeModal deployedUrl={deployedUrl} />
           </div>
         </Modal>
       )}
