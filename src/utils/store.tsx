@@ -195,7 +195,7 @@ const useStore = create<IStore>((set, get) => ({
       figureEnvironment,
       startTelemetry,
       getOrCreateActiveSession,
-      // startTelemetry,
+      initRigoAI,
     } = get();
     figureEnvironment()
       .then(() => {
@@ -219,6 +219,7 @@ const useStore = create<IStore>((set, get) => ({
       .then(() => {
         getOrCreateActiveSession();
         startTelemetry();
+        initRigoAI();
       });
   },
   setListeners: async () => {
@@ -401,6 +402,7 @@ const useStore = create<IStore>((set, get) => ({
       setOpenedModals,
       checkParams,
       getUserConsumables,
+      initRigoAI,
     } = get();
 
     const params = checkParams({ justReturn: true });
@@ -427,6 +429,7 @@ const useStore = create<IStore>((set, get) => ({
       }
 
       getUserConsumables();
+      initRigoAI();
 
       return true;
     } catch (err) {
@@ -1718,7 +1721,7 @@ The user's set up the application in "${language}" language, give your feedback 
     return result;
   },
   getUserConsumables: async () => {
-    const { bc_token, token, environment, checkParams } = get();
+    const { bc_token, environment, checkParams } = get();
 
     if (!bc_token) {
       return;
@@ -1748,14 +1751,6 @@ The user's set up the application in "${language}" language, give your feedback 
       environment !== "localStorage";
 
     set({ isCreator });
-
-    RigoAI.init({
-      chatHash: "529ca5a219084bc7b93c172ad78ef92a",
-      purposeSlug: "learnpack-lesson-writer",
-      userToken: token,
-      context:
-        "You are a helpful teacher assistant. Please provide your responses always in MARKDOWN. ",
-    });
 
     const params = checkParams({ justReturn: true });
     if (isCreator) {
@@ -1972,6 +1967,22 @@ The user's set up the application in "${language}" language, give your feedback 
         body: editedReadme.body,
         bodyBegin: editedReadme.bodyBegin,
       },
+    });
+  },
+  initRigoAI: () => {
+    const { token } = get();
+
+    if (!token) {
+      console.log("ERROR: No token found, initializing RigoAI failed");
+      return;
+    }
+
+    RigoAI.init({
+      chatHash: "529ca5a219084bc7b93c172ad78ef92a",
+      purposeSlug: "learnpack-lesson-writer",
+      userToken: token,
+      context:
+        "You are a helpful teacher assistant. Please provide your responses always in MARKDOWN. ",
     });
   },
 }));

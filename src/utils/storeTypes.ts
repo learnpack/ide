@@ -326,6 +326,7 @@ export interface IStore {
     startPosition: Point,
     endPosition: Point
   ) => Promise<void>;
+  initRigoAI: () => void;
 }
 
 export type TEditorTab = {
