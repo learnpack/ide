@@ -5,6 +5,7 @@
   --color-active: #02a9ea;
   --header-height: 90px;
 
+
   --4geeks-yellow: #ffd900;
   --color-warning: #ffd900;
   --opaque-blue-editor: #a5d9f8;
@@ -89,6 +90,8 @@
 html {
   font-size: 14px;
   font-family: "Inter", sans-serif;
+  overflow-x: hidden;
+  overflow-y: hidden;
 }
 html:has(main.dark) {
   color-scheme: dark light;
@@ -97,7 +100,7 @@ html:has(main.dark) {
 body {
   background-color: var(--bg-color);
   overflow-x: hidden;
-  overflow-y: scroll;
+  overflow-y: hidden;
 }
 
 img {
