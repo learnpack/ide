@@ -288,5 +288,13 @@
     "import-to-your-lms": "Importar a tu LMS",
     "import-to-your-lms-description": "Puedes incrustar fácilmente cursos LearnPack en tu LMS como un embed:",
     "as-your-students-interact-with-the-tutor": "Como tus estudiantes interactúan con el tutor, todos los interacciones se registrarán y recibirás pagos basados en nuestro",
-    "revenue-sharing-program": "programa de ingresos compartidos"
-}   
+    "revenue-sharing-program": "programa de ingresos compartidos",
+    "share-on-facebook": "Compartir en Facebook",
+    "share-on-reddit": "Compartir en Reddit",
+    "share-on-twitter": "Compartir en Twitter",
+    "share-on-linkedin": "Compartir en LinkedIn",
+    "share-on-instagram": "Compartir en Instagram",
+    "share-on-whatsapp": "Compartir en WhatsApp",
+    "share-via-email": "Compartir por correo electrónico",
+    "publishedOn": "Publicado el"
+}

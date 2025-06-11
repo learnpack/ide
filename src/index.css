@@ -5,7 +5,6 @@
   --color-active: #02a9ea;
   --header-height: 90px;
 
-
   --4geeks-yellow: #ffd900;
   --color-warning: #ffd900;
   --opaque-blue-editor: #a5d9f8;
@@ -1048,4 +1047,12 @@ a {
 
 .mt-50px {
   margin-top: 50px;
+}
+
+.h-fit-content {
+  height: fit-content;
+}
+
+.h-full {
+  height: 70vh;
 }

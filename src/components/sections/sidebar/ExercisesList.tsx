@@ -459,24 +459,3 @@ function ExerciseCard({
     </div>
   );
 }
-
-/* <Input
-            name="exerciseName"
-            placeholder={t("exerciseName")}
-            defaultValue={""}
-            useAI={true}
-            context={`Generate a new exercise named like: 00.1 - Exercise title, 01.3 - Exercise title, 02.1 - Exercise title... 
-              
-              Base your response on the following exercises: ${exercises
-                .map((exercise) => exercise.title)
-                .join(", ")}. 
-                
-                Return only the exercise name, no other text. The new exercise should not exist in the list of exercises and must fit perfectly in the list of exercises.
-              ${
-                prevExercise
-                  ? `The previous exercise is named like: ${prevExercise.title}. The index of the generated title should be after the previous exercise by a decimal number. For example, if the previous exercise is 00.1, the generated title should be 00.2 and so on. If the previous exercise is 0.1, the generated title should be 01.1.
-                  
-                  Generate the index and the title, we will convert your title into the correct format.`
-                  : ""
-              }`}
-          /> */

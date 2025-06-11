@@ -3,7 +3,12 @@ import html2canvas from "html2canvas";
 
 import { useEffect, useState } from "react";
 import useStore from "../../../utils/store";
-import { checkPreviewImage, uploadBlobToBucket } from "../../../utils/lib";
+import {
+  checkPreviewImage,
+  DEV_MODE,
+  uploadBlobToBucket,
+} from "../../../utils/lib";
+import { useTranslation } from "react-i18next";
 
 // import useStore from "../utils/store"
 // import { uploadImageToBucket } from "../utils/lib"
@@ -18,12 +23,15 @@ function proxify(link: string) {
   }
 
   const encodedUrl = btoa(link);
-  return `http://localhost:3000/proxy?url=${encodedUrl}`;
+  return `${DEV_MODE ? "http://localhost:3000" : ""}/proxy?url=${encodedUrl}`;
 }
 
 const PreviewGenerator: React.FC = () => {
+  const { t } = useTranslation();
+
   const confi = useStore((state) => state.configObject);
   const user = useStore((state) => state.user);
+  const language = useStore((state) => state.language);
   const [generatePreviewImage, setGeneratePreviewImage] = useState(false);
 
   useEffect(() => {
@@ -51,6 +59,7 @@ const PreviewGenerator: React.FC = () => {
           //   anchor.href = canvas.toDataURL("image/png");
           //   anchor.download = "preview.png";
           //   anchor.click();
+          console.log("Canvas created!");
 
           canvas.toBlob(async (blob) => {
             if (!blob) {
@@ -75,7 +84,11 @@ const PreviewGenerator: React.FC = () => {
       }
     };
 
-    if (confi && confi.config?.title?.us && generatePreviewImage) {
+    if (
+      confi &&
+      Object.keys(confi.config?.title || {}).length > 0 &&
+      generatePreviewImage
+    ) {
       setTimeout(() => {
         handleDownload();
       }, 2000);
@@ -90,11 +103,11 @@ const PreviewGenerator: React.FC = () => {
     <div
       id="preview"
       style={{
-        width: "1200px",
-        height: "630px",
+        width: "1095px",
+        height: "575px",
         background: "white",
         position: "fixed",
-        top: "50%",
+        top: "80%",
         left: "50%",
         transform: "translate(-50%, -50%)",
       }}
@@ -106,7 +119,9 @@ const PreviewGenerator: React.FC = () => {
         }}
       />
       <div className="px-big -mt-5">
-        <h1 className="text-7xl mt-50px">{confi.config?.title?.us}</h1>
+        <h1 className="text-7xl mt-50px">
+          {confi.config?.title?.[language] || confi.config?.title?.us}
+        </h1>
         <section className="flex-x align-center justify-between">
           <div className="flex-x  gap-big align-center mt-50px">
             <img
@@ -123,7 +138,7 @@ const PreviewGenerator: React.FC = () => {
                 Author: {user?.first_name} {user?.last_name}
               </p>
               <small style={{ fontSize: "20px" }} className="m-0">
-                Published on: {new Date().toLocaleDateString()}
+                {t("publishedOn")}: {new Date().toLocaleDateString()}
               </small>
             </div>
           </div>

@@ -281,5 +281,13 @@
     "import-to-your-lms": "Import to your LMS",
     "import-to-your-lms-description": "You can easily include learnpack courses into your LMS as an embed:",
     "as-your-students-interact-with-the-tutor": "As your students interact with the tutor, all interactions will register and you will receive payments based on our",
-    "revenue-sharing-program": "revenue-sharing program"
+    "revenue-sharing-program": "revenue-sharing program",
+    "share-on-facebook": "Share on Facebook",
+    "share-on-reddit": "Share on Reddit",
+    "share-on-twitter": "Share on Twitter",
+    "share-on-linkedin": "Share on LinkedIn",
+    "share-on-instagram": "Share on Instagram",
+    "share-on-whatsapp": "Share on WhatsApp",
+    "share-via-email": "Share via Email",
+    "publishedOn": "Published on"
 }

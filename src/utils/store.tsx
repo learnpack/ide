@@ -1055,6 +1055,8 @@ The user's set up the application in "${language}" language, give your feedback 
       }
     }
 
+    console.log(exercise, "exercise from api");
+
     set({ currentContent: { body: readme, bodyBegin: exercise.bodyBegin } });
     set({ editorTabs: [] });
     // @ts-ignore

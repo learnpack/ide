@@ -1,10 +1,12 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import { ENVIRONMENT } from "../../../utils/lib";
 import { Toolbar } from "../Editor/Editor";
 import { Markdowner } from "../Markdowner/Markdowner";
 import { useTranslation } from "react-i18next";
 import useStore from "../../../utils/store";
 import "./LessonStyles.css";
+import SimpleButton from "../../mockups/SimpleButton";
+import { FetchManager } from "../../../managers/fetchManager";
 
 const ContinueButton = () => {
   const { t } = useTranslation();
@@ -32,13 +34,39 @@ const ContinueButton = () => {
   );
 };
 
-export const LessonRenderer = memo(() => {0
+export const LessonRenderer = memo(() => {
+  0;
   const currentContent = useStore((s) => s.currentContent);
   const agent = useStore((s) => s.agent);
+  const getCurrentExercise = useStore((s) => s.getCurrentExercise);
+  const language = useStore((s) => s.language);
+  // const replaceContent = useStore((s) => s.replaceInReadme);
+  const [mode, setMode] = useState<"markdown" | "text">("markdown");
+
+  console.log(currentContent);
 
   return (
     <div className="lesson-content">
-      <Markdowner markdown={currentContent.body} allowCreate={true} />
+      {mode === "markdown" ? (
+        <Markdowner markdown={currentContent.body} allowCreate={true} />
+      ) : (
+        <textarea
+          defaultValue={currentContent.body}
+          className="w-100 h-full padding-small"
+          onChange={(e) => {
+            FetchManager.replaceReadme(
+              getCurrentExercise().slug,
+              language,
+              e.target.value
+            );
+          }}
+        />
+      )}
+      <SimpleButton
+        extraClass="d-none"
+        text={mode === "markdown" ? "Markdown" : "Text"}
+        action={() => setMode(mode === "markdown" ? "text" : "markdown")}
+      />
       <ContinueButton />
 
       {ENVIRONMENT === "localhost" && agent === "vscode" && (
