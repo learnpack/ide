@@ -49,6 +49,7 @@ export const LessonRenderer = memo(() => {
     <div className="lesson-content">
       {mode === "markdown" ? (
         <Markdowner markdown={currentContent.body} allowCreate={true} />
+        // <div></div>
       ) : (
         <textarea
           defaultValue={currentContent.body}

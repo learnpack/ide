@@ -189,6 +189,7 @@
   align-items: center;
   z-index: 2;
   border: var(--read-font-color) 2px solid;
+  /* display: none; */
 }
 
 .quiz-button {

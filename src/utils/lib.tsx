@@ -450,6 +450,11 @@ export function getSlugFromPath() {
   return segments.pop() || null;
 }
 
+export function getMainIndex(title: string): number | null {
+  const match = title.match(/^(\d+)/);
+  return match ? parseInt(match[1], 10) : null;
+}
+
 export const uploadImageToBucket = async (imageUrl: string, path: string) => {
   try {
     const response = await axios.post(

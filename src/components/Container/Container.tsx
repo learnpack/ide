@@ -107,15 +107,15 @@ export const Container = () => {
   }, [editorTabs, terminalShouldShow]);
 
   useEffect(() => {
-    if (
-      (visibleTab === "code" || visibleTab === "all") &&
-      codeSectionRef.current
-    ) {
-      codeSectionRef.current?.scrollTo({
-        top: codeSectionRef.current?.scrollHeight,
-        behavior: "smooth",
-      });
-    }
+    // if (
+    //   (visibleTab === "code" || visibleTab === "all") &&
+    //   codeSectionRef.current
+    // ) {
+    //   codeSectionRef.current?.scrollTo({
+    //     top: codeSectionRef.current?.scrollHeight,
+    //     behavior: "smooth",
+    //   });
+    // }
   }, [lastState]);
 
   useEffect(() => {
@@ -130,12 +130,12 @@ export const Container = () => {
   }, [isRigoOpened, showSidebar]);
 
   useEffect(() => {
-    if (instructionsSectionRef.current && mode !== "creator") {
-      instructionsSectionRef.current.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
-    }
+    // if (instructionsSectionRef.current && mode !== "creator") {
+    //   instructionsSectionRef.current.scrollTo({
+    //     top: 0,
+    //     behavior: "smooth",
+    //   });
+    // }
   }, [currentContent, mode]);
 
   return (

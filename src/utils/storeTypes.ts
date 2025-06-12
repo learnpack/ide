@@ -182,6 +182,40 @@ type TTitleTranslations = {
   [key: string]: string;
 };
 
+export interface Lesson {
+  id: string;
+  uid: string;
+  title: string;
+  type: "READ" | "CODE" | "QUIZ";
+  description: string;
+  duration?: number;
+  generated?: boolean;
+}
+
+export interface ParsedLink {
+  name: string;
+  text: string;
+}
+export type FormState = {
+  description: string;
+  duration: number;
+  hasContentIndex: boolean;
+  contentIndex: string;
+  language?: string;
+  technologies?: string[];
+  isCompleted: boolean;
+  variables: string[];
+  currentStep: string;
+  title: string;
+  purpose: string;
+};
+
+export type Syllabus = {
+  lessons: Lesson[];
+  // courseInfo: FormState;
+  // sources: ParsedLink[]
+};
+
 export type TSidebar = {
   [key: string]: TTitleTranslations;
 };
@@ -244,7 +278,10 @@ export interface IStore {
   mustLoginMessageKey: string;
   isCreator: boolean;
   sidebar: TSidebar;
+  syllabus: Syllabus;
   getSidebar: () => Promise<TSidebar>;
+  checkExerciseAvailability: (desiredPosition: number) => Promise<boolean>;
+  getSyllabus: () => Promise<void>;
   setMode: (mode: TMode) => void;
   addVideoTutorial: (videoTutorial: string) => Promise<void>;
   useConsumable: (

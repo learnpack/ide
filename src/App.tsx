@@ -4,7 +4,7 @@ import "./index.css";
 import "./components.css";
 
 import { SocketHandler } from "./components/composites/SocketHandler";
-import { Toaster } from "react-hot-toast";
+// import { Toaster } from "react-hot-toast";
 import { ModalsContainer } from "./components/sections/modals";
 import { ShortcutsListener } from "./components/composites/ShortcutListener";
 import { NewHeader } from "./components/Header/NewHeader";
@@ -59,7 +59,6 @@ export default function Home() {
         <NewHeader />
         <Container />
       </ShortcutsListener>
-      <Toaster />
     </main>
   );
 }

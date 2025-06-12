@@ -2,8 +2,10 @@
   padding-bottom: 70px;
   font-size: 20px;
   padding-inline: 16px;
-  line-height: 24px;
+  line-height: 2rem;
+  max-height: 100vh !important;
 }
+
 
 .lesson-content img {
   margin: 5px auto;
@@ -23,9 +25,7 @@
   font-size: 20px;
 }
 
-.lesson-content {
-  line-height: 2rem;
-}
+
 
 .creator-wrapper {
   position: relative;

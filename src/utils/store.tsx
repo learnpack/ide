@@ -27,6 +27,7 @@ import {
   FASTAPI_HOST,
   removeFrontMatter,
   getSlugFromPath,
+  // getMainIndex,
 } from "./lib";
 import {
   IStore,
@@ -183,6 +184,9 @@ const useStore = create<IStore>((set, get) => ({
   // @ts-ignore
   environment: "localhost",
   sidebar: {},
+  syllabus: {
+    lessons: [],
+  },
 
   // setters
   start: () => {
@@ -196,6 +200,7 @@ const useStore = create<IStore>((set, get) => ({
       startTelemetry,
       getOrCreateActiveSession,
       initRigoAI,
+      getSyllabus,
     } = get();
     figureEnvironment()
       .then(() => {
@@ -220,6 +225,7 @@ const useStore = create<IStore>((set, get) => ({
         getOrCreateActiveSession();
         startTelemetry();
         initRigoAI();
+        getSyllabus();
       });
   },
   setListeners: async () => {
@@ -1055,7 +1061,7 @@ The user's set up the application in "${language}" language, give your feedback 
       }
     }
 
-    console.log(exercise, "exercise from api");
+    // console.log(exercise, "exercise from api");
 
     set({ currentContent: { body: readme, bodyBegin: exercise.bodyBegin } });
     set({ editorTabs: [] });
@@ -1093,6 +1099,45 @@ The user's set up the application in "${language}" language, give your feedback 
     handlePositionChange(Number(currentExercisePosition) + 1);
   },
 
+  getSyllabus: async () => {
+    const { environment } = get();
+
+    if (environment !== "creatorWeb") {
+      return [];
+    }
+
+    const syllabus = await FetchManager.getSyllabus();
+    if (!syllabus || syllabus.length === 0) {
+      return [];
+    }
+    set({ syllabus });
+
+    return syllabus;
+  },
+
+  checkExerciseAvailability: async (desiredPosition) => {
+    const { exercises, environment, syllabus, setOpenedModals } = get();
+
+    if (environment !== "creatorWeb") {
+      return true;
+    }
+    if (!exercises || exercises.length === 0) {
+      return true;
+    }
+
+    if (!syllabus || syllabus.lessons.length === 0) {
+      return true;
+    }
+
+    const ex = syllabus.lessons[desiredPosition];
+    // console.log("EXERCISE in syllabys ", ex);
+    if (Boolean(ex.generated) === false) {
+      setOpenedModals({ syllabusFeedback: true });
+      return false;
+    }
+    return true;
+  },
+
   handlePositionChange: async (desiredPosition) => {
     const {
       configObject,
@@ -1101,6 +1146,8 @@ The user's set up the application in "${language}" language, give your feedback 
       setPosition,
       isTesteable,
       runExerciseTests,
+      checkExerciseAvailability,
+      // setOpenedModals,
     } = get();
 
     if (!configObject || !configObject.config) {
@@ -1134,6 +1181,8 @@ The user's set up the application in "${language}" language, give your feedback 
           // @ts-ignore
           exercises[currentExercisePosition].done);
     }
+
+    await checkExerciseAvailability(desiredPosition);
 
     if (!letPass) {
       runExerciseTests({

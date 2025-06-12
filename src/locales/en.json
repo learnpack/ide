@@ -289,5 +289,11 @@
     "share-on-instagram": "Share on Instagram",
     "share-on-whatsapp": "Share on WhatsApp",
     "share-via-email": "Share via Email",
-    "publishedOn": "Published on"
+    "publishedOn": "Published on",
+    "howWasTheTutorialSoFar": "How was the tutorial so far?",
+    "nextGenerationsDescription": "The desired exercise is not ready yet, you can give feedback about what you like or don't like about the course and we will use it to improve the next exercises.",
+    "feedbackPlaceholder": "Write your feedback here...",
+    "idontLikeSomething": "I don't like something",
+    "everythingIsGreat": "Everything is great, generate the rest!",
+    "sendAndGenerate": "Send and generate"
 }

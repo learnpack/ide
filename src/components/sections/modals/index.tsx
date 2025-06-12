@@ -17,6 +17,7 @@ import { LimitAiCompilations } from "./LimitAiCompilations";
 import { AddVideoTutorial } from "./AddVideoTutorial";
 import { NotAuthorModal } from "./NotAuthorModal";
 import { PackageNotFoundModal } from "./PackageNotFound";
+import { SyllabusFeedbackModal } from "./SyllabusFeedback";
 
 export const ModalsContainer = () => {
   const { openedModals } = useStore((state) => ({
@@ -41,6 +42,7 @@ export const ModalsContainer = () => {
       {openedModals.addVideoTutorial && <AddVideoTutorial />}
       {openedModals.notAuthor && <NotAuthorModal />}
       {openedModals.packageNotFound && <PackageNotFoundModal />}
+      {openedModals.syllabusFeedback && <SyllabusFeedbackModal />}
     </>
   );
 };

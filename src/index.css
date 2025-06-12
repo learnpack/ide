@@ -99,7 +99,7 @@ html:has(main.dark) {
 body {
   background-color: var(--bg-color);
   overflow-x: hidden;
-  overflow-y: hidden;
+  /* overflow-y: hidden; */
 }
 
 img {
@@ -234,6 +234,7 @@ a {
 .color-blue {
   color: var(--color-active);
 }
+
 
 .bg-blue-rigo {
   background-color: var(--color-blue-rigo) !important;
@@ -431,6 +432,7 @@ a {
   width: var(--app-width);
   margin-inline: auto;
   height: 99dvh;
+  /* overflow: hidden; */
   /* padding: 20px; */
 }
 

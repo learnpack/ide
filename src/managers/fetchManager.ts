@@ -16,6 +16,7 @@ import TelemetryManager from "./telemetry";
 import toast from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
 import { TSidebar } from "../utils/storeTypes";
+// import axios from "axios";
 
 // Correct the type definition for TMethods
 type TMethods = {
@@ -296,6 +297,35 @@ export const FetchManager = {
       },
     };
 
+    return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
+  },
+
+  getSyllabus: async () => {
+    const methods: TMethods = {
+      localhost: async () => {
+        return null;
+      },
+      localStorage: async () => {
+        // const respose = await fetch("/syllabus.json");
+        // const syllabus = await respose.json();
+        // return syllabus;
+        return null;
+      },
+      creatorWeb: async () => {
+        try {
+          const courseSlug = getSlugFromPath();
+          const respose = await fetch(
+            `${FetchManager.HOST}/courses/${courseSlug}/syllabus`
+          );
+          const syllabus = await respose.json();
+          return syllabus;
+        } catch (e) {
+          console.log("Error fetching syllabus in creatorWeb");
+          console.log(e);
+          return null;
+        }
+      },
+    };
     return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
   },
 

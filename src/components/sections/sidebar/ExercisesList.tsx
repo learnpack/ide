@@ -11,7 +11,7 @@ import {
   renameExercise,
 } from "../../../utils/creator";
 import { FetchManager } from "../../../managers/fetchManager";
-import { TMode } from "../../../utils/storeTypes";
+import { TExercise, TMode } from "../../../utils/storeTypes";
 import { cleanFloatString } from "../../../utils/lib";
 interface IExerciseList {
   closeSidebar: () => void;
@@ -58,6 +58,18 @@ function incrementDecimalPart(numberStr: string): string {
   }
 
   return parts.join(".");
+}
+
+type GroupedExercises = Record<string, TExercise[]>;
+
+function groupExercisesByModule(exercises: TExercise[]): GroupedExercises {
+  return exercises.reduce<GroupedExercises>((acc, ex) => {
+    const match = ex.title.match(/^(\d+)/);
+    const moduleIndex = match ? match[1] : "otros";
+    if (!acc[moduleIndex]) acc[moduleIndex] = [];
+    acc[moduleIndex].push(ex);
+    return acc;
+  }, {});
 }
 
 const AddExerciseButton = ({
@@ -239,6 +251,8 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
     }
   };
 
+  const groupedExercises = groupExercisesByModule(exercises);
+
   return (
     <div className="exercise-list">
       {selectedExercises.length > 0 && (
@@ -265,22 +279,29 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
           </div>
         </div>
       )}
-      {exercises.map((item, index) => (
-        <div key={index} className="flex-y align-center gap-small ">
-          <ExerciseCard
-            key={index + item.slug}
-            {...item}
-            closeSidebar={closeSidebar}
-            mode={mode}
-            selected={selectedExercises.includes(item.slug)}
-            handleSelect={handleSelect}
-          />
-          {mode === "creator" && (
-            <AddExerciseButton
-              prevExercise={exercises[index]}
-              exercises={exercises}
-            />
-          )}
+      {Object.entries(groupedExercises).map(([module, exList]) => (
+        <div
+          key={module}
+          className="flex-y align-center gap-small rounded padding-small margin-bottom-small"
+        >
+          {exList.map((ex, index) => (
+            <>
+              <ExerciseCard
+                key={index + ex.slug}
+                {...ex}
+                closeSidebar={closeSidebar}
+                mode={mode}
+                selected={selectedExercises.includes(ex.slug)}
+                handleSelect={handleSelect}
+              />
+              {mode === "creator" && (
+                <AddExerciseButton
+                  prevExercise={exercises[index]}
+                  exercises={exercises}
+                />
+              )}
+            </>
+          ))}
         </div>
       ))}
     </div>
