@@ -1146,7 +1146,7 @@ The user's set up the application in "${language}" language, give your feedback 
       setPosition,
       isTesteable,
       runExerciseTests,
-      checkExerciseAvailability,
+      // checkExerciseAvailability,
       // setOpenedModals,
     } = get();
 
@@ -1182,7 +1182,7 @@ The user's set up the application in "${language}" language, give your feedback 
           exercises[currentExercisePosition].done);
     }
 
-    await checkExerciseAvailability(desiredPosition);
+    // await checkExerciseAvailability(desiredPosition);
 
     if (!letPass) {
       runExerciseTests({
