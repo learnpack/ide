@@ -53,7 +53,7 @@ export const Question = ({
   const feedbackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (feedbackRef.current && mode !== "creator") {
+    if (feedbackRef.current && mode !== "creator" && feedback) {
       feedbackRef.current.scrollIntoView({
         behavior: "smooth",
       });
