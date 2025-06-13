@@ -455,23 +455,6 @@ export function getMainIndex(title: string): number | null {
   return match ? parseInt(match[1], 10) : null;
 }
 
-export const uploadImageToBucket = async (imageUrl: string, path: string) => {
-  try {
-    const response = await axios.post(
-      `${DEV_MODE ? "http://localhost:3000" : ""}/upload-image`,
-      {
-        image_url: imageUrl,
-        destination: path,
-      }
-    );
-    console.log("Image uploaded to bucket", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("Error uploading image to bucket", error);
-    return null;
-  }
-};
-
 export const uploadBlobToBucket = async (blob: Blob, path: string) => {
   console.log("Uploading blob to bucket", blob, path);
 
@@ -505,4 +488,13 @@ export const checkPreviewImage = async (slug: string) => {
     console.error("Error checking preview image", error);
     return null;
   }
+};
+
+export const slugify = (text: string) => {
+  return text
+    .toLowerCase()
+    .replace(/ /g, "-")
+    .replace(/[^\w-]+/g, "")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-+/g, "-");
 };

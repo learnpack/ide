@@ -171,10 +171,7 @@ type TRigoContext = {
 
 export type TAgent = "vscode" | "cloud" | "os";
 
-type TContent = {
-  body: string;
-  bodyBegin: number;
-};
+type TContent = string;
 
 export type TMode = "creator" | "student";
 

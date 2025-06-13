@@ -8,6 +8,8 @@ import { svgs } from "../../assets/svgs";
 import { Markdowner } from "../composites/Markdowner/Markdowner";
 import { Loader } from "../composites/Loader/Loader";
 import { AutoResizeTextarea } from "../composites/AutoResizeTextarea/AutoResizeTextarea";
+import toast from "react-hot-toast";
+import { slugify, uploadBlobToBucket } from "../../utils/lib";
 
 type TPromp = {
   type: "button" | "select" | "input";
@@ -87,7 +89,7 @@ export const CreatorWrapper = ({
     let text = elemRef.current?.innerHTML;
     if (node?.position?.start?.offset && node?.position?.end?.offset) {
       const textPortion = getPortionFromText(
-        currentContent.body,
+        currentContent,
         node?.position?.start.offset || 0,
         node?.position?.end.offset || 0
       );
@@ -99,7 +101,7 @@ export const CreatorWrapper = ({
         slug: "simplify-language",
         inputs: {
           text_to_simplify: text,
-          whole_lesson: currentContent.body,
+          whole_lesson: currentContent,
         },
         target: targetRef.current,
 
@@ -120,7 +122,7 @@ export const CreatorWrapper = ({
 
     if (node?.position?.start?.offset && node?.position?.end?.offset) {
       text = getPortionFromText(
-        currentContent.body,
+        currentContent,
         node?.position?.start.offset || 0,
         node?.position?.end.offset || 0
       );
@@ -130,7 +132,7 @@ export const CreatorWrapper = ({
         slug: "explain-further",
         inputs: {
           text_to_explain: text,
-          whole_lesson: currentContent.body,
+          whole_lesson: currentContent,
         },
         target: targetRef.current,
         onComplete: (success: boolean, data: any) => {
@@ -150,7 +152,7 @@ export const CreatorWrapper = ({
 
     if (node?.position?.start?.offset && node?.position?.end?.offset) {
       text = getPortionFromText(
-        currentContent.body,
+        currentContent,
         node?.position?.start.offset || 0,
         node?.position?.end.offset || 0
       );
@@ -180,7 +182,7 @@ export const CreatorWrapper = ({
 
     if (node?.position?.start?.offset && node?.position?.end?.offset) {
       text = getPortionFromText(
-        currentContent.body,
+        currentContent,
         node?.position?.start.offset || 0,
         node?.position?.end.offset || 0
       );
@@ -192,7 +194,7 @@ export const CreatorWrapper = ({
         inputs: {
           text_to_change: text,
           tone: tone,
-          whole_lesson: currentContent.body,
+          whole_lesson: currentContent,
         },
         target: targetRef.current,
         onComplete: (success: boolean, data: any) => {
@@ -213,7 +215,7 @@ export const CreatorWrapper = ({
 
     if (node?.position?.start?.offset && node?.position?.end?.offset) {
       elementText = getPortionFromText(
-        currentContent.body,
+        currentContent,
         node?.position?.start.offset || 0,
         node?.position?.end.offset || 0
       );
@@ -223,7 +225,7 @@ export const CreatorWrapper = ({
         slug: "request-changes-in-lesson",
         inputs: {
           prompt: question,
-          whole_lesson: currentContent.body,
+          whole_lesson: currentContent,
           text_selected: elementText,
           prev_interactions: JSON.stringify(interactions),
         },
@@ -258,7 +260,7 @@ export const CreatorWrapper = ({
     let text = elemRef.current?.innerHTML;
     if (node?.position?.start?.offset && node?.position?.end?.offset) {
       text = getPortionFromText(
-        currentContent.body,
+        currentContent,
         node?.position?.start.offset || 0,
         node?.position?.end.offset || 0
       );
@@ -354,6 +356,7 @@ export const CreatorWrapper = ({
       svg: svgs.play,
       allowedElements: ["p", "h1", "h2", "h3", "h4", "h5", "h6"],
     },
+
     {
       type: "button",
       text: t("removeThis"),
@@ -368,7 +371,7 @@ export const CreatorWrapper = ({
   const getPortion = () => {
     if (node?.position?.start?.offset && node?.position?.end?.offset) {
       return getPortionFromText(
-        currentContent.body,
+        currentContent,
         node?.position?.start.offset || 0,
         node?.position?.end.offset || 0
       );
@@ -394,7 +397,7 @@ export const CreatorWrapper = ({
       />
       {isOpen && (
         <div ref={optionsRef} className="creator-options">
-          <div className={` rigo-input`}>
+          <div className={`rigo-input`}>
             <SimpleButton
               svg={svgs.rigoSoftBlue}
               action={() => askAIAnything(prompt)}
@@ -470,6 +473,37 @@ export const CreatorWrapper = ({
               svg={svgs.edit}
               text={t("editAsMarkdown")}
             />
+            {tagName !== "img" && (
+              <SimpleButton
+                extraClass="text-secondary  rounded padding-small active-on-hover svg-blue"
+                svg={svgs.image}
+                action={async () => {
+                  if (node?.position?.start && node?.position?.end) {
+                    await replaceInReadme(
+                      `![Your image description](https://placehold.co/200x200)`,
+                      node?.position?.start,
+                      node?.position?.end
+                    );
+                  } else {
+                    toast.error(t("selectedTextNotValid"));
+                  }
+                }}
+                text={t("convertInImg")}
+              />
+            )}
+            {tagName === "img" && (
+              <ImageUploader
+                onFinish={async (imgRelPath) => {
+                  if (node?.position?.start && node?.position?.end) {
+                    await replaceInReadme(
+                      `![${imgRelPath}](${imgRelPath})`,
+                      node?.position?.start,
+                      node?.position?.end
+                    );
+                  }
+                }}
+              />
+            )}
           </div>
         </div>
       )}
@@ -614,5 +648,63 @@ const ChangesRequester = ({
         </div>
       )}
     </div>
+  );
+};
+
+const ImageUploader = ({
+  onFinish,
+}: {
+  onFinish: (imgSlug: string) => void;
+}) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation();
+  const config = useStore((state) => state.configObject);
+
+  const uploadImage = async (file: File) => {
+    const blob = new Blob([file]);
+
+    if (!config.config?.slug) {
+      toast.error(t("theCourseIsNotSaved"));
+      return;
+    }
+
+    const imgSlug = slugify(file.name);
+    const imgPath = `courses/${config.config?.slug}/.learn/assets/${imgSlug}`;
+    const relativePath = `/.learn/assets/${imgSlug}`;
+    try {
+      await uploadBlobToBucket(blob, imgPath);
+      toast.success(t("imageUploadedSuccessfully"));
+      onFinish(relativePath);
+    } catch (error) {
+      console.error("Error uploading image to bucket", error);
+      toast.error(t("errorUploadingImage"));
+    }
+  };
+
+  return (
+    <>
+      <input
+        type="file"
+        accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+        className="d-none"
+        onChange={(e) => {
+          if (e.target.files?.[0]) {
+            uploadImage(e.target.files[0]);
+          }
+        }}
+        ref={inputRef}
+      />
+
+      <SimpleButton
+        text={t("uploadImage")}
+        extraClass="text-secondary  rounded padding-small active-on-hover svg-blue"
+        action={() => {
+          if (inputRef.current) {
+            inputRef.current.click();
+          }
+        }}
+        svg={svgs.image}
+      />
+    </>
   );
 };

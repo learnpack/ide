@@ -295,5 +295,7 @@
     "feedbackPlaceholder": "Write your feedback here...",
     "idontLikeSomething": "I don't like something",
     "everythingIsGreat": "Everything is great, generate the rest!",
-    "sendAndGenerate": "Send and generate"
+    "sendAndGenerate": "Send and generate",
+    "convertInImg": "Convert in Img",
+    "uploadImage": "Upload image"
 }

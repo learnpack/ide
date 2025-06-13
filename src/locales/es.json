@@ -302,5 +302,7 @@
     "feedbackPlaceholder": "Escribe tu feedback acá...",
     "idontLikeSomething": "Hay algo que no me gusta",
     "everythingIsGreat": "Todo está bien, genera el resto del curso",
-    "sendAndGenerate": "Enviar y generar"
+    "sendAndGenerate": "Enviar y generar",
+    "convertInImg": "Convertir en Imagen",
+    "uploadImage": "Subir imagen"
 }

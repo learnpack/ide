@@ -1,7 +1,7 @@
 import SimpleButton from "../../mockups/SimpleButton";
 import useStore from "../../../utils/store";
 import { svgs } from "../../../assets/svgs";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import i18n from "../../../utils/i18n";
 import { useTranslation } from "react-i18next";
 import { Modal } from "../../mockups/Modal";
@@ -93,6 +93,13 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
       language: lang,
     });
   };
+
+  useEffect(() => {
+    if (language && languages.length > 0 && !languages.includes(language)) {
+      const firstLanguage = languages[0];
+      setLang(firstLanguage);
+    }
+  }, [language, languages]);
 
   return (
     <div className="language-dropdown">

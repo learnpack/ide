@@ -86,10 +86,7 @@ const useStore = create<IStore>((set, get) => ({
   mustLoginMessageKey: "you-must-login-message",
   learnpackPurposeId: defaultParams.purpose || 26,
   exercises: [],
-  currentContent: {
-    body: "",
-    bodyBegin: 0,
-  },
+  currentContent: "",
   targetButtonForFeedback: "feedback" as "feedback",
   dialogData: {
     message: "",
@@ -507,7 +504,7 @@ ${fileContent}
       context += `
 ### These are the given to the student for this exercise:
 \`\`\`INSTRUCTIONS.md
-${currentContent.body}
+${currentContent}
 \`\`\`
 
 ### NOTES FOR AI: 
@@ -1035,6 +1032,14 @@ The user's set up the application in "${language}" language, give your feedback 
 
     if (!exercise) return;
 
+    if (exercise.error) {
+      set({
+        currentContent:
+          "Sorry, we couldn't find the exercise. Please contact support.",
+      });
+      return;
+    }
+
     if (exercise.attributes && exercise.attributes.tutorial) {
       set({ videoTutorial: exercise.attributes.tutorial });
     } else if (exercise.attributes.intro) {
@@ -1063,7 +1068,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
     // console.log(exercise, "exercise from api");
 
-    set({ currentContent: { body: readme, bodyBegin: exercise.bodyBegin } });
+    set({ currentContent: readme });
     set({ editorTabs: [] });
     // @ts-ignore
     fetchSingleExerciseInfo(currentExercisePosition);
@@ -1335,7 +1340,7 @@ The user's set up the application in "${language}" language, give your feedback 
       editorTabs,
       submittedInputs,
       language,
-      instructions: currentContent.body,
+      instructions: currentContent,
     };
     compilerSocket.emit("test", data);
 
@@ -1873,7 +1878,7 @@ The user's set up the application in "${language}" language, give your feedback 
 \`\`\`loader slug="01-some-title"
 \`\`\`
     `;
-    set({ currentContent: { body: isGeneratingText, bodyBegin: 0 } });
+    set({ currentContent: isGeneratingText });
 
     setTimeout(async () => {
       const res = await fetch(
@@ -1942,10 +1947,7 @@ The user's set up the application in "${language}" language, give your feedback 
     const newReadme = remakeMarkdown(readme.attributes, body);
 
     set({
-      currentContent: {
-        body: removeFrontMatter(newReadme),
-        bodyBegin: readme.bodyBegin,
-      },
+      currentContent: removeFrontMatter(newReadme),
     });
     await FetchManager.replaceReadme(
       getCurrentExercise().slug,
@@ -1959,10 +1961,7 @@ The user's set up the application in "${language}" language, give your feedback 
     );
 
     set({
-      currentContent: {
-        body: editedReadme.body,
-        bodyBegin: editedReadme.bodyBegin,
-      },
+      currentContent: editedReadme.body,
     });
   },
 
@@ -1997,10 +1996,7 @@ The user's set up the application in "${language}" language, give your feedback 
     const newReadme = remakeMarkdown(readme.attributes, body);
 
     set({
-      currentContent: {
-        body: removeFrontMatter(newReadme),
-        bodyBegin: readme.bodyBegin,
-      },
+      currentContent: removeFrontMatter(newReadme),
     });
     await FetchManager.replaceReadme(
       getCurrentExercise().slug,
@@ -2014,10 +2010,7 @@ The user's set up the application in "${language}" language, give your feedback 
     );
 
     set({
-      currentContent: {
-        body: editedReadme.body,
-        bodyBegin: editedReadme.bodyBegin,
-      },
+      currentContent: editedReadme.body,
     });
   },
   initRigoAI: () => {

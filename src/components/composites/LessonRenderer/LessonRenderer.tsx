@@ -35,26 +35,25 @@ const ContinueButton = () => {
 };
 
 export const LessonRenderer = memo(() => {
-  0;
   const currentContent = useStore((s) => s.currentContent);
   const agent = useStore((s) => s.agent);
   const getCurrentExercise = useStore((s) => s.getCurrentExercise);
   const language = useStore((s) => s.language);
-  // const replaceContent = useStore((s) => s.replaceInReadme);
   const [mode, setMode] = useState<"markdown" | "text">("markdown");
-
-  console.log(currentContent);
 
   return (
     <div className="lesson-content">
       {mode === "markdown" ? (
-        <Markdowner markdown={currentContent.body} allowCreate={true} />
-        // <div></div>
+        <Markdowner markdown={currentContent} allowCreate={true} />
       ) : (
         <textarea
-          defaultValue={currentContent.body}
-          className="w-100 h-full padding-small"
-          onChange={(e) => {
+          defaultValue={currentContent}
+          className="w-100 h-full padding-small rounded textarea"
+          onBlur={(e) => {
+            console.log(e.target.value, "e.target.value");
+
+            if (e.target.value === currentContent) return;
+
             FetchManager.replaceReadme(
               getCurrentExercise().slug,
               language,
@@ -64,7 +63,7 @@ export const LessonRenderer = memo(() => {
         />
       )}
       <SimpleButton
-        extraClass="d-none"
+        extraClass={"d-none text-reveal-button"}
         text={mode === "markdown" ? "Markdown" : "Text"}
         action={() => setMode(mode === "markdown" ? "text" : "markdown")}
       />

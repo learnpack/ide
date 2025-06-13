@@ -212,8 +212,16 @@ export const Markdowner = ({
 
           return <ul onClick={() => console.log(node)}>{children}</ul>;
         },
-        img: ({ src, alt }) => {
+        img: ({ src, alt, node }) => {
           if (src) {
+            if (isCreator && mode === "creator" && allowCreate) {
+              return (
+                <CreatorWrapper node={node} tagName="img">
+                  <img src={src + "?slug=" + config?.config?.slug} alt={alt} />
+                </CreatorWrapper>
+              );
+            }
+
             return (
               <img src={src + "?slug=" + config?.config?.slug} alt={alt} />
             );
