@@ -297,5 +297,6 @@
     "everythingIsGreat": "Everything is great, generate the rest!",
     "sendAndGenerate": "Send and generate",
     "convertInImg": "Convert in Img",
-    "uploadImage": "Upload image"
+    "uploadImage": "Upload image",
+    "generateImage": "Generate image"
 }

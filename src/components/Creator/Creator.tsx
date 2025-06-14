@@ -10,6 +10,8 @@ import { Loader } from "../composites/Loader/Loader";
 import { AutoResizeTextarea } from "../composites/AutoResizeTextarea/AutoResizeTextarea";
 import toast from "react-hot-toast";
 import { slugify, uploadBlobToBucket } from "../../utils/lib";
+import { Modal } from "../mockups/Modal";
+import { createPortal } from "react-dom";
 
 type TPromp = {
   type: "button" | "select" | "input";
@@ -492,17 +494,20 @@ export const CreatorWrapper = ({
               />
             )}
             {tagName === "img" && (
-              <ImageUploader
-                onFinish={async (imgRelPath) => {
-                  if (node?.position?.start && node?.position?.end) {
-                    await replaceInReadme(
-                      `![${imgRelPath}](${imgRelPath})`,
-                      node?.position?.start,
-                      node?.position?.end
-                    );
-                  }
-                }}
-              />
+              <>
+                <ImageUploader
+                  onFinish={async (imgRelPath) => {
+                    if (node?.position?.start && node?.position?.end) {
+                      await replaceInReadme(
+                        `![${imgRelPath}](${imgRelPath})`,
+                        node?.position?.start,
+                        node?.position?.end
+                      );
+                    }
+                  }}
+                />
+                <ImageGenerator />
+              </>
             )}
           </div>
         </div>
@@ -705,6 +710,34 @@ const ImageUploader = ({
         }}
         svg={svgs.image}
       />
+    </>
+  );
+};
+
+const ImageGenerator = () => {
+  const { t } = useTranslation();
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      <SimpleButton
+        text={t("generateImage")}
+        extraClass="text-secondary  rounded padding-small active-on-hover svg-blue"
+        action={() => setIsOpen(!isOpen)}
+        svg={svgs.image}
+      />
+      {isOpen &&
+        createPortal(
+          <Modal
+            extraClass="above-all"
+            outsideClickHandler={() => setIsOpen(false)}
+          >
+            <div className="rigo-input">
+              <input type="text" placeholder={t("generateImagePlaceholder")} />
+            </div>
+          </Modal>,
+          document.body
+        )}
     </>
   );
 };

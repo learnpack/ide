@@ -235,7 +235,6 @@ a {
   color: var(--color-active);
 }
 
-
 .bg-blue-rigo {
   background-color: var(--color-blue-rigo) !important;
 }
@@ -1001,7 +1000,7 @@ a {
   background-color: var(--app-bg-color);
 }
 .above-all {
-  z-index: 1000;
+  z-index: 1000 !important;
 }
 
 .border-heavy-blue {

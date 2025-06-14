@@ -46,17 +46,13 @@
 
 .creator-options {
   display: flex;
-
-  /* padding: 5px; */
   border-radius: 5px;
   gap: 3px;
   position: absolute;
-  /* border: 1px solid var(--read-font-color); */
-  /* transform: translateY(50%); */
   top: 0;
   left: 0px;
   flex-direction: column;
-  z-index: 1000;
+  z-index: 800;
 }
 
 .creator-options-buttons {

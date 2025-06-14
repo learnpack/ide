@@ -304,5 +304,6 @@
     "everythingIsGreat": "Todo está bien, genera el resto del curso",
     "sendAndGenerate": "Enviar y generar",
     "convertInImg": "Convertir en Imagen",
-    "uploadImage": "Subir imagen"
+    "uploadImage": "Subir imagen",
+    "generateImage": "Generar imagen"
 }

@@ -32,8 +32,10 @@ const svgsLanguageMap: Record<string, JSX.Element> = {
 };
 
 export default function LanguageButton() {
-  const { language } = useStore((state) => ({
+  const { language, getCurrentExercise, setLanguage } = useStore((state) => ({
     language: state.language,
+    getCurrentExercise: state.getCurrentExercise,
+    setLanguage: state.setLanguage,
   }));
 
   const [showDrop, setShowDropdown] = useState(false);
@@ -41,6 +43,18 @@ export default function LanguageButton() {
   const toggleDrop = () => {
     setShowDropdown(!showDrop);
   };
+
+  useEffect(() => {
+    const ex = getCurrentExercise();
+    if (!ex || !ex.translations) return;
+
+    const languages = Object.keys(ex.translations);
+
+    if (language && languages.length > 0 && !languages.includes(language)) {
+      const firstLanguage = languages[0];
+      setLanguage(firstLanguage);
+    }
+  }, [language]);
 
   return (
     <>
@@ -64,9 +78,9 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
   const {
     language,
     setLanguage,
-    getCurrentExercise,
     reportEnrichDataLayer,
     environment,
+    getCurrentExercise,
   } = useStore((state) => ({
     language: state.language,
     setLanguage: state.setLanguage,
@@ -75,7 +89,11 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
     environment: state.environment,
   }));
 
-  const languages = Object.keys(getCurrentExercise().translations);
+  const currentExercise = getCurrentExercise();
+
+  if (!currentExercise) return null;
+
+  const languages = Object.keys(currentExercise.translations);
 
   const changeLanguage = (lang: string) => {
     if (lang === "us") {
@@ -93,13 +111,6 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
       language: lang,
     });
   };
-
-  useEffect(() => {
-    if (language && languages.length > 0 && !languages.includes(language)) {
-      const firstLanguage = languages[0];
-      setLang(firstLanguage);
-    }
-  }, [language, languages]);
 
   return (
     <div className="language-dropdown">
