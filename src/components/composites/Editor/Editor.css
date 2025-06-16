@@ -82,11 +82,10 @@
 }
 .editor-footer {
   background-color: var(--app-bg-color);
-  position: absolute;
   bottom: 8px;
-
   width: calc(100% - 16px);
   left: 8px;
+  right: 8px;
   border-radius: 8px;
   font-size: 12px;
 

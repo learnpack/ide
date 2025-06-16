@@ -70,7 +70,7 @@ export const LessonRenderer = memo(() => {
       <ContinueButton />
 
       {ENVIRONMENT === "localhost" && agent === "vscode" && (
-        <Toolbar editorStatus="MODIFIED" />
+        <Toolbar editorStatus="MODIFIED" position="fixed" />
       )}
     </div>
   );

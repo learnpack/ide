@@ -322,7 +322,7 @@ const Terminal = ({
 
           {terminalState === "only" &&
             (lastState === "error" || getCurrentExercise().done) && (
-              <Toolbar editorStatus={editorStatus} />
+              <Toolbar editorStatus={editorStatus} position="absolute" />
             )}
         </div>
       )}
@@ -393,9 +393,13 @@ const NextButton = () => {
 
 type EditorFooterProps = {
   editorStatus: TEditorStatus;
+  position?: "absolute" | "fixed";
 };
 
-export const Toolbar = ({ editorStatus }: EditorFooterProps) => {
+export const Toolbar = ({
+  editorStatus,
+  position = "absolute",
+}: EditorFooterProps) => {
   const { t } = useTranslation();
   const {
     lastState,
@@ -426,7 +430,10 @@ export const Toolbar = ({ editorStatus }: EditorFooterProps) => {
   const isLastExercise = currentExercisePosition === exercises.length - 1;
 
   return (
-    <div className={`editor-footer ${editorStatus} ${lastState}`}>
+    <div
+      style={{ position: position }}
+      className={`editor-footer ${editorStatus} ${lastState}`}
+    >
       {letPass && (
         <div className="footer-actions">
           <ResetButton />
