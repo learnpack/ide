@@ -393,7 +393,7 @@ const NextButton = () => {
 
 type EditorFooterProps = {
   editorStatus: TEditorStatus;
-  position?: "absolute" | "fixed";
+  position?: "absolute" | "fixed" | "sticky";
 };
 
 export const Toolbar = ({

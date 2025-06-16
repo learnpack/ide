@@ -1,5 +1,4 @@
 import { memo, useState } from "react";
-import { ENVIRONMENT } from "../../../utils/lib";
 import { Toolbar } from "../Editor/Editor";
 import { Markdowner } from "../Markdowner/Markdowner";
 import { useTranslation } from "react-i18next";
@@ -37,6 +36,7 @@ const ContinueButton = () => {
 export const LessonRenderer = memo(() => {
   const currentContent = useStore((s) => s.currentContent);
   const agent = useStore((s) => s.agent);
+  const environment = useStore((s) => s.environment);
   const getCurrentExercise = useStore((s) => s.getCurrentExercise);
   const language = useStore((s) => s.language);
   const [mode, setMode] = useState<"markdown" | "text">("markdown");
@@ -69,8 +69,8 @@ export const LessonRenderer = memo(() => {
       />
       <ContinueButton />
 
-      {ENVIRONMENT === "localhost" && agent === "vscode" && (
-        <Toolbar editorStatus="MODIFIED" position="fixed" />
+      {environment === "localhost" && agent === "vscode" && (
+        <Toolbar editorStatus="MODIFIED" position="sticky" />
       )}
     </div>
   );
