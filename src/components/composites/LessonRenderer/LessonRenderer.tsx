@@ -6,6 +6,7 @@ import useStore from "../../../utils/store";
 import "./LessonStyles.css";
 import SimpleButton from "../../mockups/SimpleButton";
 import { FetchManager } from "../../../managers/fetchManager";
+// import { TestLatex } from "./TestLatex";
 
 const ContinueButton = () => {
   const { t } = useTranslation();
@@ -67,6 +68,7 @@ export const LessonRenderer = memo(() => {
         text={mode === "markdown" ? "Markdown" : "Text"}
         action={() => setMode(mode === "markdown" ? "text" : "markdown")}
       />
+      {/* <TestLatex /> */}
       <ContinueButton />
 
       {environment === "localhost" && agent === "vscode" && (

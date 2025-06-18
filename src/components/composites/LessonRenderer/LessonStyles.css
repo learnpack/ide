@@ -4,8 +4,9 @@
   line-height: 2rem;
   max-height: 100vh;
   position: relative;
-  padding-bottom: 100px;
-
+  padding-bottom: 50px;
+  overflow-y: auto;
+  scrollbar-width: none;
 }
 
 .lesson-content img {
