@@ -9,9 +9,12 @@ import { Markdowner } from "../composites/Markdowner/Markdowner";
 import { Loader } from "../composites/Loader/Loader";
 import { AutoResizeTextarea } from "../composites/AutoResizeTextarea/AutoResizeTextarea";
 import toast from "react-hot-toast";
-import { slugify, uploadBlobToBucket } from "../../utils/lib";
-import { Modal } from "../mockups/Modal";
-import { createPortal } from "react-dom";
+import {
+  DEV_MODE,
+  generateImage,
+  slugify,
+  uploadBlobToBucket,
+} from "../../utils/lib";
 
 type TPromp = {
   type: "button" | "select" | "input";
@@ -506,7 +509,17 @@ export const CreatorWrapper = ({
                     }
                   }}
                 />
-                <ImageGenerator />
+                <ImageGenerator
+                  onFinish={async (replacement) => {
+                    if (node?.position?.start && node?.position?.end) {
+                      await replaceInReadme(
+                        replacement,
+                        node?.position?.start,
+                        node?.position?.end
+                      );
+                    }
+                  }}
+                />
               </>
             )}
           </div>
@@ -714,30 +727,62 @@ const ImageUploader = ({
   );
 };
 
-const ImageGenerator = () => {
+const makeReplacement = (imgID: string, alt: string) => {
+  return `![${alt}](/.learn/assets/${imgID})`;
+};
+
+const ImageGenerator = ({
+  onFinish,
+}: {
+  onFinish: (replacement: string) => void;
+}) => {
+  const token = useStore((state) => state.token);
+  const config = useStore((state) => state.configObject);
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
+  // "/webhooks/:courseSlug/images/:imageId",
+  const buttonAction = async () => {
+    if (isOpen) {
+      const prompt = inputRef.current?.value;
+      if (prompt) {
+        const tid = toast.loading(t("imageInProcess"));
+        const randomID = Math.random().toString(36).substring(2, 15);
+        await generateImage(token, {
+          prompt,
+          callbackUrl: `${
+            DEV_MODE
+              ? "https://9cw5zmww-3000.use2.devtunnels.ms"
+              : window.location.origin
+          }/webhooks/${config.config?.slug}/images/${randomID}`,
+        });
+        toast.success(t("imageInProcess"), { id: tid });
+        const replacement = makeReplacement(randomID, prompt);
+        onFinish(replacement);
+      }
+
+      setIsOpen(false);
+    } else {
+      setIsOpen(true);
+    }
+  };
   return (
-    <>
+    <div className="d-flex gap-small align-center w-full active-on-hover rounded padding-small svg-blue text-secondary">
       <SimpleButton
-        text={t("generateImage")}
-        extraClass="text-secondary  rounded padding-small active-on-hover svg-blue"
-        action={() => setIsOpen(!isOpen)}
+        extraClass="text-secondary active-on-hover"
+        text={isOpen ? "" : t("generateImage")}
+        action={buttonAction}
         svg={svgs.image}
       />
-      {isOpen &&
-        createPortal(
-          <Modal
-            extraClass="above-all"
-            outsideClickHandler={() => setIsOpen(false)}
-          >
-            <div className="rigo-input">
-              <input type="text" placeholder={t("generateImagePlaceholder")} />
-            </div>
-          </Modal>,
-          document.body
-        )}
-    </>
+      {isOpen && (
+        <input
+          type="text"
+          placeholder={t("describeImage")}
+          className="input"
+          ref={inputRef}
+        />
+      )}
+    </div>
   );
 };

@@ -1,5 +1,4 @@
-// import { svgs } from "../../assets/svgs";
-// import { Loader } from "../composites/Loader/Loader";
+
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import useStore from "../../utils/store";
@@ -7,23 +6,6 @@ import CreatorSocket from "../../managers/creatorSocket";
 import ProgressBar from "../composites/ProgressBar/ProgressBar";
 const socketClient = new CreatorSocket("");
 
-// function getRandomGeneratingMessageKey(): string {
-//   const keys: string[] = [
-//     "generatingMessage1",
-//     "generatingMessage2",
-//     "generatingMessage3",
-//     "generatingMessage4",
-//     "generatingMessage5",
-//     "generatingMessage6",
-//     "generatingMessage7",
-//     "generatingMessage8",
-//     "generatingMessage9",
-//     "generatingMessage10",
-//   ];
-
-//   const randomIndex = Math.floor(Math.random() * keys.length);
-//   return keys[randomIndex];
-// }
 export default function RealtimeLesson() {
   const { t } = useTranslation();
   const getCurrentExercise = useStore((state) => state.getCurrentExercise);
@@ -34,7 +16,6 @@ export default function RealtimeLesson() {
   ]);
 
   const handleUpdate = (data: any) => {
-    console.log(data, "data");
     if (data.status === "done") {
       fetchReadme();
     }

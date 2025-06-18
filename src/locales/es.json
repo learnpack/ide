@@ -305,5 +305,7 @@
     "sendAndGenerate": "Enviar y generar",
     "convertInImg": "Convertir en Imagen",
     "uploadImage": "Subir imagen",
-    "generateImage": "Generar imagen"
+    "generateImage": "Generar imagen",
+    "describeImage": "Describe la imagen a generar",
+    "imageGenerationInProcess": "Generación de imagen en proceso"
 }

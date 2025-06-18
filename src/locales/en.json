@@ -298,5 +298,7 @@
     "sendAndGenerate": "Send and generate",
     "convertInImg": "Convert in Img",
     "uploadImage": "Upload image",
-    "generateImage": "Generate image"
+    "generateImage": "Generate image",
+    "describeImage": "Describe the image to generate",
+    "imageGenerationInProcess": "Image generation in process"
 }

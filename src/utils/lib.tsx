@@ -498,3 +498,36 @@ export const slugify = (text: string) => {
     .replace(/^-+|-+$/g, "")
     .replace(/-+/g, "-");
 };
+
+type TGenerateImageParams = {
+  prompt: string;
+  callbackUrl: string;
+};
+
+export const generateImage = async (
+  token: string,
+  { prompt, callbackUrl }: TGenerateImageParams
+) => {
+  try {
+    const response = await axios.post(
+      `${RIGOBOT_HOST}/v1/learnpack/tools/images`,
+      {
+        prompt,
+        webhook_callback_url: callbackUrl,
+        provider: "bfl",
+        model: "flux-pro-1.1",
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Token " + token,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error generating image:", error);
+    return null;
+  }
+};

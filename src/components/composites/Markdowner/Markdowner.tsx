@@ -20,6 +20,8 @@ import { useState } from "react";
 import MermaidRenderer from "../MermaidRenderer/MermaidRenderer";
 import { Question } from "../OpenQuestion/OpenQuestion";
 import RealtimeLesson from "../../Creator/RealtimeLesson";
+import { DEV_MODE } from "../../../utils/lib";
+import RealtimeImage from "../../Creator/RealtimeImage";
 const isRigoQuestion = (href: string) => {
   return href.startsWith("https://4geeks.com/ask?query=");
 };
@@ -213,20 +215,17 @@ export const Markdowner = ({
           return <ul onClick={() => console.log(node)}>{children}</ul>;
         },
         img: ({ src, alt, node }) => {
-          if (src) {
-            if (isCreator && mode === "creator" && allowCreate) {
-              return (
-                <CreatorWrapper node={node} tagName="img">
-                  <img src={src + "?slug=" + config?.config?.slug} alt={alt} />
-                </CreatorWrapper>
-              );
-            }
-
-            return (
-              <img src={src + "?slug=" + config?.config?.slug} alt={alt} />
-            );
-          }
-          return <span>{alt}</span>;
+          return (
+            <CustomImage
+              src={src}
+              alt={alt}
+              node={node}
+              allowCreate={allowCreate}
+              isCreator={isCreator}
+              mode={mode}
+              config={config}
+            />
+          );
         },
 
         pre(props) {
@@ -284,6 +283,69 @@ export const Markdowner = ({
       {markdown}
     </Markdown>
   );
+};
+
+const fixSrc = (src: string, slug: string) => {
+  if (src.startsWith("/.learn/assets/")) {
+    if (DEV_MODE) {
+      return "http://localhost:3000" + src + "?slug=" + slug;
+    }
+    return src + "?slug=" + slug;
+  }
+  return src;
+};
+
+const CustomImage = ({
+  src,
+  alt,
+  node,
+  allowCreate,
+  isCreator,
+  mode,
+  config,
+}: {
+  src?: string;
+  alt?: string;
+  node?: any;
+  allowCreate?: boolean;
+  isCreator?: boolean;
+  mode?: string;
+  config?: any;
+}) => {
+  console.log(src);
+  const [hasError, setHasError] = useState(false);
+  if (src) {
+    if (isCreator && mode === "creator" && allowCreate) {
+      return (
+        <CreatorWrapper node={node} tagName="img">
+          {hasError ? (
+            <RealtimeImage imageId={src.split("/").pop() || ""} />
+          ) : (
+            <img
+                onError={() => setHasError(true)}
+                src={fixSrc(src, config?.config?.slug)}
+                alt={alt}
+              />
+          )}
+        </CreatorWrapper>
+      );
+    }
+
+    return (
+      <>
+        {hasError ? (
+          <RealtimeImage imageId={src.split("/").pop() || ""} />
+        ) : (
+          <img
+            onError={() => setHasError(true)}
+            src={fixSrc(src, config?.config?.slug)}
+            alt={alt}
+          />
+        )}
+      </>
+    );
+  }
+  return <span>{alt}</span>;
 };
 
 const objectToArray = (
