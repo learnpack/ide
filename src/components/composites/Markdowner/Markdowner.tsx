@@ -285,15 +285,20 @@ export const Markdowner = ({
   );
 };
 
+
 const fixSrc = (src: string, slug: string) => {
-  if (src.startsWith("/.learn/assets/")) {
+  // Normalize leading ../../.learn to /.learn
+  let normalizedSrc = src.replace(/^(\.\.\/)+\.learn/, '/.learn');
+
+  if (normalizedSrc.includes("/.learn/assets/")) {
     if (DEV_MODE) {
-      return "http://localhost:3000" + src + "?slug=" + slug;
+      return "http://localhost:3000" + normalizedSrc + "?slug=" + slug;
     }
-    return src + "?slug=" + slug;
+    return normalizedSrc + "?slug=" + slug;
   }
-  return src;
+  return normalizedSrc;
 };
+
 
 const CustomImage = ({
   src,
@@ -313,19 +318,20 @@ const CustomImage = ({
   config?: any;
 }) => {
   console.log(src);
+  const environment = useStore((state) => state.environment);
   const [hasError, setHasError] = useState(false);
   if (src) {
     if (isCreator && mode === "creator" && allowCreate) {
       return (
         <CreatorWrapper node={node} tagName="img">
-          {hasError ? (
+          {hasError && environment === "creatorWeb" ? (
             <RealtimeImage imageId={src.split("/").pop() || ""} />
           ) : (
             <img
-                onError={() => setHasError(true)}
-                src={fixSrc(src, config?.config?.slug)}
-                alt={alt}
-              />
+              onError={() => setHasError(true)}
+              src={fixSrc(src, config?.config?.slug)}
+              alt={alt}
+            />
           )}
         </CreatorWrapper>
       );
@@ -333,7 +339,7 @@ const CustomImage = ({
 
     return (
       <>
-        {hasError ? (
+        {hasError && environment === "creatorWeb" ? (
           <RealtimeImage imageId={src.split("/").pop() || ""} />
         ) : (
           <img

@@ -542,8 +542,6 @@ The user's set up the application in "${language}" language, give your feedback 
       const config = await FetchManager.getExercises(token);
       if (!config) return;
 
-
-
       // console.debug("AUTHENTICATION", config.config.authentication);
 
       if (
@@ -717,7 +715,7 @@ The user's set up the application in "${language}" language, give your feedback 
     return exercise;
   },
 
-  setPosition: (newPosition) => {
+  setPosition: async (newPosition) => {
     const {
       startConversation,
       fetchReadme,
@@ -726,7 +724,8 @@ The user's set up the application in "${language}" language, give your feedback 
       setFeedbackButtonProps,
       checkParams,
       registerTelemetryEvent,
-
+      fetchExercises,
+      updateEditorTabs,
       // configObject,
     } = get();
 
@@ -745,15 +744,10 @@ The user's set up the application in "${language}" language, give your feedback 
     registerTelemetryEvent("open_step", {
       step_position: newPosition,
     });
+    // TODO: THis probably won't work correctly, test it
+    fetchExercises();
     fetchReadme();
-
-    // set({ configObject: { ...configObject } });
-
-    // if (exercise) {
-    //   set({
-    //     configObject: { ...configObject, currentExercise: exercise.slug },
-    //   });
-    // }
+    updateEditorTabs();
   },
   startConversation: async (exercisePosition) => {
     const { token, learnpackPurposeId, conversationIdsCache } = get();

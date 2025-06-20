@@ -478,50 +478,28 @@ export const CreatorWrapper = ({
               svg={svgs.edit}
               text={t("editAsMarkdown")}
             />
-            {tagName !== "img" && (
-              <SimpleButton
-                extraClass="text-secondary  rounded padding-small active-on-hover svg-blue"
-                svg={svgs.image}
-                action={async () => {
-                  if (node?.position?.start && node?.position?.end) {
-                    await replaceInReadme(
-                      `![Your image description](https://placehold.co/200x200)`,
-                      node?.position?.start,
-                      node?.position?.end
-                    );
-                  } else {
-                    toast.error(t("selectedTextNotValid"));
-                  }
-                }}
-                text={t("convertInImg")}
-              />
-            )}
-            {tagName === "img" && (
-              <>
-                <ImageUploader
-                  onFinish={async (imgRelPath) => {
-                    if (node?.position?.start && node?.position?.end) {
-                      await replaceInReadme(
-                        `![${imgRelPath}](${imgRelPath})`,
-                        node?.position?.start,
-                        node?.position?.end
-                      );
-                    }
-                  }}
-                />
-                <ImageGenerator
-                  onFinish={async (replacement) => {
-                    if (node?.position?.start && node?.position?.end) {
-                      await replaceInReadme(
-                        replacement,
-                        node?.position?.start,
-                        node?.position?.end
-                      );
-                    }
-                  }}
-                />
-              </>
-            )}
+            <ImageUploader
+              onFinish={async (imgRelPath) => {
+                if (node?.position?.start && node?.position?.end) {
+                  await replaceInReadme(
+                    `![${imgRelPath}](${imgRelPath})`,
+                    node?.position?.start,
+                    node?.position?.end
+                  );
+                }
+              }}
+            />
+            <ImageGenerator
+              onFinish={async (replacement) => {
+                if (node?.position?.start && node?.position?.end) {
+                  await replaceInReadme(
+                    replacement,
+                    node?.position?.start,
+                    node?.position?.end
+                  );
+                }
+              }}
+            />
           </div>
         </div>
       )}
@@ -781,6 +759,11 @@ const ImageGenerator = ({
           placeholder={t("describeImage")}
           className="input"
           ref={inputRef}
+          onKeyUp={(e) => {
+            if (e.key === "Enter") {
+              buttonAction();
+            }
+          }}
         />
       )}
     </div>
