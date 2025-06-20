@@ -11,16 +11,16 @@ export default function RealtimeLesson() {
   const getCurrentExercise = useStore((state) => state.getCurrentExercise);
   const config = useStore((state) => state.configObject);
   const fetchReadme = useStore((state) => state.fetchReadme);
-  // const fetchExercises = useStore((state) => state.fetchExercises);
+  const fetchExercises = useStore((state) => state.fetchExercises);
   const [updates, setUpdates] = useState<string[]>([
     `🚀 Generating lesson for ${getCurrentExercise()?.slug}`,
   ]);
 
   const handleUpdate = (data: any) => {
     if (data.status === "done") {
-      setTimeout(() => {
-        // fetchExercises();
-        fetchReadme();
+      setTimeout(async () => {
+        await fetchExercises();
+        await fetchReadme();
       }, 1000);
     }
     if (data.lesson === getCurrentExercise()?.slug) {

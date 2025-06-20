@@ -32,11 +32,14 @@ const svgsLanguageMap: Record<string, JSX.Element> = {
 };
 
 export default function LanguageButton() {
-  const { language, getCurrentExercise, setLanguage } = useStore((state) => ({
-    language: state.language,
-    getCurrentExercise: state.getCurrentExercise,
-    setLanguage: state.setLanguage,
-  }));
+  const { language, getCurrentExercise, setLanguage, exercises } = useStore(
+    (state) => ({
+      language: state.language,
+      getCurrentExercise: state.getCurrentExercise,
+      setLanguage: state.setLanguage,
+      exercises: state.exercises,
+    })
+  );
 
   const [showDrop, setShowDropdown] = useState(false);
 
@@ -56,7 +59,7 @@ export default function LanguageButton() {
       const firstLanguage = languages[0];
       setLanguage(firstLanguage);
     }
-  }, [language]);
+  }, [language, exercises]);
 
   return (
     <>

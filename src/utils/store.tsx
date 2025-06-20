@@ -542,6 +542,8 @@ The user's set up the application in "${language}" language, give your feedback 
       const config = await FetchManager.getExercises(token);
       if (!config) return;
 
+
+
       // console.debug("AUTHENTICATION", config.config.authentication);
 
       if (
@@ -675,8 +677,6 @@ The user's set up the application in "${language}" language, give your feedback 
   fetchSingleExerciseInfo: async (index) => {
     const { exercises } = get();
 
-    console.log(exercises, "exercises in fetchSingleExerciseInfo");
-
     if (exercises.length <= 0) {
       return;
     }
@@ -688,8 +688,6 @@ The user's set up the application in "${language}" language, give your feedback 
     }
 
     const exercise = await FetchManager.getExerciseInfo(slug);
-
-    console.log(exercise, "exercise in fetchSingleExerciseInfo");
 
     let isTesteable = exercise.graded;
     let isBuildable;
@@ -916,8 +914,6 @@ The user's set up the application in "${language}" language, give your feedback 
 
     const exercise = getCurrentExercise();
 
-    console.log(exercise, "updating editor tabs");
-
     // @ts-ignore
     const notHidden = exercise.files.filter((f) => !f.hidden);
     let editorTabsCopy = [...editorTabs];
@@ -1047,8 +1043,6 @@ The user's set up the application in "${language}" language, give your feedback 
       return;
     }
 
-    console.log(exercise, "exercise from api in fetchReadme");
-
     if (exercise.attributes && exercise.attributes.tutorial) {
       set({ videoTutorial: exercise.attributes.tutorial });
     } else if (exercise.attributes.intro) {
@@ -1080,7 +1074,7 @@ The user's set up the application in "${language}" language, give your feedback 
     set({ currentContent: readme });
     set({ editorTabs: [] });
     // @ts-ignore
-    fetchSingleExerciseInfo(currentExercisePosition);
+    await fetchSingleExerciseInfo(currentExercisePosition);
     updateEditorTabs();
     return true;
   },

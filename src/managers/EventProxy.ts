@@ -276,8 +276,7 @@ localStorageEventEmitter.on("build", async (data) => {
             from: "build",
             status: "ready",
           };
-          console.log("UPDATING EDITOR TABS", terminalTab);
-          console.log("data", data.updateEditorTabs);
+
 
           data.updateEditorTabs(terminalTab);
         }

@@ -20,11 +20,25 @@ const PublishConfirmationModal: FC<{
   const getUserConsumables = useStore((state) => state.getUserConsumables);
   const bcToken = useStore((state) => state.bc_token);
   const openLink = useStore((state) => state.openLink);
+  const syllabus = useStore((state) => state.syllabus);
+
   const [hasEnoughConsumables, setHasEnoughConsumables] = useState(false);
+  const [needToReviewAll, setNeedToReviewAll] = useState(false);
 
   useEffect(() => {
     checkConsumables();
   }, []);
+
+  useEffect(() => {
+    const anyNotGenerated = syllabus.lessons.some(
+      (lesson) => !lesson.generated
+    );
+    if (anyNotGenerated) {
+      setNeedToReviewAll(true);
+    } else {
+      setNeedToReviewAll(false);
+    }
+  }, [syllabus]);
 
   const checkConsumables = async () => {
     const consumables = await getUserConsumables();
@@ -42,7 +56,25 @@ const PublishConfirmationModal: FC<{
         svg={svgs.publish}
         extraClass="svg-blue text-blue active-on-hover w-100 rounded padding-small"
       />
-      {isOpen && hasEnoughConsumables && (
+      {isOpen && needToReviewAll && (
+        <Modal outsideClickHandler={() => setIsOpen(false)} extraClass="bg-2">
+          <div className="flex-y gap-big padding-small">
+            <h2 className="text-center big-svg m-0 flex-y align-center justify-center">
+              {svgs.sadRigo}
+              <span>{t("oops-not-so-fast")}</span>
+            </h2>
+            <p className="padding-smll text-blue bg-soft-blue rounded padding-small text-big text-center">
+              {t("please-review-all-lessons-before-publishing")}
+            </p>
+            <SimpleButton
+              extraClass="text-blue row-reverse padding-medium rounded"
+              text={t("cancel")}
+              action={onClose}
+            />
+          </div>
+        </Modal>
+      )}
+      {isOpen && hasEnoughConsumables && !needToReviewAll && (
         <Modal outsideClickHandler={() => setIsOpen(false)} extraClass="bg-2">
           <div className="flex-y gap-big padding-small">
             <h2 className="text-center big-svg m-0 flex-y align-center justify-center">
@@ -69,7 +101,7 @@ const PublishConfirmationModal: FC<{
           </div>
         </Modal>
       )}
-      {isOpen && !hasEnoughConsumables && (
+      {isOpen && !hasEnoughConsumables && !needToReviewAll && (
         <Modal outsideClickHandler={() => setIsOpen(false)} extraClass="bg-2">
           <div className="flex-y gap-big align-center justify-center">
             <div className="flex-x align-center justify-center">
@@ -341,7 +373,7 @@ const PublishButton = () => {
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // const mode = useStore((state) => state.mode);
+  const getSyllabus = useStore((state) => state.getSyllabus);
   // const setMode = useStore((state) => state.setMode);
 
   // Cerrar dropdown al click fuera
@@ -361,7 +393,10 @@ const PublishButton = () => {
     };
   }, [dropdownOpen]);
 
-  const handleToggleDropdown = () => setDropdownOpen((v) => !v);
+  const handleToggleDropdown = () => {
+    getSyllabus();
+    setDropdownOpen((v) => !v);
+  };
 
   return (
     <div ref={containerRef} className="pos-relative z-index-2">

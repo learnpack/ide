@@ -307,5 +307,7 @@
     "uploadImage": "Subir imagen",
     "generateImage": "Generar imagen",
     "describeImage": "Describe la imagen a generar",
-    "imageGenerationInProcess": "Generación de imagen en proceso"
+    "imageGenerationInProcess": "Generación de imagen en proceso",
+    "oops-not-so-fast": "¡Ups! ¡No tan rápido!",
+    "please-review-all-lessons-before-publishing": "Por favor revisa todas las lecciones antes de publicar, de lo contrario no podrás publicar tu curso."
 }

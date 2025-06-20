@@ -2312,11 +2312,11 @@ export const svgs = {
           y2="57.0409"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#B0EFFF" />
-          <stop offset="0.44" stop-color="#ADECFE" />
-          <stop offset="0.67" stop-color="#A5E4FE" />
-          <stop offset="0.85" stop-color="#98D7FD" />
-          <stop offset="1" stop-color="#86C5FD" />
+          <stop stopColor="#B0EFFF" />
+          <stop offset="0.44" stopColor="#ADECFE" />
+          <stop offset="0.67" stopColor="#A5E4FE" />
+          <stop offset="0.85" stopColor="#98D7FD" />
+          <stop offset="1" stopColor="#86C5FD" />
         </linearGradient>
         <linearGradient
           id="paint1_linear_1649_6877"
@@ -2326,11 +2326,11 @@ export const svgs = {
           y2="152.107"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#B0EFFF" />
-          <stop offset="0.44" stop-color="#ADECFE" />
-          <stop offset="0.67" stop-color="#A5E4FE" />
-          <stop offset="0.85" stop-color="#98D7FD" />
-          <stop offset="1" stop-color="#86C5FD" />
+          <stop stopColor="#B0EFFF" />
+          <stop offset="0.44" stopColor="#ADECFE" />
+          <stop offset="0.67" stopColor="#A5E4FE" />
+          <stop offset="0.85" stopColor="#98D7FD" />
+          <stop offset="1" stopColor="#86C5FD" />
         </linearGradient>
       </defs>
     </svg>
@@ -2451,11 +2451,11 @@ export const svgs = {
           y2="100.038"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#B0EFFF" />
-          <stop offset="0.452381" stop-color="#AEEDFF" />
-          <stop offset="0.695238" stop-color="#A5E4FE" />
-          <stop offset="0.878571" stop-color="#96D5FE" />
-          <stop offset="1" stop-color="#86C5FD" />
+          <stop stopColor="#B0EFFF" />
+          <stop offset="0.452381" stopColor="#AEEDFF" />
+          <stop offset="0.695238" stopColor="#A5E4FE" />
+          <stop offset="0.878571" stopColor="#96D5FE" />
+          <stop offset="1" stopColor="#86C5FD" />
         </linearGradient>
         <linearGradient
           id="paint1_linear_1649_7066"
@@ -2465,11 +2465,11 @@ export const svgs = {
           y2="21.9614"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#B0EFFF" />
-          <stop offset="0.452381" stop-color="#AEEDFF" />
-          <stop offset="0.695238" stop-color="#A5E4FE" />
-          <stop offset="0.878571" stop-color="#96D5FE" />
-          <stop offset="1" stop-color="#86C5FD" />
+          <stop stopColor="#B0EFFF" />
+          <stop offset="0.452381" stopColor="#AEEDFF" />
+          <stop offset="0.695238" stopColor="#A5E4FE" />
+          <stop offset="0.878571" stopColor="#96D5FE" />
+          <stop offset="1" stopColor="#86C5FD" />
         </linearGradient>
       </defs>
     </svg>
@@ -2514,8 +2514,8 @@ export const svgs = {
         x2="609.77"
         y2="21.084"
       >
-        <stop offset="0" stop-color="#20b038" />
-        <stop offset="1" stop-color="#60d66a" />
+        <stop offset="0" stopColor="#20b038" />
+        <stop offset="1" stopColor="#60d66a" />
       </linearGradient>
       <path
         fill="url(#a)"
