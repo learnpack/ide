@@ -46,6 +46,8 @@ export default function LanguageButton() {
 
   useEffect(() => {
     const ex = getCurrentExercise();
+    console.log(ex, "ex in language button");
+
     if (!ex || !ex.translations) return;
 
     const languages = Object.keys(ex.translations);

@@ -1,22 +1,24 @@
-
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import useStore from "../../utils/store";
 import CreatorSocket from "../../managers/creatorSocket";
 import ProgressBar from "../composites/ProgressBar/ProgressBar";
-const socketClient = new CreatorSocket("");
+import { DEV_MODE } from "../../utils/lib";
+const socketClient = new CreatorSocket(DEV_MODE ? "http://localhost:3000" : "");
 
 export default function RealtimeLesson() {
   const { t } = useTranslation();
   const getCurrentExercise = useStore((state) => state.getCurrentExercise);
   const config = useStore((state) => state.configObject);
   const fetchReadme = useStore((state) => state.fetchReadme);
+  const fetchExercises = useStore((state) => state.fetchExercises);
   const [updates, setUpdates] = useState<string[]>([
     `🚀 Generating lesson for ${getCurrentExercise()?.slug}`,
   ]);
 
   const handleUpdate = (data: any) => {
     if (data.status === "done") {
+      fetchExercises();
       fetchReadme();
     }
     if (data.lesson === getCurrentExercise()?.slug) {
