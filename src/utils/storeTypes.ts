@@ -281,6 +281,7 @@ export interface IStore {
   getSyllabus: () => Promise<void>;
   setMode: (mode: TMode) => void;
   addVideoTutorial: (videoTutorial: string) => Promise<void>;
+  removeVideoTutorial: () => Promise<void>;
   useConsumable: (
     consumableSlug: "ai-conversation-message" | "ai-compilation"
   ) => Promise<boolean>;

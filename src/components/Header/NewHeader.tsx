@@ -121,22 +121,40 @@ export const NewHeader = () => {
             action={hasSolution ? openSolutionFile : () => {}}
           />
         )}
-        {videoTutorial && (
-          <SimpleButton
-            title={`Video tutorial ${videoTutorial ? "" : t("not available")}`}
-            disabled={!videoTutorial && mode === "student"}
-            svg={svgs.video}
-            action={async () => {
-              if (mode === "student") {
-                setShowVideoTutorial(true);
-                reportEnrichDataLayer("learnpack_open_video", {});
-              } else {
-                setOpenedModals({
-                  addVideoTutorial: true,
-                });
-              }
-            }}
-          />
+        {(mode === "creator" || videoTutorial) && (
+          <div className="d-flex gap-small">
+            {mode === "creator" && (
+              <SimpleButton
+                title={t("add-video-tutorial")}
+                svg={
+                  !videoTutorial ? (
+                    <div className="d-flex align-center">
+                      {svgs.video}
+                      {svgs.plusSimple}
+                    </div>
+                  ) : (
+                    svgs.plusSimple
+                  )
+                }
+                extraClass="svg-blue "
+                action={async () => {
+                  setOpenedModals({
+                    addVideoTutorial: true,
+                  });
+                }}
+              />
+            )}
+            {videoTutorial && (
+              <SimpleButton
+                title="Video tutorial"
+                svg={svgs.video}
+                action={async () => {
+                  setShowVideoTutorial(true);
+                  reportEnrichDataLayer("learnpack_open_video", {});
+                }}
+              />
+            )}
+          </div>
         )}
 
         <RigoToggler />

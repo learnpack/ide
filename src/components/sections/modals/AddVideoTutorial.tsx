@@ -8,9 +8,16 @@ import toast from "react-hot-toast";
 export const AddVideoTutorial = () => {
   const [tutorial, setTutorial] = useState("");
   const { t } = useTranslation();
-  const { addVideoTutorial, setOpenedModals } = useStore((state) => ({
+  const {
+    addVideoTutorial,
+    setOpenedModals,
+    removeVideoTutorial,
+    videoTutorial,
+  } = useStore((state) => ({
     addVideoTutorial: state.addVideoTutorial,
     setOpenedModals: state.setOpenedModals,
+    removeVideoTutorial: state.removeVideoTutorial,
+    videoTutorial: state.videoTutorial,
   }));
 
   return (
@@ -42,6 +49,19 @@ export const AddVideoTutorial = () => {
               }
             }}
           />
+          {videoTutorial && (
+            <SimpleButton
+              text={t("remove-current-video")}
+              svg={svgs.trash}
+              extraClass=" active-on-hover padding-medium rounded"
+              action={async () => {
+                const tid = toast.loading(t("removing-video-tutorial"));
+                await removeVideoTutorial();
+                toast.success(t("video-tutorial-removed"), { id: tid });
+                setOpenedModals({ addVideoTutorial: false });
+              }}
+            />
+          )}
         </div>
       </div>
     </Modal>

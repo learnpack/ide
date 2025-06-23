@@ -302,5 +302,8 @@
     "describeImage": "Describe the image to generate",
     "imageGenerationInProcess": "Image generation in process",
     "oops-not-so-fast": "Oops! Not so fast!",
-    "please-review-all-lessons-before-publishing": "Please review all lessons before publishing, otherwise you will not be able to publish your course."
+    "please-review-all-lessons-before-publishing": "Please review all lessons before publishing, otherwise you will not be able to publish your course.",
+    "removing-video-tutorial": "Removing video tutorial...",
+    "remove-current-video": "Remove current video",
+    "video-tutorial-removed": "Video tutorial removed!"
 }

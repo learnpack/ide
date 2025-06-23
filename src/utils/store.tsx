@@ -1927,6 +1927,29 @@ The user's set up the application in "${language}" language, give your feedback 
     });
   },
 
+  removeVideoTutorial: async () => {
+    const { getCurrentExercise, language } = get();
+    const readme = await FetchManager.getReadme(
+      getCurrentExercise().slug,
+      language
+    );
+    let newAttributes = readme.attributes;
+    newAttributes.tutorial = undefined;
+
+    const newReadme = remakeMarkdown(newAttributes, readme.body);
+
+    await FetchManager.replaceReadme(
+      getCurrentExercise().slug,
+      language,
+      newReadme
+    );
+
+    set({
+      videoTutorial: "",
+      showVideoTutorial: false,
+    });
+  },
+
   replaceInReadme: async (newText: string, startPosition, endPosition) => {
     const { getCurrentExercise, language } = get();
     const readme = await FetchManager.getReadme(
