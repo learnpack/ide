@@ -49,7 +49,6 @@ export default function LanguageButton() {
 
   useEffect(() => {
     const ex = getCurrentExercise();
-    console.log(ex, "ex in language button");
 
     if (!ex || !ex.translations) return;
 
@@ -141,6 +140,7 @@ const AddLanguageModal = () => {
   const token = useStore((state) => state.token);
   const fetchExercises = useStore((state) => state.fetchExercises);
   const getSidebar = useStore((state) => state.getSidebar);
+  const language = useStore((state) => state.language);
 
   const handleAddLanguage = () => {
     setIsOpen(true);
@@ -164,6 +164,7 @@ const AddLanguageModal = () => {
       await FetchManager.translateExercises(
         exercises.map((e) => e.slug),
         languages,
+        language,
         token
       );
       toast.success(t("exercisesTranslated"), { id: toastId });

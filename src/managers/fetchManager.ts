@@ -609,6 +609,7 @@ export const FetchManager = {
   translateExercises: async (
     exerciseSlugs: string[],
     languages: string,
+    currentLanguage: string,
     token: string
   ) => {
     const methods: TMethods = {
@@ -639,6 +640,7 @@ export const FetchManager = {
             body: JSON.stringify({
               exerciseSlugs,
               languages,
+              currentLanguage,
               rigoToken: token,
             }),
           });

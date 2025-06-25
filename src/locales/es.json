@@ -312,5 +312,6 @@
     "please-review-all-lessons-before-publishing": "Por favor revisa todas las lecciones antes de publicar, de lo contrario no podrás publicar tu curso.",
     "removing-video-tutorial": "Quitando video tutorial...",
     "remove-current-video": "Quitar video actual",
-    "video-tutorial-removed": "¡Video tutorial quitado!"
+    "video-tutorial-removed": "¡Video tutorial quitado!",
+    "video-tutorial-added": "¡Video tutorial agregado!"
 }

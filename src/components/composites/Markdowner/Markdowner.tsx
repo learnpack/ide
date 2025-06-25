@@ -285,10 +285,9 @@ export const Markdowner = ({
   );
 };
 
-
 const fixSrc = (src: string, slug: string) => {
   // Normalize leading ../../.learn to /.learn
-  let normalizedSrc = src.replace(/^(\.\.\/)+\.learn/, '/.learn');
+  let normalizedSrc = src.replace(/^(\.\.\/)+\.learn/, "/.learn");
 
   if (normalizedSrc.includes("/.learn/assets/")) {
     if (DEV_MODE) {
@@ -298,7 +297,6 @@ const fixSrc = (src: string, slug: string) => {
   }
   return normalizedSrc;
 };
-
 
 const CustomImage = ({
   src,
@@ -317,7 +315,6 @@ const CustomImage = ({
   mode?: string;
   config?: any;
 }) => {
-  console.log(src);
   const environment = useStore((state) => state.environment);
   const [hasError, setHasError] = useState(false);
   if (src) {

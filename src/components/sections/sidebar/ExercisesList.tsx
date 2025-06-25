@@ -185,15 +185,15 @@ const AddExerciseButton = ({
 };
 
 export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
-  const { exercises, fetchExercises, getSidebar, sidebar, token } = useStore(
-    (state) => ({
+  const { exercises, fetchExercises, getSidebar, sidebar, token, language } =
+    useStore((state) => ({
       exercises: state.exercises,
       fetchExercises: state.fetchExercises,
       getSidebar: state.getSidebar,
       sidebar: state.sidebar,
       token: state.token,
-    })
-  );
+      language: state.language,
+    }));
   const inputLanguageRef = useRef<HTMLInputElement>(null);
 
   const { t } = useTranslation();
@@ -239,6 +239,7 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
       await FetchManager.translateExercises(
         selectedExercises,
         languages,
+        language,
         token
       );
       toast.success(t("exercisesTranslated"), { id: toastId });
@@ -423,12 +424,15 @@ function ExerciseCard({
             // onChange={(e) => setTitle(e.target.value)}
           />
         ) : (
-          <>
+          <div
+            className="flex-x gap-small align-center w-100"
+            onClick={() => handlePositionChange(position)}
+          >
             <button className={`exercise-circle ${done ? "done" : ""}`}>
               <span>{cleanFloatString(title.split("-")[0])}</span>
             </button>
             <span>{titlefy(sidebar?.[slug]?.[language] || title)}</span>
-          </>
+          </div>
         )}
       </div>
 

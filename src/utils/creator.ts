@@ -11,7 +11,9 @@ export const createExercise = async (
   try {
     const courseSlug = getSlugFromPath();
     const response = await axios.post(
-      `/exercise/${slug}/create?slug=${courseSlug}`,
+      `${
+        DEV_MODE ? "http://localhost:3000" : ""
+      }/exercise/${slug}/create?slug=${courseSlug}`,
       {
         title: slug,
         readme,
@@ -29,7 +31,9 @@ export const deleteExercise = async (slug: string) => {
   try {
     const courseSlug = getSlugFromPath();
     const response = await axios.delete(
-      `/exercise/${slug}/delete?slug=${courseSlug}`
+      `${
+        DEV_MODE ? "http://localhost:3000" : ""
+      }/exercise/${slug}/delete?slug=${courseSlug}`
     );
     return response.data;
   } catch (error) {
@@ -41,10 +45,15 @@ export const deleteExercise = async (slug: string) => {
 export const renameExercise = async (slug: string, newSlug: string) => {
   try {
     const courseSlug = getSlugFromPath();
-    const response = await axios.put(`/actions/rename?slug=${courseSlug}`, {
-      slug,
-      newSlug,
-    });
+    const response = await axios.put(
+      `${
+        DEV_MODE ? "http://localhost:3000" : ""
+      }/actions/rename?slug=${courseSlug}`,
+      {
+        slug,
+        newSlug,
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Error renaming exercise:", error);
@@ -87,7 +96,10 @@ export const deleteTutorial = async (
       "x-breathecode-token": breathecodeToken,
       "x-rigo-token": rigoToken,
     };
-    const response = await axios.delete(`/packages/${slug}`, { headers });
+    const response = await axios.delete(
+      `${DEV_MODE ? "http://localhost:3000" : ""}/packages/${slug}`,
+      { headers }
+    );
     return response.data;
   } catch (error) {
     console.error("Error deleting tutorial:", error);
