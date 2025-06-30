@@ -185,7 +185,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
       <div className="flex-x justify-center align-center gap-small button-wrapper">
         {readyToSubmit && (
           <>
-            <SimpleButton
+            {/* <SimpleButton
               extraClass=""
               action={() => {
                 TelemetryManager.registerTesteableElement(
@@ -199,7 +199,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
               }}
               svg={svgs.toolIcon}
               text={t("remake-metrics")}
-            />
+            /> */}
             <SimpleButton
               extraClass="quiz-button active-on-hover bg-blue-rigo text-white"
               action={onSubmitQuiz}
