@@ -7,11 +7,11 @@ import toast from "react-hot-toast";
 import { RigoAI } from "../../Rigobot/AI";
 import {
   createExercise,
-  deleteExercise, 
+  deleteExercise,
   renameExercise,
 } from "../../../utils/creator";
 import { FetchManager } from "../../../managers/fetchManager";
-import { TExercise, TMode } from "../../../utils/storeTypes";
+import { TMode } from "../../../utils/storeTypes";
 import { cleanFloatString } from "../../../utils/lib";
 interface IExerciseList {
   closeSidebar: () => void;
@@ -60,17 +60,17 @@ function incrementDecimalPart(numberStr: string): string {
   return parts.join(".");
 }
 
-type GroupedExercises = Record<string, TExercise[]>;
+// type GroupedExercises = Record<string, TExercise[]>;
 
-function groupExercisesByModule(exercises: TExercise[]): GroupedExercises {
-  return exercises.reduce<GroupedExercises>((acc, ex) => {
-    const match = ex.title.match(/^(\d+)/);
-    const moduleIndex = match ? match[1] : "otros";
-    if (!acc[moduleIndex]) acc[moduleIndex] = [];
-    acc[moduleIndex].push(ex);
-    return acc;
-  }, {});
-}
+// function groupExercisesByModule(exercises: TExercise[]): GroupedExercises {
+//   return exercises.reduce<GroupedExercises>((acc, ex) => {
+//     const match = ex.title.match(/^(\d+)/);
+//     const moduleIndex = match ? match[1] : "otros";
+//     if (!acc[moduleIndex]) acc[moduleIndex] = [];
+//     acc[moduleIndex].push(ex);
+//     return acc;
+//   }, {});
+// }
 
 const AddExerciseButton = ({
   exercises,
@@ -252,8 +252,6 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
     }
   };
 
-  const groupedExercises = groupExercisesByModule(exercises);
-
   return (
     <div className="exercise-list">
       {selectedExercises.length > 0 && (
@@ -280,29 +278,22 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
           </div>
         </div>
       )}
-      {Object.entries(groupedExercises).map(([module, exList]) => (
-        <div
-          key={module}
-          className="flex-y align-center gap-small rounded padding-small margin-bottom-small"
-        >
-          {exList.map((ex, index) => (
-            <>
-              <ExerciseCard
-                key={index + ex.slug}
-                {...ex}
-                closeSidebar={closeSidebar}
-                mode={mode}
-                selected={selectedExercises.includes(ex.slug)}
-                handleSelect={handleSelect}
-              />
-              {mode === "creator" && (
-                <AddExerciseButton
-                  prevExercise={exercises[index]}
-                  exercises={exercises}
-                />
-              )}
-            </>
-          ))}
+      {exercises.map((ex, index) => (
+        <div key={ex.slug + index}>
+          <ExerciseCard
+            key={ex.slug + index}
+            {...ex}
+            closeSidebar={closeSidebar}
+            mode={mode}
+            handleSelect={handleSelect}
+            selected={selectedExercises.includes(ex.slug)}
+          />
+          {mode === "creator" && (
+            <AddExerciseButton
+              prevExercise={exercises[index]}
+              exercises={exercises}
+            />
+          )}
         </div>
       ))}
     </div>
@@ -388,7 +379,7 @@ function ExerciseCard({
 
   // console.log(sidebar?.[slug]?.[language], "Sidebar");
   console.log(syllabus, slug, "Syllabus and slug");
-  
+
   return (
     <div
       className={`exercise-card ${selected ? "bg-2" : "bg-white"}`}
