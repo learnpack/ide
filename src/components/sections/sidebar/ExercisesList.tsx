@@ -279,7 +279,7 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
         </div>
       )}
       {exercises.map((ex, index) => (
-        <div key={ex.slug + index}>
+        <div key={ex.slug + index} className="flex-y align-center">
           <ExerciseCard
             key={ex.slug + index}
             {...ex}
