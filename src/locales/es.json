@@ -313,5 +313,9 @@
     "removing-video-tutorial": "Quitando video tutorial...",
     "remove-current-video": "Quitar video actual",
     "video-tutorial-removed": "¡Video tutorial quitado!",
-    "video-tutorial-added": "¡Video tutorial agregado!"
+    "video-tutorial-added": "¡Video tutorial agregado!",
+    "pending-tasks": "Tareas pendientes",
+    "pending-tasks-description": "Tienes tareas pendientes para validar. Te animamos a completarlas antes de continuar.",
+    "stay-here": "Quedate aquí",
+    "skip-and-continue": "Saltar y continuar"
 }
