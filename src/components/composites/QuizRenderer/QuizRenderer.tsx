@@ -7,7 +7,7 @@ import { asyncHashText, playEffect } from "../../../utils/lib";
 import useStore from "../../../utils/store";
 import { Notifier } from "../../../managers/Notifier";
 import { svgs } from "../../../assets/svgs";
-import { TQuizSubmission } from "../../../managers/telemetry";
+import TelemetryManager, { TQuizSubmission } from "../../../managers/telemetry";
 
 type TQuizGroup = {
   title: string;
@@ -25,9 +25,10 @@ type TQuiz = {
   groups: {
     [key: string]: TQuizGroup;
   };
+  renderedGroups: string[];
 };
 
-const makeQuizSubmission = (
+export const makeQuizSubmission = (
   groups: TQuizGroup[],
   quizHash: string
 ): TQuizSubmission => {
@@ -73,13 +74,34 @@ export const QuizRenderer = ({ children }: { children: any }) => {
     hash: "",
     attempts: [],
     groups: {},
+    renderedGroups: [],
   });
 
   const onGroupReady = (group: TQuizGroup) => {
     quiz.current.groups[group.title] = group;
     setShowResults(false);
+
     Object.values(quiz.current.groups).length === liChildren.length &&
       setReadyToSubmit(true);
+  };
+
+  const onGroupRendered = async (title: string) => {
+    // console.log("onGroupRendered", title);
+    quiz.current.renderedGroups.push(title);
+
+    if (quiz.current.renderedGroups.length === liChildren.length) {
+      quiz.current.hash = await asyncHashText(
+        quiz.current.renderedGroups.join(" ")
+      );
+
+      TelemetryManager.registerTesteableElement(
+        Number(currentExercisePosition),
+        {
+          type: "quiz",
+          hash: quiz.current.hash,
+        }
+      );
+    }
   };
 
   const onSubmitQuiz = async () => {
@@ -123,6 +145,14 @@ export const QuizRenderer = ({ children }: { children: any }) => {
       setShowResults(true);
       if (submission.status === "SUCCESS") {
         toastFromStatus("quiz-success");
+        TelemetryManager.registerTesteableElement(
+          Number(currentExercisePosition),
+          {
+            type: "quiz",
+            hash: quiz.current.hash,
+            is_completed: true,
+          }
+        );
         Notifier.confetti();
         playEffect("success");
       } else {
@@ -145,6 +175,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
           <QuizQuestion
             key={index}
             onGroupReady={onGroupReady}
+            onGroupRendered={onGroupRendered}
             showResults={showResults}
           >
             {child.props.children}
@@ -153,12 +184,29 @@ export const QuizRenderer = ({ children }: { children: any }) => {
       })}
       <div className="flex-x justify-center align-center gap-small button-wrapper">
         {readyToSubmit && (
-          <SimpleButton
-            extraClass="quiz-button active-on-hover bg-blue-rigo text-white"
-            action={onSubmitQuiz}
-            svg={svgs.send}
-            text={t("submit-quiz")}
-          />
+          <>
+            <SimpleButton
+              extraClass=""
+              action={() => {
+                TelemetryManager.registerTesteableElement(
+                  Number(currentExercisePosition),
+                  {
+                    type: "quiz",
+                    hash: quiz.current.hash,
+                    is_completed: true,
+                  }
+                );
+              }}
+              svg={svgs.toolIcon}
+              text={t("remake-metrics")}
+            />
+            <SimpleButton
+              extraClass="quiz-button active-on-hover bg-blue-rigo text-white"
+              action={onSubmitQuiz}
+              svg={svgs.send}
+              text={t("submit-quiz")}
+            />
+          </>
         )}
         <AskForHint getContext={handleRigoClick} from={"quiz"} />
       </div>
@@ -169,10 +217,12 @@ export const QuizRenderer = ({ children }: { children: any }) => {
 const QuizQuestion = ({
   children,
   onGroupReady,
+  onGroupRendered,
   showResults,
 }: {
   children: any;
   onGroupReady: (group: TQuizGroup) => void;
+  onGroupRendered: (title: string) => void;
   showResults: boolean;
 }) => {
   if (!children) {
@@ -227,6 +277,7 @@ const QuizQuestion = ({
 
   const onTitleReady = (title: string) => {
     groupRef.current.title = title;
+    onGroupRendered(title);
   };
 
   return (

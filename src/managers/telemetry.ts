@@ -1,4 +1,9 @@
-import { calculateIndicators, TStepIndicators } from "../utils/metrics";
+import {
+  calculateIndicators,
+  calculateTestMetrics,
+  TStepIndicators,
+  TTesteableElementMetrics,
+} from "../utils/metrics";
 import packageInfo from "../../package.json";
 import { LocalStorage } from "./localStorage";
 import axios, { AxiosResponse } from "axios";
@@ -128,6 +133,15 @@ export type TTestAttempt = {
   ended_at: number;
 };
 
+export type TTesteableElementType = "quiz" | "test";
+
+type TTesteableElement = {
+  hash: string;
+  is_completed?: boolean;
+  type: TTesteableElementType;
+  metrics?: TTesteableElementMetrics;
+};
+
 type TAIInteraction = {
   student_message: string;
   source_code: string;
@@ -156,6 +170,7 @@ export type TStep = {
   files: IFile[];
   is_testeable: boolean;
   opened_at?: number; // The time when the step was opened
+  testeable_elements?: TTesteableElement[];
   completed_at?: number; // If the step has tests, the time when all the tests passed, else, the time when the user opens the next step
   compilations: TCompilationAttempt[]; // Everytime the user tries to compile the code
   tests: TTestAttempt[]; // Everytime the user tries to run the tests
@@ -233,6 +248,11 @@ interface ITelemetryManager {
     event: TStepEvent,
     data: any
   ) => void;
+  registerTesteableElement: (
+    stepPosition: number,
+    testeableElement: TTesteableElement
+  ) => void;
+  hasPendingTasks: (stepPosition: number) => boolean;
   getStepIndicators: (stepPosition: number) => TStepIndicators | null;
   streamEvent: (stepPosition: number, event: string, data: any) => void;
   submit: () => Promise<void>;
@@ -337,6 +357,53 @@ const TelemetryManager: ITelemetryManager = {
 
   registerListener: function (event: TAlerts, callback: (data: any) => void) {
     this.listeners[event] = callback;
+  },
+
+  registerTesteableElement: function (
+    stepPosition: number,
+    testeableElement: TTesteableElement
+  ) {
+    if (!this.current) return;
+
+    // Chequea si el elemento ya existe en otro step
+    const existsInOtherStep = this.current.steps.some(
+      (step, idx) =>
+        idx !== stepPosition &&
+        step.testeable_elements?.some((e) => e.hash === testeableElement.hash)
+    );
+
+    if (existsInOtherStep) {
+      return;
+    }
+
+    // Asegura que la lista existe
+    if (!this.current.steps[stepPosition]?.testeable_elements) {
+      this.current.steps[stepPosition].testeable_elements = [];
+    }
+
+    const step = { ...this.current.steps[stepPosition] };
+    let elements = [...(step.testeable_elements || [])];
+
+    // Busca si ya existe un elemento con el mismo hash en este step
+    const prevElement = elements.find((e) => e.hash === testeableElement.hash);
+
+    // Elimina cualquier elemento existente con el mismo hash
+    elements = elements.filter((e) => e.hash !== testeableElement.hash);
+
+    // Construye el nuevo elemento
+    let newElement = prevElement
+      ? { ...prevElement, ...testeableElement }
+      : { ...testeableElement };
+
+    if (newElement.is_completed && !newElement.metrics) {
+      newElement.metrics = calculateTestMetrics(step, testeableElement.hash);
+    }
+
+    elements.push(newElement);
+
+    step.testeable_elements = elements;
+    this.current.steps[stepPosition] = step;
+    this.save();
   },
 
   getStepIndicators: function (stepPosition: number) {
@@ -492,6 +559,14 @@ const TelemetryManager: ITelemetryManager = {
     } else {
       return Promise.resolve(null);
     }
+  },
+
+  hasPendingTasks: function (stepPosition: number) {
+    const step = this.current?.steps[stepPosition];
+    if (!step) {
+      return false;
+    }
+    return Boolean(step.testeable_elements?.some((e) => !e.is_completed));
   },
 
   submit: async function () {

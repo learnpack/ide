@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { checkAnswer, suggestExamples } from "../../../managers/EventProxy";
 import { Element } from "hast";
 import { useEffect, useRef, useState } from "react";
-import { playEffect } from "../../../utils/lib";
+import { asyncHashText, debounce, playEffect } from "../../../utils/lib";
 
 import { SpeechToTextButton } from "../SpeechRecognitionButton/SpeechRecognitionButton";
 
@@ -15,6 +15,8 @@ import { Modal } from "../../mockups/Modal";
 import { TMetadata } from "../Markdowner/types";
 import { AutoResizeTextarea } from "../AutoResizeTextarea/AutoResizeTextarea";
 import { Markdowner } from "../Markdowner/Markdowner";
+import TelemetryManager from "../../../managers/telemetry";
+import { makeQuizSubmission } from "../QuizRenderer/QuizRenderer";
 
 const splitInLines = (code: string) => {
   return code.split("\n").filter((line) => line.trim() !== "");
@@ -39,10 +41,20 @@ export const Question = ({
   node: Element | undefined;
 }) => {
   const { t } = useTranslation();
-  const { token, replaceInReadme, mode } = useStore((state) => ({
+  const {
+    token,
+    replaceInReadme,
+    mode,
+    currentExercisePosition,
+    registerTelemetryEvent,
+    currentContent,
+  } = useStore((state) => ({
     token: state.token,
     replaceInReadme: state.replaceInReadme,
     mode: state.mode,
+    currentExercisePosition: state.currentExercisePosition,
+    registerTelemetryEvent: state.registerTelemetryEvent,
+    currentContent: state.currentContent,
   }));
 
   const [feedback, setFeedback] = useState<TFeedback | null>(null);
@@ -51,6 +63,7 @@ export const Question = ({
   const [answer, setAnswer] = useState("");
   const answerRef = useRef<HTMLTextAreaElement>(null);
   const feedbackRef = useRef<HTMLDivElement>(null);
+  const hashRef = useRef<string>("");
 
   useEffect(() => {
     if (feedbackRef.current && mode !== "creator" && feedback) {
@@ -59,6 +72,29 @@ export const Question = ({
       });
     }
   }, [feedback]);
+
+  useEffect(() => {
+    if (metadata.eval) {
+      debouncedRegister();
+    }
+  }, [metadata.eval]);
+
+  const register = async () => {
+    console.log(
+      "registering in open question for step",
+      currentExercisePosition,
+      "and content",
+      currentContent
+    );
+
+    const hash = await asyncHashText(metadata.eval as string);
+    hashRef.current = hash;
+    TelemetryManager.registerTesteableElement(Number(currentExercisePosition), {
+      type: "quiz",
+      hash: hash,
+    });
+  };
+  const debouncedRegister = debounce(register, 2000);
 
   const evaluateAnswer = async () => {
     if (!answer) {
@@ -76,12 +112,41 @@ export const Question = ({
       exit_code: result.exit_code,
       feedback: result.feedback,
     });
+
+    const submission = makeQuizSubmission(
+      [
+        {
+          title: metadata.eval as string,
+          correctAnswer:
+            result.exit_code === 0 ? answer : (metadata.eval as string),
+          currentSelection: answer,
+          checkboxes: [
+            {
+              text: answer,
+              isCorrect: result.exit_code === 0,
+            },
+          ],
+        },
+      ],
+      hashRef.current
+    );
+
+    registerTelemetryEvent("quiz_submission", submission);
     if (result.exit_code === 0) {
       Notifier.confetti();
+      TelemetryManager.registerTesteableElement(
+        Number(currentExercisePosition),
+        {
+          type: "quiz",
+          hash: hashRef.current,
+          is_completed: true,
+        }
+      );
       playEffect("success");
     } else {
       playEffect("error");
     }
+
     setIsLoading(false);
   };
 

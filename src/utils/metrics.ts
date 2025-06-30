@@ -288,3 +288,77 @@ export function calculateIndicators(
     steps: stepsResults,
   };
 }
+
+// --- TEST METRICS
+export type TTesteableElementMetrics = {
+  started_at: number;
+  ended_at: number;
+  resolution_time_seconds: number;
+  n_ai_interactions: number;
+  n_tries: number;
+  n_fail: number;
+  n_success: number;
+};
+
+export function calculateTestMetrics(
+  step: TStep,
+  hash: string
+): TTesteableElementMetrics | undefined {
+  if (!step.testeable_elements) {
+    return undefined;
+  }
+  const element = step.testeable_elements.find((e) => e.hash === hash);
+  if (!element) {
+    return undefined;
+  }
+
+  const started_at =
+    element.type === "quiz"
+      ? step.quiz_submissions.find((s) => s.quiz_hash === hash)?.submitted_at ||
+        step.opened_at ||
+        0
+      : step.tests.shift()?.starting_at || step.opened_at || 0;
+
+  const ended_at =
+    element.type === "quiz"
+      ? step.quiz_submissions.findLast((s) => s.quiz_hash === hash)
+          ?.submitted_at ||
+        step.completed_at ||
+        1
+      : step.tests.shift()?.starting_at || step.completed_at || 1;
+
+  const resolution_time_seconds = ended_at - started_at;
+
+  const n_ai_interactions = step.ai_interactions.filter(
+    (a) => a.starting_at >= started_at && a.ending_at <= ended_at
+  ).length;
+
+  const n_tries =
+    element.type === "quiz"
+      ? step.quiz_submissions.filter((s) => s.quiz_hash === hash).length
+      : step.tests.length;
+
+  const n_fail =
+    element.type === "quiz"
+      ? step.quiz_submissions.filter(
+          (s) => s.quiz_hash === hash && s.status === "ERROR"
+        ).length
+      : step.tests.filter((t) => t.exit_code !== 1).length;
+
+  const n_success =
+    element.type === "quiz"
+      ? step.quiz_submissions.filter(
+          (s) => s.quiz_hash === hash && s.status === "SUCCESS"
+        ).length
+      : step.tests.filter((t) => t.exit_code === 1).length;
+
+  return {
+    started_at,
+    ended_at,
+    resolution_time_seconds,
+    n_ai_interactions,
+    n_tries,
+    n_fail,
+    n_success,
+  };
+}

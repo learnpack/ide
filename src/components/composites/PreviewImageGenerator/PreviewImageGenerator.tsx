@@ -107,7 +107,7 @@ const PreviewGenerator: React.FC = () => {
         height: "575px",
         background: "white",
         position: "fixed",
-        top: "80%",
+        top: "50%",
         left: "50%",
         transform: "translate(-50%, -50%)",
       }}
