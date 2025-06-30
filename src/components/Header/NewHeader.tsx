@@ -7,7 +7,7 @@ import { RigoToggler } from "../Rigobot/Rigobot";
 import LanguageButton from "../sections/header/LanguageButton";
 import styles from "./NewHeader.module.css";
 import { ToggleSidebar } from "../sections/sidebar/ToggleSidebar";
-import { slugToTitle } from "../Rigobot/utils";
+// import { slugToTitle } from "../Rigobot/utils";
 
 export const NewHeader = () => {
   const {
@@ -29,7 +29,7 @@ export const NewHeader = () => {
     setMode,
     setOpenedModals,
     environment,
-    lessonTitle,
+    configObject,
   } = useStore((state) => ({
     handlePositionChange: state.handlePositionChange,
     currentExercisePosition: state.currentExercisePosition,
@@ -49,7 +49,7 @@ export const NewHeader = () => {
     setOpenedModals: state.setOpenedModals,
     setMode: state.setMode,
     environment: state.environment,
-    lessonTitle: state.lessonTitle,
+    configObject: state.configObject,
   }));
 
   const { t } = useTranslation();
@@ -96,7 +96,7 @@ export const NewHeader = () => {
         {DEV_MODE && <button onClick={test}>TEST</button>}
       </section>
       <section className="hidden-mobile">
-        <p className="m-0">{slugToTitle(lessonTitle)}</p>
+        <p className="m-0">{configObject?.config?.title[language] || ""}</p>
       </section>
       <section className="flex-x align-center">
         {isCreator && environment === "localhost" && (

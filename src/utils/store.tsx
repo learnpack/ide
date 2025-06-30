@@ -673,7 +673,7 @@ The user's set up the application in "${language}" language, give your feedback 
   },
 
   fetchSingleExerciseInfo: async (index) => {
-    const { exercises } = get();
+    const { exercises, updateEditorTabs } = get();
 
     if (exercises.length <= 0) {
       return;
@@ -712,6 +712,8 @@ The user's set up the application in "${language}" language, give your feedback 
       isBuildable: isBuildable,
       hasSolution: hasSolution,
     });
+
+    updateEditorTabs();
     return exercise;
   },
 
@@ -724,9 +726,6 @@ The user's set up the application in "${language}" language, give your feedback 
       setFeedbackButtonProps,
       checkParams,
       registerTelemetryEvent,
-      fetchExercises,
-      updateEditorTabs,
-      // configObject,
     } = get();
 
     let params = checkParams({ justReturn: true });
@@ -744,10 +743,9 @@ The user's set up the application in "${language}" language, give your feedback 
     registerTelemetryEvent("open_step", {
       step_position: newPosition,
     });
-    // TODO: THis probably won't work correctly, test it
-    fetchExercises();
+    // TODO: This probably won't work correctly, test it
     fetchReadme();
-    updateEditorTabs();
+    
   },
   startConversation: async (exercisePosition) => {
     const { token, learnpackPurposeId, conversationIdsCache } = get();
@@ -1016,7 +1014,6 @@ The user's set up the application in "${language}" language, give your feedback 
       currentExercisePosition,
       fetchSingleExerciseInfo,
       configObject,
-      updateEditorTabs,
     } = get();
 
     // @ts-ignore
@@ -1068,8 +1065,8 @@ The user's set up the application in "${language}" language, give your feedback 
     set({ currentContent: readme });
     set({ editorTabs: [] });
     // @ts-ignore
-    await fetchSingleExerciseInfo(currentExercisePosition);
-    updateEditorTabs();
+    fetchSingleExerciseInfo(currentExercisePosition);
+    // updateEditorTabs();
     return true;
   },
 

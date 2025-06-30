@@ -6,6 +6,7 @@ import useStore from "../../../utils/store";
 import "./LessonStyles.css";
 import SimpleButton from "../../mockups/SimpleButton";
 import { FetchManager } from "../../../managers/fetchManager";
+import { InteractiveTutor } from "../InteractiveTutor/InteractiveTutor";
 // import { TestLatex } from "./TestLatex";
 
 const ContinueButton = () => {
@@ -40,13 +41,16 @@ export const LessonRenderer = memo(() => {
   const environment = useStore((s) => s.environment);
   const getCurrentExercise = useStore((s) => s.getCurrentExercise);
   const language = useStore((s) => s.language);
-  const [mode, setMode] = useState<"markdown" | "text">("markdown");
+  const [mode, setMode] = useState<"markdown" | "text" | "interactive">(
+    "markdown"
+  );
 
   return (
     <div className="lesson-content">
-      {mode === "markdown" ? (
+      {mode === "markdown" && (
         <Markdowner markdown={currentContent} allowCreate={true} />
-      ) : (
+      )}
+      {mode === "text" && (
         <textarea
           defaultValue={currentContent}
           className="w-100 h-full padding-small rounded textarea"
@@ -63,10 +67,25 @@ export const LessonRenderer = memo(() => {
           }}
         />
       )}
+      {mode === "interactive" && <InteractiveTutor />}
       <SimpleButton
         extraClass={"d-none text-reveal-button"}
-        text={mode === "markdown" ? "Markdown" : "Text"}
-        action={() => setMode(mode === "markdown" ? "text" : "markdown")}
+        text={
+          mode === "markdown"
+            ? "Markdown"
+            : mode === "text"
+            ? "Text"
+            : "Interactive"
+        }
+        action={() =>
+          setMode(
+            mode === "markdown"
+              ? "text"
+              : mode === "text"
+              ? "interactive"
+              : "markdown"
+          )
+        }
       />
       {/* <TestLatex /> */}
       <ContinueButton />

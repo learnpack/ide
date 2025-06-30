@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import { RigoAI } from "../../Rigobot/AI";
 import {
   createExercise,
-  deleteExercise,
+  deleteExercise, 
   renameExercise,
 } from "../../../utils/creator";
 import { FetchManager } from "../../../managers/fetchManager";
