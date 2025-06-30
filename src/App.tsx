@@ -49,9 +49,9 @@ export default function Home() {
       id="main-container"
       className={`${theme} ${isIframe ? "iframe-mode" : ""}`}
     >
+      <ModalsContainer />
       <PublishNavbar />
       {environment === "creatorWeb" && <PreviewGenerator />}
-      <ModalsContainer />
       <SocketHandler />
       <NewHeader />
       <Container />

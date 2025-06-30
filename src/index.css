@@ -430,7 +430,8 @@ a {
 #main-container {
   width: var(--app-width);
   margin-inline: auto;
-  height: 99dvh;
+  height: 100dvh;
+  overflow-y: auto;
   /* overflow: hidden; */
   /* padding: 20px; */
 }
