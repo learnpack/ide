@@ -13,6 +13,7 @@ import {
 import { FetchManager } from "../../../managers/fetchManager";
 import { TMode } from "../../../utils/storeTypes";
 import { cleanFloatString } from "../../../utils/lib";
+import { eventBus } from "../../../managers/eventBus";
 interface IExerciseList {
   closeSidebar: () => void;
   mode: "creator" | "student";
@@ -377,7 +378,6 @@ function ExerciseCard({
     }
   };
 
-  // console.log(sidebar?.[slug]?.[language], "Sidebar");
   console.log(syllabus, slug, "Syllabus and slug");
 
   return (
@@ -386,7 +386,9 @@ function ExerciseCard({
       onClick={
         mode === "student"
           ? () => {
-              handlePositionChange(position);
+              eventBus.emit("position_change", {
+                position: position,
+              });
               closeSidebar();
             }
           : () => {}
@@ -421,7 +423,13 @@ function ExerciseCard({
         ) : (
           <div
             className="flex-x gap-small align-center w-100"
-            onClick={() => handlePositionChange(position)}
+            onClick={() => {
+              if (mode === "creator") {
+                eventBus.emit("position_change", {
+                  position: position,
+                });
+              }
+            }}
           >
             <button className={`exercise-circle ${done ? "done" : ""}`}>
               <span>{cleanFloatString(title.split("-")[0])}</span>

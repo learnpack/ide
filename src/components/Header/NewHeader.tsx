@@ -7,95 +7,15 @@ import { RigoToggler } from "../Rigobot/Rigobot";
 import LanguageButton from "../sections/header/LanguageButton";
 import styles from "./NewHeader.module.css";
 import { ToggleSidebar } from "../sections/sidebar/ToggleSidebar";
-import TelemetryManager from "../../managers/telemetry";
-import { useState } from "react";
-import { Modal } from "../mockups/Modal";
-import { createPortal } from "react-dom";
+// import TelemetryManager from "../../managers/telemetry";
+// import { useState } from "react";
+// import { Modal } from "../mockups/Modal";
+// import { createPortal } from "react-dom";
+import { eventBus } from "../../managers/eventBus";
 // import { slugToTitle } from "../Rigobot/utils";
-
-const ValidationModal = ({
-  onStayHere,
-  onSkip,
-}: {
-  onStayHere: () => void;
-  onSkip: () => void;
-}) => {
-  const { t } = useTranslation();
-
-  return (
-    <Modal>
-      <div>
-        <h2>{t("pending-tasks")}</h2>
-        <p>{t("pending-tasks-description")}</p>
-        <div className="flex-x gap-small justify-center">
-          <SimpleButton
-            text={t("skip")}
-            svg={svgs.redClose}
-            extraClass="padding-small border-gray rounded"
-            action={onSkip}
-          />
-          <SimpleButton
-            text={t("stay-here")}
-            svg={svgs.downArrow}
-            extraClass="padding-small bg-blue-rigo text-white rounded"
-            action={onStayHere}
-          />
-        </div>
-      </div>
-    </Modal>
-  );
-};
-
-const ValidatorContinueButton = ({
-  exercises,
-  currentExercisePosition,
-  handlePositionChange,
-  reportEnrichDataLayer,
-}: {
-  exercises: any;
-  currentExercisePosition: number;
-  handlePositionChange: (position: number) => void;
-  reportEnrichDataLayer: (event: string, data: any) => void;
-}) => {
-  // const { t } = useTranslation();
-  const [shouldValidate, setShouldValidate] = useState(false);
-
-  return (
-    <>
-      <button
-        disabled={exercises && currentExercisePosition === exercises.length - 1}
-        onClick={() => {
-          if (
-            TelemetryManager.hasPendingTasks(Number(currentExercisePosition))
-          ) {
-            setShouldValidate(true);
-            return;
-          }
-          handlePositionChange(Number(currentExercisePosition) + 1);
-          reportEnrichDataLayer("learnpack_next_step", {});
-        }}
-      >
-        {svgs.nextArrowButton}
-      </button>
-      {shouldValidate &&
-        createPortal(
-          <ValidationModal
-            onStayHere={() => setShouldValidate(false)}
-            onSkip={() => {
-              handlePositionChange(Number(currentExercisePosition) + 1);
-              reportEnrichDataLayer("learnpack_next_step", {});
-              setShouldValidate(false);
-            }}
-          />,
-          document.body
-        )}
-    </>
-  );
-};
 
 export const NewHeader = () => {
   const {
-    handlePositionChange,
     currentExercisePosition,
     exercises,
     test,
@@ -115,7 +35,6 @@ export const NewHeader = () => {
     environment,
     configObject,
   } = useStore((state) => ({
-    handlePositionChange: state.handlePositionChange,
     currentExercisePosition: state.currentExercisePosition,
     exercises: state.exercises,
     test: state.test,
@@ -156,22 +75,30 @@ export const NewHeader = () => {
   return (
     <header className={styles.header}>
       <section>
-        {/* <ScreenShareSmart /> */}
         <button
           disabled={currentExercisePosition == 0}
           onClick={() => {
-            handlePositionChange(Number(currentExercisePosition) - 1);
+            eventBus.emit("position_change", {
+              position: Number(currentExercisePosition) - 1,
+            });
             reportEnrichDataLayer("learnpack_previous_step", {});
           }}
         >
           {svgs.prevArrowButton}
         </button>
-        <ValidatorContinueButton
-          exercises={exercises}
-          currentExercisePosition={Number(currentExercisePosition)}
-          handlePositionChange={handlePositionChange}
-          reportEnrichDataLayer={reportEnrichDataLayer}
-        />
+        <button
+          disabled={
+            exercises && currentExercisePosition === exercises.length - 1
+          }
+          onClick={() => {
+            eventBus.emit("position_change", {
+              position: Number(currentExercisePosition) + 1,
+            });
+            reportEnrichDataLayer("learnpack_next_step", {});
+          }}
+        >
+          {svgs.nextArrowButton}
+        </button>
 
         {DEV_MODE && <button onClick={test}>TEST</button>}
       </section>

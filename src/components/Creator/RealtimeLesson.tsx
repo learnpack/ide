@@ -43,7 +43,7 @@ export default function RealtimeLesson() {
   }, []);
 
   return (
-    <div className="flex-y gap-big padding-big">
+    <div className="flex-y gap-big padding-big lesson-loader">
       <div className=" d-flex align-center gap-small justify-between">
         <span>
           {t("this-lesson-is-being-processed-and-will-be-ready-soon")}

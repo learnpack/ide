@@ -378,6 +378,10 @@ export const correctLanguage = (language: string) => {
   return language === "us" ? "en" : "es";
 };
 
+export const getReadmeExtension = (language: string) => {
+  return language === "en" || language === "us" ? ".md" : `.${language}.md`;
+};
+
 export const convertUrlToBase64 = (url: string, extraParams: string = "") => {
   if (url.includes("?") || url.includes("#")) {
     return btoa(url + extraParams);

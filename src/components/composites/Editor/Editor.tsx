@@ -17,6 +17,7 @@ import { AskForHint } from "../AskForHint/AskForHint";
 import { Loader } from "../Loader/Loader";
 import { TEditorTab } from "../../../utils/storeTypes";
 import { Markdowner } from "../Markdowner/Markdowner";
+import { eventBus } from "../../../managers/eventBus";
 
 const languageMap: { [key: string]: string } = {
   ".js": "javascript",
@@ -372,18 +373,19 @@ const Terminal = ({
 };
 
 const NextButton = () => {
-  const { currentExercisePosition, handlePositionChange, exercises } = useStore(
-    (state) => ({
-      currentExercisePosition: state.currentExercisePosition,
-      handlePositionChange: state.handlePositionChange,
-      exercises: state.exercises,
-    })
-  );
+  const { currentExercisePosition, exercises } = useStore((state) => ({
+    currentExercisePosition: state.currentExercisePosition,
+    exercises: state.exercises,
+  }));
 
   return (
     <SimpleButton
       disabled={currentExercisePosition === exercises.length - 1}
-      action={() => handlePositionChange(Number(currentExercisePosition) + 1)}
+      action={() =>
+        eventBus.emit("position_change", {
+          position: Number(currentExercisePosition) + 1,
+        })
+      }
       svg={svgs.nextArrow}
       text={"Next"}
       extraClass="w-100 bg-success text-white big"
@@ -407,7 +409,6 @@ export const Toolbar = ({
     // allowedActions,
     isBuildable,
     isTesteable,
-    handlePositionChange,
     currentExercisePosition,
     exercises,
   } = useStore((state) => ({
@@ -459,7 +460,9 @@ export const Toolbar = ({
                 text={t("Continue")}
                 extraClass="w-100 bg-blue text-white big"
                 action={() =>
-                  handlePositionChange(Number(currentExercisePosition) + 1)
+                  eventBus.emit("position_change", {
+                    position: Number(currentExercisePosition) + 1,
+                  })
                 }
               />
             </>

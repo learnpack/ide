@@ -24,10 +24,6 @@ export type TParamsActions = {
   [key: string]: (param: string) => void;
 };
 
-interface ILanguageMap {
-  [key: string]: string;
-}
-
 type TTitle = {
   [key: string]: string;
 };
@@ -238,7 +234,6 @@ export interface IStore {
   token: string;
   bc_token: string;
   assessmentConfig: TAssessmentConfig;
-  languageMap: ILanguageMap;
   configObject: IConfigObject;
   allowedActions: string[];
   videoTutorial: string;
@@ -324,7 +319,6 @@ export interface IStore {
   startTelemetry: () => Promise<void>;
   build: (buildText: string, submittedInputs?: string[]) => void;
   setPosition: (position: number) => void;
-  handleNext: () => void;
   fetchReadme: () => void;
   updateFileContent: (
     exerciseSlug: string,

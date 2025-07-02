@@ -309,5 +309,6 @@
     "pending-tasks": "Pending tasks",
     "pending-tasks-description": "You have unfinished tasks to validate. We encourage you to complete them before continuing.",
     "stay-here": "Stay here",
-    "skip-and-continue": "Skip and continue"
+    "skip-and-continue": "Skip and continue",
+    "loading": "Loading..."
 }

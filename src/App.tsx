@@ -12,6 +12,7 @@ import i18n from "./utils/i18n";
 import mermaid from "mermaid";
 import { PublishNavbar } from "./components/Creator/PublishNavbar";
 import PreviewGenerator from "./components/composites/PreviewImageGenerator/PreviewImageGenerator";
+import { PositionHandler } from "./components/composites/PositionHandler/PositionHandler";
 
 export default function Home() {
   const {
@@ -51,6 +52,7 @@ export default function Home() {
     >
       <ModalsContainer />
       <PublishNavbar />
+      <PositionHandler />
       {environment === "creatorWeb" && <PreviewGenerator />}
       <SocketHandler />
       <NewHeader />

@@ -10,6 +10,7 @@ import { FetchManager } from "../../../managers/fetchManager";
 
 const svgsLanguageMap: Record<string, JSX.Element> = {
   es: svgs.spainFlag,
+  en: svgs.usaFlag,
   us: svgs.usaFlag,
   fr: <img src="https://flagcdn.com/w40/fr.png" alt="French" />,
   de: <img src="https://flagcdn.com/w40/de.png" alt="German" />,
@@ -78,6 +79,11 @@ interface ILanguageDropdown {
   toggleDrop: () => void;
 }
 
+export const fixLang = (lang: string) => {
+  if (lang === "us") return "en";
+  return lang;
+};
+
 const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
   const {
     language,
@@ -100,19 +106,16 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
   const languages = Object.keys(currentExercise.translations);
 
   const changeLanguage = (lang: string) => {
-    if (lang === "us") {
-      i18n.changeLanguage("en");
-    } else {
-      i18n.changeLanguage(lang);
-    }
+    i18n.changeLanguage(lang);
   };
 
   const setLang = (lang: string) => {
-    setLanguage(lang);
-    changeLanguage(lang);
+    const fixedLang = fixLang(lang);
+    setLanguage(fixedLang);
+    changeLanguage(fixedLang);
     toggleDrop();
     reportEnrichDataLayer("learnpack_language_change", {
-      language: lang,
+      language: fixedLang,
     });
   };
 
@@ -168,10 +171,10 @@ const AddLanguageModal = () => {
         token
       );
       toast.success(t("exercisesTranslated"), { id: toastId });
-      await fetchExercises();
-      await getSidebar();
       setIsLoading(false);
       setIsOpen(false);
+      await fetchExercises();
+      await getSidebar();
     } catch (error) {
       toast.error(t("errorTranslatingExercises"), { id: toastId });
       console.log(error, "Error");

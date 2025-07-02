@@ -145,20 +145,20 @@ export const QuizRenderer = ({ children }: { children: any }) => {
       setShowResults(true);
       if (submission.status === "SUCCESS") {
         toastFromStatus("quiz-success");
-        TelemetryManager.registerTesteableElement(
-          Number(currentExercisePosition),
-          {
-            type: "quiz",
-            hash: quiz.current.hash,
-            is_completed: true,
-          }
-        );
         Notifier.confetti();
         playEffect("success");
       } else {
         toastFromStatus("quiz-error");
         playEffect("error");
       }
+      TelemetryManager.registerTesteableElement(
+        Number(currentExercisePosition),
+        {
+          type: "quiz",
+          hash: quiz.current.hash,
+          is_completed: true,
+        }
+      );
     } else {
       toast.error(t("answer-all-questions-before"));
     }
@@ -185,21 +185,6 @@ export const QuizRenderer = ({ children }: { children: any }) => {
       <div className="flex-x justify-center align-center gap-small button-wrapper">
         {readyToSubmit && (
           <>
-            {/* <SimpleButton
-              extraClass=""
-              action={() => {
-                TelemetryManager.registerTesteableElement(
-                  Number(currentExercisePosition),
-                  {
-                    type: "quiz",
-                    hash: quiz.current.hash,
-                    is_completed: true,
-                  }
-                );
-              }}
-              svg={svgs.toolIcon}
-              text={t("remake-metrics")}
-            /> */}
             <SimpleButton
               extraClass="quiz-button active-on-hover bg-blue-rigo text-white"
               action={onSubmitQuiz}

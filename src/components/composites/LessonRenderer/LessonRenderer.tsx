@@ -1,4 +1,4 @@
-import { memo, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { Toolbar } from "../Editor/Editor";
 import { Markdowner } from "../Markdowner/Markdowner";
 import { useTranslation } from "react-i18next";
@@ -7,29 +7,48 @@ import "./LessonStyles.css";
 import SimpleButton from "../../mockups/SimpleButton";
 import { FetchManager } from "../../../managers/fetchManager";
 import { InteractiveTutor } from "../InteractiveTutor/InteractiveTutor";
-// import { TestLatex } from "./TestLatex";
+import { eventBus } from "../../../managers/eventBus";
 
 const ContinueButton = () => {
   const { t } = useTranslation();
-  const handlePositionChange = useStore((s) => s.handlePositionChange);
   const currentExercisePosition = useStore((s) => s.currentExercisePosition);
   const editorTabs = useStore((s) => s.editorTabs);
   const agent = useStore((s) => s.agent);
   const exercises = useStore((s) => s.exercises);
+  const [loading, setLoading] = useState(false);
   const isLastExercise = currentExercisePosition === exercises.length - 1;
+
+  const hasBodyLessonLoader = () => {
+    const selector = ".lesson-loader";
+    const element = document.querySelector(selector);
+    return element !== null;
+  };
+
+  useEffect(() => {
+    eventBus.on("position_changed", () => {
+      setLoading(false);
+    });
+  }, []);
 
   return (
     !isLastExercise &&
-    agent !== "vscode" && (
+    agent !== "vscode" &&
+    !hasBodyLessonLoader() && (
       <div
-        className={`badge bg-blue ${
+        aria-disabled={loading}
+        className={`badge bg-blue  ${
           editorTabs.length > 0 ? "hide-continue-button" : "continue-button"
         }`}
-        onClick={() =>
-          handlePositionChange(Number(currentExercisePosition) + 1)
-        }
+        role="button"
+        tabIndex={0}
+        onClick={() => {
+          setLoading(true);
+          eventBus.emit("position_change", {
+            position: Number(currentExercisePosition) + 1,
+          });
+        }}
       >
-        {t("continue")}
+        {loading ? t("loading") : t("continue")}
       </div>
     )
   );

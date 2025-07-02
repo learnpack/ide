@@ -30,6 +30,10 @@ const PublishConfirmationModal: FC<{
   }, []);
 
   useEffect(() => {
+    if (!syllabus || !syllabus.lessons) {
+      setNeedToReviewAll(false);
+      return;
+    }
     const anyNotGenerated = syllabus.lessons.some(
       (lesson) => !lesson.generated
     );

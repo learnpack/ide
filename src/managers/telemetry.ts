@@ -563,6 +563,7 @@ const TelemetryManager: ITelemetryManager = {
 
   hasPendingTasks: function (stepPosition: number) {
     const step = this.current?.steps[stepPosition];
+    console.log("step", step, stepPosition);
     if (!step) {
       return false;
     }

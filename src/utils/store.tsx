@@ -78,11 +78,7 @@ FetchManager.init(ENVIRONMENT, HOST, () => {
 });
 
 const useStore = create<IStore>((set, get) => ({
-  language: defaultParams.language || "us",
-  languageMap: {
-    us: "en",
-    es: "sp",
-  },
+  language: defaultParams.language || "en",
   mustLoginMessageKey: "you-must-login-message",
   learnpackPurposeId: defaultParams.purpose || 26,
   exercises: [],
@@ -745,7 +741,6 @@ The user's set up the application in "${language}" language, give your feedback 
     });
     // TODO: This probably won't work correctly, test it
     fetchReadme();
-    
   },
   startConversation: async (exercisePosition) => {
     const { token, learnpackPurposeId, conversationIdsCache } = get();
@@ -1024,6 +1019,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
     const exercise = await FetchManager.getReadme(slug, language);
 
+    console.log(exercise, "Exercise from README");
     if (!exercise) return;
 
     if (exercise.error) {
@@ -1093,10 +1089,6 @@ The user's set up the application in "${language}" language, give your feedback 
     };
     compilerSocket.emit("open_terminal", data);
   },
-  handleNext: () => {
-    const { currentExercisePosition, handlePositionChange } = get();
-    handlePositionChange(Number(currentExercisePosition) + 1);
-  },
 
   getSyllabus: async () => {
     const { environment } = get();
@@ -1145,8 +1137,6 @@ The user's set up the application in "${language}" language, give your feedback 
       setPosition,
       isTesteable,
       runExerciseTests,
-      // checkExerciseAvailability,
-      // setOpenedModals,
     } = get();
 
     if (!configObject || !configObject.config) {

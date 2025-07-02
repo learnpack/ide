@@ -2,7 +2,7 @@
 import io from "socket.io-client";
 
 const messages = {
-  us: {
+  en: {
     testing: "Testing your code...",
     initializing: "Setting up the coding environment",
     compiling: "Building your code...",
@@ -94,7 +94,7 @@ const messages = {
   },
 };
 
-export const getStatus = function (status = "initializing", language = "us") {
+export const getStatus = function (status = "initializing", language = "en") {
   const goodIcons = ["🤩", "🙂", "😃", "😎", "🤓", "😍", "🤗", "👌🏽", "✅"];
   const badIcons = [
     "🤮",
@@ -119,11 +119,11 @@ export const getStatus = function (status = "initializing", language = "us") {
   const getBadIcon = () =>
     badIcons[Math.floor(Math.random() * badIcons.length)];
 
-  const good = (lang = "us") => {
+  const good = (lang = "en") => {
     const goodMessages = messages[lang].goodMessages;
     return `${goodMessages[Math.floor(Math.random() * goodMessages.length)]}`;
   };
-  const bad = (lang = "us") => {
+  const bad = (lang = "en") => {
     const badMessage = messages[lang].badMessages;
     return `${badMessage[Math.floor(Math.random() * badMessage.length)]}`;
   };

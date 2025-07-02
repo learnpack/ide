@@ -8,6 +8,7 @@ import {
   TokenExpiredError,
   getSlugFromPath,
   DEV_MODE,
+  getReadmeExtension,
 } from "../utils/lib";
 import { TEnvironment } from "./EventProxy";
 import frontMatter from "front-matter";
@@ -16,6 +17,7 @@ import TelemetryManager from "./telemetry";
 import toast from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
 import { TSidebar } from "../utils/storeTypes";
+import { fixLang } from "../components/sections/header/LanguageButton";
 // import axios from "axios";
 
 // Correct the type definition for TMethods
@@ -68,14 +70,15 @@ export const FetchManager = {
   },
 
   getReadme: async (slug: string, language: string) => {
+    const fixedLanguage = fixLang(language);
     const exerciseSlug = getSlugFromPath();
     let url =
       FetchManager.ENVIRONMENT === "localhost" ||
       FetchManager.ENVIRONMENT === "creatorWeb"
-        ? `${FetchManager.HOST}/exercise/${slug}/readme?lang=${language}${
+        ? `${FetchManager.HOST}/exercise/${slug}/readme?lang=${fixedLanguage}${
             exerciseSlug ? `&slug=${exerciseSlug}` : ""
           }`
-        : `/exercises/${slug}/README.${language === "us" ? "" : "es."}md`;
+        : `/exercises/${slug}/README.${fixedLanguage === "en" ? "" : "es."}md`;
 
     const response = await fetch(url);
 
@@ -540,9 +543,9 @@ export const FetchManager = {
   replaceReadme: async (slug: string, language: string, newReadme: string) => {
     const methods: TMethods = {
       localhost: async () => {
-        const url = `${FetchManager.HOST}/exercise/${slug}/file/README.${
-          language === "us" ? "" : "es."
-        }md`;
+        const url = `${
+          FetchManager.HOST
+        }/exercise/${slug}/file/README${getReadmeExtension(language)}`;
         const res = await fetch(url, {
           method: "PUT",
           body: newReadme,
@@ -559,9 +562,11 @@ export const FetchManager = {
       },
       creatorWeb: async () => {
         const exerciseSlug = getSlugFromPath();
-        const url = `${FetchManager.HOST}/exercise/${slug}/file/README.${
-          language === "us" ? "" : "es."
-        }md?slug=${exerciseSlug}`;
+        const url = `${
+          FetchManager.HOST
+        }/exercise/${slug}/file/README${getReadmeExtension(
+          language
+        )}?slug=${exerciseSlug}`;
         const res = await fetch(url, {
           method: "PUT",
           body: newReadme,
