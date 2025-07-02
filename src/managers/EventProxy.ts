@@ -1,8 +1,10 @@
+import axios from "axios";
 import toast from "react-hot-toast";
 import { compileHTML, compileReactHTML } from "../utils/compileHTML";
 import {
   disconnected,
   getHost,
+  getSlugFromPath,
   onConnectCli,
   reportDataLayer,
   RIGOBOT_HOST,
@@ -11,6 +13,7 @@ import { FetchManager } from "./fetchManager";
 import { LocalStorage } from "./localStorage";
 import Socket from "./socket";
 import { RigoAI } from "../components/Rigobot/AI";
+import { DEV_MODE } from "../utils/lib";
 
 export type TEnvironment = "localhost" | "localStorage" | "creatorWeb";
 
@@ -276,7 +279,6 @@ localStorageEventEmitter.on("build", async (data) => {
             from: "build",
             status: "ready",
           };
-
 
           data.updateEditorTabs(terminalTab);
         }
@@ -601,4 +603,42 @@ export const suggestExamples = (
     token,
     inputs
   ) as Promise<TSuggestExamplesOutputs>;
+};
+
+type TFixLessonInputs = {
+  lesson_content: string;
+  found_errors: string;
+};
+
+export const fixLesson = async (
+  token: string,
+  inputs: TFixLessonInputs,
+  exerciseSlug: string,
+  language: string
+) => {
+  const randomId = Math.random().toString(36).substring(2, 15);
+  const slug = getSlugFromPath();
+  const webhookUrl = `${
+    DEV_MODE
+      ? "https://9cw5zmww-3000.use2.devtunnels.ms"
+      : window.location.origin
+  }/webhooks/${slug}/${exerciseSlug}/${language}/update-readme/${randomId}`;
+  const res = await axios.post(
+    `${RIGOBOT_HOST}/v1/prompting/completion/fix-lesson-math-and-mermaid/`,
+    {
+      inputs: inputs,
+      include_purpose_objective: false,
+      execute_async: true,
+      webhook_url: webhookUrl,
+    },
+    {
+      headers: {
+        Authorization: "Token " + token,
+      },
+    }
+  );
+  return {
+    notificationId: randomId,
+    response: res,
+  };
 };

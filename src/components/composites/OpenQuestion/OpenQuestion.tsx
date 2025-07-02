@@ -47,14 +47,14 @@ export const Question = ({
     mode,
     currentExercisePosition,
     registerTelemetryEvent,
-    currentContent,
+    
   } = useStore((state) => ({
     token: state.token,
     replaceInReadme: state.replaceInReadme,
     mode: state.mode,
     currentExercisePosition: state.currentExercisePosition,
     registerTelemetryEvent: state.registerTelemetryEvent,
-    currentContent: state.currentContent,
+    // currentContent: state.currentContent,
   }));
 
   const [feedback, setFeedback] = useState<TFeedback | null>(null);
@@ -80,12 +80,7 @@ export const Question = ({
   }, [metadata.eval]);
 
   const register = async () => {
-    console.log(
-      "registering in open question for step",
-      currentExercisePosition,
-      "and content",
-      currentContent
-    );
+
 
     const hash = await asyncHashText(metadata.eval as string);
     hashRef.current = hash;
