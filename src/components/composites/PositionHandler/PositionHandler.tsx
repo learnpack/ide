@@ -27,8 +27,8 @@ const ValidationModal = ({
         </div>
         <div className="flex-x gap-small justify-center">
           <SimpleButton
-            text={t("skip")}
-            svg={svgs.redClose}
+            text={t("continueAnyway")}
+            svg={svgs.nextArrowButton}
             extraClass="padding-small border-gray rounded"
             action={onSkip}
           />
