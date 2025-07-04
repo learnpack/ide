@@ -2,11 +2,22 @@ require('dotenv').config()
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3")
 const fs = require('fs')
 const path = require('path')
+const prompt = require('prompt-sync')({ sigint: true })
+
 
 // Get the version from the package.json
 let version = require('../../package.json').version
 // Kepp only the first part of the version
 version = version.split('.')[0]
+
+// Ask user for tag
+let tag = ''
+while (!['latest', 'next'].includes(tag)) {
+    tag = prompt('¿A qué tag quieres subir los archivos? (latest/next): ').trim().toLowerCase()
+    if (!['latest', 'next'].includes(tag)) {
+        console.log('Por favor, escribe "latest" o "next".')
+    }
+}
 
 // Initialize S3 Client
 const s3Client = new S3Client({
@@ -56,13 +67,18 @@ function findBuildFiles(startPath) {
     return results
 }
 
+const makeFileUrl = (fileName) => {
+    const fileUrl = `https://${process.env.CLOUDFRONT_DOMAIN}/${fileName}`
+    return fileUrl
+}
+
 async function uploadToS3(filePath, fileName, contentType) {
     try {
         const fileContent = fs.readFileSync(filePath)
 
         const uploadParams = {
             Bucket: process.env.BUCKET_NAME,
-            Key: `learnpack/v${version}/${fileName}`,
+            Key: fileName,
             Body: fileContent,
             ContentType: contentType,
             Metadata: {
@@ -79,8 +95,7 @@ async function uploadToS3(filePath, fileName, contentType) {
         const command = new PutObjectCommand(uploadParams)
         await s3Client.send(command)
 
-        // const fileUrl = `https://${process.env.BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/learnpack/v${version}/${fileName}`
-        const fileUrl = `https://${process.env.CLOUDFRONT_DOMAIN}/learnpack/v${version}/${fileName}`
+        const fileUrl = makeFileUrl(fileName)
 
         console.log(`✅ File ${fileName} uploaded successfully`)
         console.log(`📂 URL: ${fileUrl}`)
@@ -94,7 +109,7 @@ async function uploadToS3(filePath, fileName, contentType) {
 
 
 
-async function modifyHTML(jsUrl, cssUrl) {
+async function modifyHTML() {
     try {
         const htmlPath = path.resolve(__dirname, '..', '..', 'dist', 'index.html')
         let htmlContent = fs.readFileSync(htmlPath, 'utf8')
@@ -111,17 +126,34 @@ async function modifyHTML(jsUrl, cssUrl) {
     <!-- Injected by deployment script - Resistance to caching is futile! -->
     <script>
         (function() {
+
+            const cloudFrontDomain = "${process.env.CLOUDFRONT_DOMAIN}"
+
+            function getIdeVersion() {
+                try {
+                    if (typeof window === 'undefined' || typeof window.location === 'undefined') return "latest";
+                    const params = new URLSearchParams(window.location.search);
+                    return params.get('ideVersion') === 'next' ? 'next' : 'latest';
+                } catch (e) {
+                    return "latest";
+                }
+            }
+
+            const ideVersion = getIdeVersion()
+            const cssUrl = "https://" + cloudFrontDomain + "/learnpack/" + ideVersion + "/app.css"
+            const jsUrl = "https://" + cloudFrontDomain + "/learnpack/" + ideVersion + "/app.js"
+
             // Add CSS
             const link = document.createElement('link');
             link.rel = 'stylesheet';
-            link.href = "${cssUrl}?v=" + Date.now();
+            link.href = cssUrl + "?v=" + Date.now();
             document.head.appendChild(link);
 
             // Add JavaScript
             const script = document.createElement('script');
             script.type = 'module';
             script.crossOrigin = 'anonymous';
-            script.src = "${jsUrl}?v=" + Date.now();
+            script.src = jsUrl + "?v=" + Date.now();
             document.body.appendChild(script);
         })();
     </script>
@@ -162,18 +194,21 @@ async function processFiles() {
         console.log('\n📤 Starting upload process...')
 
         // Upload both files
-        const [jsUrl, cssUrl] = await Promise.all([
-            uploadToS3(files.jsPath, 'app.js', 'application/javascript'),
-            uploadToS3(files.cssPath, 'app.css', 'text/css')
+        const [jsUrl, cssUrl, jsUrlTag, cssUrlTag] = await Promise.all([
+            uploadToS3(files.jsPath, `learnpack/v${version}/app.js`, 'application/javascript'),
+            uploadToS3(files.cssPath, `learnpack/v${version}/app.css`, 'text/css'),
+            uploadToS3(files.jsPath, `learnpack/${tag}/app.js`, 'application/javascript'),
+            uploadToS3(files.cssPath, `learnpack/${tag}/app.css`, 'text/css')
         ])
 
         console.log('\n🎉 Upload Summary:')
         console.log('-------------')
         console.log('JavaScript URL:', jsUrl)
         console.log('CSS URL:', cssUrl)
+        console.log(`JavaScript URL (${tag}):`, jsUrlTag)
+        console.log(`CSS URL (${tag}):`, cssUrlTag)
 
-        // Modify HTML with new URLs
-        await modifyHTML(jsUrl, cssUrl)
+        await modifyHTML()
 
         return { jsUrl, cssUrl }
     } catch (error) {
