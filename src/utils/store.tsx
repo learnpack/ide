@@ -1256,6 +1256,19 @@ The user's set up the application in "${language}" language, give your feedback 
     }
 
     setBuildButtonPrompt(buildText, "");
+    if (
+      environment === "localStorage" &&
+      !(
+        userConsumables.ai_compilation > 0 ||
+        userConsumables.ai_compilation === -1
+      )
+    ) {
+      setOpenedModals({ limitReached: true });
+      reportEnrichDataLayer("learnpack_consumable_depleted ", {
+        service_slug: "ai_compilation",
+      });
+      return;
+    }
 
     toastFromStatus("compiling");
 
@@ -1727,6 +1740,8 @@ The user's set up the application in "${language}" language, give your feedback 
       return false;
     }
 
+    console.log(userConsumables, "User consumables, using:", consumableSlug);
+
     const consumableKey =
       consumableSlug === "ai-conversation-message"
         ? "ai_conversation_message"
@@ -1767,6 +1782,7 @@ The user's set up the application in "${language}" language, give your feedback 
       return;
     }
     const consumables = await getConsumables(bc_token);
+    console.log(consumables, "Consumables");
     const ai_compilation = countConsumables(consumables, "ai-compilation");
     const ai_conversation_message = countConsumables(
       consumables,

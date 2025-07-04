@@ -79,9 +79,11 @@ interface ILanguageDropdown {
   toggleDrop: () => void;
 }
 
-export const fixLang = (lang: string) => {
-  if (lang === "us") return "en";
-  return lang;
+export const fixLang = (lang: string, environment: string) => {
+  if (lang === "us" && environment === "creatorWeb") return "en";
+  else {
+    return lang;
+  }
 };
 
 const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
@@ -106,11 +108,12 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
   const languages = Object.keys(currentExercise.translations);
 
   const changeLanguage = (lang: string) => {
+    if (lang === "us") lang = "en";
     i18n.changeLanguage(lang);
   };
 
   const setLang = (lang: string) => {
-    const fixedLang = fixLang(lang);
+    const fixedLang = fixLang(lang, environment);
     setLanguage(fixedLang);
     changeLanguage(fixedLang);
     toggleDrop();

@@ -5,7 +5,11 @@ import { useTranslation } from "react-i18next";
 
 export default function SocketDisconnectionModal() {
   return (
-    <Modal blockScroll={false} outsideClickHandler={() => {}} htmlId="socket-disconnected">
+    <Modal
+      blockScroll={false}
+      outsideClickHandler={() => {}}
+      htmlId="socket-disconnected"
+    >
       <Header />
       <Content />
     </Modal>
@@ -49,7 +53,7 @@ const Step = (props: TStep) => {
   );
 };
 
-const Steps = () => {
+const VscodeSteps = () => {
   const { t } = useTranslation();
   const steps = [
     {
@@ -95,7 +99,7 @@ const Content = () => {
       <p>
         {t("The basic steps to troubleshoot this error are the following:")}
       </p>
-      <Steps />
+      <VscodeSteps />
     </div>
   );
 };

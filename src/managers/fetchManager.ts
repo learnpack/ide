@@ -70,7 +70,7 @@ export const FetchManager = {
   },
 
   getReadme: async (slug: string, language: string) => {
-    const fixedLanguage = fixLang(language);
+    const fixedLanguage = fixLang(language, FetchManager.ENVIRONMENT);
     const exerciseSlug = getSlugFromPath();
     let url =
       FetchManager.ENVIRONMENT === "localhost" ||
