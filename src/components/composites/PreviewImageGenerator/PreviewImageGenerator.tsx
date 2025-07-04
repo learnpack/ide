@@ -55,10 +55,10 @@ const PreviewGenerator: React.FC = () => {
         html2canvas(previewElement, {
           useCORS: true,
         }).then(async (canvas) => {
-          //   const anchor = document.createElement("a");
-          //   anchor.href = canvas.toDataURL("image/png");
-          //   anchor.download = "preview.png";
-          //   anchor.click();
+          // const anchor = document.createElement("a");
+          // anchor.href = canvas.toDataURL("image/png");
+          // anchor.download = "preview.png";
+          // anchor.click();
           console.log("Canvas created!");
 
           canvas.toBlob(async (blob) => {
@@ -108,8 +108,7 @@ const PreviewGenerator: React.FC = () => {
         background: "white",
         position: "fixed",
         top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
+        left: "100%",
       }}
     >
       <div

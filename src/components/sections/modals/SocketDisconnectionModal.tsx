@@ -2,6 +2,9 @@ import SimpleButton from "../../mockups/SimpleButton";
 
 import { Modal } from "../../mockups/Modal";
 import { useTranslation } from "react-i18next";
+import useStore from "../../../utils/store";
+import { createBugReportUrl, getSlugFromPath } from "../../../utils/lib";
+import { svgs } from "../../../assets/svgs";
 
 export default function SocketDisconnectionModal() {
   return (
@@ -18,9 +21,17 @@ export default function SocketDisconnectionModal() {
 
 const Header = () => {
   const { t } = useTranslation();
+  const environment = useStore((state) => state.environment);
   return (
     <div>
-      <h1 className="text-center">{t("Socket disconnected!")}</h1>
+      <h1 className="d-flex align-center gap-small justify-center big-svg">
+        {svgs.sadRigo}
+        <span>
+          {environment === "localhost"
+            ? t("Socket disconnected!")
+            : t("we-had-a-problem")}
+        </span>
+      </h1>
     </div>
   );
 };
@@ -93,13 +104,40 @@ const VscodeSteps = () => {
 
 const Content = () => {
   const { t } = useTranslation();
+  const environment = useStore((state) => state.environment);
   return (
     <div>
-      <p>{t("Sorry, this error can happen for certain reasons.")}</p>
-      <p>
-        {t("The basic steps to troubleshoot this error are the following:")}
-      </p>
-      <VscodeSteps />
+      {environment === "localhost" ? (
+        <>
+          <p>{t("Sorry, this error can happen for certain reasons.")}</p>
+          <p>
+            {t("The basic steps to troubleshoot this error are the following:")}
+          </p>
+          <VscodeSteps />
+        </>
+      ) : (
+        <>
+          <p>{t("we-didnt-find-the-tutorial")}</p>
+          {environment === "creatorWeb" && (
+            <p>{t("make-sure-you-are-the-author-of-the-course")}</p>
+          )}
+          <SimpleButton
+            extraClass="bg-blue-rigo pill centered text-white"
+            action={() => {
+              window.open(
+                createBugReportUrl(
+                  "Initial",
+                  getSlugFromPath() || "No slug available",
+                  "error-on-startup. Environment: " + environment
+                ),
+                "_blank"
+              );
+            }}
+            text={t("report-bug")}
+            svg={svgs.warning}
+          />
+        </>
+      )}
     </div>
   );
 };

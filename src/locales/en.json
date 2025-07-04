@@ -221,7 +221,7 @@
     "insertAfter": "Insert after",
     "pleaseEnterAnAnswer": "Please enter an answer",
     "yourAnswerNeedsImprovement": "Your answer needs some improvements",
-    "thisIsANewElement": "This is a new element, click on the action box to fill it automatically or manually",
+    "thisIsANewElement": "```new\n\nThis is a new element, click on the action box to fill it automatically or manually\n\n```",
     "requestChanges": "Request changes",
     "requestChangesPlaceholder": "Write your prompt here",
     "editAsMarkdown": "Manually edit as Markdown",
@@ -311,5 +311,9 @@
     "stay-here": "Stay here",
     "skip-and-continue": "Skip and continue",
     "loading": "Loading...",
-    "continueAnyway": "Continue anyway"
+    "continueAnyway": "Continue anyway",
+    "we-didnt-find-the-tutorial": "We didn't find the tutorial, please contact support.",
+    "we-had-a-problem": "Whoops! We had a problem",
+    "report-bug": "Report incident",
+    "make-sure-you-are-the-author-of-the-course": "Make sure you are the author of the course"
 }

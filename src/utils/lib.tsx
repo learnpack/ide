@@ -535,3 +535,31 @@ export const generateImage = async (
     return null;
   }
 };
+
+/**
+ * Crea la URL para reportar un bug en GitHub.
+ * @param {string} lessonTitle - Título de la lección.
+ * @param {string} exerciseSlug - Slug del ejercicio (opcional).
+ * @param {string} errorLog - Log de error o información adicional.
+ * @returns {string} URL lista para abrir en el navegador.
+ */
+export function createBugReportUrl(
+  lessonTitle: string,
+  exerciseSlug: string = "",
+  errorLog: string = ""
+) {
+  let defaultTitle = "Bug";
+  if (exerciseSlug) defaultTitle = `Bug in ${exerciseSlug}`;
+
+  const body =
+    `Lesson: ${lessonTitle}\n\n` +
+    `Explain the problem\n\n` +
+    `Provide an image or example of the problem\n\n` +
+    (errorLog ? `Error log:\n${errorLog}\n` : "");
+
+  const url = `https://github.com/learnpack/learnpack/issues/new?assignees=&labels=&projects=&template=bug_report.md&title=${encodeURIComponent(
+    defaultTitle
+  )}&body=${encodeURIComponent(body)}`;
+
+  return url;
+}

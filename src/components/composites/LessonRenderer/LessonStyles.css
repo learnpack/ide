@@ -125,9 +125,8 @@
 .rigo-input {
   border-radius: 5px;
   font-size: 16px;
-
   padding: 5px;
-  width: min(600px, 90vw) !important;
+  width: min(600px, 90vw);
   display: flex;
   align-items: center;
   gap: 5px;

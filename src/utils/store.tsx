@@ -1866,45 +1866,7 @@ The user's set up the application in "${language}" language, give your feedback 
     return sidebar;
   },
   test: async () => {
-    const { configObject } = get();
-    // Notifier.success("Succesfully tested");
-
-    // console.log(token, "Token");
-    // set({ token: "123456" });
-    // toast.success("Token fucked");
-    // setOpenedModals({ testStruggles: true });
-    // await FetchManager.logout();
-    const isGeneratingText = `
-\`\`\`loader slug="01-some-title"
-\`\`\`
-    `;
-    set({ currentContent: isGeneratingText });
-
-    setTimeout(async () => {
-      const res = await fetch(
-        `http://localhost:3000/test/${configObject.config.slug}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      console.log(res);
-    }, 3000);
-
-    // await fetchExercises();
-    // try {
-    //   await validateRigobotToken(token);
-    //   toast.success("Token is valid");
-    // } catch (error) {
-    //   if (error instanceof TokenExpiredError) {
-    //     toast.error("Token expired, please login again!");
-    //   }
-    // }
-    // console.log(TelemetryManager.current);
-    // setOpenedModals({ limitReached: true });
+    disconnected();
   },
 
   addVideoTutorial: async (videoTutorial: string) => {

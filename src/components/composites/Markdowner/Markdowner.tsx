@@ -372,15 +372,15 @@ const CustomCodeBlock = ({
   wholeMD: string;
   node: any;
 }) => {
-  const { getCurrentExercise, isIframe, token, agent, isCreator } = useStore(
-    (state) => ({
+  const { getCurrentExercise, isIframe, token, agent, isCreator, mode } =
+    useStore((state) => ({
       getCurrentExercise: state.getCurrentExercise,
       isIframe: state.isIframe,
       token: state.token,
       agent: state.agent,
       isCreator: state.isCreator,
-    })
-  );
+      mode: state.mode,
+    }));
 
   const { t } = useTranslation();
   const [executionResult, setExecutionResult] = useState<string | null>(null);
@@ -415,6 +415,12 @@ const CustomCodeBlock = ({
 
   if (language === "loader") {
     return <RealtimeLesson />;
+  }
+
+  if (language === "new") {
+    if (isCreator && mode === "creator") {
+      return <CreatorWrapper node={node} tagName="new" />;
+    } else return null;
   }
 
   const metadataComponents = {

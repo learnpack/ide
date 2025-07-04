@@ -227,7 +227,7 @@
     "insertAfter": "Insertar después",
     "pleaseEnterAnAnswer": "Por favor ingresa una respuesta",
     "yourAnswerNeedsImprovement": "Tu respuesta necesita algunas mejoras",
-    "thisIsANewElement": "Este es un nuevo elemento, haz click en la caja de acción para llenarlo automáticamente o manualmente",
+    "thisIsANewElement": "```new\n\nEste es un nuevo elemento, haz click en la caja de acción para llenarlo automáticamente o manualmente\n\n```",
     "requestChanges": "Solicitar cambios",
     "requestChangesPlaceholder": "Escribe tu prompt aquí",
     "editAsMarkdown": "Editar manualmente como Markdown",
@@ -319,5 +319,9 @@
     "stay-here": "Quedarse aquí",
     "skip-and-continue": "Saltar y continuar",
     "loading": "Cargando...",
-    "continueAnyway": "Continuar de todas formas"
+    "continueAnyway": "Continuar de todas formas",
+    "we-didnt-find-the-tutorial": "No encontramos el    tutorial, por favor contacta al soporte.",
+    "we-had-a-problem": "¡Ups! Tenemos un problema",
+    "report-bug": "Reportar incidente",
+    "make-sure-you-are-the-author-of-the-course": "Asegúrate de ser el autor del curso"
 }

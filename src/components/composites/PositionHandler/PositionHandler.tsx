@@ -46,11 +46,13 @@ const ValidationModal = ({
 
 export const PositionHandler = () => {
   const handlePositionChange = useStore((s) => s.handlePositionChange);
+  const mode = useStore((s) => s.mode);
 
   const currentExercisePosition = useStore((s) => s.currentExercisePosition);
   const [shouldValidate, setShouldValidate] = useState(false);
   const desiredPosition = useRef(0);
   const currentExercisePositionRef = useRef(Number(currentExercisePosition));
+  const currentModeRef = useRef(mode);
 
   useEffect(() => {
     eventBus.on("position_change", (event) => {
@@ -63,11 +65,15 @@ export const PositionHandler = () => {
     currentExercisePositionRef.current = Number(currentExercisePosition);
   }, [currentExercisePosition]);
 
+  useEffect(() => {
+    currentModeRef.current = mode;
+  }, [mode]);
+
   const handler = () => {
     const result = TelemetryManager.hasPendingTasks(
       Number(currentExercisePositionRef.current)
     );
-    if (result) {
+    if (result && currentModeRef.current !== "creator") {
       setShouldValidate(true);
       return;
     } else {

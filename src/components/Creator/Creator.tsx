@@ -42,7 +42,7 @@ export const CreatorWrapper = ({
   tagName,
   node,
 }: {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   tagName: string;
   node: Element | undefined;
 }) => {
@@ -55,13 +55,11 @@ export const CreatorWrapper = ({
   );
 
   const [isOpen, setIsOpen] = useState(false);
-  // const [showButtons, setShowButtons] = useState(false);
   const [replacementValue, setReplacementValue] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [prompt, setPrompt] = useState("");
   const [interactions, setInteractions] = useState<TInteraction[]>([]);
   const [isEditingAsMarkdown, setIsEditingAsMarkdown] = useState(false);
-
+  
   const elemRef = useRef<HTMLDivElement>(null);
   const optionsRef = useRef<HTMLDivElement>(null);
   const targetRef = useRef<HTMLDivElement>(null);
@@ -231,7 +229,7 @@ export const CreatorWrapper = ({
         inputs: {
           prompt: question,
           whole_lesson: currentContent,
-          text_selected: elementText,
+          text_selected: tagName === "new" ? "empty" : elementText,
           prev_interactions: JSON.stringify(interactions),
         },
         target: targetRef.current,
@@ -402,29 +400,7 @@ export const CreatorWrapper = ({
       />
       {isOpen && (
         <div ref={optionsRef} className="creator-options">
-          <div className={`rigo-input`}>
-            <SimpleButton
-              svg={svgs.rigoSoftBlue}
-              action={() => askAIAnything(prompt)}
-              extraClass={"big-circle rigo-button"}
-            />
-            <AutoResizeTextarea
-              placeholder={t("editWithRigobotPlaceholder")}
-              autoFocus
-              className="rigo-textarea"
-              onKeyUp={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  askAIAnything(prompt);
-                }
-              }}
-              minHeight={60}
-              defaultValue={prompt}
-              onChange={(e) => {
-                setPrompt(e.target.value);
-              }}
-            />
-          </div>
+          {tagName !== "new" && <RigoInput onSubmit={askAIAnything} />}
           <div className="flex-y gap-small creator-options-buttons">
             {promps
               .filter((prompt) => {
@@ -468,16 +444,18 @@ export const CreatorWrapper = ({
                   </div>
                 ) : null
               )}
-            <SimpleButton
-              extraClass=" text-secondary  rounded padding-small active-on-hover svg-blue"
-              action={() => {
-                setIsEditingAsMarkdown(!isEditingAsMarkdown);
-                setReplacementValue(getPortion());
-                setIsOpen(false);
-              }}
-              svg={svgs.edit}
-              text={t("editAsMarkdown")}
-            />
+            {tagName !== "new" && (
+              <SimpleButton
+                extraClass=" text-secondary  rounded padding-small active-on-hover svg-blue"
+                action={() => {
+                  setIsEditingAsMarkdown(!isEditingAsMarkdown);
+                  setReplacementValue(getPortion());
+                  setIsOpen(false);
+                }}
+                svg={svgs.edit}
+                text={t("editAsMarkdown")}
+              />
+            )}
             <ImageUploader
               onFinish={async (imgRelPath) => {
                 if (node?.position?.start && node?.position?.end) {
@@ -525,6 +503,9 @@ export const CreatorWrapper = ({
           extraClass="creator-options-opener svg-blue active-on-hover"
           action={() => setIsOpen(!isOpen)}
         />
+        {tagName === "new" && (
+          <RigoInput width="100%" onSubmit={askAIAnything} />
+        )}
         {isEditingAsMarkdown ? (
           <AutoResizeTextarea
             defaultValue={getPortion()}
@@ -766,6 +747,42 @@ const ImageGenerator = ({
           }}
         />
       )}
+    </div>
+  );
+};
+
+const RigoInput = ({
+  onSubmit,
+  width,
+}: {
+  onSubmit: (prompt: string) => void;
+  width?: string;
+}) => {
+  const [prompt, setPrompt] = useState("");
+  const { t } = useTranslation();
+  return (
+    <div className={`rigo-input`} style={{ width: width }}>
+      <SimpleButton
+        svg={svgs.rigoSoftBlue}
+        action={() => onSubmit(prompt)}
+        extraClass={"big-circle rigo-button"}
+      />
+      <AutoResizeTextarea
+        placeholder={t("editWithRigobotPlaceholder")}
+        autoFocus
+        className="rigo-textarea"
+        onKeyUp={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            onSubmit(prompt);
+          }
+        }}
+        minHeight={60}
+        defaultValue={prompt}
+        onChange={(e) => {
+          setPrompt(e.target.value);
+        }}
+      />
     </div>
   );
 };
