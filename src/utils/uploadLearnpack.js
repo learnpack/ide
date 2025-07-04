@@ -193,24 +193,40 @@ async function processFiles() {
 
         console.log('\n📤 Starting upload process...')
 
-        // Upload both files
-        const [jsUrl, cssUrl, jsUrlTag, cssUrlTag] = await Promise.all([
-            uploadToS3(files.jsPath, `learnpack/v${version}/app.js`, 'application/javascript'),
-            uploadToS3(files.cssPath, `learnpack/v${version}/app.css`, 'text/css'),
+        let uploads = []
+        if (tag === "latest") {
+            const [jsUrl, cssUrl] = await Promise.all([
+                uploadToS3(files.jsPath, `learnpack/v${version}/app.js`, 'application/javascript'),
+                uploadToS3(files.cssPath, `learnpack/v${version}/app.css`, 'text/css'),
+            ])
+            uploads.push({
+                name: "versioned",
+                url: jsUrl
+            }, {
+                name: "versioned",
+                url: cssUrl
+            })
+        }
+        const [jsUrlTag, cssUrlTag] = await Promise.all([
             uploadToS3(files.jsPath, `learnpack/${tag}/app.js`, 'application/javascript'),
             uploadToS3(files.cssPath, `learnpack/${tag}/app.css`, 'text/css')
         ])
+        uploads.push({
+            name: "tag",
+            url: jsUrlTag
+        }, {
+            name: "tag",
+            url: cssUrlTag
+        })
 
         console.log('\n🎉 Upload Summary:')
         console.log('-------------')
-        console.log('JavaScript URL:', jsUrl)
-        console.log('CSS URL:', cssUrl)
-        console.log(`JavaScript URL (${tag}):`, jsUrlTag)
-        console.log(`CSS URL (${tag}):`, cssUrlTag)
+        uploads.forEach((upload) => {
+            console.log(`${upload.name}: ${upload.url}`)
+        })
 
         await modifyHTML()
 
-        return { jsUrl, cssUrl }
     } catch (error) {
         console.error('\n❌ Fatal Error:', error.message)
         process.exit(1)
