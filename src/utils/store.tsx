@@ -411,6 +411,7 @@ const useStore = create<IStore>((set, get) => ({
       if (params.token) {
         set({ bc_token: params.token });
         json = await FetchManager.loginWithToken(params.token);
+        console.log("json login with token", json);
         set({ token: json.rigoToken });
         set({ user: json.user });
         setTimeout(() => {
@@ -418,6 +419,7 @@ const useStore = create<IStore>((set, get) => ({
         }, 10000);
       } else {
         json = await FetchManager.checkLoggedStatus();
+        console.log("json checking logged status", json);
         set({ token: json.rigoToken });
         set({ bc_token: json.payload.token });
         set({ user: json.user });
@@ -1380,10 +1382,8 @@ The user's set up the application in "${language}" language, give your feedback 
     }
 
     try {
-      console.log(configObject, "configObject");
-
+      console.log("getting session", token, configObject.config.slug);
       const session = await getSession(token, configObject.config.slug);
-      console.log(session, "session");
 
       if (!session.tab_hash) {
         await updateSession(
