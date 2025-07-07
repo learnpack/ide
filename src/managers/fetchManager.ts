@@ -78,7 +78,7 @@ export const FetchManager = {
         ? `${FetchManager.HOST}/exercise/${slug}/readme?lang=${fixedLanguage}${
             exerciseSlug ? `&slug=${exerciseSlug}` : ""
           }`
-        : `/exercises/${slug}/README.${fixedLanguage === "en" ? "" : "es."}md`;
+        : `/exercises/${slug}/README${getReadmeExtension(fixedLanguage)}`;
 
     const response = await fetch(url);
 
