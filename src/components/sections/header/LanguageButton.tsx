@@ -32,6 +32,14 @@ const svgsLanguageMap: Record<string, JSX.Element> = {
   th: <img src="https://flagcdn.com/w40/th.png" alt="Thai" />,
 };
 
+const shouldChangeLanguage = (language: string, languages: string[]) => {
+  if (language === "us" || language === "en") {
+    const anyEnglish = languages.some((l) => l === "en" || l === "us");
+    return !anyEnglish;
+  }
+  return !languages.includes(language);
+};
+
 export default function LanguageButton() {
   const { language, getCurrentExercise, setLanguage, exercises } = useStore(
     (state) => ({
@@ -53,9 +61,15 @@ export default function LanguageButton() {
 
     if (!ex || !ex.translations) return;
 
+    console.log(ex, "ex obtained in language button");
+
     const languages = Object.keys(ex.translations);
 
-    if (language && languages.length > 0 && !languages.includes(language)) {
+    if (
+      language &&
+      languages.length > 0 &&
+      shouldChangeLanguage(language, languages)
+    ) {
       const firstLanguage = languages[0];
       setLanguage(firstLanguage);
     }

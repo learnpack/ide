@@ -538,8 +538,6 @@ The user's set up the application in "${language}" language, give your feedback 
       const config = await FetchManager.getExercises(token);
       if (!config) return;
 
-      // console.debug("AUTHENTICATION", config.config.authentication);
-
       if (
         config.config.authentication &&
         config.config.authentication.mandatory
