@@ -651,7 +651,7 @@ The user's set up the application in "${language}" language, give your feedback 
         }
       },
       token: (value: string) => {
-        set({ token: value });
+        set({ bc_token: value });
       },
     };
 
@@ -1305,6 +1305,7 @@ The user's set up the application in "${language}" language, give your feedback 
       currentContent,
     } = get();
 
+    console.log("tokens runnin tests", token, bc_token);
     if (!Boolean(token) || !Boolean(bc_token)) {
       setOpenedModals({ mustLogin: true });
       return;
@@ -1332,7 +1333,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
     const data = {
       exerciseSlug: getCurrentExercise().slug,
-      token: token,
+      token,
       updateEditorTabs,
       editorTabs,
       submittedInputs,
