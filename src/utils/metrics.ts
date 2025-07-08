@@ -317,7 +317,7 @@ export function calculateTestMetrics(
       ? step.quiz_submissions.find((s) => s.quiz_hash === hash)?.submitted_at ||
         step.opened_at ||
         0
-      : step.tests.shift()?.starting_at || step.opened_at || 0;
+      : step.tests.shift()?.started_at || step.opened_at || 0;
 
   const ended_at =
     element.type === "quiz"
@@ -325,12 +325,12 @@ export function calculateTestMetrics(
           ?.submitted_at ||
         step.completed_at ||
         1
-      : step.tests.shift()?.starting_at || step.completed_at || 1;
+      : step.tests.shift()?.started_at || step.completed_at || 1;
 
   const resolution_time_seconds = ended_at - started_at;
 
   const n_ai_interactions = step.ai_interactions.filter(
-    (a) => a.starting_at >= started_at && a.ending_at <= ended_at
+    (a) => a.started_at >= started_at && a.ended_at <= ended_at
   ).length;
 
   const n_tries =

@@ -61,8 +61,6 @@ export default function LanguageButton() {
 
     if (!ex || !ex.translations) return;
 
-    console.log(ex, "ex obtained in language button");
-
     const languages = Object.keys(ex.translations);
 
     if (

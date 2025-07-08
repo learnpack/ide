@@ -165,7 +165,7 @@ localStorageEventEmitter.on("build", async (data) => {
       });
       return;
     }
-    const starting_at = new Date().getTime();
+    const started_at = new Date().getTime();
 
     if (data.submittedInputs.length > 0) {
       data.submittedInputs.forEach((input: string, index: number) => {
@@ -187,15 +187,15 @@ localStorageEventEmitter.on("build", async (data) => {
         status: "ready",
       };
       data.updateEditorTabs(outputTab);
-      const ending_at = new Date().getTime();
+      const ended_at = new Date().getTime();
       localStorageEventEmitter.emitStatus("compiler-success", {
         htmlString: compiled,
         source_code: content,
         stdout: "",
         stderr: "",
         ai_required: false,
-        starting_at,
-        ending_at,
+        started_at,
+        ended_at,
       });
       return;
     }
@@ -215,15 +215,15 @@ localStorageEventEmitter.on("build", async (data) => {
       };
       data.updateEditorTabs(outputTab);
 
-      const ending_at = new Date().getTime();
+      const ended_at = new Date().getTime();
       localStorageEventEmitter.emitStatus("compiler-success", {
         htmlString: compiled,
         source_code: content,
         stdout: compiled,
         stderr: "",
         ai_required: false,
-        starting_at,
-        ending_at,
+        started_at,
+        ended_at,
       });
       return;
     }
@@ -245,7 +245,7 @@ localStorageEventEmitter.on("build", async (data) => {
 
         const json = rigoData.data.parsed;
         json.ai_required = true;
-        json.starting_at = starting_at;
+        json.started_at = started_at;
         const ended_at = new Date().getTime();
         json.ended_at = ended_at;
         if (json.exit_code > 0) {
@@ -410,7 +410,7 @@ localStorageEventEmitter.on("test", async (data) => {
     json.ended_at = ended_at;
     // const json = extractAndParseResult(dataRigobotReturns);
     json.source_code = JSON.stringify(inputs);
-    json.starting_at = starting_at;
+    json.started_at = starting_at;
 
     let terminalContent = "";
 

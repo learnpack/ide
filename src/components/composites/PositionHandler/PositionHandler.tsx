@@ -27,16 +27,16 @@ const ValidationModal = ({
         </div>
         <div className="flex-x gap-small justify-center">
           <SimpleButton
-            text={t("continueAnyway")}
-            svg={svgs.nextArrowButton}
-            extraClass="padding-small border-gray rounded"
-            action={onSkip}
-          />
-          <SimpleButton
             text={t("stay-here")}
             svg={svgs.downArrow}
             extraClass="padding-small bg-blue-rigo text-white rounded"
             action={onStayHere}
+          />
+          <SimpleButton
+            text={t("continueAnyway")}
+            svg={svgs.nextArrowButton}
+            extraClass="padding-small border-gray rounded"
+            action={onSkip}
           />
         </div>
       </div>

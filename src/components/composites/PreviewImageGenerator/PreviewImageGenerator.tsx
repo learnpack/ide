@@ -38,8 +38,6 @@ const PreviewGenerator: React.FC = () => {
     if (confi.config?.slug) {
       checkPreviewImage(confi.config?.slug).then((data) => {
         if (data.exists) {
-          console.log("Preview image already exists", data);
-
           setGeneratePreviewImage(false);
         } else {
           setGeneratePreviewImage(true);

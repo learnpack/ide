@@ -121,15 +121,15 @@ type TCompilationAttempt = {
   source_code: string;
   stdout: string;
   exit_code: number;
-  starting_at: number;
-  ending_at: number;
+  started_at: number;
+  ended_at: number;
 };
 
 export type TTestAttempt = {
   source_code: string;
   stdout: string;
   exit_code: number;
-  starting_at: number;
+  started_at: number;
   ended_at: number;
 };
 
@@ -142,12 +142,12 @@ type TTesteableElement = {
   metrics?: TTesteableElementMetrics;
 };
 
-type TAIInteraction = {
+export type TAIInteraction = {
   student_message: string;
   source_code: string;
   ai_response: string;
-  starting_at: number;
-  ending_at: number;
+  started_at: number;
+  ended_at: number;
 };
 
 export type TQuizSelection = {
@@ -188,6 +188,49 @@ type TStudent = {
   token: string;
   user_id: string;
   email: string;
+};
+
+const fixStepData = (data: any): any => {
+  let fixed = { ...data };
+
+  // Normaliza starting_at -> started_at
+  if (
+    typeof fixed.starting_at !== "undefined" &&
+    typeof fixed.started_at === "undefined"
+  ) {
+    fixed.started_at = fixed.starting_at;
+    delete fixed.starting_at;
+  }
+  // Normaliza ending_at -> ended_at
+  if (
+    typeof fixed.ending_at !== "undefined" &&
+    typeof fixed.ended_at === "undefined"
+  ) {
+    fixed.ended_at = fixed.ending_at;
+    delete fixed.ending_at;
+  }
+  // Fallback a timestamp actual si faltan campos
+  if (typeof fixed.started_at === "undefined") fixed.started_at = Date.now();
+  if (typeof fixed.ended_at === "undefined") fixed.ended_at = Date.now();
+
+  // Codifica en base64 los campos relevantes
+  if (fixed.source_code) {
+    fixed.source_code = stringToBase64(fixed.source_code);
+  }
+  if (fixed.stdout) {
+    fixed.stdout = stringToBase64(fixed.stdout);
+  }
+  if (fixed.stderr) {
+    fixed.stderr = stringToBase64(fixed.stderr);
+  }
+
+  // Corrige exitCode -> exit_code
+  if (Object.prototype.hasOwnProperty.call(fixed, "exitCode")) {
+    fixed.exit_code = fixed.exitCode;
+    fixed.exitCode = undefined;
+  }
+
+  return fixed;
 };
 
 export interface ITelemetryJSONSchema {
@@ -437,12 +480,8 @@ const TelemetryManager: ITelemetryManager = {
   },
 
   registerStepEvent: function (stepPosition, event, data) {
-    console.debug(
-      `Registering Telemetry Event ${event} for user ${this.user.id}`
-    );
 
     if (!this.current) {
-      //   toast.error(`Telemetry has not been started, ${event} NOT REGISTERED`);
       console.error(`Telemetry has not been started, ${event} NOT REGISTERED`);
       return;
     }
@@ -454,22 +493,7 @@ const TelemetryManager: ITelemetryManager = {
       return;
     }
 
-    if (data.source_code) {
-      data.source_code = stringToBase64(data.source_code);
-    }
-
-    if (data.stdout) {
-      data.stdout = stringToBase64(data.stdout);
-    }
-
-    if (data.stderr) {
-      data.stderr = stringToBase64(data.stderr);
-    }
-
-    if (Object.prototype.hasOwnProperty.call(data, "exitCode")) {
-      data.exit_code = data.exitCode;
-      data.exitCode = undefined;
-    }
+    data = fixStepData(data);
 
     switch (event) {
       case "compile":
@@ -563,7 +587,7 @@ const TelemetryManager: ITelemetryManager = {
 
   hasPendingTasks: function (stepPosition: number) {
     const step = this.current?.steps[stepPosition];
-    console.log("step", step, stepPosition);
+
     if (!step) {
       return false;
     }
@@ -597,7 +621,6 @@ const TelemetryManager: ITelemetryManager = {
 
     try {
       await sendBatchTelemetry(url, body, this.user.token);
-      console.debug("Telemetry submitted successfully for user", this.user.id);
     } catch (error) {
       console.error("Error submitting telemetry", error);
     }

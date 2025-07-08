@@ -346,8 +346,6 @@ type TDataLayerPayload = {
 };
 
 export const reportDataLayer = (payload: TDataLayerPayload) => {
-  console.debug(`Reporting data layer`, payload.dataLayer.event);
-  console.debug(payload);
   TagManager.dataLayer(payload);
 };
 

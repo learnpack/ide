@@ -419,7 +419,7 @@ const useStore = create<IStore>((set, get) => ({
         }, 10000);
       } else {
         json = await FetchManager.checkLoggedStatus();
-        console.log("json checking logged status", json);
+
         set({ token: json.rigoToken });
         set({ bc_token: json.payload.token });
         set({ user: json.user });
@@ -1019,7 +1019,6 @@ The user's set up the application in "${language}" language, give your feedback 
 
     const exercise = await FetchManager.getReadme(slug, language);
 
-    console.log(exercise, "Exercise from README");
     if (!exercise) return;
 
     if (exercise.error) {
@@ -1383,7 +1382,6 @@ The user's set up the application in "${language}" language, give your feedback 
     }
 
     try {
-      console.log("getting session", token, configObject.config.slug);
       const session = await getSession(token, configObject.config.slug);
 
       if (!session.tab_hash) {

@@ -15,16 +15,15 @@ import { Markdowner } from "../composites/Markdowner/Markdowner";
 import { formatInitialMessage, slugToTitle } from "./utils";
 import toast from "react-hot-toast";
 import { validateRigobotToken } from "../../managers/fetchManager";
+import { TAIInteraction } from "../../managers/telemetry";
 
-type TAIInteraction = {
-  student_message?: string;
-  starting_at?: number;
-  context?: string;
-  ai_response?: string;
-  ending_at?: number;
+let aiInteraction: TAIInteraction = {
+  student_message: "",
+  source_code: "",
+  ai_response: "",
+  started_at: 0,
+  ended_at: 0,
 };
-
-let aiInteraction: TAIInteraction = {};
 
 export const ChatTab = () => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -160,7 +159,7 @@ export const ChatTab = () => {
     // @ts-ignore
     chatSocket.on("responseFinished", (data) => {
       if (data.status == "ok") {
-        aiInteraction.ending_at = Date.now();
+        aiInteraction.ended_at = Date.now();
         aiInteraction.ai_response = messages[messages.length - 1].text;
 
         reportEnrichDataLayer("ai_interaction", {
@@ -168,7 +167,13 @@ export const ChatTab = () => {
         });
         registerTelemetryEvent("ai_interaction", aiInteraction);
 
-        aiInteraction = {};
+        aiInteraction = {
+          student_message: "",
+          source_code: "",
+          ai_response: "",
+          started_at: 0,
+          ended_at: 0,
+        };
         setExerciseMessages(messages, Number(currentExercisePosition));
       }
       if (data.finish_reason == "not_enough_ai_interactions") {
@@ -304,9 +309,9 @@ export const ChatTab = () => {
       messageData.message.context += `\n This exercise has a video tutorial, the user can click the video button at the top of LearnPack near Rigobot icon to see the video`;
     }
 
-    aiInteraction.starting_at = Date.now();
+    aiInteraction.started_at = Date.now();
     aiInteraction.student_message = messageData.message.text;
-    aiInteraction.context = messageData.message.context;
+    aiInteraction.source_code = messageData.message.context;
 
     chatSocket.emit("message", messageData);
     reportEnrichDataLayer("rigobot_send_message", {});

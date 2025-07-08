@@ -2,7 +2,7 @@ import { useShallow } from "zustand/react/shallow";
 import useStore from "../../../utils/store";
 import { Modal } from "../../mockups/Modal";
 import { useEffect, useState } from "react";
-import TelemetryManager, { TTestAttempt } from "../../../managers/telemetry";
+import TelemetryManager from "../../../managers/telemetry";
 import SimpleButton from "../../mockups/SimpleButton";
 import { useTranslation } from "react-i18next";
 import { svgs } from "../../../assets/svgs";
@@ -11,15 +11,15 @@ const randomFrom0to10 = () => {
   return Math.floor(Math.random() * 10);
 };
 
-const createTestData = (): TTestAttempt => {
-  return {
-    starting_at: new Date().getTime(),
-    stdout: "",
-    ended_at: new Date().getTime(),
-    exit_code: 0,
-    source_code: "",
-  };
-};
+// const createTestData = (): TTestAttempt => {
+//   return {
+//     started_at: new Date().getTime(),
+//     stdout: "",
+//     ended_at: new Date().getTime(),
+//     exit_code: 0,
+//     source_code: "",
+//   };
+// };
 
 export const TestStrugglesModal = () => {
   const { t } = useTranslation();
@@ -29,7 +29,7 @@ export const TestStrugglesModal = () => {
     currentExercisePosition,
     setRigoContext,
     toggleRigo,
-    registerTelemetryEvent,
+    // registerTelemetryEvent,
   } = useStore(
     useShallow((state) => {
       return {
@@ -37,7 +37,7 @@ export const TestStrugglesModal = () => {
         currentExercisePosition: state.currentExercisePosition,
         setRigoContext: state.setRigoContext,
         toggleRigo: state.toggleRigo,
-        registerTelemetryEvent: state.registerTelemetryEvent,
+        // registerTelemetryEvent: state.registerTelemetryEvent,
       };
     })
   );
@@ -100,7 +100,6 @@ export const TestStrugglesModal = () => {
               performTests: true,
             });
             setOpenedModals({ testStruggles: false });
-            registerTelemetryEvent("test", createTestData());
           }}
         />
       </div>
