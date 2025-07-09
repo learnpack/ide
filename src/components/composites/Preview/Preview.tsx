@@ -7,19 +7,23 @@ const getTitleFromHTMLString = (html: string) => {
   return match ? match[1] : "";
 };
 
-const getContentFromHTMLString = (html: string) => {
+const hasContent = (html: string) => {
   const ignoredTags = new Set(["script", "style", "link", "meta", "title"]);
-
-  // Parse the HTML string into a document
   const doc = new DOMParser().parseFromString(html, "text/html");
 
-  // Remove ignored tags
-  ignoredTags.forEach(tag => {
-    doc.querySelectorAll(tag).forEach(el => el.remove());
+  // Eliminar etiquetas ignoradas
+  ignoredTags.forEach((tag) => {
+    doc.querySelectorAll(tag).forEach((el) => el.remove());
   });
 
-  // Get the remaining text content
-  return doc.body.textContent?.trim() || "";
+  // Obtener texto
+  const bodyText = doc.body.textContent?.trim() || "";
+
+  // Verificar si hay imágenes
+  const hasImages = doc.body.querySelector("img") !== null;
+
+  // Si hay texto o imágenes, devolver true, si no, devolver false
+  return !!bodyText || hasImages;
 };
 
 export const Preview: React.FC<{
@@ -41,8 +45,8 @@ export const Preview: React.FC<{
   useEffect(() => {
     if (previewRef.current) {
       previewRef.current.innerHTML = html;
-      const content = getContentFromHTMLString(previewRef.current.innerHTML);
-      setIsEmpty(content.trim() === "");
+      const content = hasContent(previewRef.current.innerHTML);
+      setIsEmpty(!content);
     }
   }, [html]);
 
