@@ -5,10 +5,7 @@ import App from "./App.tsx";
 import "./index.css";
 import TagManager from "react-gtm-module";
 import { Layout } from "./Layout.tsx";
-import {
-  PreviewHTMLPage,
-  previewLoader,
-} from "./components/composites/PreviewHTML/PreviewHTML.tsx";
+import { PreviewHTMLPage } from "./components/composites/PreviewHTML/PreviewHTML.tsx";
 
 const tagManagerArgs = {
   gtmId: "GTM-WCVQ4KJ",
@@ -30,12 +27,10 @@ const router = createBrowserRouter([
       {
         path: "/preview",
         element: <PreviewHTMLPage />,
-        loader: previewLoader,
       },
       {
         path: "/preview/:slug",
         element: <App />,
-        loader: previewLoader,
       },
     ],
   },

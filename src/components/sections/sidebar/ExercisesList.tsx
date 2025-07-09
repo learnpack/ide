@@ -332,14 +332,12 @@ function ExerciseCard({
     getCurrentExercise,
     sidebar,
     language,
-    syllabus,
   } = useStore((state) => ({
     handlePositionChange: state.handlePositionChange,
     fetchExercises: state.fetchExercises,
     getCurrentExercise: state.getCurrentExercise,
     sidebar: state.sidebar,
     language: state.language,
-    syllabus: state.syllabus,
   }));
 
   const [isEditing, setIsEditing] = useState(false);
@@ -377,8 +375,6 @@ function ExerciseCard({
       }, 100);
     }
   };
-
-  console.log(syllabus, slug, "Syllabus and slug");
 
   return (
     <div

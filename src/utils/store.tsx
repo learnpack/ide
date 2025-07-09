@@ -722,6 +722,7 @@ The user's set up the application in "${language}" language, give your feedback 
       setFeedbackButtonProps,
       checkParams,
       registerTelemetryEvent,
+      updateDBSession,
     } = get();
 
     let params = checkParams({ justReturn: true });
@@ -739,8 +740,8 @@ The user's set up the application in "${language}" language, give your feedback 
     registerTelemetryEvent("open_step", {
       step_position: newPosition,
     });
-    // TODO: This probably won't work correctly, test it
     fetchReadme();
+    setTimeout(updateDBSession, 5000);
   },
   startConversation: async (exercisePosition) => {
     const { token, learnpackPurposeId, conversationIdsCache } = get();
@@ -1366,6 +1367,7 @@ The user's set up the application in "${language}" language, give your feedback 
       updateEditorTabs,
       tabHash,
       checkParams,
+      handlePositionChange,
     } = get();
     let storedTabHash = tabHash;
     let params = checkParams({ justReturn: true });
@@ -1403,6 +1405,20 @@ The user's set up the application in "${language}" language, give your feedback 
           configObject: session.config_json,
         });
         set({ sessionKey: session.key });
+
+        if (
+          session.config_json.exercises &&
+          session.config_json.exercises.length > 0
+        ) {
+          // set({ exercises: session.config_json.exercises });
+
+          if (session.config_json.currentExercise) {
+            const exIndex = session.config_json.exercises.findIndex(
+              (e: TExercise) => e.slug === session.config_json.currentExercise
+            );
+            handlePositionChange(exIndex);
+          }
+        }
 
         await FetchManager.setSessionKey(session.key);
         updateEditorTabs();
@@ -1446,6 +1462,7 @@ The user's set up the application in "${language}" language, give your feedback 
       configCopy,
       sessionKey || cachedSessionKey
     );
+    console.log("Session updated successfully", configCopy);
   },
   updateFileContent: async (exerciseSlug, tab, updateTabs = false) => {
     const { exercises, updateEditorTabs, setShouldBeTested } = get();

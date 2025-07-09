@@ -47,7 +47,6 @@ export const Question = ({
     mode,
     currentExercisePosition,
     registerTelemetryEvent,
-    
   } = useStore((state) => ({
     token: state.token,
     replaceInReadme: state.replaceInReadme,
@@ -61,7 +60,6 @@ export const Question = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [examples, setExamples] = useState<string[]>(splitInLines(code));
   const [answer, setAnswer] = useState("");
-  const answerRef = useRef<HTMLTextAreaElement>(null);
   const feedbackRef = useRef<HTMLDivElement>(null);
   const hashRef = useRef<string>("");
 
@@ -80,8 +78,6 @@ export const Question = ({
   }, [metadata.eval]);
 
   const register = async () => {
-
-
     const hash = await asyncHashText(metadata.eval as string);
     hashRef.current = hash;
     TelemetryManager.registerTesteableElement(Number(currentExercisePosition), {
@@ -146,9 +142,7 @@ export const Question = ({
   };
 
   const handleTranscription = (text: string) => {
-    if (answerRef.current) {
-      answerRef.current.value += ` ${text}`;
-    }
+    setAnswer(answer + " " + text);
   };
 
   const addExamples = async (newExamples: string[], newEvaluation: string) => {

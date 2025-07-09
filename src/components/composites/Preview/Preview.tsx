@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert } from "../Alert/Alert";
 import { useTranslation } from "react-i18next";
 
@@ -25,29 +25,23 @@ const hasContent = (html: string) => {
   // Si hay texto o imágenes, devolver true, si no, devolver false
   return !!bodyText || hasImages;
 };
-
 export const Preview: React.FC<{
   html: string;
   onTitleRevealed: (title: string) => void;
   useIframe?: boolean;
 }> = ({ html, onTitleRevealed, useIframe = false }) => {
   const { t } = useTranslation();
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const previewRef = useRef<HTMLDivElement>(null);
 
   const [isEmpty, setIsEmpty] = useState(false);
 
   useEffect(() => {
     const title = getTitleFromHTMLString(html);
     onTitleRevealed(title ?? window.location.host + "/preview");
-  }, []);
+  }, [html, onTitleRevealed]);
 
   useEffect(() => {
-    if (previewRef.current) {
-      previewRef.current.innerHTML = html;
-      const content = hasContent(previewRef.current.innerHTML);
-      setIsEmpty(!content);
-    }
+    const content = hasContent(html);
+    setIsEmpty(!content);
   }, [html]);
 
   const handleLoad = () => {
@@ -57,7 +51,6 @@ export const Preview: React.FC<{
 
   return useIframe ? (
     <iframe
-      ref={iframeRef}
       className="preview-iframe"
       srcDoc={html}
       title="HTML Preview"
@@ -65,16 +58,17 @@ export const Preview: React.FC<{
       style={{ width: "100%" }}
     />
   ) : (
-    <div
-      ref={previewRef}
-      style={{ width: "100%", height: "100%", border: "none" }}
-      // dangerouslySetInnerHTML={{ __html: html }}
-    >
-      {isEmpty && (
+    <>
+      {!isEmpty ? (
+        <div
+          style={{ width: "100%", height: "100%", border: "none" }}
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      ) : (
         <Alert>
           <p className="text-small">{t("website-built-no-body")}</p>
         </Alert>
       )}
-    </div>
+    </>
   );
 };

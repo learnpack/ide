@@ -1,15 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Preview } from "../Preview/Preview";
 
-export const previewLoader = async () => {
-  return null;
-};
+
 
 export const PreviewHTMLPage: React.FC = () => {
-  // const { htmlString } = useLoaderData() as {
-  //   htmlString: string;
-  // };
-
   const [htmlString, setHtmlString] = useState("");
   const [isReact, setIsReact] = useState(false);
 
@@ -23,8 +17,6 @@ export const PreviewHTMLPage: React.FC = () => {
     if (event.source !== window.opener) {
       return;
     }
-
-    console.log("Event from window.opener", event);
 
     const data = event.data;
     if (data.html) {
@@ -44,7 +36,9 @@ export const PreviewHTMLPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    console.log(previewTitle);
+    if (previewTitle) {
+      document.title = previewTitle;
+    }
   }, [previewTitle]);
 
   return (

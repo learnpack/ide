@@ -59,33 +59,18 @@ export const CreatorWrapper = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [interactions, setInteractions] = useState<TInteraction[]>([]);
   const [isEditingAsMarkdown, setIsEditingAsMarkdown] = useState(false);
-  
-  const elemRef = useRef<HTMLDivElement>(null);
-  const optionsRef = useRef<HTMLDivElement>(null);
-  const targetRef = useRef<HTMLDivElement>(null);
+  const [containsNewElement, setContainsNewElement] = useState(false);
 
-  const toneRef = useRef<HTMLSelectElement>(null);
+  const elemRef = useRef<HTMLDivElement>(null);
+  const targetRef = useRef<HTMLDivElement>(null);
 
   const { t } = useTranslation();
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        optionsRef.current &&
-        !optionsRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-
-    // Add event listener
-    document.addEventListener("mousedown", handleClickOutside);
-
-    // Cleanup event listener on component unmount
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [optionsRef]);
+    if (elemRef.current?.querySelector(".new")) {
+      setContainsNewElement(true);
+    }
+  }, []);
 
   const simplifyLanguage = () => {
     setIsGenerating(true);
@@ -382,6 +367,12 @@ export const CreatorWrapper = ({
     return "";
   };
 
+  const handleEditAsMarkdown = () => {
+    setIsEditingAsMarkdown(!isEditingAsMarkdown);
+    setReplacementValue(getPortion());
+    setIsOpen(false);
+  };
+
   return (
     <div className={`creator-wrapper  ${tagName}`}>
       <SimpleButton
@@ -398,88 +389,16 @@ export const CreatorWrapper = ({
           setIsOpen(!isOpen);
         }}
       />
-      {isOpen && (
-        <div ref={optionsRef} className="creator-options">
-          {tagName !== "new" && <RigoInput onSubmit={askAIAnything} />}
-          <div className="flex-y gap-small creator-options-buttons">
-            {promps
-              .filter((prompt) => {
-                if (prompt.allowedElements?.includes("all")) return true;
-                if (prompt.allowedElements?.includes(tagName)) return true;
-                return false;
-              })
-              .map((prompt, index) =>
-                prompt.type === "button" ? (
-                  <SimpleButton
-                    svg={prompt.svg}
-                    key={`${prompt.text}-${index}`}
-                    action={prompt.action}
-                    extraClass={prompt.extraClass}
-                    text={prompt.text}
-                  />
-                ) : prompt.type === "select" ? (
-                  <div
-                    className={`flex-x gap-small `}
-                    key={`${prompt.text}-${index}`}
-                  >
-                    <SimpleButton
-                      key={`${prompt.text}-${index}`}
-                      svg={prompt.svg}
-                      action={() => prompt.action(toneRef.current?.value || "")}
-                      extraClass={prompt.extraClass}
-                      text={prompt.text}
-                    />
-                    <select
-                      ref={toneRef}
-                      key={prompt.text}
-                      className={`rounded `}
-                      // onChange={(e) => prompt.action(e.target.value)}
-                    >
-                      {prompt.options?.map((option) => (
-                        <option key={option} value={option}>
-                          {t(option)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ) : null
-              )}
-            {tagName !== "new" && (
-              <SimpleButton
-                extraClass=" text-secondary  rounded padding-small active-on-hover svg-blue"
-                action={() => {
-                  setIsEditingAsMarkdown(!isEditingAsMarkdown);
-                  setReplacementValue(getPortion());
-                  setIsOpen(false);
-                }}
-                svg={svgs.edit}
-                text={t("editAsMarkdown")}
-              />
-            )}
-            <ImageUploader
-              onFinish={async (imgRelPath) => {
-                if (node?.position?.start && node?.position?.end) {
-                  await replaceInReadme(
-                    `![${imgRelPath}](${imgRelPath})`,
-                    node?.position?.start,
-                    node?.position?.end
-                  );
-                }
-              }}
-            />
-            <ImageGenerator
-              onFinish={async (replacement) => {
-                if (node?.position?.start && node?.position?.end) {
-                  await replaceInReadme(
-                    replacement,
-                    node?.position?.start,
-                    node?.position?.end
-                  );
-                }
-              }}
-            />
-          </div>
-        </div>
+      {isOpen && tagName !== "new" && (
+        <RigoInput
+          onClose={() => setIsOpen(false)}
+          inside={true}
+          onEditAsMarkdown={handleEditAsMarkdown}
+          tagName={tagName}
+          node={node}
+          promps={promps}
+          onSubmit={askAIAnything}
+        />
       )}
 
       <SimpleButton
@@ -498,13 +417,23 @@ export const CreatorWrapper = ({
       />
 
       <div className="text-in-editor" ref={elemRef}>
-        <SimpleButton
-          svg={svgs.edit}
-          extraClass="creator-options-opener svg-blue active-on-hover"
-          action={() => setIsOpen(!isOpen)}
-        />
         {tagName === "new" && (
-          <RigoInput width="100%" onSubmit={askAIAnything} />
+          <RigoInput
+            onClose={() => setIsOpen(false)}
+            inside={false}
+            onSubmit={askAIAnything}
+            promps={promps}
+            tagName={tagName}
+            node={node}
+            onEditAsMarkdown={handleEditAsMarkdown}
+          />
+        )}
+        {tagName !== "new" && !containsNewElement && (
+          <SimpleButton
+            svg={svgs.edit}
+            extraClass="creator-options-opener svg-blue active-on-hover"
+            action={() => setIsOpen(!isOpen)}
+          />
         )}
         {isEditingAsMarkdown ? (
           <AutoResizeTextarea
@@ -753,36 +682,157 @@ const ImageGenerator = ({
 
 const RigoInput = ({
   onSubmit,
-  width,
+  inside,
+  promps,
+  tagName,
+  node,
+  onEditAsMarkdown,
+  onClose,
 }: {
   onSubmit: (prompt: string) => void;
-  width?: string;
+  inside: boolean;
+  promps: TPromp[];
+  tagName: string;
+  node: Element | undefined;
+  onEditAsMarkdown: () => void;
+  onClose: () => void;
 }) => {
   const [prompt, setPrompt] = useState("");
+  const replaceInReadme = useStore((state) => state.replaceInReadme);
+  const [showPrompts, setShowPrompts] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const toneRef = useRef<HTMLSelectElement>(null);
   const { t } = useTranslation();
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        onClose();
+      }
+    };
+
+    // Add event listener
+    document.addEventListener("mousedown", handleClickOutside);
+
+    // Cleanup event listener on component unmount
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [containerRef]);
+
   return (
-    <div className={`rigo-input`} style={{ width: width }}>
-      <SimpleButton
-        svg={svgs.rigoSoftBlue}
-        action={() => onSubmit(prompt)}
-        extraClass={"big-circle rigo-button"}
-      />
-      <AutoResizeTextarea
-        placeholder={t("editWithRigobotPlaceholder")}
-        autoFocus
-        className="rigo-textarea"
-        onKeyUp={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            onSubmit(prompt);
-          }
-        }}
-        minHeight={60}
-        defaultValue={prompt}
-        onChange={(e) => {
-          setPrompt(e.target.value);
-        }}
-      />
+    <div ref={containerRef} className={` ${inside ? "creator-options" : ""}`}>
+      <div className={`rigo-input ${inside ? "" : "w-100"}`}>
+        <SimpleButton
+          svg={svgs.rigoSoftBlue}
+          action={() => onSubmit(prompt)}
+          extraClass={"big-circle rigo-button"}
+        />
+        <AutoResizeTextarea
+          onFocus={() => setShowPrompts(true)}
+          onBlur={() => {
+            setTimeout(() => {
+              if (!containerRef.current?.contains(document.activeElement)) {
+                setShowPrompts(false);
+              }
+            }, 100);
+          }}
+          placeholder={t("editWithRigobotPlaceholder")}
+          autoFocus
+          className="rigo-textarea"
+          onKeyUp={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              onSubmit(prompt);
+              setPrompt("");
+            }
+          }}
+          minHeight={60}
+          defaultValue={prompt}
+          onChange={(e) => {
+            setPrompt(e.target.value);
+          }}
+        />
+      </div>
+      {showPrompts && (
+        <div className="flex-y gap-small creator-options-buttons">
+          {promps
+            .filter((prompt) => {
+              if (prompt.allowedElements?.includes("all")) return true;
+              if (prompt.allowedElements?.includes(tagName)) return true;
+              return false;
+            })
+            .map((prompt, index) =>
+              prompt.type === "button" ? (
+                <SimpleButton
+                  svg={prompt.svg}
+                  key={`${prompt.text}-${index}`}
+                  action={prompt.action}
+                  extraClass={prompt.extraClass}
+                  text={prompt.text}
+                />
+              ) : prompt.type === "select" ? (
+                <div
+                  className={`flex-x gap-small `}
+                  key={`${prompt.text}-${index}`}
+                >
+                  <SimpleButton
+                    key={`${prompt.text}-${index}`}
+                    svg={prompt.svg}
+                    action={() => prompt.action(toneRef.current?.value || "")}
+                    extraClass={prompt.extraClass}
+                    text={prompt.text}
+                  />
+                  <select
+                    ref={toneRef}
+                    key={prompt.text}
+                    className={`rounded `}
+                    // onChange={(e) => prompt.action(e.target.value)}
+                  >
+                    {prompt.options?.map((option) => (
+                      <option key={option} value={option}>
+                        {t(option)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : null
+            )}
+          {tagName !== "new" && (
+            <SimpleButton
+              extraClass=" text-secondary  rounded padding-small active-on-hover svg-blue"
+              action={onEditAsMarkdown}
+              svg={svgs.edit}
+              text={t("editAsMarkdown")}
+            />
+          )}
+          <ImageUploader
+            onFinish={async (imgRelPath) => {
+              if (node?.position?.start && node?.position?.end) {
+                await replaceInReadme(
+                  `![${imgRelPath}](${imgRelPath})`,
+                  node?.position?.start,
+                  node?.position?.end
+                );
+              }
+            }}
+          />
+          <ImageGenerator
+            onFinish={async (replacement) => {
+              if (node?.position?.start && node?.position?.end) {
+                await replaceInReadme(
+                  replacement,
+                  node?.position?.start,
+                  node?.position?.end
+                );
+              }
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };

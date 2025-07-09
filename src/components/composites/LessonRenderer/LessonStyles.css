@@ -58,6 +58,10 @@
   background-color: var(--color-blue-opaque);
   width: fit-content;
   padding: 5px;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 800;
   border-radius: 5px;
 }
 
