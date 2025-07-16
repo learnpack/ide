@@ -3,6 +3,7 @@ import { ITelemetryJSONSchema, TStep } from "../managers/telemetry";
 const ALGO_VERSION = 1.0;
 
 interface Indicator {
+  name: string;
   calculateStepIndicator(step: TStep, stepMetrics: StepMetrics): number;
   calculateGlobalIndicator(
     stepIndicators: number[],
@@ -72,6 +73,8 @@ type IndicatorResults = {
 // ---------------------- Indicadores ----------------------
 
 class engagement_indicator implements Indicator {
+  name = "engagement_indicator";
+
   calculateStepIndicator(step: TStep, stepMetrics: StepMetrics): number {
     // console.debug(step, "Step", stepMetrics, "Step Metrics");
     step;
@@ -112,6 +115,7 @@ class engagement_indicator implements Indicator {
 }
 
 class frustration_indicator implements Indicator {
+  name = "frustration_indicator";
   calculateStepIndicator(step: TStep, stepMetrics: StepMetrics): number {
     step;
     // console.debug(step, "Step", stepMetrics, "Step Metrics");
@@ -365,7 +369,7 @@ export function calculateIndicators(
     };
 
     indicators.forEach((indicator) => {
-      indicatorsResult[indicator.constructor.name as keyof TIndicators] =
+      indicatorsResult[indicator.name as keyof TIndicators] =
         indicator.calculateStepIndicator(step, metrics);
     });
 
@@ -377,11 +381,11 @@ export function calculateIndicators(
     frustration_indicator: 0,
   };
   indicators.forEach((indicator) => {
-    globalIndicators[indicator.constructor.name as keyof TIndicators] =
+    globalIndicators[indicator.name as keyof TIndicators] =
       indicator.calculateGlobalIndicator(
         stepsResults.map(
           (step) =>
-            step.indicators[indicator.constructor.name as keyof TIndicators]
+            step.indicators[indicator.name as keyof TIndicators]
         ),
         globalMetrics
       );
