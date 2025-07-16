@@ -3,15 +3,15 @@ import {
     ListObjectsV2Command,
     GetObjectCommand,
     PutObjectCommand
-} from '@aws-sdk/client-s3';
+} from '@aws-sdk/client-s3'
 import {
     CloudFrontClient,
     CreateInvalidationCommand
-} from '@aws-sdk/client-cloudfront';
+} from '@aws-sdk/client-cloudfront'
 
 // ---------- CONFIGURACIÓN ----------
-const BUCKET_NAME = 'learnpack-paquetes';
-const CLOUDFRONT_DISTRIBUTION_ID = process.env.CLOUDFRONT_DISTRIBUTION_ID;
+const BUCKET_NAME = 'learnpack-paquetes'
+const CLOUDFRONT_DISTRIBUTION_ID = process.env.CLOUDFRONT_DISTRIBUTION_ID
 
 // ---------- ANSI COLORS ----------
 const c = {
@@ -21,7 +21,7 @@ const c = {
     cyan: txt => `\x1b[36m${txt}\x1b[0m`,
     bold: txt => `\x1b[1m${txt}\x1b[0m`,
     blue: txt => `\x1b[34m${txt}\x1b[0m`,
-};
+}
 
 // ---------- AWS CLIENTS ----------
 const s3Client = new S3Client({
@@ -30,14 +30,14 @@ const s3Client = new S3Client({
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
     }
-});
+})
 const cloudFrontClient = new CloudFrontClient({
     region: 'us-east-1',
     credentials: {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
     }
-});
+})
 
 // ---------- NUEVO BLOQUE ----------
 const newTags = `
@@ -75,57 +75,69 @@ const newTags = `
         document.body.appendChild(script);
     })();
 </script>
-`;
+`
 
 async function streamToString(stream) {
-    const chunks = [];
+    const chunks = []
     for await (const chunk of stream) {
-        chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+        chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk)
     }
-    return Buffer.concat(chunks).toString('utf-8');
+    return Buffer.concat(chunks).toString('utf-8')
 }
 
 async function listarIndexHtmls(bucket) {
-    let ContinuationToken = undefined;
-    let archivos = [];
+    let ContinuationToken = undefined
+    let archivos = []
 
     do {
         const params = {
             Bucket: bucket,
             ContinuationToken,
-        };
-        const data = await s3Client.send(new ListObjectsV2Command(params));
+        }
+        const data = await s3Client.send(new ListObjectsV2Command(params))
         const encontrados = (data.Contents || [])
             .filter(obj => {
-                const key = obj.Key;
-                return key.endsWith('index.html') && key.split('/').length === 2;
+                const key = obj.Key
+                return key.endsWith('index.html') && key.split('/').length === 2
             })
-            .map(obj => obj.Key);
+            .map(obj => obj.Key)
 
-        archivos.push(...encontrados);
-        ContinuationToken = data.IsTruncated ? data.NextContinuationToken : undefined;
-    } while (ContinuationToken);
+        archivos.push(...encontrados)
+        ContinuationToken = data.IsTruncated ? data.NextContinuationToken : undefined
+    } while (ContinuationToken)
 
-    return archivos;
+    return archivos
 }
 
 async function replaceScriptAndInvalidate(key) {
     try {
-        console.log(c.blue(`\nProcesando: ${key}`));
+        console.log(c.blue(`\nProcesando: ${key}`))
         // Descargar
         const data = await s3Client.send(new GetObjectCommand({
             Bucket: BUCKET_NAME,
             Key: key
-        }));
-        const originalHtml = await streamToString(data.Body);
+        }))
+        const originalHtml = await streamToString(data.Body)
 
-        // Reemplazo
-        const scriptRegex = /<!--\s*Injected by deployment script.*?-->\s*<script\b[^>]*>[\s\S]*?<\/script>/i;
-        if (!scriptRegex.test(originalHtml)) {
-            console.log(c.yellow('No se encontró el bloque de comentario+script para reemplazar.'));
-            return;
+        // Verificar si ya tiene el script correcto
+        const scriptRegex = /<!--\s*Injected by deployment script.*?-->\s*<script\b[^>]*>[\s\S]*?<\/script>/i
+        const existingScript = originalHtml.match(scriptRegex)
+
+        if (!existingScript) {
+            console.log(c.yellow('No se encontró el bloque de comentario+script para reemplazar.'))
+            return
         }
-        const newHtml = originalHtml.replace(scriptRegex, newTags.trim());
+
+        // Comparar si el script actual es igual al nuevo
+        const normalizedExisting = existingScript[0].replace(/\s+/g, ' ').trim()
+        const normalizedNew = newTags.replace(/\s+/g, ' ').trim()
+
+        if (normalizedExisting === normalizedNew) {
+            console.log(c.cyan('El script ya está actualizado, no es necesario reemplazar.'))
+            return
+        }
+
+        const newHtml = originalHtml.replace(scriptRegex, newTags.trim())
 
         // Subir a S3
         await s3Client.send(new PutObjectCommand({
@@ -133,18 +145,18 @@ async function replaceScriptAndInvalidate(key) {
             Key: key,
             Body: newHtml,
             ContentType: 'text/html'
-        }));
-        console.log(c.green(`Archivo actualizado correctamente en S3.`));
+        }))
+        console.log(c.green(`Archivo actualizado correctamente en S3.`))
 
         // Invalidar en CloudFront
-        await invalidateCloudFront([`/${key}`]);
+        await invalidateCloudFront([`/${key}`])
     } catch (err) {
-        console.error(c.red(`Error procesando ${key}:`), err);
+        console.error(c.red(`Error procesando ${key}:`), err)
     }
 }
 
 async function invalidateCloudFront(paths) {
-    console.log(c.yellow(`Solicitando invalidación en CloudFront para: ${paths.join(', ')}`));
+    console.log(c.yellow(`Solicitando invalidación en CloudFront para: ${paths.join(', ')}`))
     const command = new CreateInvalidationCommand({
         DistributionId: CLOUDFRONT_DISTRIBUTION_ID,
         InvalidationBatch: {
@@ -154,24 +166,23 @@ async function invalidateCloudFront(paths) {
                 Items: paths,
             },
         },
-    });
+    })
     try {
-        const data = await cloudFrontClient.send(command);
-        console.log(c.green("Invalidación de CloudFront creada: ") + c.bold(data.Invalidation.Id));
+        const data = await cloudFrontClient.send(command)
+        console.log(c.green("Invalidación de CloudFront creada: ") + c.bold(data.Invalidation.Id))
     } catch (err) {
-        console.error(c.red("Error creando invalidación CloudFront:"), err);
+        console.error(c.red("Error creando invalidación CloudFront:"), err)
     }
 }
 
-// MAIN
 listarIndexHtmls(BUCKET_NAME)
     .then(async lista => {
-        console.log(c.bold('\nIndex.html encontrados:'));
-        lista.forEach(key => console.log(key));
+        console.log(c.bold('\nIndex.html encontrados:'))
+        lista.forEach(key => console.log(key))
 
         for (const key of lista) {
-            await replaceScriptAndInvalidate(key);
+            await replaceScriptAndInvalidate(key)
         }
-        console.log(c.bold(c.green('\nTodos los archivos procesados.')));
+        console.log(c.bold(c.green('\nTodos los archivos procesados.')))
     })
-    .catch(err => console.error(c.red('Error:'), err));
+    .catch(err => console.error(c.red('Error:'), err))

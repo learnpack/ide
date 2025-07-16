@@ -1776,12 +1776,13 @@ The user's set up the application in "${language}" language, give your feedback 
       return false;
     }
 
-    console.log(userConsumables, "User consumables, using:", consumableSlug);
+    const consumableKeys = {
+      "ai-conversation-message": "ai_conversation_message",
+      "ai-compilation": "ai_compilation",
+      "ai-generation": "ai_generation",
+    };
 
-    const consumableKey =
-      consumableSlug === "ai-conversation-message"
-        ? "ai_conversation_message"
-        : "ai_compilation";
+    const consumableKey = consumableKeys[consumableSlug];
 
     if (userConsumables[consumableKey] === 0) {
       return false;

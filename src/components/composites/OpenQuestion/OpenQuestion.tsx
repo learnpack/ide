@@ -46,12 +46,14 @@ export const Question = ({
     replaceInReadme,
     mode,
     currentExercisePosition,
+    useConsumable,
     registerTelemetryEvent,
   } = useStore((state) => ({
     token: state.token,
     replaceInReadme: state.replaceInReadme,
     mode: state.mode,
     currentExercisePosition: state.currentExercisePosition,
+    useConsumable: state.useConsumable,
     registerTelemetryEvent: state.registerTelemetryEvent,
     // currentContent: state.currentContent,
   }));
@@ -141,6 +143,7 @@ export const Question = ({
     }
 
     setIsLoading(false);
+    await useConsumable("ai-generation");
   };
 
   const handleTranscription = (text: string) => {

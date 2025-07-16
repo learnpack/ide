@@ -1,5 +1,6 @@
 import axios from "axios";
 import { RIGOBOT_HOST, BREATHECODE_HOST } from "./lib";
+import { TConsumableSlug } from "./storeTypes";
 
 export const getSession = async (token: string, slug: string) => {
   if (!slug) {
@@ -99,9 +100,7 @@ export async function getConsumables(token: string): Promise<any> {
 
 export async function useConsumableCall(
   breathecodeToken: string,
-  consumableSlug:
-    | "ai-conversation-message"
-    | "ai-compilation" = "ai-conversation-message"
+  consumableSlug: TConsumableSlug = "ai-conversation-message"
 ): Promise<boolean> {
   const url = `${BREATHECODE_HOST}/v1/payments/me/service/${consumableSlug}/consumptionsession`;
 

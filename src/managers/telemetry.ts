@@ -329,7 +329,8 @@ interface ITelemetryManager {
   registerStepEvent: (
     stepPosition: number,
     event: TStepEvent,
-    data: any
+    data: any,
+    retry?: number
   ) => void;
   registerTesteableElement: (
     stepPosition: number,
@@ -524,9 +525,17 @@ const TelemetryManager: ITelemetryManager = {
     }
   },
 
-  registerStepEvent: function (stepPosition, event, data) {
+  registerStepEvent: function (stepPosition, event, data, retry = 0) {
     if (!this.current) {
-      console.error(`Telemetry has not been started, ${event} NOT REGISTERED`);
+      if (retry < 3) {
+        setTimeout(() => {
+          this.registerStepEvent(stepPosition, event, data, retry + 1);
+        }, 2000);
+      } else {
+        console.error(
+          `Telemetry event: ${event} NOT REGISTERED after ${retry} retries`
+        );
+      }
       return;
     }
 
@@ -707,8 +716,6 @@ const TelemetryManager: ITelemetryManager = {
       global_metrics: indicators.global.metrics,
       global_indicators: indicators.global.indicators,
     };
-
-    console.log({ body });
 
     if (!body.user_id) {
       body.user_id = this.user.id;

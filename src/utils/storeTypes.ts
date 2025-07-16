@@ -156,9 +156,7 @@ export type TUser = {
 };
 
 type TUserConsumables = {
-  ai_compilation: number;
-  ai_conversation_message: number;
-  ai_generation: number;
+  [key: string]: number;
 };
 
 type TRigoContext = {
@@ -214,6 +212,11 @@ export type Syllabus = {
 export type TSidebar = {
   [key: string]: TTitleTranslations;
 };
+
+export type TConsumableSlug =
+  | "ai-conversation-message"
+  | "ai-compilation"
+  | "ai-generation";
 export interface IStore {
   exercises: TExercise[];
   chatInitialMessage: string;
@@ -279,9 +282,7 @@ export interface IStore {
   setMode: (mode: TMode) => void;
   addVideoTutorial: (videoTutorial: string) => Promise<void>;
   removeVideoTutorial: () => Promise<void>;
-  useConsumable: (
-    consumableSlug: "ai-conversation-message" | "ai-compilation"
-  ) => Promise<boolean>;
+  useConsumable: (consumableSlug: TConsumableSlug) => Promise<boolean>;
   setUser: (user: TUser) => void;
   getUserConsumables: () => Promise<any>;
   setShowSidebar: (show: boolean) => void;

@@ -46,13 +46,17 @@ export const CreatorWrapper = ({
   tagName: string;
   node: Element | undefined;
 }) => {
-  const { replaceInReadme, insertBeforeOrAfter, currentContent } = useStore(
-    (state) => ({
-      replaceInReadme: state.replaceInReadme,
-      insertBeforeOrAfter: state.insertBeforeOrAfter,
-      currentContent: state.currentContent,
-    })
-  );
+  const {
+    replaceInReadme,
+    insertBeforeOrAfter,
+    currentContent,
+    useConsumable,
+  } = useStore((state) => ({
+    replaceInReadme: state.replaceInReadme,
+    insertBeforeOrAfter: state.insertBeforeOrAfter,
+    currentContent: state.currentContent,
+    useConsumable: state.useConsumable,
+  }));
 
   const [isOpen, setIsOpen] = useState(false);
   const [replacementValue, setReplacementValue] = useState("");
@@ -97,6 +101,7 @@ export const CreatorWrapper = ({
           if (success) {
             setReplacementValue(data.ai_response);
             setIsGenerating(false);
+            useConsumable("ai-generation");
             // setShowButtons(true);
           }
         },
@@ -126,6 +131,7 @@ export const CreatorWrapper = ({
         onComplete: (success: boolean, data: any) => {
           if (success) {
             setReplacementValue(data.ai_response);
+            useConsumable("ai-generation");
             // setShowButtons(true);
           }
         },
@@ -157,6 +163,7 @@ export const CreatorWrapper = ({
           if (success) {
             setIsGenerating(false);
             setReplacementValue(data.ai_response);
+            useConsumable("ai-generation");
             // setShowButtons(true);
           }
         },
@@ -188,6 +195,7 @@ export const CreatorWrapper = ({
         onComplete: (success: boolean, data: any) => {
           if (success) {
             setReplacementValue(data.ai_response);
+            useConsumable("ai-generation");
             // setShowButtons(true);
           }
         },
@@ -228,6 +236,7 @@ export const CreatorWrapper = ({
               final: data.ai_response,
             };
             setInteractions((prev) => [...prev, interaction]);
+            useConsumable("ai-generation");
           }
         },
       });
@@ -264,6 +273,7 @@ export const CreatorWrapper = ({
           if (success) {
             setReplacementValue(data.ai_response);
             setIsGenerating(false);
+            useConsumable("ai-generation");
             // setShowButtons(true);
           }
         },
@@ -626,6 +636,7 @@ const ImageGenerator = ({
 }) => {
   const token = useStore((state) => state.token);
   const config = useStore((state) => state.configObject);
+  const useConsumable = useStore((state) => state.useConsumable);
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -648,6 +659,11 @@ const ImageGenerator = ({
         toast.success(t("imageInProcess"), { id: tid });
         const replacement = makeReplacement(randomID, prompt);
         onFinish(replacement);
+        try {
+          await useConsumable("ai-generation");
+        } catch (error) {
+          console.error("Error using consumable", error);
+        }
       }
 
       setIsOpen(false);
