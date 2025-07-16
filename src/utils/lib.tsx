@@ -86,8 +86,8 @@ export const getEnvironment = async () => {
 getEnvironment();
 
 export const RIGOBOT_HOST = "https://rigobot.herokuapp.com";
+// export const RIGOBOT_HOST = "https://8000-charlytoc-rigobot-bmwdeam7cev.ws-us120.gitpod.io";
 export const BREATHECODE_HOST = "https://breathecode.herokuapp.com";
-// export const RIGOBOT_HOST = "https://8000-charlytoc-rigobot-bmwdeam7cev.ws-us116.gitpod.io";
 
 export const changeSidebarVisibility = () => {
   const sidebar: HTMLElement | null =

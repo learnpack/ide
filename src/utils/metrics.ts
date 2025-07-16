@@ -13,19 +13,40 @@ interface Indicator {
 export type StepMetrics = {
   status: string;
   time_spent: number;
+  total_duration: number;
   comp_struggles: number;
+  comp_success: number;
+  total_comp_attempts: number;
   test_struggles: number;
+  test_success: number;
+  total_test_attempts: number;
+  quiz_struggles: number;
+  quiz_success: number;
+  total_quiz_attempts: number;
   streak_comp_struggles: number;
+  streak_comp_success: number;
   streak_test_struggle: number;
+  streak_test_success: number;
+  streak_quiz_struggles: number;
+  streak_quiz_success: number;
+  user_skipped: boolean;
+  total_ai_interactions: number;
+  ai_used: boolean;
+  is_abandoned: boolean;
 };
 
 export type TStepIndicators = {
-  slug: string;
+  // slug: string;
   metrics: StepMetrics;
-  indicators: Record<string, number>;
+  indicators: TIndicators;
 };
 
-type GlobalMetrics = {
+export type TIndicators = {
+  engagement_indicator: number;
+  frustration_indicator: number;
+};
+
+export type GlobalMetrics = {
   total_time_on_platform: number;
   num_sessions: number;
   completion_rate: number;
@@ -43,14 +64,14 @@ type IndicatorResults = {
   algo_version: number;
   global: {
     metrics: GlobalMetrics;
-    indicators: Record<string, number>;
+    indicators: TIndicators;
   };
   steps: TStepIndicators[];
 };
 
 // ---------------------- Indicadores ----------------------
 
-class EngagementIndicator implements Indicator {
+class engagement_indicator implements Indicator {
   calculateStepIndicator(step: TStep, stepMetrics: StepMetrics): number {
     // console.debug(step, "Step", stepMetrics, "Step Metrics");
     step;
@@ -90,7 +111,7 @@ class EngagementIndicator implements Indicator {
   }
 }
 
-class FrustrationIndicator implements Indicator {
+class frustration_indicator implements Indicator {
   calculateStepIndicator(step: TStep, stepMetrics: StepMetrics): number {
     step;
     // console.debug(step, "Step", stepMetrics, "Step Metrics");
@@ -151,43 +172,118 @@ class FrustrationIndicator implements Indicator {
 }
 
 // ---------------------- Cálculo de métricas ----------------------
-
 function calculateStepMetrics(step: TStep): StepMetrics {
+  // Sessions: calculate total session duration in seconds
+  let total_duration = 0;
+  if (step.sessions && step.sessions.length > 0) {
+    total_duration = step.sessions.reduce((acc, curr) => acc + curr, 0);
+  }
+
+  let time_spent = total_duration;
+  if (!total_duration && step.completed_at && step.opened_at) {
+    time_spent = step.completed_at - step.opened_at;
+    total_duration = time_spent;
+  }
+
   let status = step.completed_at
     ? "completed"
     : step.opened_at
     ? "attempted"
     : "unread";
-  const time_spent =
-    step.completed_at && step.opened_at
-      ? (step.completed_at - step.opened_at) / 1000
-      : 0;
+
+  // Compilation struggles/success
   const comp_struggles =
     step.compilations?.filter((c) => c.exit_code !== 0).length || 0;
+  const comp_success =
+    step.compilations?.filter((c) => c.exit_code === 0).length || 0;
+
+  // Test struggles/success
   const test_struggles =
     step.tests?.filter((t) => t.exit_code !== 0).length || 0;
+  const test_success = step.tests?.filter((t) => t.exit_code === 0).length || 0;
 
-  // Cálculo de streaks
+  // Quiz struggles/success
+  const quiz_struggles =
+    step.quiz_submissions?.filter((q) => q.status === "ERROR").length || 0;
+  const quiz_success =
+    step.quiz_submissions?.filter((q) => q.status === "SUCCESS").length || 0;
+
+  // Streaks for compilations
   let streak_comp_struggles = 0;
-  let streak_test_struggle = 0;
-
+  let streak_comp_success = 0;
   for (let i = step.compilations?.length - 1; i >= 0; i--) {
     if (step.compilations[i].exit_code !== 0) streak_comp_struggles++;
     else break;
   }
+  for (let i = step.compilations?.length - 1; i >= 0; i--) {
+    if (step.compilations[i].exit_code === 0) streak_comp_success++;
+    else break;
+  }
 
+  // Streaks for tests
+  let streak_test_struggle = 0;
+  let streak_test_success = 0;
   for (let i = step.tests?.length - 1; i >= 0; i--) {
     if (step.tests[i].exit_code !== 0) streak_test_struggle++;
     else break;
   }
+  for (let i = step.tests?.length - 1; i >= 0; i--) {
+    if (step.tests[i].exit_code === 0) streak_test_success++;
+    else break;
+  }
+
+  // Streaks for quizzes
+  let streak_quiz_struggles = 0;
+  let streak_quiz_success = 0;
+  for (let i = step.quiz_submissions?.length - 1; i >= 0; i--) {
+    if (step.quiz_submissions[i].status === "ERROR") streak_quiz_struggles++;
+    else break;
+  }
+  for (let i = step.quiz_submissions?.length - 1; i >= 0; i--) {
+    if (step.quiz_submissions[i].status === "SUCCESS") streak_quiz_success++;
+    else break;
+  }
+
+  // user_skipped logic
+  const is_testeable =
+    step.is_testeable ||
+    (step.testeable_elements && step.testeable_elements.length > 0);
+  const did_nothing =
+    (step.quiz_submissions?.length || 0) === 0 &&
+    (step.tests?.length || 0) === 0 &&
+    (step.compilations?.length || 0) === 0;
+  const user_skipped = !!is_testeable && did_nothing;
+
+  // AI interactions
+  const total_ai_interactions = step.ai_interactions?.length || 0;
+
+  const is_abandoned =
+    comp_struggles + test_struggles + quiz_struggles > 0 &&
+    comp_success + test_success + quiz_success === 0;
 
   return {
     status,
     time_spent,
+    total_duration,
     comp_struggles,
+    comp_success,
+    total_comp_attempts: comp_success + comp_struggles,
     test_struggles,
+    test_success,
+    total_test_attempts: test_success + test_struggles,
+    quiz_struggles,
+    quiz_success,
+    total_quiz_attempts: quiz_success + quiz_struggles,
     streak_comp_struggles,
+    streak_comp_success,
     streak_test_struggle,
+    streak_test_success,
+    streak_quiz_struggles,
+    streak_quiz_success,
+    user_skipped,
+    total_ai_interactions,
+    ai_used: total_ai_interactions > 0,
+    is_abandoned,
   };
 }
 
@@ -254,7 +350,7 @@ function calculateGlobalMetrics(steps: TStep[]): GlobalMetrics {
 export function calculateIndicators(
   telemetry: ITelemetryJSONSchema
 ): IndicatorResults {
-  const indicators = [new EngagementIndicator(), new FrustrationIndicator()];
+  const indicators = [new engagement_indicator(), new frustration_indicator()];
 
   const stepMetricsList = telemetry.steps.map((step) =>
     calculateStepMetrics(step)
@@ -263,21 +359,30 @@ export function calculateIndicators(
 
   const stepsResults = telemetry.steps.map((step, index) => {
     const metrics = stepMetricsList[index];
-    const indicatorsResult: Record<string, number> = {};
+    const indicatorsResult: TIndicators = {
+      engagement_indicator: 0,
+      frustration_indicator: 0,
+    };
 
     indicators.forEach((indicator) => {
-      indicatorsResult[indicator.constructor.name] =
+      indicatorsResult[indicator.constructor.name as keyof TIndicators] =
         indicator.calculateStepIndicator(step, metrics);
     });
 
     return { slug: step.slug, metrics, indicators: indicatorsResult };
   });
 
-  const globalIndicators: Record<string, number> = {};
+  const globalIndicators: TIndicators = {
+    engagement_indicator: 0,
+    frustration_indicator: 0,
+  };
   indicators.forEach((indicator) => {
-    globalIndicators[indicator.constructor.name] =
+    globalIndicators[indicator.constructor.name as keyof TIndicators] =
       indicator.calculateGlobalIndicator(
-        stepsResults.map((step) => step.indicators[indicator.constructor.name]),
+        stepsResults.map(
+          (step) =>
+            step.indicators[indicator.constructor.name as keyof TIndicators]
+        ),
         globalMetrics
       );
   });
@@ -314,15 +419,14 @@ export function calculateTestMetrics(
 
   const started_at =
     element.type === "quiz"
-      ? step.quiz_submissions.find((s) => s.quiz_hash === hash)?.submitted_at ||
+      ? step.quiz_submissions.find((s) => s.quiz_hash === hash)?.ended_at ||
         step.opened_at ||
         0
       : step.tests.shift()?.started_at || step.opened_at || 0;
 
   const ended_at =
     element.type === "quiz"
-      ? step.quiz_submissions.findLast((s) => s.quiz_hash === hash)
-          ?.submitted_at ||
+      ? step.quiz_submissions.findLast((s) => s.quiz_hash === hash)?.ended_at ||
         step.completed_at ||
         1
       : step.tests.shift()?.started_at || step.completed_at || 1;

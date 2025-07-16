@@ -62,6 +62,7 @@ export const Question = ({
   const [answer, setAnswer] = useState("");
   const feedbackRef = useRef<HTMLDivElement>(null);
   const hashRef = useRef<string>("");
+  const startedAtRef = useRef<number>(0);
 
   useEffect(() => {
     if (feedbackRef.current && mode !== "creator" && feedback) {
@@ -119,7 +120,8 @@ export const Question = ({
           ],
         },
       ],
-      hashRef.current
+      hashRef.current,
+      startedAtRef.current
     );
 
     registerTelemetryEvent("quiz_submission", submission);
@@ -168,7 +170,12 @@ ${newExamples.join("\n")}
           minHeight={"90px"}
           defaultValue={answer}
           placeholder={t("yourAnswerHere")}
-          onChange={(e) => setAnswer(e.target.value)}
+          onChange={(e) => {
+            if (!answer) {
+              startedAtRef.current = Date.now();
+            }
+            setAnswer(e.target.value);
+          }}
         />
 
         <SpeechToTextButton onTranscription={handleTranscription} />

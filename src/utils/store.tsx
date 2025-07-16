@@ -50,7 +50,7 @@ import {
   updateSession,
   isPackageAuthor,
 } from "./apiCalls";
-import TelemetryManager from "../managers/telemetry";
+import TelemetryManager, { TStep } from "../managers/telemetry";
 import { RigoAI } from "../components/Rigobot/AI";
 import { svgs } from "../assets/svgs";
 import { Notifier } from "../managers/Notifier";
@@ -1171,8 +1171,6 @@ The user's set up the application in "${language}" language, give your feedback 
           exercises[currentExercisePosition].done);
     }
 
-    // await checkExerciseAvailability(desiredPosition);
-
     if (!letPass) {
       runExerciseTests({
         toast: true,
@@ -1659,6 +1657,9 @@ The user's set up the application in "${language}" language, give your feedback 
       registerTelemetryEvent,
       environment,
       setOpenedModals,
+      currentExercisePosition,
+      token,
+      checkParams,
       // setRigoContext,
       // toggleRigo,
     } = get();
@@ -1676,7 +1677,7 @@ The user's set up the application in "${language}" language, give your feedback 
     if (configObject.exercises && configObject.exercises.length > 0) {
       console.log("Starting telemetry");
 
-      const steps = configObject.exercises.map((e, index) => ({
+      const steps: TStep[] = configObject.exercises.map((e, index) => ({
         slug: e.slug,
         position: e.position || index,
         files: e.files,
@@ -1684,8 +1685,11 @@ The user's set up the application in "${language}" language, give your feedback 
         compilations: [],
         tests: [],
         is_testeable: e.graded || false,
+        testeable_elements: [],
         is_completed: false,
+        sessions: [],
         quiz_submissions: [],
+        user_skipped: false,
       }));
       const agent =
         environment === "localhost"
@@ -1700,16 +1704,28 @@ The user's set up the application in "${language}" language, give your feedback 
       }
 
       if (!steps || steps.length === 0) {
-        console.error("No steps found in config, telemetry will not start");
+        console.error("No steps found in config, telemetry won't start");
         return;
       }
 
       TelemetryManager.urls = configObject.config.telemetry;
 
+      console.log(
+        "User to init telemetry",
+        user.first_name + " " + user.last_name,
+        user.email
+      );
+
+      const params = checkParams({ justReturn: true });
+
       TelemetryManager.start(agent, steps, tutorialSlug, STORAGE_KEY, {
         token: bc_token,
         user_id: String(user.id),
         email: user.email,
+        fullname: user.first_name + " " + user.last_name,
+        rigo_token: token,
+        cohort_id: params.cohort_id || "",
+        academy_id: params.academy_id || "",
       });
       TelemetryManager.registerListener(
         "compile_struggles",
@@ -1718,20 +1734,26 @@ The user's set up the application in "${language}" language, give your feedback 
         }
       );
       TelemetryManager.registerListener("test_struggles", (stepIndicators) => {
-        if (stepIndicators.metrics.streak_test_struggle === 3) {
-          setOpenedModals({ testStruggles: true });
-        }
-        if (stepIndicators.metrics.streak_test_struggle === 9) {
-          setOpenedModals({ testStruggles: true });
-        }
-        if (stepIndicators.metrics.streak_test_struggle >= 15) {
+        if (
+          stepIndicators.metrics.streak_test_struggle === 3 ||
+          stepIndicators.metrics.streak_test_struggle === 9 ||
+          stepIndicators.metrics.streak_test_struggle >= 15
+        ) {
           setOpenedModals({ testStruggles: true });
         }
       });
-      registerTelemetryEvent("open_step", {
-        step_slug: steps[0].slug,
-        step_position: steps[0].position,
-      });
+
+      const openingPosition = Number(currentExercisePosition);
+      if (typeof openingPosition === "number" && !isNaN(openingPosition)) {
+        registerTelemetryEvent("open_step", {
+          step_slug: steps[openingPosition].slug,
+          step_position: steps[openingPosition].position,
+        });
+      } else {
+        console.error(
+          "Current exercise position is not a number, telemetry won't start, open step not registered"
+        );
+      }
     }
   },
   setRigoContext: (context) => {

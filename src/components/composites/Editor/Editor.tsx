@@ -18,6 +18,7 @@ import { Loader } from "../Loader/Loader";
 import { TEditorTab } from "../../../utils/storeTypes";
 import { Markdowner } from "../Markdowner/Markdowner";
 import { eventBus } from "../../../managers/eventBus";
+import { Modal } from "../../mockups/Modal";
 
 const languageMap: { [key: string]: string } = {
   ".js": "javascript",
@@ -137,7 +138,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
   const filteredTabs = tabs.filter((tab) => tab.name !== "terminal");
 
   return (
-    <div style={{ display: `${tabs.length === 0 ? "none" : "block"}` }}>
+    <div className="h-100 " style={{  display: `${tabs.length === 0 ? "none" : "block"}` }}>
       <div
         className="tabs"
         style={{ display: terminal === "only" ? "none" : "flex" }}
@@ -161,7 +162,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
           {tabs.map(
             (tab) =>
               tab.isActive && (
-                <div key={tab.id}>
+                <div className="h-100" key={tab.id}>
                   {tab.name.includes("solution.hide") && (
                     <div className=" padding-small margin-children-none text-small bg-warning text-black">
                       <Markdowner
@@ -179,8 +180,8 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                   )}
                   <MonacoEditor
                     className="editor-monaco"
+                    height="100%"
                     key={tab.id}
-                    height="400px"
                     language={getLanguageFromExtension(tab.name)}
                     theme={editorTheme}
                     value={tab.content}
@@ -280,52 +281,58 @@ const Terminal = ({
   return (
     <>
       {terminalTab && !terminalTab.isHTML && (
-        <div className={`terminal ${terminalState}`}>
-          <h5 className={`d-flex justify-between align-center `}>
-            <span className="d-flex align-center gap-small">
-              {terminalTab &&
-                terminalTab.from &&
-                outputFromMessages[terminalTab.from]}
-              <span
-                onClick={() => setShowInfo(!showInfo)}
-                className="circle bg-secondary padding-small d-flex align-center justify-center pointer"
-              >
-                ?
+        <Modal
+          outsideClickHandler={() =>
+            removeTab(terminalTab.id, terminalTab.name)
+          }
+        >
+          <div className={`terminal ${terminalState}`}>
+            <h5 className={`d-flex justify-between align-center `}>
+              <span className="d-flex align-center gap-small">
+                {terminalTab &&
+                  terminalTab.from &&
+                  outputFromMessages[terminalTab.from]}
+                <span
+                  onClick={() => setShowInfo(!showInfo)}
+                  className="circle bg-secondary padding-small d-flex align-center justify-center pointer"
+                >
+                  ?
+                </span>
               </span>
-            </span>
-            <SimpleButton
-              action={() => removeTab(terminalTab.id, terminalTab.name)}
-              svg={svgs.redClose}
-            />
-          </h5>
+              {/* <SimpleButton
+                action={() => removeTab(terminalTab.id, terminalTab.name)}
+                svg={svgs.redClose}
+              /> */}
+            </h5>
 
-          {showInfo && (
-            <div className="text-small bg-secondary padding-small rounded margin-children-none">
-              <Markdowner markdown={t("terminalInfo")} />
-            </div>
-          )}
-
-          {terminalTab.content ? (
-            <>
-              <Markdowner markdown={terminalTab.content} />
-            </>
-          ) : (
-            <Loader svg={svgs.blueRigoSvg} text={t("thinking...")} />
-          )}
-          {!getCurrentExercise().done && lastState === "error" && (
-            <AskForHint
-              getContext={() => {
-                return terminalTab.content;
-              }}
-              from="test"
-            />
-          )}
-
-          {terminalState === "only" &&
-            (lastState === "error" || getCurrentExercise().done) && (
-              <Toolbar editorStatus={editorStatus} position="absolute" />
+            {showInfo && (
+              <div className="text-small bg-secondary padding-small rounded margin-children-none">
+                <Markdowner markdown={t("terminalInfo")} />
+              </div>
             )}
-        </div>
+
+            {terminalTab.content ? (
+              <>
+                <Markdowner markdown={terminalTab.content} />
+              </>
+            ) : (
+              <Loader svg={svgs.blueRigoSvg} text={t("thinking...")} />
+            )}
+            {!getCurrentExercise().done && lastState === "error" && (
+              <AskForHint
+                getContext={() => {
+                  return terminalTab.content;
+                }}
+                from="test"
+              />
+            )}
+
+            {terminalState === "only" &&
+              (getCurrentExercise().done || lastState === "error") && (
+                <Toolbar editorStatus={editorStatus} position="relative" />
+              )}
+          </div>
+        </Modal>
       )}
       {terminalTab && terminalTab.isHTML && (
         <div className={`terminal ${terminalState} html browser`}>
@@ -395,7 +402,7 @@ const NextButton = () => {
 
 type EditorFooterProps = {
   editorStatus: TEditorStatus;
-  position?: "absolute" | "fixed" | "sticky";
+  position?: "absolute" | "fixed" | "sticky" | "relative";
 };
 
 export const Toolbar = ({

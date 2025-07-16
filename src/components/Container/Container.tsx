@@ -50,7 +50,11 @@ export const Container = () => {
   };
 
   const hideTerminal = () => {
-    setVisibleTab("code");
+    if (isMobile) {
+      setVisibleTab("code");
+    } else {
+      setVisibleTab("all");
+    }
   };
 
   useEffect(() => {
@@ -171,12 +175,12 @@ export const Container = () => {
                 >
                   {t("code")}
                 </div>
-                <div
+                {/* <div
                   onClick={() => onChangeTab("terminal")}
                   data-visible={visibleTab === "terminal" ? true : false}
                 >
                   {t("output")}
-                </div>
+                </div> */}
               </>
             )}
           </div>

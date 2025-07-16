@@ -26,12 +26,14 @@
   border-radius: 0px;
   border-top-right-radius: 5px;
   position: relative;
+  height: 97%;
+  /* background-color: red; */
 }
-
+/* 
 .editor-monaco .view-lines,
 .editor-monaco .margin-view-overlays {
-  height: min(400px, fit-content) !important;
-}
+  height: min(500px, fit-content) !important;
+} */
 
 .terminal {
   border: 3px solid var(--opaque-blue-editor);

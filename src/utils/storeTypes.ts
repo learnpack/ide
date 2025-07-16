@@ -18,6 +18,8 @@ export type TPossibleParams = {
   autoclose?: string;
   slug?: string;
   mode?: "teacher" | "student";
+  cohort_id?: string;
+  academy_id?: string;
 };
 
 export type TParamsActions = {

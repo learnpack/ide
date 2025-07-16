@@ -1,6 +1,9 @@
 import {
   calculateIndicators,
   calculateTestMetrics,
+  GlobalMetrics,
+  StepMetrics,
+  TIndicators,
   TStepIndicators,
   TTesteableElementMetrics,
 } from "../utils/metrics";
@@ -9,6 +12,7 @@ import { LocalStorage } from "./localStorage";
 import axios, { AxiosResponse } from "axios";
 import { TAgent } from "../utils/storeTypes";
 import { LEARNPACK_LOCAL_URL } from "../utils/creator";
+import { RIGOBOT_HOST } from "../utils/lib";
 
 export interface IFile {
   path: string;
@@ -16,7 +20,7 @@ export interface IFile {
   hidden: boolean;
 }
 
-const sendBatchTelemetry = async function (
+const sendBatchTelemetryBreathecode = async function (
   url: string,
   body: object,
   token: string
@@ -47,6 +51,25 @@ const sendBatchTelemetry = async function (
       console.error("Response status:", error.response.status);
       console.error("Response headers:", error.response.headers);
     }
+    throw error;
+  }
+};
+
+const sendBatchTelemetryRigobot = async function (body: object, token: string) {
+  const url = `${RIGOBOT_HOST}/v1/learnpack/telemetry`;
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Token ${token}`,
+  };
+
+  try {
+    const response: AxiosResponse<any> = await axios.post(url, body, {
+      headers,
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error while sending batch telemetry", error);
     throw error;
   }
 };
@@ -161,7 +184,8 @@ export type TQuizSubmission = {
   percentage: number;
   quiz_hash: string;
   selections: TQuizSelection[];
-  submitted_at: number;
+  ended_at: number;
+  started_at: number;
 };
 
 export type TStep = {
@@ -169,14 +193,17 @@ export type TStep = {
   position: number;
   files: IFile[];
   is_testeable: boolean;
-  opened_at?: number; // The time when the step was opened
+  opened_at?: number;
   testeable_elements?: TTesteableElement[];
-  completed_at?: number; // If the step has tests, the time when all the tests passed, else, the time when the user opens the next step
-  compilations: TCompilationAttempt[]; // Everytime the user tries to compile the code
-  tests: TTestAttempt[]; // Everytime the user tries to run the tests
-  ai_interactions: TAIInteraction[]; // Everytime the user interacts with the AI
+  completed_at?: number; // If the step has tests or quizzes, the time when all the tests passed, else, the time when the user opens the next step, if no tests or quizzes, the time when the user opens the next step
+  compilations: TCompilationAttempt[];
+  tests: TTestAttempt[];
+  sessions?: number[];
+  ai_interactions: TAIInteraction[];
   quiz_submissions: TQuizSubmission[];
   is_completed: boolean;
+  metrics?: StepMetrics;
+  indicators?: TIndicators;
 };
 
 type TWorkoutSession = {
@@ -188,12 +215,15 @@ type TStudent = {
   token: string;
   user_id: string;
   email: string;
+  fullname: string;
+  rigo_token: string;
+  academy_id: string;
+  cohort_id: string;
 };
 
-const fixStepData = (data: any): any => {
+const fixStepData = (event: string, data: any): any => {
   let fixed = { ...data };
 
-  // Normaliza starting_at -> started_at
   if (
     typeof fixed.starting_at !== "undefined" &&
     typeof fixed.started_at === "undefined"
@@ -201,7 +231,6 @@ const fixStepData = (data: any): any => {
     fixed.started_at = fixed.starting_at;
     delete fixed.starting_at;
   }
-  // Normaliza ending_at -> ended_at
   if (
     typeof fixed.ending_at !== "undefined" &&
     typeof fixed.ended_at === "undefined"
@@ -209,9 +238,11 @@ const fixStepData = (data: any): any => {
     fixed.ended_at = fixed.ending_at;
     delete fixed.ending_at;
   }
-  // Fallback a timestamp actual si faltan campos
-  if (typeof fixed.started_at === "undefined") fixed.started_at = Date.now();
-  if (typeof fixed.ended_at === "undefined") fixed.ended_at = Date.now();
+
+  if (typeof fixed.started_at === "undefined" && event !== "open_step")
+    fixed.started_at = Date.now();
+  if (typeof fixed.ended_at === "undefined" && event !== "open_step")
+    fixed.ended_at = Date.now();
 
   // Codifica en base64 los campos relevantes
   if (fixed.source_code) {
@@ -236,14 +267,20 @@ const fixStepData = (data: any): any => {
 export interface ITelemetryJSONSchema {
   telemetry_id?: string;
   user_id?: number | string;
+  fullname?: string;
+  email?: string;
   slug: string;
   version: string;
+  cohort_id: string | null;
+  academy_id: string | null;
   agent?: string;
   tutorial_started_at: number;
   last_interaction_at: number;
   steps: Array<TStep>; // The steps should be the same as the exercise
   workout_session: TWorkoutSession[]; // It start when the user starts Learnpack, if the last_interaction_at is available, it automatically fills with that
   // number and start another session
+  global_metrics?: GlobalMetrics;
+  global_indicators?: TIndicators;
 }
 
 export type TStepEvent =
@@ -260,8 +297,10 @@ export type TTelemetryUrls = {
 
 type TUser = {
   token: string;
+  rigo_token: string;
   id: string;
   email: string;
+  fullname: string;
 };
 
 type TAlerts = "test_struggles" | "compile_struggles";
@@ -284,6 +323,7 @@ interface ITelemetryManager {
   ) => void;
   tutorialSlug: string;
   prevStep?: number;
+  prevStepStartedAt?: number;
   listeners: Record<string, (data: any) => void>;
   registerListener: (event: TAlerts, callback: (data: any) => void) => void;
   registerStepEvent: (
@@ -300,18 +340,10 @@ interface ITelemetryManager {
   streamEvent: (stepPosition: number, event: string, data: any) => void;
   submit: () => Promise<void>;
   finishWorkoutSession: () => void;
-  // setStudent: (student: TStudent) => void;
   save: () => void;
   retrieve: () => Promise<ITelemetryJSONSchema | null>;
   getStep: (stepPosition: number) => TStep | null;
 }
-
-// function isMultipleOfThree(number: number): boolean {
-//   if (number === 0) {
-//     return false;
-//   }
-//   return number % 3 === 0;
-// }
 
 const TelemetryManager: ITelemetryManager = {
   current: null,
@@ -319,16 +351,18 @@ const TelemetryManager: ITelemetryManager = {
   telemetryKey: "",
   listeners: {},
   agent: "cloud",
-  // userToken: "",
-  // userID: undefined,
+  prevStep: undefined,
+  prevStepStartedAt: undefined,
   user: {
     token: "",
+    rigo_token: "",
     id: "",
     email: "",
+    fullname: "",
   },
   tutorialSlug: "",
   started: false,
-  version: `CLOUD:${packageInfo.version}` || "CLOUD:0.0.0",
+  version: `${packageInfo.version}` || "CLOUD:0.0.0",
   salute: (message) => {
     console.log(message);
   },
@@ -339,6 +373,9 @@ const TelemetryManager: ITelemetryManager = {
     this.agent = agent;
     this.user.id = student.user_id;
     this.user.token = student.token;
+    this.user.rigo_token = student.rigo_token;
+    this.user.fullname = student.fullname;
+    this.user.email = student.email;
 
     if (!this.current) {
       this.retrieve()
@@ -355,7 +392,7 @@ const TelemetryManager: ITelemetryManager = {
             this.current = {
               telemetry_id: createUUID(),
               slug: tutorialSlug,
-              version: `CLOUD:${this.version}`,
+              version: `${this.version}`,
               agent,
               tutorial_started_at: Date.now(),
               last_interaction_at: Date.now(),
@@ -365,10 +402,18 @@ const TelemetryManager: ITelemetryManager = {
                   started_at: Date.now(),
                 },
               ],
+              fullname: this.user.fullname,
+              email: this.user.email,
+              cohort_id: null,
+              academy_id: null,
             };
           }
 
           this.current.user_id = this.user.id;
+          this.current.fullname = this.user.fullname;
+          this.current.email = this.user.email;
+          this.current.cohort_id = student.cohort_id;
+          this.current.academy_id = student.academy_id;
 
           if (!this.current.version) {
             this.current.version = `CLOUD:${this.version}`;
@@ -480,7 +525,6 @@ const TelemetryManager: ITelemetryManager = {
   },
 
   registerStepEvent: function (stepPosition, event, data) {
-
     if (!this.current) {
       console.error(`Telemetry has not been started, ${event} NOT REGISTERED`);
       return;
@@ -493,7 +537,7 @@ const TelemetryManager: ITelemetryManager = {
       return;
     }
 
-    data = fixStepData(data);
+    data = fixStepData(event, data);
 
     switch (event) {
       case "compile":
@@ -510,8 +554,13 @@ const TelemetryManager: ITelemetryManager = {
         }
 
         step.tests.push(data);
-        if (data.exit_code === 0) {
-          step.completed_at = Date.now();
+
+        const now = Date.now();
+        const hasPendingTasks = this.hasPendingTasks(stepPosition);
+
+        if (!hasPendingTasks && !step.completed_at && data.exit_code === 0) {
+          step.completed_at = now;
+          step.is_completed = true;
         }
 
         this.current.steps[stepPosition] = step;
@@ -530,25 +579,51 @@ const TelemetryManager: ITelemetryManager = {
         }
 
         step.quiz_submissions.push(data);
+
+        const now = Date.now();
+        const hasPendingTasks = this.hasPendingTasks(stepPosition);
+        if (!hasPendingTasks && !step.completed_at) {
+          step.completed_at = now;
+          step.is_completed = true;
+        }
+
+        this.current.steps[stepPosition] = step;
+
         break;
       }
       case "open_step": {
         const now = Date.now();
+
+        if (
+          typeof this.prevStep === "number" &&
+          typeof this.prevStepStartedAt === "number"
+        ) {
+          const prevStep = this.current.steps[this.prevStep];
+          const delta = now - this.prevStepStartedAt;
+
+          if (!prevStep.sessions) prevStep.sessions = [];
+          prevStep.sessions.push(delta);
+          this.current.steps[this.prevStep] = prevStep;
+        }
+
+        if (typeof this.prevStep === "number") {
+          const prevStep = this.current.steps[this.prevStep];
+
+          const hasPendingTasks = this.hasPendingTasks(this.prevStep);
+          if (!hasPendingTasks && !prevStep.completed_at) {
+            prevStep.completed_at = now;
+            prevStep.is_completed = true;
+            this.current.steps[this.prevStep] = prevStep;
+          }
+        }
 
         if (!step.opened_at) {
           step.opened_at = now;
           this.current.steps[stepPosition] = step;
         }
 
-        if (this.prevStep || this.prevStep === 0) {
-          const prevStep = this.current.steps[this.prevStep];
-          if (!prevStep.is_testeable && !prevStep.completed_at) {
-            prevStep.completed_at = now;
-            this.current.steps[this.prevStep] = prevStep;
-          }
-        }
-
         this.prevStep = stepPosition;
+        this.prevStepStartedAt = now;
 
         this.submit();
         break;
@@ -561,6 +636,7 @@ const TelemetryManager: ITelemetryManager = {
     this.current.last_interaction_at = Date.now();
     this.streamEvent(stepPosition, event, data);
     this.save();
+
     if (
       event === "test" &&
       typeof this.listeners["test_struggles"] === "function"
@@ -599,11 +675,6 @@ const TelemetryManager: ITelemetryManager = {
       console.warn(
         "Telemetry and user token are required to send telemetry, telemetry was not sent"
       );
-      console.warn({
-        current: Boolean(this.current),
-        id: Boolean(this.user.id),
-        token: Boolean(this.user.token),
-      });
       return Promise.resolve();
     }
 
@@ -613,14 +684,39 @@ const TelemetryManager: ITelemetryManager = {
       return;
     }
 
-    const body = this.current;
+    if (!this.current.telemetry_id) {
+      this.current.telemetry_id = createUUID();
+    }
+
+    // Calculate metrics for all steps
+    const indicators = calculateIndicators(this.current);
+    const withMetricsSteps = this.current.steps.map((step, index) => {
+      const telID = this.current?.telemetry_id || createUUID();
+
+      return {
+        ...step,
+        telemetry_id: telID,
+        metrics: indicators.steps[index].metrics,
+        indicators: indicators.steps[index].indicators,
+      };
+    });
+
+    const body = {
+      ...this.current,
+      steps: withMetricsSteps,
+      global_metrics: indicators.global.metrics,
+      global_indicators: indicators.global.indicators,
+    };
+
+    console.log({ body });
 
     if (!body.user_id) {
       body.user_id = this.user.id;
     }
 
     try {
-      await sendBatchTelemetry(url, body, this.user.token);
+      await sendBatchTelemetryBreathecode(url, body, this.user.token);
+      await sendBatchTelemetryRigobot(body, this.user.rigo_token);
     } catch (error) {
       console.error("Error submitting telemetry", error);
     }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import SimpleButton from "../../mockups/SimpleButton";
 import { AskForHint } from "../AskForHint/AskForHint";
 import toast from "react-hot-toast";
@@ -26,18 +26,21 @@ type TQuiz = {
     [key: string]: TQuizGroup;
   };
   renderedGroups: string[];
+  started_at: number;
 };
 
 export const makeQuizSubmission = (
   groups: TQuizGroup[],
-  quizHash: string
+  quizHash: string,
+  started_at: number
 ): TQuizSubmission => {
   const correctAnswers = Object.values(groups).filter(
     (group) => group.correctAnswer === group.currentSelection
   );
   const percentage = (correctAnswers.length / groups.length) * 100;
   return {
-    submitted_at: Date.now(),
+    started_at,
+    ended_at: Date.now(),
     status: percentage === 100 ? "SUCCESS" : "ERROR",
     percentage,
     quiz_hash: quizHash,
@@ -75,9 +78,12 @@ export const QuizRenderer = ({ children }: { children: any }) => {
     attempts: [],
     groups: {},
     renderedGroups: [],
+    started_at: 0,
   });
 
   const onGroupReady = (group: TQuizGroup) => {
+    if (quiz.current.started_at === 0) quiz.current.started_at = Date.now();
+
     quiz.current.groups[group.title] = group;
     setShowResults(false);
 
@@ -118,7 +124,8 @@ export const QuizRenderer = ({ children }: { children: any }) => {
       );
 
       if (
-        currentStep?.quiz_submissions &&
+        currentStep &&
+        currentStep.quiz_submissions &&
         currentStep.quiz_submissions.length > 0
       ) {
         // find the submissions with the same hash
@@ -137,7 +144,8 @@ export const QuizRenderer = ({ children }: { children: any }) => {
 
       const submission = makeQuizSubmission(
         Object.values(quiz.current.groups),
-        quiz.current.hash
+        quiz.current.hash,
+        quiz.current.started_at
       );
       quiz.current.attempts.push(submission);
 
@@ -159,14 +167,15 @@ export const QuizRenderer = ({ children }: { children: any }) => {
           is_completed: true,
         }
       );
+      quiz.current.started_at = 0;
     } else {
       toast.error(t("answer-all-questions-before"));
     }
   };
 
-  const handleRigoClick = useCallback(() => {
+  const handleRigoClick = () => {
     return JSON.stringify(quiz.current);
-  }, []);
+  };
 
   return (
     <div className="quiz-container">
