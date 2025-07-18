@@ -219,6 +219,7 @@ export type TConsumableSlug =
   | "ai-generation";
 export interface IStore {
   exercises: TExercise[];
+  teacherOnboardingClosed: boolean;
   chatInitialMessage: string;
   currentContent: TContent;
   currentExercisePosition: number | string;

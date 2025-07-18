@@ -16,7 +16,7 @@
   flex-direction: column;
   background-color: var(--modals-bg-color);
   padding: 20px;
-  width: min(600px, 98vw);
+  width: min(var(--modal-min-width, 600px), 98vw);
   gap: 10px;
   margin-inline: auto;
   overflow: auto;

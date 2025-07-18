@@ -164,7 +164,9 @@ const useStore = create<IStore>((set, get) => ({
     rigobotInvite: false,
     testStruggles: false,
     addVideoTutorial: false,
+    teacherOnboarding: false,
   },
+  teacherOnboardingClosed: false,
   activeTab: 0,
   lastTestResult: {
     // @ts-ignore
@@ -384,6 +386,11 @@ const useStore = create<IStore>((set, get) => ({
 
   setOpenedModals: (modals) => {
     const { openedModals } = get();
+
+    if (modals.teacherOnboarding && !openedModals.teacherOnboarding) {
+      set({ teacherOnboardingClosed: true });
+    }
+
     // @ts-ignore
     set({ openedModals: { ...openedModals, ...modals } });
   },

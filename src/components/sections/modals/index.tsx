@@ -18,12 +18,28 @@ import { AddVideoTutorial } from "./AddVideoTutorial";
 import { NotAuthorModal } from "./NotAuthorModal";
 import { PackageNotFoundModal } from "./PackageNotFound";
 import { SyllabusFeedbackModal } from "./SyllabusFeedback";
+import { TeacherOnboarding } from "./TeacherOnboarding";
+import { useEffect } from "react";
 
 export const ModalsContainer = () => {
-  const { openedModals } = useStore((state) => ({
-    openedModals: state.openedModals,
-    token: state.token,
-  }));
+  const { openedModals, setOpenedModals, mode, teacherOnboardingClosed } =
+    useStore((state) => ({
+      openedModals: state.openedModals,
+      setOpenedModals: state.setOpenedModals,
+      mode: state.mode,
+      teacherOnboardingClosed: state.teacherOnboardingClosed,
+    }));
+
+  useEffect(() => {
+    if (
+      mode === "creator" &&
+      !openedModals.teacherOnboarding &&
+      !teacherOnboardingClosed
+    ) {
+      setOpenedModals({ teacherOnboarding: true });
+    }
+  }, [mode]);
+
   return (
     <>
       <SocketDisconnectionModal />
@@ -43,6 +59,7 @@ export const ModalsContainer = () => {
       {openedModals.notAuthor && <NotAuthorModal />}
       {openedModals.packageNotFound && <PackageNotFoundModal />}
       {openedModals.syllabusFeedback && <SyllabusFeedbackModal />}
+      {openedModals.teacherOnboarding && <TeacherOnboarding />}
     </>
   );
 };

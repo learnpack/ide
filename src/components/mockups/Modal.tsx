@@ -9,6 +9,7 @@ interface IModal {
   extraClass?: string;
   outsideClickHandler?: () => void;
   blockScroll?: boolean;
+  minWidth?: string;
 }
 
 export const Modal = ({
@@ -17,11 +18,11 @@ export const Modal = ({
   htmlId,
   extraClass,
   blockScroll = true,
+  minWidth = "600px",
 }: IModal) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
   const handleClickOutside = (event: any) => {
-    
     if (
       modalRef.current === event.target ||
       (typeof event.target.classList === "function" &&
@@ -56,7 +57,16 @@ export const Modal = ({
   }, []);
 
   return createPortal(
-    <div ref={modalRef} className="self-closing-modal" id={htmlId}>
+    <div
+      ref={modalRef}
+      className="self-closing-modal"
+      id={htmlId}
+      style={
+        {
+          "--modal-min-width": minWidth,
+        } as React.CSSProperties
+      }
+    >
       <div className={`modal-content ${extraClass ? extraClass : ""}`}>
         {outsideClickHandler && (
           <div onClick={outsideClickHandler} className="modal-closer">
