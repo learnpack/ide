@@ -4,6 +4,7 @@ import PublishButton from "./PublishButton";
 import SimpleButton from "../mockups/SimpleButton";
 import { useTranslation } from "react-i18next";
 import { svgs } from "../../assets/svgs";
+import MiniLessonListener from "./MiniLessonListener";
 
 export const PublishNavbar = () => {
   const isCreator = useStore((state) => state.isCreator);
@@ -36,6 +37,7 @@ export const PublishNavbar = () => {
         />
       </div>
       <div className="flex-x align-center gap-big">
+        <MiniLessonListener />
         <PublishButton />
       </div>
     </div>

@@ -21,10 +21,13 @@ export const RigoQuestion = ({
   children: React.ReactNode;
   href: string;
 }) => {
-  const { toggleRigo, setRigoContext } = useStore((state) => ({
-    toggleRigo: state.toggleRigo,
-    setRigoContext: state.setRigoContext,
-  }));
+  const { toggleRigo, setRigoContext, reportEnrichDataLayer } = useStore(
+    (state) => ({
+      toggleRigo: state.toggleRigo,
+      setRigoContext: state.setRigoContext,
+      reportEnrichDataLayer: state.reportEnrichDataLayer,
+    })
+  );
 
   return (
     <div
@@ -35,6 +38,9 @@ export const RigoQuestion = ({
             "Please answer the question. This is mean to help the student to learn something new or understand a concept in deep.",
           userMessage:
             extractQueryFromUrlAndformatAsMessage(href) || (children as string),
+        });
+        reportEnrichDataLayer("open_rigo_question", {
+          userMessage: extractQueryFromUrlAndformatAsMessage(href),
         });
       }}
       className="d-inline-flex align-items-center gap-small padding-small rounded bg-blue-opaque fit-content active-on-hover"

@@ -11,9 +11,15 @@ export default function RealtimeImage({ imageId }: { imageId: string }) {
   const { t } = useTranslation();
   const config = useStore((state) => state.configObject);
   const fetchReadme = useStore((state) => state.fetchReadme);
+  const reportEnrichDataLayer = useStore(
+    (state) => state.reportEnrichDataLayer
+  );
 
   const handleUpdate = () => {
     fetchReadme();
+    reportEnrichDataLayer("creator_image_generation_completed", {
+      image_id: imageId,
+    });
   };
 
   useEffect(() => {

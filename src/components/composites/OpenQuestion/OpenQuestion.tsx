@@ -48,6 +48,7 @@ export const Question = ({
     currentExercisePosition,
     useConsumable,
     registerTelemetryEvent,
+    reportEnrichDataLayer,
   } = useStore((state) => ({
     token: state.token,
     replaceInReadme: state.replaceInReadme,
@@ -55,6 +56,7 @@ export const Question = ({
     currentExercisePosition: state.currentExercisePosition,
     useConsumable: state.useConsumable,
     registerTelemetryEvent: state.registerTelemetryEvent,
+    reportEnrichDataLayer: state.reportEnrichDataLayer,
     // currentContent: state.currentContent,
   }));
 
@@ -129,6 +131,7 @@ export const Question = ({
     registerTelemetryEvent("quiz_submission", submission);
     if (result.exit_code === 0) {
       Notifier.confetti();
+      reportEnrichDataLayer("quiz_success", {});
       TelemetryManager.registerTesteableElement(
         Number(currentExercisePosition),
         {
@@ -140,6 +143,7 @@ export const Question = ({
       playEffect("success");
     } else {
       playEffect("error");
+      reportEnrichDataLayer("quiz_error", {});
     }
 
     setIsLoading(false);

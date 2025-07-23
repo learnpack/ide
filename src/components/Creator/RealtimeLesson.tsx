@@ -62,7 +62,7 @@ export default function RealtimeLesson() {
         </div>
       </div>
       <ProgressBar duration={20} height={4} />
-      {/* <Loader text={t(getRandomGeneratingMessageKey())} svg={svgs.rigoSvg} /> */}
+
       <div
         style={{ background: "#FAFDFF", border: "1px solid #C8DBFC" }}
         className=" rounded padding-small"

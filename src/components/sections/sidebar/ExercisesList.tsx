@@ -11,9 +11,10 @@ import {
   renameExercise,
 } from "../../../utils/creator";
 import { FetchManager } from "../../../managers/fetchManager";
-import { TMode } from "../../../utils/storeTypes";
+import { Syllabus, TMode } from "../../../utils/storeTypes";
 import { cleanFloatString } from "../../../utils/lib";
 import { eventBus } from "../../../managers/eventBus";
+import { Loader } from "../../composites/Loader/Loader";
 interface IExerciseList {
   closeSidebar: () => void;
   mode: "creator" | "student";
@@ -186,15 +187,23 @@ const AddExerciseButton = ({
 };
 
 export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
-  const { exercises, fetchExercises, getSidebar, sidebar, token, language } =
-    useStore((state) => ({
-      exercises: state.exercises,
-      fetchExercises: state.fetchExercises,
-      getSidebar: state.getSidebar,
-      sidebar: state.sidebar,
-      token: state.token,
-      language: state.language,
-    }));
+  const {
+    exercises,
+    fetchExercises,
+    getSidebar,
+    sidebar,
+    token,
+    language,
+    syllabus,
+  } = useStore((state) => ({
+    exercises: state.exercises,
+    fetchExercises: state.fetchExercises,
+    getSidebar: state.getSidebar,
+    sidebar: state.sidebar,
+    token: state.token,
+    language: state.language,
+    syllabus: state.syllabus,
+  }));
   const inputLanguageRef = useRef<HTMLInputElement>(null);
 
   const { t } = useTranslation();
@@ -288,6 +297,7 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
             mode={mode}
             handleSelect={handleSelect}
             selected={selectedExercises.includes(ex.slug)}
+            syllabus={syllabus}
           />
           {mode === "creator" && (
             <AddExerciseButton
@@ -311,6 +321,7 @@ interface IExerciseProps {
   closeSidebar: () => void;
   handleSelect: (slug: string) => void;
   selected: boolean;
+  syllabus: Syllabus;
 }
 
 function ExerciseCard({
@@ -323,6 +334,7 @@ function ExerciseCard({
   mode,
   handleSelect,
   selected,
+  syllabus,
 }: IExerciseProps) {
   const { t } = useTranslation();
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -375,6 +387,12 @@ function ExerciseCard({
       }, 100);
     }
   };
+
+  const index = title.split("-")[0];
+
+  const foundInSyllabus = syllabus?.lessons?.find((lesson) => {
+    return lesson.id === index;
+  });
 
   return (
     <div
@@ -436,49 +454,56 @@ function ExerciseCard({
       </div>
 
       <div className="flex-x align-center gap-small">
+        {foundInSyllabus && !foundInSyllabus.generated && (
+          <Loader svg={svgs.tools} extraClass="svg-blue" />
+        )}
         {graded && mode === "student" && (
           <SimpleButton
             svg={done ? svgs.checkIcon : svgs.blankCircle}
             text=""
           />
         )}
-        {mode === "creator" && (
-          <>
-            <SimpleButton
-              extraClass=""
-              svg={isEditing ? svgs.iconCheck : svgs.edit}
-              text=""
-              action={handleEdit}
-            />
-            <SimpleButton
-              extraClass=""
-              svg={isEditing ? svgs.iconClose : svgs.trash}
-              text=""
-              action={async () => {
-                if (isEditing) {
-                  setIsEditing(false);
-                  return;
-                }
-                const toastId = toast.loading(t("deletingExercise"));
-
-                try {
-                  await deleteExercise(slug);
-                  const currentExercise = getCurrentExercise();
-                  if (currentExercise.slug === slug) {
-                    handlePositionChange(0);
+        {mode === "creator" &&
+          (!foundInSyllabus ||
+            (foundInSyllabus && foundInSyllabus.generated)) && (
+            <>
+              <SimpleButton
+                extraClass=""
+                svg={isEditing ? svgs.iconCheck : svgs.edit}
+                text=""
+                action={handleEdit}
+              />
+              <SimpleButton
+                extraClass=""
+                svg={isEditing ? svgs.iconClose : svgs.trash}
+                text=""
+                action={async () => {
+                  if (isEditing) {
+                    setIsEditing(false);
+                    return;
                   }
-                  toast.success(t("exerciseDeleted"), { id: toastId });
+                  const toastId = toast.loading(t("deletingExercise"));
 
-                  await fetchExercises();
-                } catch (error) {
-                  toast.error(t("errorDeletingExercise"), { id: toastId });
-                  console.log(error);
-                }
-              }}
-              confirmationMessage={isEditing ? undefined : t("sure?")}
-            />
-          </>
-        )}
+                  try {
+                    await deleteExercise(slug);
+                    const currentExercise = getCurrentExercise();
+                    if (currentExercise.slug === slug) {
+                      handlePositionChange(0);
+                    }
+                    toast.success(t("exerciseDeleted"), { id: toastId });
+
+                    await fetchExercises();
+                  } catch (error) {
+                    toast.error(t("errorDeletingExercise"), {
+                      id: toastId,
+                    });
+                    console.log(error);
+                  }
+                }}
+                confirmationMessage={isEditing ? undefined : t("sure?")}
+              />
+            </>
+          )}
       </div>
     </div>
   );

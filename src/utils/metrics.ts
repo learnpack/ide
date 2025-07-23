@@ -302,17 +302,23 @@ function calculateGlobalMetrics(steps: TStep[]): GlobalMetrics {
     (s) => s.status === "attempted"
   ).length;
   const num_skipped = stepMetrics.filter((s) => s.status === "skipped").length;
+
+  const num_unread = stepMetrics.filter((s) => s.status === "unread").length;
   const completion_rate = total_steps ? (num_completed / total_steps) * 100 : 0;
   const total_interactions = steps.reduce(
     (sum, step) =>
-      sum + (step.compilations?.length || 0) + (step.tests?.length || 0),
+      sum +
+      (step.compilations?.length || 0) +
+      (step.tests?.length || 0) +
+      (step.quiz_submissions?.length || 0) +
+      (step.ai_interactions?.length || 0),
     0
   );
   const total_time_on_platform = stepMetrics.reduce(
     (sum, sm) => sum + sm.time_spent,
     0
   );
-  const steps_not_completed = num_attempted + num_skipped;
+  const steps_not_completed = num_attempted + num_skipped + num_unread;
   const avg_comp_struggles = total_steps
     ? stepMetrics.reduce((sum, sm) => sum + sm.comp_struggles, 0) / total_steps
     : 0;
@@ -384,8 +390,7 @@ export function calculateIndicators(
     globalIndicators[indicator.name as keyof TIndicators] =
       indicator.calculateGlobalIndicator(
         stepsResults.map(
-          (step) =>
-            step.indicators[indicator.name as keyof TIndicators]
+          (step) => step.indicators[indicator.name as keyof TIndicators]
         ),
         globalMetrics
       );

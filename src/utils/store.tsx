@@ -1881,10 +1881,10 @@ The user's set up the application in "${language}" language, give your feedback 
       dataLayer: {
         event,
         method: "learnpack",
-        asset_slug: configObject.config.slug,
+        asset_slug: configObject?.config?.slug || "unknown",
         path: window.location.href,
         iframe: isIframe,
-        user_id: user.id,
+        user_id: user?.id || "anonymous",
         content_type: "exercise",
         current_step_index: Number(currentExercisePosition),
         current_step_slug: getCurrentExercise().slug,

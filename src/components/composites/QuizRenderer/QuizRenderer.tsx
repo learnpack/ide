@@ -63,12 +63,16 @@ export const QuizRenderer = ({ children }: { children: any }) => {
     toastFromStatus,
     getTelemetryStep,
     currentExercisePosition,
+    useConsumable,
+    reportEnrichDataLayer,
   } = useStore((state) => ({
     registerTelemetryEvent: state.registerTelemetryEvent,
     maxQuizRetries: state.maxQuizRetries,
     toastFromStatus: state.toastFromStatus,
     getTelemetryStep: state.getTelemetryStep,
     currentExercisePosition: state.currentExercisePosition,
+    useConsumable: state.useConsumable,
+    reportEnrichDataLayer: state.reportEnrichDataLayer,
   }));
 
   const liChildren = children.filter((child: any) => child.type === "li");
@@ -155,9 +159,11 @@ export const QuizRenderer = ({ children }: { children: any }) => {
         toastFromStatus("quiz-success");
         Notifier.confetti();
         playEffect("success");
+        reportEnrichDataLayer("quiz_success", {});
       } else {
         toastFromStatus("quiz-error");
         playEffect("error");
+        reportEnrichDataLayer("quiz_error", {});
       }
       TelemetryManager.registerTesteableElement(
         Number(currentExercisePosition),
@@ -167,6 +173,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
           is_completed: true,
         }
       );
+      useConsumable("ai-generation");
       quiz.current.started_at = 0;
     } else {
       toast.error(t("answer-all-questions-before"));

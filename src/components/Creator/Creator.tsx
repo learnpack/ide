@@ -51,11 +51,13 @@ export const CreatorWrapper = ({
     insertBeforeOrAfter,
     currentContent,
     useConsumable,
+    reportEnrichDataLayer,
   } = useStore((state) => ({
     replaceInReadme: state.replaceInReadme,
     insertBeforeOrAfter: state.insertBeforeOrAfter,
     currentContent: state.currentContent,
     useConsumable: state.useConsumable,
+    reportEnrichDataLayer: state.reportEnrichDataLayer,
   }));
 
   const [isOpen, setIsOpen] = useState(false);
@@ -102,8 +104,11 @@ export const CreatorWrapper = ({
             setReplacementValue(data.ai_response);
             setIsGenerating(false);
             useConsumable("ai-generation");
-            // setShowButtons(true);
           }
+          reportEnrichDataLayer("creator_template_used", {
+            template: "simplify-language",
+            success: success,
+          });
         },
       });
     }
@@ -132,8 +137,11 @@ export const CreatorWrapper = ({
           if (success) {
             setReplacementValue(data.ai_response);
             useConsumable("ai-generation");
-            // setShowButtons(true);
           }
+          reportEnrichDataLayer("creator_template_used", {
+            template: "explain-further",
+            success: success,
+          });
         },
       });
     }
@@ -164,8 +172,11 @@ export const CreatorWrapper = ({
             setIsGenerating(false);
             setReplacementValue(data.ai_response);
             useConsumable("ai-generation");
-            // setShowButtons(true);
           }
+          reportEnrichDataLayer("creator_template_used", {
+            template: "summarize-text",
+            success: success,
+          });
         },
       });
     }
@@ -196,8 +207,11 @@ export const CreatorWrapper = ({
           if (success) {
             setReplacementValue(data.ai_response);
             useConsumable("ai-generation");
-            // setShowButtons(true);
           }
+          reportEnrichDataLayer("creator_template_used", {
+            template: "change-tone",
+            success: success,
+          });
         },
       });
     }
@@ -238,6 +252,10 @@ export const CreatorWrapper = ({
             setInteractions((prev) => [...prev, interaction]);
             useConsumable("ai-generation");
           }
+          reportEnrichDataLayer("creator_template_used", {
+            template: "request-changes-in-lesson",
+            success: success,
+          });
         },
       });
     }
@@ -274,8 +292,11 @@ export const CreatorWrapper = ({
             setReplacementValue(data.ai_response);
             setIsGenerating(false);
             useConsumable("ai-generation");
-            // setShowButtons(true);
           }
+          reportEnrichDataLayer("creator_template_used", {
+            template: "simplify-code",
+            success: success,
+          });
         },
       });
     }
@@ -291,12 +312,14 @@ export const CreatorWrapper = ({
       );
       setReplacementValue("");
     }
+    reportEnrichDataLayer("creator_result_accepted", {});
   };
 
   const rejectChanges = () => {
     targetRef.current!.innerHTML = "";
     setReplacementValue("");
     setIsEditingAsMarkdown(false);
+    reportEnrichDataLayer("creator_result_rejected", {});
   };
 
   const promps: TPromp[] = [
@@ -381,6 +404,9 @@ export const CreatorWrapper = ({
     setIsEditingAsMarkdown(!isEditingAsMarkdown);
     setReplacementValue(getPortion());
     setIsOpen(false);
+    reportEnrichDataLayer("creator_edit_as_markdown_clicked", {
+      next_state: isEditingAsMarkdown ? "html" : "markdown",
+    });
   };
 
   return (
@@ -637,6 +663,9 @@ const ImageGenerator = ({
   const token = useStore((state) => state.token);
   const config = useStore((state) => state.configObject);
   const useConsumable = useStore((state) => state.useConsumable);
+  const reportEnrichDataLayer = useStore(
+    (state) => state.reportEnrichDataLayer
+  );
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -659,6 +688,10 @@ const ImageGenerator = ({
         toast.success(t("imageInProcess"), { id: tid });
         const replacement = makeReplacement(randomID, prompt);
         onFinish(replacement);
+        reportEnrichDataLayer("creator_image_generation_started", {
+          prompt,
+          image_id: randomID,
+        });
         try {
           await useConsumable("ai-generation");
         } catch (error) {
