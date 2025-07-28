@@ -44,26 +44,42 @@ export const RigoAI = {
       RigoAI.load();
     }
 
-    // @ts-ignore
-    if (window.rigo) {
+    const initialize = (retries = 0) => {
+      if (retries > 3) {
+        console.error("Failed to initialize RigoAI after 3 retries");
+        return;
+      }
+
       // @ts-ignore
-      window.rigo.init(chatHash, {
-        purposeSlug,
-        user: {
-          token: userToken,
-        },
-        context: context || "",
-        sockethost: FASTAPI_HOST,
-        // sockethost: "http://127.0.0.1:8003",
-      });
-      // @ts-ignore
-      window.rigo.show({
-        showBubble: false,
-        collapsed: true,
-      });
-    } else {
-      console.error("No window.rigo found, initializing RigoAI failed");
-    }
+      if (window.rigo) {
+        // @ts-ignore
+        window.rigo.init(chatHash, {
+          purposeSlug,
+          user: {
+            token: userToken,
+          },
+          context: context || "",
+          sockethost: FASTAPI_HOST,
+          // sockethost: "http://127.0.0.1:8003",
+        });
+        // @ts-ignore
+        window.rigo.show({
+          showBubble: false,
+          collapsed: true,
+        });
+      } else {
+        console.error(
+          `No window.rigo found, initializing RigoAI failed, retrying in ${
+            1000 * (retries + 1)
+          }ms`
+        );
+        setTimeout(() => {
+          initialize(retries + 1);
+        }, 1000 * (retries + 1));
+      }
+    };
+
+    initialize();
   },
   useTemplate: ({
     slug,
