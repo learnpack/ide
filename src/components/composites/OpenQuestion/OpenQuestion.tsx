@@ -147,7 +147,7 @@ export const Question = ({
     }
 
     setIsLoading(false);
-    await useConsumable("ai-generation");
+    await useConsumable("ai-compilation");
   };
 
   const handleTranscription = (text: string) => {

@@ -997,8 +997,12 @@ The user's set up the application in "${language}" language, give your feedback 
       }
       set({ editorTabs: [...editorTabsCopy] });
 
-      if (editorTabsCopy.length > 0 && environment === "localStorage") {
+      if (
+        editorTabsCopy.length > 0 &&
+        (environment === "localStorage" || environment === "creatorWeb")
+      ) {
         setAllowedActions(["tutorial", "test", "build"]);
+        set({ isTesteable: true, isBuildable: true });
       }
     };
     updateTabs();

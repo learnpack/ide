@@ -173,7 +173,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
           is_completed: true,
         }
       );
-      useConsumable("ai-generation");
+      useConsumable("ai-compilation");
       quiz.current.started_at = 0;
     } else {
       toast.error(t("answer-all-questions-before"));
