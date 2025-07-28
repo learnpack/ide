@@ -11,7 +11,7 @@ export const RigoAI = {
   load: () => {
     if (RigoAI.started) return;
     const rigoAI = document.createElement("script");
-    rigoAI.src = "https://unpkg.com/rigo-ai@0.1.8/dist/main.js";
+    rigoAI.src = "https://unpkg.com/rigo-ai@0.1.11/dist/main.js";
     rigoAI.type = "text/javascript";
     rigoAI.async = true;
     document.head.appendChild(rigoAI);
@@ -36,7 +36,9 @@ export const RigoAI = {
       context,
     });
 
-    if (!RigoAI.started) RigoAI.load();
+    if (!RigoAI.started) {
+      RigoAI.load();
+    }
 
     // @ts-ignore
     if (window.rigo) {
