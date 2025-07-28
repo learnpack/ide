@@ -14,7 +14,7 @@ export const RigoAI = {
       return;
     }
     const rigoAI = document.createElement("script");
-    rigoAI.src = "https://unpkg.com/rigo-ai@0.1.11/dist/main.js";
+    rigoAI.src = "https://unpkg.com/rigo-ai@0.1.12/dist/main.js";
     rigoAI.type = "text/javascript";
     rigoAI.async = true;
     document.head.appendChild(rigoAI);
