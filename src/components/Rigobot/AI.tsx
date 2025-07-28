@@ -28,7 +28,13 @@ export const RigoAI = {
     userToken: string;
     context?: string;
   }) => {
-    console.log("Initilizing RigoAI");
+    console.table({
+      "Initilizing RigoAI with": "",
+      chatHash,
+      purposeSlug,
+      userToken,
+      context,
+    });
 
     if (!RigoAI.started) RigoAI.load();
 
