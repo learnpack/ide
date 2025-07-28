@@ -323,5 +323,7 @@
     "we-didnt-find-the-tutorial": "No encontramos el    tutorial, por favor contacta al soporte.",
     "we-had-a-problem": "¡Ups! Tenemos un problema",
     "report-bug": "Reportar incidente",
-    "make-sure-you-are-the-author-of-the-course": "Asegúrate de ser el autor del curso"
+    "make-sure-you-are-the-author-of-the-course": "Asegúrate de ser el autor del curso",
+    "errorRunningCode": "Error al ejecutar el código",
+    "runningCode": "Ejecutando código..."
 }

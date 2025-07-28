@@ -1,7 +1,7 @@
 import { svgs } from "../../../assets/svgs";
 import { toast } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { checkAnswer, suggestExamples } from "../../../managers/EventProxy";
+import { suggestExamples } from "../../../managers/EventProxy";
 import { Element } from "hast";
 import { useEffect, useRef, useState } from "react";
 import { asyncHashText, debounce, playEffect } from "../../../utils/lib";
@@ -17,6 +17,7 @@ import { AutoResizeTextarea } from "../AutoResizeTextarea/AutoResizeTextarea";
 import { Markdowner } from "../Markdowner/Markdowner";
 import TelemetryManager from "../../../managers/telemetry";
 import { makeQuizSubmission } from "../QuizRenderer/QuizRenderer";
+import { RigoAI } from "../../Rigobot/AI";
 
 const splitInLines = (code: string) => {
   return code.split("\n").filter((line) => line.trim() !== "");
@@ -42,7 +43,6 @@ export const Question = ({
 }) => {
   const { t } = useTranslation();
   const {
-    token,
     replaceInReadme,
     mode,
     currentExercisePosition,
@@ -50,14 +50,12 @@ export const Question = ({
     registerTelemetryEvent,
     reportEnrichDataLayer,
   } = useStore((state) => ({
-    token: state.token,
     replaceInReadme: state.replaceInReadme,
     mode: state.mode,
     currentExercisePosition: state.currentExercisePosition,
     useConsumable: state.useConsumable,
     registerTelemetryEvent: state.registerTelemetryEvent,
     reportEnrichDataLayer: state.reportEnrichDataLayer,
-    // currentContent: state.currentContent,
   }));
 
   const [feedback, setFeedback] = useState<TFeedback | null>(null);
@@ -98,56 +96,65 @@ export const Question = ({
       return;
     }
     setIsLoading(true);
-    const result = await checkAnswer(token, {
-      eval: metadata.eval as string,
-      lesson_content: wholeMD,
-      student_response: answer,
-      examples: examples.join("\n"),
-    });
-    setFeedback({
-      exit_code: result.exit_code,
-      feedback: result.feedback,
-    });
+    RigoAI.useTemplate({
+      slug: "evaluator",
+      inputs: {
+        eval: metadata.eval as string,
+        lesson_content: wholeMD,
+        student_response: answer,
+        examples: examples.join("\n"),
+      },
+      onComplete: (success, rigoData) => {
+        console.log(success, rigoData);
+        if (success) {
+          const result = rigoData.data.parsed;
+          setFeedback({
+            exit_code: result.exit_code,
+            feedback: result.feedback,
+          });
 
-    const submission = makeQuizSubmission(
-      [
-        {
-          title: metadata.eval as string,
-          correctAnswer:
-            result.exit_code === 0 ? answer : (metadata.eval as string),
-          currentSelection: answer,
-          checkboxes: [
-            {
-              text: answer,
-              isCorrect: result.exit_code === 0,
-            },
-          ],
-        },
-      ],
-      hashRef.current,
-      startedAtRef.current
-    );
+          const submission = makeQuizSubmission(
+            [
+              {
+                title: metadata.eval as string,
+                correctAnswer:
+                  result.exit_code === 0 ? answer : (metadata.eval as string),
+                currentSelection: answer,
+                checkboxes: [
+                  {
+                    text: answer,
+                    isCorrect: result.exit_code === 0,
+                  },
+                ],
+              },
+            ],
+            hashRef.current,
+            startedAtRef.current
+          );
 
-    registerTelemetryEvent("quiz_submission", submission);
-    if (result.exit_code === 0) {
-      Notifier.confetti();
-      reportEnrichDataLayer("quiz_success", {});
-      TelemetryManager.registerTesteableElement(
-        Number(currentExercisePosition),
-        {
-          type: "quiz",
-          hash: hashRef.current,
-          is_completed: true,
+          registerTelemetryEvent("quiz_submission", submission);
+          if (result.exit_code === 0) {
+            Notifier.confetti();
+            reportEnrichDataLayer("quiz_success", {});
+            TelemetryManager.registerTesteableElement(
+              Number(currentExercisePosition),
+              {
+                type: "quiz",
+                hash: hashRef.current,
+                is_completed: true,
+              }
+            );
+            playEffect("success");
+          } else {
+            playEffect("error");
+            reportEnrichDataLayer("quiz_error", {});
+          }
+
+          setIsLoading(false);
+          useConsumable("ai-compilation");
         }
-      );
-      playEffect("success");
-    } else {
-      playEffect("error");
-      reportEnrichDataLayer("quiz_error", {});
-    }
-
-    setIsLoading(false);
-    await useConsumable("ai-compilation");
+      },
+    });
   };
 
   const handleTranscription = (text: string) => {
@@ -184,7 +191,6 @@ ${newExamples.join("\n")}
             setAnswer(e.target.value);
           }}
         />
-
         <SpeechToTextButton onTranscription={handleTranscription} />
       </section>
       <div className="d-flex gap-small padding-small justify-between row-reverse">

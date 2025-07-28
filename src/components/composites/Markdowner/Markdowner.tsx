@@ -14,7 +14,6 @@ import SimpleButton from "../../mockups/SimpleButton";
 import { svgs } from "../../../assets/svgs";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { buildRigo } from "../../../managers/EventProxy";
 import { useState } from "react";
 
 import MermaidRenderer from "../MermaidRenderer/MermaidRenderer";
@@ -22,6 +21,7 @@ import { Question } from "../OpenQuestion/OpenQuestion";
 import RealtimeLesson from "../../Creator/RealtimeLesson";
 import { DEV_MODE } from "../../../utils/lib";
 import RealtimeImage from "../../Creator/RealtimeImage";
+import { RigoAI } from "../../Rigobot/AI";
 const isRigoQuestion = (href: string) => {
   return href.startsWith("https://4geeks.com/ask?query=");
 };
@@ -372,15 +372,22 @@ const CustomCodeBlock = ({
   wholeMD: string;
   node: any;
 }) => {
-  const { getCurrentExercise, isIframe, token, agent, isCreator, mode } =
-    useStore((state) => ({
-      getCurrentExercise: state.getCurrentExercise,
-      isIframe: state.isIframe,
-      token: state.token,
-      agent: state.agent,
-      isCreator: state.isCreator,
-      mode: state.mode,
-    }));
+  const {
+    getCurrentExercise,
+    isIframe,
+    agent,
+    isCreator,
+    mode,
+    useConsumable,
+  } = useStore((state) => ({
+    getCurrentExercise: state.getCurrentExercise,
+    isIframe: state.isIframe,
+    token: state.token,
+    agent: state.agent,
+    isCreator: state.isCreator,
+    mode: state.mode,
+    useConsumable: state.useConsumable,
+  }));
 
   const { t } = useTranslation();
   const [executionResult, setExecutionResult] = useState<string | null>(null);
@@ -431,11 +438,25 @@ const CustomCodeBlock = ({
             title={t("runCode")}
             svg={svgs.runCustom}
             action={async () => {
-              const result = await buildRigo(token, {
-                code: code,
-                inputs: "{}",
+              const tid = toast.loading(t("runningCode"));
+              RigoAI.useTemplate({
+                slug: "structured-build-learnpack",
+                inputs: {
+                  code: code,
+                  inputs: "{}",
+                },
+                onComplete: (success, rigoData) => {
+                  // console.log(success, rigoData);
+                  toast.dismiss(tid);
+                  if (success) {
+                    setExecutionResult(rigoData.data.parsed.stdout);
+                    useConsumable("ai-compilation");
+                  } else {
+                    toast.error(t("errorRunningCode"));
+                    toast.dismiss(tid);
+                  }
+                },
               });
-              setExecutionResult(result.stdout);
             }}
             extraClass=""
           />

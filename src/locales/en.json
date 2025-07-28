@@ -315,5 +315,7 @@
     "we-didnt-find-the-tutorial": "We didn't find the tutorial, please contact support.",
     "we-had-a-problem": "Whoops! We had a problem",
     "report-bug": "Report incident",
-    "make-sure-you-are-the-author-of-the-course": "Make sure you are the author of the course"
+    "make-sure-you-are-the-author-of-the-course": "Make sure you are the author of the course",
+    "errorRunningCode": "Error running code",
+    "runningCode": "Running code..."
 }

@@ -1242,7 +1242,7 @@ The user's set up the application in "${language}" language, give your feedback 
     }
 
     if (
-      environment === "localStorage" &&
+      (environment === "localStorage" || environment === "creatorWeb") &&
       !(
         userConsumables.ai_compilation > 0 ||
         userConsumables.ai_compilation === -1
@@ -1265,20 +1265,6 @@ The user's set up the application in "${language}" language, give your feedback 
     }
 
     setBuildButtonPrompt(buildText, "");
-    if (
-      environment === "localStorage" &&
-      !(
-        userConsumables.ai_compilation > 0 ||
-        userConsumables.ai_compilation === -1
-      )
-    ) {
-      setOpenedModals({ limitReached: true });
-      reportEnrichDataLayer("learnpack_consumable_depleted ", {
-        service_slug: "ai_compilation",
-      });
-      return;
-    }
-
     toastFromStatus("compiling");
 
     const data = {

@@ -233,7 +233,6 @@ localStorageEventEmitter.on("build", async (data) => {
       inputs: JSON.stringify(inputsObject),
     };
 
-    // const target = document.querySelector("#learnpack-editor");
     console.log("COMPLETING WITH RIGOBOT AI");
 
     RigoAI.useTemplate({
@@ -405,52 +404,59 @@ localStorageEventEmitter.on("test", async (data) => {
     // console.log(inputs, "INPUTS SENT TO RIGOBOT");
 
     const starting_at = new Date().getTime();
-    const json = await testRigo(data.token, inputs);
-    const ended_at = new Date().getTime();
-    json.ended_at = ended_at;
-    // const json = extractAndParseResult(dataRigobotReturns);
-    json.source_code = JSON.stringify(inputs);
-    json.started_at = starting_at;
+    RigoAI.useTemplate({
+      slug: "test-instructions-learnpack",
+      inputs,
+      onComplete: (success, rigoData) => {
+        console.log("RIGOBOT AI COMPLETE the test", success, rigoData);
+        const json = rigoData.data.parsed;
+        const ended_at = new Date().getTime();
+        json.ended_at = ended_at;
+        // const json = extractAndParseResult(dataRigobotReturns);
+        json.source_code = JSON.stringify(inputs);
+        json.started_at = starting_at;
 
-    let terminalContent = "";
+        let terminalContent = "";
 
-    terminalContent += `\`\`\`stdout\n${json.stdout}\n\`\`\`\n`;
-    terminalContent += `\`\`\`stderr\n${json.stderr}\n\`\`\`\n`;
-    if (json.testResults) {
-      terminalContent += json.testResults;
-    }
-    if (json.message) {
-      const separator = "# Rigo Feedback \n\n";
-      terminalContent += separator + json.message + "\n\n";
-    }
+        terminalContent += `\`\`\`stdout\n${json.stdout}\n\`\`\`\n`;
+        terminalContent += `\`\`\`stderr\n${json.stderr}\n\`\`\`\n`;
+        if (json.testResults) {
+          terminalContent += json.testResults;
+        }
+        if (json.message) {
+          const separator = "# Rigo Feedback \n\n";
+          terminalContent += separator + json.message + "\n\n";
+        }
 
-    if (json.reasoning) {
-      console.log("AI reasoning", json.reasoning);
-    }
+        if (json.reasoning) {
+          console.log("AI reasoning", json.reasoning);
+        }
 
-    const terminalTab = {
-      id: generateUUID(),
-      content: expandRepeatTags(terminalContent),
-      name: "terminal",
-      isActive: false,
-      from: "test",
-    };
-    data.updateEditorTabs(terminalTab);
+        const terminalTab = {
+          id: generateUUID(),
+          content: expandRepeatTags(terminalContent),
+          name: "terminal",
+          isActive: false,
+          from: "test",
+        };
+        data.updateEditorTabs(terminalTab);
 
-    json.stdout = terminalContent;
-    if (json.exitCode === 0) {
-      localStorageEventEmitter.emitStatus("testing-success", {
-        result: json,
-        ai_required: true,
-        logs: [JSON.stringify(json)],
-      });
-    } else {
-      localStorageEventEmitter.emitStatus("testing-error", {
-        result: json,
-        ai_required: true,
-        logs: [JSON.stringify(json)],
-      });
-    }
+        json.stdout = terminalContent;
+        if (json.exitCode === 0) {
+          localStorageEventEmitter.emitStatus("testing-success", {
+            result: json,
+            ai_required: true,
+            logs: [JSON.stringify(json)],
+          });
+        } else {
+          localStorageEventEmitter.emitStatus("testing-error", {
+            result: json,
+            ai_required: true,
+            logs: [JSON.stringify(json)],
+          });
+        }
+      },
+    });
   } catch (error) {
     if (error instanceof TokenExpired) {
       console.warn("Token expired. Logging out...");
@@ -537,50 +543,6 @@ const rigoFetch = async (
     console.error("Error in API request:", error);
     throw error;
   }
-};
-
-type TBuildInputs = {
-  code: string;
-  inputs: string;
-};
-
-export const buildRigo = (token: string, inputs: TBuildInputs) => {
-  return rigoFetch(
-    `${RIGOBOT_HOST}/v1/prompting/completion/324/`,
-    token,
-    inputs
-  );
-};
-
-const testRigo = (token: string, inputs: object) => {
-  return rigoFetch(
-    `${RIGOBOT_HOST}/v1/prompting/completion/126/`,
-    token,
-    inputs
-  );
-};
-
-type TCheckAnswerInputs = {
-  eval: string;
-  lesson_content: string;
-  student_response: string;
-  examples: string;
-};
-
-type TCheckAnswerOutputs = {
-  exit_code: 0 | 1;
-  reasoning: string;
-  feedback: string;
-  correct_answer: string;
-  confidence: string;
-};
-
-export const checkAnswer = (token: string, inputs: TCheckAnswerInputs) => {
-  return rigoFetch(
-    `${RIGOBOT_HOST}/v1/prompting/completion/786/`,
-    token,
-    inputs
-  ) as Promise<TCheckAnswerOutputs>;
 };
 
 type TSuggestExamplesInputs = {
