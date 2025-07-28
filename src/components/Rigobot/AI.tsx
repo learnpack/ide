@@ -9,13 +9,17 @@ export type TRigoMessage = {
 export const RigoAI = {
   started: false,
   load: () => {
-    if (RigoAI.started) return;
+    if (RigoAI.started) {
+      console.log("RigoAI already started, skipping load");
+      return;
+    }
     const rigoAI = document.createElement("script");
     rigoAI.src = "https://unpkg.com/rigo-ai@0.1.11/dist/main.js";
     rigoAI.type = "text/javascript";
     rigoAI.async = true;
     document.head.appendChild(rigoAI);
     RigoAI.started = true;
+    console.log("RigoAI loaded successfully");
   },
   init: ({
     chatHash,
@@ -57,6 +61,8 @@ export const RigoAI = {
         showBubble: false,
         collapsed: true,
       });
+    } else {
+      console.error("No window.rigo found, initializing RigoAI failed");
     }
   },
   useTemplate: ({
