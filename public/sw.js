@@ -20,11 +20,16 @@ self.addEventListener('install', (event) => {
     );
 });
 
-
 self.addEventListener('fetch', (event) => {
+    // Excluir solicitudes a /socket.io/
+    if (event.request.url.includes('/socket.io/')) {
+        // No interceptar, que siga el flujo normal
+        return;
+    }
+
     event.respondWith(
         caches.match(event.request).then((response) => {
-            return response || fetch(event.request)
+            return response || fetch(event.request);
         })
-    )
-})
+    );
+});

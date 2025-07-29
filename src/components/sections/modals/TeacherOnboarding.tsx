@@ -8,6 +8,7 @@ type TStep = {
   title: string;
   description: string;
   video?: string;
+  done: boolean;
 };
 
 const stepsJson: Record<
@@ -23,19 +24,22 @@ const stepsJson: Record<
         title: "Tell Rigobot to summarize, elaborate or rewrite any content.",
         description:
           "Just select the content you want to edit and click on the pen icon in the left side of the text. You will see different options to edit the content.",
-        video: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        // video: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        done: false,
       },
       {
         title: "Create images and graphs using our internally trained models.",
         description:
           "Add a new element to the lesson clicking the plus icon in the bottom or top of any element. When you add the element, you can generate or upload an image in that section.",
         // video: "https://www.youtube.com/watch?v=aOWtNBiksmg",
+        done: false,
       },
       {
         title: "Create a new lesson",
         description:
           "Open the sidebar, locate the place where you want to add a new lesson and click on the plus icon. Write a name for the lesson and click on the check icon.",
         // video: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        done: false,
       },
     ],
   },
@@ -50,6 +54,7 @@ const stepsJson: Record<
         description:
           "Selecciona el contenido que quieres editar y haz clic en el icono de lápiz en el lado izquierdo del texto. Verás diferentes opciones para editar el contenido.",
         // video: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        done: false,
       },
       {
         title:
@@ -57,12 +62,14 @@ const stepsJson: Record<
         description:
           "Añade un nuevo elemento a la lección haciendo clic en el icono de más en la parte inferior o superior de cualquier elemento. Cuando agregues el elemento, puedes generar o cargar una imagen en esa sección.",
         // video: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      },  
+        done: false,
+      },
       {
         title: "Crear una nueva lección",
         description:
           "Abre la barra lateral, localiza el lugar donde quieres agregar una nueva lección y haz clic en el icono de más. Escribe un nombre para la lección y haz clic en el icono de verificación.",
         // video: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        done: false,
       },
     ],
   },
@@ -74,22 +81,33 @@ export const TeacherOnboarding = () => {
     language: state.language,
   }));
 
-  const [currentStep, setCurrentStep] = useState(0);
-
+  // Inicializa el estado local de instrucciones
   const steps = stepsJson[language as keyof typeof stepsJson];
 
+  // Cierra modal si no hay pasos definidos
   if (!steps) {
     setOpenedModals({ teacherOnboarding: false });
     return null;
   }
 
-  const currentStepData = steps.instructions[currentStep];
+  // Estado local para instrucciones y paso actual
+  const [instructions, setInstructions] = useState<TStep[]>(
+    steps.instructions.map(inst => ({ ...inst }))
+  );
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const currentStepData = instructions[currentStep];
 
   const handleClose = () => {
     setOpenedModals({ teacherOnboarding: false });
   };
 
   const handleStepChange = (stepIndex: number) => {
+    setInstructions(prev =>
+      prev.map((inst, idx) =>
+        idx === stepIndex ? { ...inst, done: true } : inst
+      )
+    );
     setCurrentStep(stepIndex);
   };
 
@@ -108,13 +126,13 @@ export const TeacherOnboarding = () => {
           <div className="onboarding-description">{steps.description}</div>
           {/* Features List */}
           <div className="features-list">
-            {steps.instructions.map((instruction, index) => (
+            {instructions.map((instruction, index) => (
               <div key={index} className="feature-item">
                 <div className="feature-checkbox">
                   <input
                     type="checkbox"
                     id={`feature-${index}`}
-                    checked={currentStep === index}
+                    checked={instruction.done}
                     onChange={() => handleStepChange(index)}
                   />
                   <label
@@ -135,7 +153,7 @@ export const TeacherOnboarding = () => {
         </div>
 
         {/* Right Section - Video */}
-        {currentStepData.video && (
+        {currentStepData && currentStepData.video && (
           <div className="onboarding-video">
             <VideoPlayer link={currentStepData.video} />
           </div>
