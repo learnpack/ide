@@ -18,7 +18,7 @@
 .content > section {
   padding: 8px;
   width: 100%;
-  max-height: 88dvh;
+  max-height: 84dvh;
   overflow: auto;
 }
 

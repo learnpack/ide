@@ -17,55 +17,31 @@ export const FeedbackDropdown = ({
     compilerSocket,
     token,
     videoTutorial,
-    // isTesteable,
     setOpenedModals,
-    // runExerciseTests,
     bc_token,
     openLink,
     checkRigobotInvitation,
     hasSolution,
     getCurrentExercise,
-    // currentExercisePosition,
     updateEditorTabs,
     toggleRigo,
     setShowVideoTutorial,
-    // setListeners,
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     token: state.token,
-    setFeedbackButtonProps: state.setFeedbackButtonProps,
-    fetchExercises: state.fetchExercises,
-    isTesteable: state.isTesteable,
+    videoTutorial: state.videoTutorial,
     setOpenedModals: state.setOpenedModals,
-    runExerciseTests: state.runExerciseTests,
-    setTestResult: state.setTestResult,
-    toastFromStatus: state.toastFromStatus,
     bc_token: state.bc_token,
     openLink: state.openLink,
     checkRigobotInvitation: state.checkRigobotInvitation,
     hasSolution: state.hasSolution,
-    currentSolution: state.currentSolution,
     getCurrentExercise: state.getCurrentExercise,
-    currentExercisePosition: state.currentExercisePosition,
     updateEditorTabs: state.updateEditorTabs,
     toggleRigo: state.toggleRigo,
-    videoTutorial: state.videoTutorial,
     setShowVideoTutorial: state.setShowVideoTutorial,
-    setListeners: state.setListeners,
   }));
 
   const { t } = useTranslation();
-
-  // const runTests = () => {
-  //   toggleFeedbackVisibility();
-  //   setListeners();
-  //   runExerciseTests({
-  //     toast: true,
-  //     setFeedbackButton: true,
-  //     feedbackButtonText: t("Running..."),
-  //     targetButton: "feedback",
-  //   });
-  // };
 
   const openLoginModal = () => {
     setOpenedModals({ login: true });
@@ -135,13 +111,6 @@ export const FeedbackDropdown = ({
           action={openLoginModal}
         />
       )}
-
-      {/* <SimpleButton
-        svg={svgs.testIcon}
-        text={isTesteable ? t("Run tests") : t("No tests available")}
-        action={runTests}
-        disabled={!isTesteable}
-      /> */}
 
       <SimpleButton
         text={

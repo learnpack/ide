@@ -269,6 +269,7 @@ export interface IStore {
   lastState: "success" | "error" | string;
   terminalShouldShow: boolean;
   rigoContext: TRigoContext;
+  isCompiling: boolean;
   showSidebar: boolean;
   userConsumables: TUserConsumables;
   maxQuizRetries: number;

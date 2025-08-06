@@ -138,7 +138,10 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
   const filteredTabs = tabs.filter((tab) => tab.name !== "terminal");
 
   return (
-    <div className="h-100 " style={{  display: `${tabs.length === 0 ? "none" : "block"}` }}>
+    <div
+      className="h-100"
+      style={{ display: `${tabs.length === 0 ? "none" : "block"}` }}
+    >
       <div
         className="tabs"
         style={{ display: terminal === "only" ? "none" : "flex" }}
@@ -217,7 +220,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
         </div>
       )}
 
-      {terminalTab && (
+      {terminalTab && !(terminal === "hidden") && (
         <Terminal
           terminalTab={terminalTab}
           terminalState={terminal}
@@ -299,11 +302,14 @@ const Terminal = ({
                   ?
                 </span>
               </span>
-              {/* <SimpleButton
-                action={() => removeTab(terminalTab.id, terminalTab.name)}
-                svg={svgs.redClose}
-              /> */}
             </h5>
+            {(getCurrentExercise().done || lastState === "error") && (
+              <Toolbar
+                editorStatus={editorStatus}
+                position="relative"
+                dropdownDirection="down"
+              />
+            )}
 
             {showInfo && (
               <div className="text-small bg-secondary padding-small rounded margin-children-none">
@@ -312,9 +318,9 @@ const Terminal = ({
             )}
 
             {terminalTab.content ? (
-              <>
+              <div>
                 <Markdowner markdown={terminalTab.content} />
-              </>
+              </div>
             ) : (
               <Loader svg={svgs.blueRigoSvg} text={t("thinking...")} />
             )}
@@ -324,56 +330,58 @@ const Terminal = ({
                   return terminalTab.content;
                 }}
                 from="test"
+                onClick={() => removeTab(terminalTab.id, terminalTab.name)}
               />
             )}
-
-            {terminalState === "only" &&
-              (getCurrentExercise().done || lastState === "error") && (
-                <Toolbar editorStatus={editorStatus} position="relative" />
-              )}
           </div>
         </Modal>
       )}
       {terminalTab && terminalTab.isHTML && (
-        <div className={`terminal ${terminalState} html browser`}>
-          <div className="d-flex justify-between align-center browser-header">
-            <div title={browserTabTitle} className=" browser-tab">
-              {browserTabTitle}
+        <Modal
+          outsideClickHandler={() =>
+            removeTab(terminalTab.id, terminalTab.name)
+          }
+        >
+          <div className={`terminal ${terminalState} html browser`}>
+            <div className="d-flex justify-between align-center browser-header">
+              <div title={browserTabTitle} className=" browser-tab">
+                {browserTabTitle}
+              </div>
+              <div className="d-flex ">
+                <SimpleButton
+                  title={t("display-another-tab ")}
+                  size="mini"
+                  svg={svgs.newTab}
+                  extraClass="hover rounded"
+                  action={() =>
+                    openTabAndSendMessage(
+                      terminalTab.content,
+                      terminalTab.isReact || false
+                    )
+                  }
+                />
+                <SimpleButton
+                  title={t("close-tab")}
+                  size="mini"
+                  svg={svgs.closeX}
+                  extraClass="danger-on-hover rounded"
+                  action={() => removeTab(terminalTab.id, terminalTab.name)}
+                />
+              </div>
             </div>
-            <div className="d-flex ">
-              <SimpleButton
-                title={t("display-another-tab ")}
-                size="mini"
-                svg={svgs.newTab}
-                extraClass="hover rounded"
-                action={() =>
-                  openTabAndSendMessage(
-                    terminalTab.content,
-                    terminalTab.isReact || false
-                  )
-                }
-              />
-              <SimpleButton
-                title={t("close-tab")}
-                size="mini"
-                svg={svgs.closeX}
-                extraClass="danger-on-hover rounded"
-                action={() => removeTab(terminalTab.id, terminalTab.name)}
-              />
+            <div className="browser-body">
+              {terminalTab.content ? (
+                <Preview
+                  onTitleRevealed={foundPreviewTitle}
+                  html={terminalTab.content}
+                  useIframe={terminalTab.isReact}
+                />
+              ) : (
+                <Loader svg={svgs.blueRigoSvg} text={t("thinking...")} />
+              )}
             </div>
           </div>
-          <div className="browser-body">
-            {terminalTab.content ? (
-              <Preview
-                onTitleRevealed={foundPreviewTitle}
-                html={terminalTab.content}
-                useIframe={terminalTab.isReact}
-              />
-            ) : (
-              <Loader svg={svgs.blueRigoSvg} text={t("thinking...")} />
-            )}
-          </div>
-        </div>
+        </Modal>
       )}
     </>
   );
@@ -403,11 +411,13 @@ const NextButton = () => {
 type EditorFooterProps = {
   editorStatus: TEditorStatus;
   position?: "absolute" | "fixed" | "sticky" | "relative";
+  dropdownDirection?: "up" | "down";
 };
 
 export const Toolbar = ({
   editorStatus,
   position = "absolute",
+  dropdownDirection = "up",
 }: EditorFooterProps) => {
   const { t } = useTranslation();
   const {
@@ -455,7 +465,7 @@ export const Toolbar = ({
             <span>{svgs.learnpackLogo}</span>
             <span>{t("read-instructions")}</span>
           </div>
-          <FeedbackButton direction="up" />
+          <FeedbackButton direction={dropdownDirection} />
         </div>
       )}
 
@@ -475,9 +485,9 @@ export const Toolbar = ({
             </>
           ) : (
             <>
-              <CompileOptions />
+              <CompileOptions dropdownDirection={dropdownDirection} />
               <ResetButton />
-              <FeedbackButton direction="up" />
+              <FeedbackButton direction={dropdownDirection} />
             </>
           )}
         </div>

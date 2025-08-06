@@ -6,7 +6,8 @@ import { useTranslation } from "react-i18next";
 export const AskForHint: React.FC<{
   from: "test" | "quiz";
   getContext: () => string;
-}> = ({ from, getContext }) => {
+  onClick?: () => void;
+}> = ({ from, getContext, onClick }) => {
   const { setRigoContext, toggleRigo, reportEnrichDataLayer } = useStore(
     (state) => ({
       setRigoContext: state.setRigoContext,
@@ -20,16 +21,20 @@ export const AskForHint: React.FC<{
     const context = getContext();
     setRigoContext({
       context: context,
-      userMessage: from === "test" ? t("can-you-give-me-a-hint") : t("help-me-with-this-quiz"),
+      userMessage:
+        from === "test"
+          ? t("can-you-give-me-a-hint")
+          : t("help-me-with-this-quiz"),
       performTests: from === "test",
     });
     toggleRigo({ ensure: "open" });
     reportEnrichDataLayer(`learnpack_${from}_help`, {
       context: context,
     });
+    onClick?.();
   };
   return (
-    <div className="ask-for-hint">
+    <div>
       <SimpleButton
         extraClass="border-blue padding-medium rounded active-on-hover bg-lesson"
         action={handleClick}

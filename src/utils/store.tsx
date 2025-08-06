@@ -105,6 +105,7 @@ const useStore = create<IStore>((set, get) => ({
     userMessage: "",
     performTests: false,
   },
+  isCompiling: false,
   showSidebar: false,
   user_id: null,
   hasSolution: false,
@@ -240,6 +241,7 @@ const useStore = create<IStore>((set, get) => ({
       const stdout = removeSpecialCharacters(data.logs[0]);
 
       setTestResult("successful", stdout);
+      set({ isCompiling: false });
       set({ lastState: "success", terminalShouldShow: true });
       toastFromStatus("testing-success");
 
@@ -262,6 +264,7 @@ const useStore = create<IStore>((set, get) => ({
 
     const debounceTestingError = debounce((data: any) => {
       const stdout = removeSpecialCharacters(data.logs[0]);
+      set({ isCompiling: false });
       setTestResult("failed", stdout);
       set({ lastState: "error", terminalShouldShow: true });
       toastFromStatus("testing-error");
@@ -285,6 +288,7 @@ const useStore = create<IStore>((set, get) => ({
       data;
 
       set({ lastState: "error", terminalShouldShow: true });
+      set({ isCompiling: false });
 
       setBuildButtonPrompt("try-again", "bg-fail");
       setFeedbackButtonProps("test-my-code", "bg-white ");
@@ -301,6 +305,7 @@ const useStore = create<IStore>((set, get) => ({
     let compilerSuccessHandler = debounce(async (data: any) => {
       data;
       set({ lastState: "success", terminalShouldShow: true });
+      set({ isCompiling: false });
 
       toastFromStatus("compiler-success");
 
@@ -1278,6 +1283,7 @@ The user's set up the application in "${language}" language, give your feedback 
     compilerSocket.emit("build", data);
     set({ lastStartedAt: new Date() });
     reportEnrichDataLayer("learnpack_run", {});
+    set({ isCompiling: true });
   },
   setEditorTabs: (tabs) => {
     set({ editorTabs: tabs });
@@ -1352,6 +1358,7 @@ The user's set up the application in "${language}" language, give your feedback 
     }
 
     if (opts && opts.toast) toastFromStatus("testing");
+    set({ isCompiling: true });
   },
 
   getOrCreateActiveSession: async () => {

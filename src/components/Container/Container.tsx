@@ -49,14 +49,6 @@ export const Container = () => {
     setVisibleTab(tabName);
   };
 
-  const hideTerminal = () => {
-    if (isMobile) {
-      setVisibleTab("code");
-    } else {
-      setVisibleTab("all");
-    }
-  };
-
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth > 768 && !isRigoOpened && !showSidebar) {
@@ -83,12 +75,6 @@ export const Container = () => {
   }, [visibleTab]);
 
   useEffect(() => {
-    const isTerminalActive = editorTabs.some((t) => t.name === "terminal");
-
-    if (isTerminalActive && (isMobile || isRigoOpened) && terminalShouldShow) {
-      setVisibleTab("terminal");
-    }
-
     const hasSolution = editorTabs.some((t) =>
       t.name.includes("solution.hide")
     );
@@ -175,12 +161,6 @@ export const Container = () => {
                 >
                   {t("code")}
                 </div>
-                {/* <div
-                  onClick={() => onChangeTab("terminal")}
-                  data-visible={visibleTab === "terminal" ? true : false}
-                >
-                  {t("output")}
-                </div> */}
               </>
             )}
           </div>
@@ -209,12 +189,10 @@ export const Container = () => {
                       : "none",
                 }}
               >
-                <CodeEditor
-                  terminal={isMobile || isRigoOpened ? "hidden" : "normal"}
-                />
+                <CodeEditor terminal={isRigoOpened ? "hidden" : "normal"} />
               </section>
             )}
-          {!(environment === "localhost") && (
+          {/* {!(environment === "localhost") && (
             <section
               style={{
                 display: visibleTab === "terminal" ? "block" : "none",
@@ -222,7 +200,7 @@ export const Container = () => {
             >
               <CodeEditor hideTerminal={hideTerminal} terminal="only" />
             </section>
-          )}
+          )} */}
         </div>
 
         {isRigoOpened && window.innerWidth > 768 && <ChatTab />}

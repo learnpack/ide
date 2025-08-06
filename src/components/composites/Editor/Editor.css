@@ -36,12 +36,14 @@
 } */
 
 .terminal {
-  border: 3px solid var(--opaque-blue-editor);
   border-top: 0;
   overflow-y: auto;
   position: relative;
   border-bottom-left-radius: 5px;
   border-bottom-right-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 .terminal.html {
   height: min(400px, fit-content);
@@ -70,7 +72,7 @@
   margin: 0;
   font-size: 16px;
 }
-
+/* 
 .terminal > pre {
   background-color: var(--bg-color);
   border: none;
@@ -81,7 +83,7 @@
 }
 .terminal > pre > code {
   word-wrap: break-word;
-}
+} */
 .editor-footer {
   background-color: var(--app-bg-color);
   bottom: 8px;

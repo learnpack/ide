@@ -882,7 +882,6 @@ a {
 .active-on-hover:hover {
   background-color: var(--color-blue-rigo);
   color: white;
-  scale: 1.01;
 
   & svg {
     --read-font-color: white;

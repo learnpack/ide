@@ -325,5 +325,6 @@
     "report-bug": "Reportar incidente",
     "make-sure-you-are-the-author-of-the-course": "Asegúrate de ser el autor del curso",
     "errorRunningCode": "Error al ejecutar el código",
-    "runningCode": "Ejecutando código..."
+    "runningCode": "Ejecutando código...",
+    "symbolsNotAllowed": "Símbolos no permitidos"
 }

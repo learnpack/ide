@@ -62,18 +62,6 @@ function incrementDecimalPart(numberStr: string): string {
   return parts.join(".");
 }
 
-// type GroupedExercises = Record<string, TExercise[]>;
-
-// function groupExercisesByModule(exercises: TExercise[]): GroupedExercises {
-//   return exercises.reduce<GroupedExercises>((acc, ex) => {
-//     const match = ex.title.match(/^(\d+)/);
-//     const moduleIndex = match ? match[1] : "otros";
-//     if (!acc[moduleIndex]) acc[moduleIndex] = [];
-//     acc[moduleIndex].push(ex);
-//     return acc;
-//   }, {});
-// }
-
 const AddExerciseButton = ({
   exercises,
   prevExercise,
@@ -88,13 +76,32 @@ const AddExerciseButton = ({
   }));
   const [isAdding, setIsAdding] = useState(false);
   const exerciseIndexRef = useRef<HTMLDivElement>(null);
+  const [exerciseName, setExerciseName] = useState("");
+  // const exerciseIndexRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
 
-  const handleGenerate = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const original = e.target.value;
+    const cleaned = original.replace(/[^a-zA-Z0-9ñÑ\s,!:]/g, "");
+
+    const removedChars = original
+      .split("")
+      .filter((c, i) => cleaned[i] !== c)
+      .filter((c, i, arr) => arr.indexOf(c) === i);
+
+    if (removedChars.length > 0) {
+      toast.error(t("symbolsNotAllowed") + `: ${removedChars.join(" ")}`);
+    }
+
+    setExerciseName(cleaned);
+  };
+
+  const handleGenerate = () => {
     const toastId = toast.loading(t("generatingExercise"));
-    e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
-    const exerciseName = formData.get("exerciseName");
+    // e.preventDefault();
+    // const formData = new FormData(e.target as HTMLFormElement);
+    // const exerciseName = formData.get("exerciseName");
+
     const exerciseIndex = exerciseIndexRef.current?.innerText;
 
     if (!fixTitleFormat((exerciseIndex + "-" + exerciseName) as string)) {
@@ -140,10 +147,7 @@ const AddExerciseButton = ({
   return (
     <>
       {isAdding ? (
-        <form
-          onSubmit={handleGenerate}
-          className=" bg-soft-blue rounded padding-small w-100 flex-x gap-small"
-        >
+        <div className=" bg-soft-blue rounded padding-small w-100 flex-x gap-small">
           <div
             ref={exerciseIndexRef}
             className="exercise-circle"
@@ -155,7 +159,9 @@ const AddExerciseButton = ({
           </div>
           <input
             type="text"
-            className="input"
+            className="input w-100"
+            value={exerciseName}
+            onChange={handleInputChange}
             name="exerciseName"
             placeholder={t("exerciseName")}
           />
@@ -165,7 +171,7 @@ const AddExerciseButton = ({
               extraClass="scale-on-hover padding-small rounded "
               svg={svgs.iconCheck}
               title={t("generate")}
-              type="submit"
+              action={handleGenerate}
             />
             <SimpleButton
               extraClass="padding-small rounded scale-on-hover "
@@ -174,7 +180,7 @@ const AddExerciseButton = ({
               action={() => setIsAdding(!isAdding)}
             />
           </div>
-        </form>
+        </div>
       ) : (
         <SimpleButton
           extraClass="scale-on-hover padding-small rounded"

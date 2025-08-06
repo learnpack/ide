@@ -6,21 +6,26 @@ import SimpleButton from "../../mockups/SimpleButton";
 import { svgs } from "../../../assets/svgs";
 import useStore from "../../../utils/store";
 
-export const CompileOptions = () => {
+export const CompileOptions = ({
+  dropdownDirection = "up",
+}: {
+  dropdownDirection: "up" | "down";
+}) => {
   const { t } = useTranslation();
-  const { isBuildable, isTesteable } = useStore((state) => ({
+  const { isBuildable, isTesteable, isCompiling } = useStore((state) => ({
     isBuildable: state.isBuildable,
     isTesteable: state.isTesteable,
+    isCompiling: state.isCompiling,
   }));
 
   return (
     <Dropdown
-      className="up"
+      className={dropdownDirection}
       openingElement={
         <SimpleButton
-          extraClass="compiler rounded padding-small"
+          extraClass={`compiler rounded padding-small ${isCompiling ? "palpitate" : ""}`}
           svg={svgs.run}
-          text={t("Run")}
+          text={isCompiling ? t("Running...") : t("Run")}
         />
       }
     >
