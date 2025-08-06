@@ -341,6 +341,7 @@ const Terminal = ({
           outsideClickHandler={() =>
             removeTab(terminalTab.id, terminalTab.name)
           }
+          showCloseButton={false}
         >
           <div className={`terminal ${terminalState} html browser`}>
             <div className="d-flex justify-between align-center browser-header">

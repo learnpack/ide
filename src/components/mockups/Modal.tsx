@@ -10,6 +10,7 @@ interface IModal {
   outsideClickHandler?: () => void;
   blockScroll?: boolean;
   minWidth?: string;
+  showCloseButton?: boolean;
 }
 
 export const Modal = ({
@@ -19,6 +20,7 @@ export const Modal = ({
   extraClass,
   blockScroll = true,
   minWidth = "600px",
+  showCloseButton = true,
 }: IModal) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -68,7 +70,7 @@ export const Modal = ({
       }
     >
       <div className={`modal-content ${extraClass ? extraClass : ""}`}>
-        {outsideClickHandler && (
+        {outsideClickHandler && showCloseButton && (
           <div onClick={outsideClickHandler} className="modal-closer">
             {svgs.closeX}
           </div>
