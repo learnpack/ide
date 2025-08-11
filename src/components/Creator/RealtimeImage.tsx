@@ -27,7 +27,6 @@ export default function RealtimeImage({
   );
 
   const handleUpdate = (data: TImageData) => {
-    console.log(data, "IMAGE UPDATED");
     if (data.status === "ERROR") {
       toast.error(t("imageGenerationFailed"));
       onError();
@@ -57,13 +56,6 @@ export default function RealtimeImage({
   return (
     <div className="flex-y gap-big padding-big">
       <Loader text={t("imageGenerationInProcess")} svg={svgs.rigoSvg} />
-      {/* <ProgressBar duration={20} height={4} /> */}
-      <button
-        onClick={onError}
-        className="bg-blue-rigo text-white padding-small rounded"
-      >
-        {t("handleError")}
-      </button>
     </div>
   );
 }
