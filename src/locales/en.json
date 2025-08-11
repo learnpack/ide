@@ -319,5 +319,6 @@
     "errorRunningCode": "Error running code",
     "runningCode": "Running code...",
     "symbolsNotAllowed": "Symbols not allowed",
-    "continueWorking": "Continue working"
+    "continueWorking": "Continue working",
+    "imageGenerationFailed": "Image generation failed"
 }

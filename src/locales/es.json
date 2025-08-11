@@ -327,5 +327,6 @@
     "errorRunningCode": "Error al ejecutar el código",
     "runningCode": "Ejecutando código...",
     "symbolsNotAllowed": "Símbolos no permitidos",
-    "continueWorking": "Continuar trabajando"
+    "continueWorking": "Continuar trabajando",
+    "imageGenerationFailed": "Error al generar la imagen"
 }

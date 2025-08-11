@@ -503,21 +503,21 @@ export const slugify = (text: string) => {
 
 type TGenerateImageParams = {
   prompt: string;
+  context: string;
   callbackUrl: string;
 };
 
 export const generateImage = async (
   token: string,
-  { prompt, callbackUrl }: TGenerateImageParams
+  { prompt, callbackUrl, context }: TGenerateImageParams
 ) => {
   try {
     const response = await axios.post(
       `${RIGOBOT_HOST}/v1/learnpack/tools/images`,
       {
         prompt,
+        context,
         webhook_callback_url: callbackUrl,
-        provider: "bfl",
-        model: "flux-pro-1.1",
       },
       {
         headers: {

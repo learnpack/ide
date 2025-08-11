@@ -5,9 +5,20 @@ import { DEV_MODE } from "../../utils/lib";
 import { Loader } from "../composites/Loader/Loader";
 import { svgs } from "../../assets/svgs";
 import { useTranslation } from "react-i18next";
-const socketClient = new CreatorSocket(DEV_MODE ? "http://localhost:3000" : "");
+import toast from "react-hot-toast";
 
-export default function RealtimeImage({ imageId }: { imageId: string }) {
+const socketClient = new CreatorSocket(DEV_MODE ? "http://localhost:3000" : "");
+type TImageData = {
+  status: "ERROR" | "SUCCESS";
+};
+
+export default function RealtimeImage({
+  imageId,
+  onError,
+}: {
+  imageId: string;
+  onError: () => void;
+}) {
   const { t } = useTranslation();
   const config = useStore((state) => state.configObject);
   const fetchReadme = useStore((state) => state.fetchReadme);
@@ -15,7 +26,13 @@ export default function RealtimeImage({ imageId }: { imageId: string }) {
     (state) => state.reportEnrichDataLayer
   );
 
-  const handleUpdate = () => {
+  const handleUpdate = (data: TImageData) => {
+    console.log(data, "IMAGE UPDATED");
+    if (data.status === "ERROR") {
+      toast.error(t("imageGenerationFailed"));
+      onError();
+      return;
+    }
     fetchReadme();
     reportEnrichDataLayer("creator_image_generation_completed", {
       image_id: imageId,
@@ -41,6 +58,12 @@ export default function RealtimeImage({ imageId }: { imageId: string }) {
     <div className="flex-y gap-big padding-big">
       <Loader text={t("imageGenerationInProcess")} svg={svgs.rigoSvg} />
       {/* <ProgressBar duration={20} height={4} /> */}
+      <button
+        onClick={onError}
+        className="bg-blue-rigo text-white padding-small rounded"
+      >
+        {t("handleError")}
+      </button>
     </div>
   );
 }

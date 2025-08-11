@@ -316,13 +316,21 @@ const CustomImage = ({
   config?: any;
 }) => {
   const environment = useStore((state) => state.environment);
+  const replaceInReadme = useStore((state) => state.replaceInReadme);
   const [hasError, setHasError] = useState(false);
+
+  const handleGenerationError = () => {
+    replaceInReadme("", node.position.start, node.position.end);
+  };
   if (src) {
     if (isCreator && mode === "creator" && allowCreate) {
       return (
         <CreatorWrapper node={node} tagName="img">
           {hasError && environment === "creatorWeb" ? (
-            <RealtimeImage imageId={src.split("/").pop() || ""} />
+            <RealtimeImage
+              onError={handleGenerationError}
+              imageId={src.split("/").pop() || ""}
+            />
           ) : (
             <img
               onError={() => setHasError(true)}
@@ -337,7 +345,10 @@ const CustomImage = ({
     return (
       <>
         {hasError && environment === "creatorWeb" ? (
-          <RealtimeImage imageId={src.split("/").pop() || ""} />
+          <RealtimeImage
+            onError={handleGenerationError}
+            imageId={src.split("/").pop() || ""}
+          />
         ) : (
           <img
             onError={() => setHasError(true)}

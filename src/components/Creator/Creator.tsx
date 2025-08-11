@@ -666,6 +666,7 @@ const ImageGenerator = ({
   const reportEnrichDataLayer = useStore(
     (state) => state.reportEnrichDataLayer
   );
+  const currentContent = useStore((state) => state.currentContent);
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -675,17 +676,17 @@ const ImageGenerator = ({
     if (isOpen) {
       const prompt = inputRef.current?.value;
       if (prompt) {
-        const tid = toast.loading(t("imageInProcess"));
         const randomID = Math.random().toString(36).substring(2, 15);
         await generateImage(token, {
           prompt,
+          context: `The image to generate is part of a lesson in a tutorial, this is the content of the lesson: ${currentContent}`,
           callbackUrl: `${
             DEV_MODE
               ? "https://9cw5zmww-3000.use2.devtunnels.ms"
               : window.location.origin
           }/webhooks/${config.config?.slug}/images/${randomID}`,
         });
-        toast.success(t("imageInProcess"), { id: tid });
+
         const replacement = makeReplacement(randomID, prompt);
         onFinish(replacement);
         reportEnrichDataLayer("creator_image_generation_started", {

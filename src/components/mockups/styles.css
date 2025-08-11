@@ -44,7 +44,9 @@
   display: flex;
   /* flex-direction: column; */
   align-items: center;
-  gap: 10px;
+  overflow: hidden;
+  gap: 5px;
+  padding: 4px;
   justify-content: center;
   animation: glowing 1000ms linear infinite;
 }
@@ -58,8 +60,8 @@
 }
 
 .loader-icon {
-  width: 35px;
-  height: 35px;
+  width: 30px;
+  height: 30px;
 
   border: 2px solid var(--loader-color);
   border-top-color: transparent;
@@ -78,8 +80,6 @@
   height: 100%;
   border: 2px solid var(--color-hovered);
   border-top: 2px solid var(--color-active);
-  /* background-color: red; */
-
   border-radius: 50%;
   animation: spin 2s linear infinite;
 }
