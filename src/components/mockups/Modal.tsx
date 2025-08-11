@@ -11,6 +11,7 @@ interface IModal {
   blockScroll?: boolean;
   minWidth?: string;
   showCloseButton?: boolean;
+  addPadding?: boolean;
 }
 
 export const Modal = ({
@@ -21,6 +22,7 @@ export const Modal = ({
   blockScroll = true,
   minWidth = "600px",
   showCloseButton = true,
+  addPadding = true,
 }: IModal) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -61,7 +63,7 @@ export const Modal = ({
   return createPortal(
     <div
       ref={modalRef}
-      className="self-closing-modal"
+      className={`self-closing-modal ${addPadding ? "padding" : ""}`}
       id={htmlId}
       style={
         {

@@ -42,6 +42,7 @@
   border-bottom-left-radius: 5px;
   border-bottom-right-radius: 5px;
   display: flex;
+  padding: 8px;
   flex-direction: column;
   gap: 10px;
 }
@@ -86,11 +87,7 @@
 } */
 .editor-footer {
   background-color: var(--app-bg-color);
-  bottom: 8px;
-  width: calc(100% - 16px);
-  left: 8px;
-  right: 8px;
-  border-radius: 8px;
+  width: 100%;
   font-size: 12px;
 
   & .compiler {
@@ -100,6 +97,19 @@
       stroke: white;
     }
   }
+}
+
+.editor-footer.absolute {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  width: calc(100% - 16px);
+  border-radius: 8px;
+}
+
+.editor-footer.relative {
+  z-index: 1000;
 }
 
 .editor-footer.UNMODIFIED {

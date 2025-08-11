@@ -288,7 +288,16 @@ const Terminal = ({
           outsideClickHandler={() =>
             removeTab(terminalTab.id, terminalTab.name)
           }
+          showCloseButton={false}
+          addPadding={false}
         >
+          {(getCurrentExercise().done || lastState === "error") && (
+            <Toolbar
+              editorStatus={editorStatus}
+              position="relative"
+              dropdownDirection="down"
+            />
+          )}
           <div className={`terminal ${terminalState}`}>
             <h5 className={`d-flex justify-between align-center `}>
               <span className="d-flex align-center gap-small">
@@ -303,13 +312,6 @@ const Terminal = ({
                 </span>
               </span>
             </h5>
-            {(getCurrentExercise().done || lastState === "error") && (
-              <Toolbar
-                editorStatus={editorStatus}
-                position="relative"
-                dropdownDirection="down"
-              />
-            )}
 
             {showInfo && (
               <div className="text-small bg-secondary padding-small rounded margin-children-none">
@@ -324,15 +326,23 @@ const Terminal = ({
             ) : (
               <Loader svg={svgs.blueRigoSvg} text={t("thinking...")} />
             )}
-            {!getCurrentExercise().done && lastState === "error" && (
-              <AskForHint
-                getContext={() => {
-                  return terminalTab.content;
-                }}
-                from="test"
-                onClick={() => removeTab(terminalTab.id, terminalTab.name)}
+            <div className="d-flex justify-center gap-small">
+              {!getCurrentExercise().done && lastState === "error" && (
+                <AskForHint
+                  getContext={() => {
+                    return terminalTab.content;
+                  }}
+                  from="test"
+                  onClick={() => removeTab(terminalTab.id, terminalTab.name)}
+                />
+              )}
+              <SimpleButton
+                text={t("continueWorking")}
+                // svg={svgs.closeX}
+                extraClass="bg-blue-rigo text-white rounded padding-small"
+                action={() => removeTab(terminalTab.id, terminalTab.name)}
               />
-            )}
+            </div>
           </div>
         </Modal>
       )}
@@ -451,7 +461,7 @@ export const Toolbar = ({
   return (
     <div
       style={{ position: position }}
-      className={`editor-footer ${editorStatus} ${lastState}`}
+      className={`editor-footer ${position} ${editorStatus} ${lastState}`}
     >
       {letPass && (
         <div className="footer-actions">

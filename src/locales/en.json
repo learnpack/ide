@@ -318,5 +318,6 @@
     "make-sure-you-are-the-author-of-the-course": "Make sure you are the author of the course",
     "errorRunningCode": "Error running code",
     "runningCode": "Running code...",
-    "symbolsNotAllowed": "Symbols not allowed"
+    "symbolsNotAllowed": "Symbols not allowed",
+    "continueWorking": "Continue working"
 }

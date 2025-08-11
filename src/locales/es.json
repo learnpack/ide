@@ -326,5 +326,6 @@
     "make-sure-you-are-the-author-of-the-course": "Asegúrate de ser el autor del curso",
     "errorRunningCode": "Error al ejecutar el código",
     "runningCode": "Ejecutando código...",
-    "symbolsNotAllowed": "Símbolos no permitidos"
+    "symbolsNotAllowed": "Símbolos no permitidos",
+    "continueWorking": "Continuar trabajando"
 }

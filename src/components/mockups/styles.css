@@ -10,12 +10,16 @@
   z-index: 2;
 }
 
+.self-closing-modal.padding > div.modal-content {
+  padding: 20px;
+}
+
 .self-closing-modal > div.modal-content {
   display: block;
-  border-radius: 20px;
+  border-radius: 10px;
   flex-direction: column;
   background-color: var(--modals-bg-color);
-  padding: 20px;
+
   width: min(var(--modal-min-width, 600px), 98vw);
   gap: 10px;
   margin-inline: auto;
