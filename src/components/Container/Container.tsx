@@ -19,6 +19,7 @@ export const Container = () => {
     window.innerWidth <= 768 ? "instructions" : ("all" as TPossibleTabs)
   );
   const instructionsSectionRef = useRef<HTMLDivElement>(null);
+  const lastScrollTopRef = useRef(0);
   const codeSectionRef = useRef<HTMLDivElement>(null);
 
   const editorTabs = useStore((s) => s.editorTabs);
@@ -125,8 +126,19 @@ export const Container = () => {
         top: 0,
         behavior: "smooth",
       });
+    } else if (instructionsSectionRef.current && mode === "creator") {
+      instructionsSectionRef.current.scrollTo({
+        top: lastScrollTopRef.current,
+        behavior: "instant",
+      });
     }
   }, [currentContent, mode]);
+
+  const handleScroll = () => {
+    if (instructionsSectionRef.current) {
+      lastScrollTopRef.current = instructionsSectionRef.current?.scrollTop;
+    }
+  };
 
   return (
     <>
@@ -166,6 +178,7 @@ export const Container = () => {
           </div>
           <section
             ref={instructionsSectionRef}
+            onScroll={handleScroll}
             style={{
               background: "var(--app-bg-color)",
               display:

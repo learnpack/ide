@@ -106,3 +106,76 @@ export const deleteTutorial = async (
     throw error;
   }
 };
+
+// app.post(
+//   "/actions/continue-generating/:courseSlug/:position",
+//   async (req, res) => {
+//     const { courseSlug, position } = req.params
+//     const rigoToken = req.header("x-rigo-token")
+
+//     if (!rigoToken) {
+//       return res.status(400).json({
+//         error: "Rigo token is required. x-rigo-token header is missing",
+//       })
+//     }
+//     const syllabus = await bucket.file(
+//       `courses/${courseSlug}/.learn/initialSyllabus.json`
+//     )
+//     const [content] = await syllabus.download()
+//     const syllabusJson: Syllabus = JSON.parse(content.toString())
+
+//     const exercise = syllabusJson.lessons[parseInt(position)]
+
+//     // previous exercise
+//     let previousReadme = ""
+//     const previousExercise = syllabusJson.lessons[parseInt(position) - 1]
+//     if (previousExercise) {
+//       // Get the readme of the previous exercise
+//       const exSlug = slugify(
+//         previousExercise.id + "-" + previousExercise.title
+//       )
+//       // llist the files un
+//       const [files] = await bucket.getFiles({
+//         prefix: `courses/${courseSlug}/exercises/${exSlug}/README`,
+//       })
+//       // select any README
+//       const readmeFiles = files.map((f) => f.name)
+//       const readmeFile = readmeFiles.find((f) => f.includes("README"))
+//       if (readmeFile) {
+//         const [content] = await bucket.file(readmeFile).download()
+//         previousReadme = content.toString()
+//       }
+//     }
+
+//     await startExerciseGeneration(
+//       bucket,
+//       rigoToken,
+//       syllabusJson.lessons,
+//       syllabusJson.courseInfo,
+//       exercise,
+//       `courses/${courseSlug}`,
+//       courseSlug,
+//       syllabusJson.courseInfo.purpose,
+//       previousReadme
+//     )
+//   }
+// )
+
+export const continueGenerating = async (
+  courseSlug: string,
+  position: number,
+  feedback: string,
+  rigoToken: string
+) => {
+  const headers = {
+    "x-rigo-token": rigoToken,
+  };
+  const response = await axios.post(
+    `${
+      DEV_MODE ? "http://localhost:3000" : ""
+    }/actions/continue-generating/${courseSlug}/${position}`,
+    { position, feedback },
+    { headers }
+  );
+  return response.data;
+};

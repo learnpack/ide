@@ -183,6 +183,7 @@ export interface Lesson {
   description: string;
   duration?: number;
   generated?: boolean;
+  status?: "PENDING" | "GENERATING" | "DONE" | "ERROR";
 }
 
 export interface ParsedLink {

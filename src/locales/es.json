@@ -328,5 +328,8 @@
     "runningCode": "Ejecutando código...",
     "symbolsNotAllowed": "Símbolos no permitidos",
     "continueWorking": "Continuar trabajando",
-    "imageGenerationFailed": "Error al generar la imagen"
+    "imageGenerationFailed": "Error al generar la imagen",
+    "lesson-generation-started": "La lección está siendo generada",
+    "give-feedback-on-the-course-so-far": "Dale tu opinión sobre el curso hasta ahora",
+    "give-feedback-to-rigobot": "Dale tu opinión a Rigobot"
 }
