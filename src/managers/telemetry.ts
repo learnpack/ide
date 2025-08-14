@@ -573,6 +573,7 @@ const TelemetryManager: ITelemetryManager = {
         }
 
         this.current.steps[stepPosition] = step;
+        this.submit();
         break;
       case "ai_interaction":
         if (!step.ai_interactions) {
