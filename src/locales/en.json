@@ -191,7 +191,7 @@
     "pasteTutorialUrl": "Paste the tutorial URL here",
     "finish": "Finish",
     "editWithRigobot": "Edit with Rigobot",
-    "editWithRigobotPlaceholder": "Rewrite this text with including more examples",
+    "editWithRigobotPlaceholder": "Tell rigobot what you want to add, for example: Create a diagram, add a quiz, write a paragrah, etc.",
     "open-learnpack-docs": "Open LearnPack docs",
     "copied": "Copied to clipboard",
     "copyCodeToClipboard": "Copy code to clipboard",
@@ -323,5 +323,10 @@
     "imageGenerationFailed": "Image generation failed",
     "lesson-generation-started": "Lesson generation started",
     "give-feedback-on-the-course-so-far": "Give feedback on the course so far",
-    "give-feedback-to-rigobot": "Give feedback to Rigobot"
+    "give-feedback-to-rigobot": "Give feedback to Rigobot, explain what you want to change or what you like about the course so far",
+    "this-lesson-has-not-been-generated-yet": "This lesson has not been generated yet",
+    "this-lesson-has-an-error": "This lesson has an error",
+    "this-lesson-has-been-generated-successfully": "This lesson has been generated successfully",
+    "rigobot-is-ready-to-help": "Rigobot is ready to help",
+    "error-generating-lesson": "There was an error generating the lesson, please try again"
 }

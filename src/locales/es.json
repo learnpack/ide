@@ -197,7 +197,7 @@
     "pasteTutorialUrl": "Pega la URL del tutorial aquí",
     "finish": "Finalizar",
     "editWithRigobot": "Editar con Rigobot",
-    "editWithRigobotPlaceholder": "Reescribe este texto con más ejemplos",
+    "editWithRigobotPlaceholder": "Dile a Rigobot que quieres hacer, por ejemplo: Crear un diagrama, agregar un quiz, escribir un párrafo, etc.",
     "open-learnpack-docs": "Abrir documentación de LearnPack",
     "copied": "Copiado al portapapeles",
     "copyCodeToClipboard": "Copiar código al portapapeles",
@@ -331,5 +331,10 @@
     "imageGenerationFailed": "Error al generar la imagen",
     "lesson-generation-started": "La lección está siendo generada",
     "give-feedback-on-the-course-so-far": "Dale tu opinión sobre el curso hasta ahora",
-    "give-feedback-to-rigobot": "Dale tu opinión a Rigobot"
+    "give-feedback-to-rigobot": "Dale tu opinión a Rigobot, explica lo que quieres cambiar o lo que te gusta del curso hasta ahora",
+    "this-lesson-has-not-been-generated-yet": "Esta lección aún no ha sido generada",
+    "this-lesson-has-an-error": "Esta lección tiene un error",
+    "this-lesson-has-been-generated-successfully": "Esta lección ha sido generada correctamente",
+    "rigobot-is-ready-to-help": "Rigobot está listo para ayudarte",
+    "error-generating-lesson": "Hubo un error al generar la lección, por favor intenta de nuevo"
 }

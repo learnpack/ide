@@ -9,7 +9,15 @@ import { continueGenerating } from "../../utils/creator";
 import toast from "react-hot-toast";
 import { svgs } from "../../assets/svgs";
 import { Modal } from "../mockups/Modal";
+import "./RealtimeLesson.css";
 const socketClient = new CreatorSocket(DEV_MODE ? "http://localhost:3000" : "");
+
+const statusToTextKeyMap = {
+  GENERATING: "this-lesson-is-being-processed-and-will-be-ready-soon",
+  PENDING: "this-lesson-has-not-been-generated-yet",
+  ERROR: "this-lesson-has-an-error",
+  DONE: "this-lesson-has-been-generated-successfully",
+};
 
 export default function RealtimeLesson() {
   const { t } = useTranslation();
@@ -20,15 +28,12 @@ export default function RealtimeLesson() {
   const config = useStore((state) => state.configObject);
   const fetchReadme = useStore((state) => state.fetchReadme);
   const syllabus = useStore((state) => state.syllabus);
-  const fetchExercises = useStore((state) => state.fetchExercises);
-  const [updates, setUpdates] = useState<string[]>([
-    `🚀 Generating lesson for ${getCurrentExercise()?.slug}`,
-  ]);
+  const getSyllabus = useStore((state) => state.getSyllabus);
+  const [updates, setUpdates] = useState<string[]>([]);
 
   const handleUpdate = (data: any) => {
     if (data && data.status === "done") {
       setTimeout(async () => {
-        await fetchExercises();
         await fetchReadme();
       }, 1000);
     }
@@ -52,17 +57,14 @@ export default function RealtimeLesson() {
   }, []);
 
   const previousLesson = syllabus.lessons[Number(currentExercisePosition) - 1];
-  // const isPreviousMultipleOf3 = (Number(currentExercisePosition) - 1) % 3 === 0;
+
+  const lesson = syllabus.lessons[Number(currentExercisePosition)];
 
   return (
     <div className="flex-y gap-big padding-big lesson-loader">
-      {syllabus.lessons[Number(currentExercisePosition)] && (
-        <h3>{syllabus.lessons[Number(currentExercisePosition)].title}</h3>
-      )}
+      {lesson && <h3>{lesson.title}</h3>}
       <div className=" d-flex align-center gap-small justify-between">
-        <span>
-          {t("this-lesson-is-being-processed-and-will-be-ready-soon")}
-        </span>
+        <span>{t(statusToTextKeyMap[lesson?.status || "PENDING"])}</span>
         <div
           style={{
             background: "#9FBDD0",
@@ -73,36 +75,50 @@ export default function RealtimeLesson() {
             fontSize: "16px",
           }}
         >
-          {syllabus.lessons[Number(currentExercisePosition)]?.status ||
-            "PENDING"}
+          {lesson?.status}
         </div>
-        {previousLesson && previousLesson.generated && (
-          <ContinueGenerationButton />
-        )}
-        {/* syllabus.lessons[Number(currentExercisePosition)] &&
-          ["PENDING", "ERROR", "GENERATING"].includes(
-            syllabus.lessons[Number(currentExercisePosition)].status || ""
-          ) && <ContinueGenerationButton />} */}
       </div>
-      <ProgressBar duration={20} height={4} />
+      {previousLesson &&
+        previousLesson.status === "DONE" &&
+        ["PENDING", "ERROR"].includes(lesson?.status || "") && (
+          <ContinueGenerationButton
+            onGenerate={() => {
+              getSyllabus();
+              setUpdates((prev) => [
+                ...prev,
+                "🚀 " + t("lesson-generation-started"),
+              ]);
+            }}
+          />
+        )}
+
+      {lesson?.status === "GENERATING" && (
+        <ProgressBar duration={20} height={4} />
+      )}
 
       <div className="bg-gray padding-big rounded">
         {syllabus.lessons[Number(currentExercisePosition)]?.description}
       </div>
 
-      <div
-        style={{ background: "#FAFDFF", border: "1px solid #C8DBFC" }}
-        className=" rounded padding-small"
-      >
-        {updates.map((update) => (
-          <p key={update}>{update}</p>
-        ))}
-      </div>
+      {updates.length > 0 && (
+        <div
+          style={{ background: "#FAFDFF", border: "1px solidrgb(6, 10, 15)" }}
+          className=" rounded padding-small"
+        >
+          {updates.map((update) => (
+            <p key={update}>{update}</p>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-const ContinueGenerationButton = () => {
+const ContinueGenerationButton = ({
+  onGenerate,
+}: {
+  onGenerate: () => void;
+}) => {
   const { t } = useTranslation();
 
   const currentExercisePosition = useStore(
@@ -118,41 +134,60 @@ const ContinueGenerationButton = () => {
     <>
       <SimpleButton
         svg={svgs.nextArrowButton}
-        extraClass="border-blue rounded padding-small text-blue flex-x align-center gap-small svg-blue"
+        extraClass="continue-generation-btn border-blue rounded padding-small text-blue flex-x align-center gap-small svg-blue"
         action={() => setIsOpen(true)}
-        text={
-          t("continue")
-        }
+        text={t("continue")}
       />
       {isOpen && (
-        <Modal outsideClickHandler={() => setIsOpen(false)}>
-          <div>
-            <h2>{t("give-feedback-on-the-course-so-far")}</h2>
-            <textarea
-              ref={textareaRef}
-              className="textarea w-100"
-              placeholder={t("give-feedback-to-rigobot")}
-              rows={5}
-            />
-            <div className="flex-x justify-center">
+        <Modal
+          addPadding={false}
+          showCloseButton={false}
+          outsideClickHandler={() => setIsOpen(false)}
+        >
+          <div className="chat-feedback-modal">
+            <div className="chat-header">
+              <div className="chat-avatar">
+                <div className="avatar-icon">{svgs.rigoSvg}</div>
+              </div>
+              <div className="chat-info">
+                <h3 className="chat-title">{t("rigobot-is-ready-to-help")}</h3>
+              </div>
+            </div>
+
+            <div className="chat-message-area">
+              <div className="message-bubble user-message">
+                <div className="message-content">
+                  <textarea
+                    ref={textareaRef}
+                    className="chat-textarea"
+                    placeholder={t("give-feedback-to-rigobot")}
+                    rows={4}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="chat-actions">
               <SimpleButton
                 svg={svgs.nextArrowButton}
-                extraClass="border-blue rounded padding-small text-blue flex-x align-center gap-small svg-blue"
+                extraClass="chat-send-button svg-blue"
                 text={t("continue")}
                 action={async () => {
                   try {
-                    toast.success(t("lesson-generation-started"));
                     const feedback = textareaRef.current?.value || "";
                     console.log("feedback", feedback);
-                    continueGenerating(
+                    await continueGenerating(
                       config.config.slug,
                       Number(currentExercisePosition),
                       feedback,
                       token
                     );
+                    toast.success(t("lesson-generation-started"));
+                    onGenerate();
                     setIsOpen(false);
                   } catch (error) {
                     console.log("error continue lesson", error);
+                    toast.error(t("error-generating-lesson"));
                   }
                 }}
               />
