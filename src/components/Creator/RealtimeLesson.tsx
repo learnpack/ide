@@ -80,7 +80,7 @@ export default function RealtimeLesson() {
       </div>
       {previousLesson &&
         previousLesson.status === "DONE" &&
-        ["PENDING", "ERROR"].includes(lesson?.status || "") && (
+        ["PENDING", "ERROR", "GENERATING"].includes(lesson?.status || "") && (
           <ContinueGenerationButton
             onGenerate={() => {
               getSyllabus();
