@@ -5,11 +5,10 @@ import { useTranslation } from "react-i18next";
 import useStore from "../../../utils/store";
 import "./LessonStyles.css";
 import SimpleButton from "../../mockups/SimpleButton";
-import { FetchManager } from "../../../managers/fetchManager";
-import { InteractiveTutor } from "../InteractiveTutor/InteractiveTutor";
 import { eventBus } from "../../../managers/eventBus";
 import { fixLesson } from "../../../managers/EventProxy";
 import RealtimeNotificationListener from "../../Creator/RealtimeNotificationListener";
+import { svgs } from "../../../assets/svgs";
 // import toast from "react-hot-toast";
 
 const ContinueButton = () => {
@@ -132,56 +131,16 @@ const LessonInspector = () => {
 export const LessonRenderer = memo(() => {
   const currentContent = useStore((s) => s.currentContent);
   const agent = useStore((s) => s.agent);
+
   const environment = useStore((s) => s.environment);
-  const getCurrentExercise = useStore((s) => s.getCurrentExercise);
-  const language = useStore((s) => s.language);
-  const [mode, setMode] = useState<"markdown" | "text" | "interactive">(
-    "markdown"
-  );
 
   return (
     <div className="lesson-content">
       <LessonInspector />
-      {mode === "markdown" && (
-        <Markdowner markdown={currentContent} allowCreate={true} />
-      )}
-      {mode === "text" && (
-        <textarea
-          defaultValue={currentContent}
-          className="w-100 h-full padding-small rounded textarea"
-          onBlur={(e) => {
-            console.log(e.target.value, "e.target.value");
+      <AddVideoButton />
 
-            if (e.target.value === currentContent) return;
+      <Markdowner markdown={currentContent} allowCreate={true} />
 
-            FetchManager.replaceReadme(
-              getCurrentExercise().slug,
-              language,
-              e.target.value
-            );
-          }}
-        />
-      )}
-      {mode === "interactive" && <InteractiveTutor />}
-      <SimpleButton
-        extraClass={"d-none text-reveal-button"}
-        text={
-          mode === "markdown"
-            ? "Markdown"
-            : mode === "text"
-            ? "Text"
-            : "Interactive"
-        }
-        action={() =>
-          setMode(
-            mode === "markdown"
-              ? "text"
-              : mode === "text"
-              ? "interactive"
-              : "markdown"
-          )
-        }
-      />
       {/* <TestLatex /> */}
       <ContinueButton />
 
@@ -191,3 +150,40 @@ export const LessonRenderer = memo(() => {
     </div>
   );
 });
+
+const AddVideoButton = () => {
+  const mode = useStore((s) => s.mode);
+  const videoTutorial = useStore((s) => s.videoTutorial);
+  const setOpenedModals = useStore((s) => s.setOpenedModals);
+  const syllabus = useStore((s) => s.syllabus);
+  const currentExercisePosition = useStore((s) => s.currentExercisePosition);
+  const { t } = useTranslation();
+
+  const lesson = syllabus.lessons[Number(currentExercisePosition)];
+
+  return (
+    lesson &&
+    lesson.generated && (
+      <div className="flex-x align-center justify-end gap-small ">
+        {mode === "creator" && (
+          <SimpleButton
+            text={t("add-video-tutorial")}
+            svg={
+              !videoTutorial ? (
+                <div className="d-flex align-center">{svgs.video}</div>
+              ) : (
+                svgs.plusSimple
+              )
+            }
+            extraClass="svg-blue border-blue padding-small rounded"
+            action={async () => {
+              setOpenedModals({
+                addVideoTutorial: true,
+              });
+            }}
+          />
+        )}
+      </div>
+    )
+  );
+};

@@ -26,13 +26,13 @@ export const NewHeader = () => {
     updateEditorTabs,
     compilerSocket,
     videoTutorial,
-    isCreator,
+    // isCreator,
     setShowVideoTutorial,
     reportEnrichDataLayer,
-    mode,
-    setMode,
-    setOpenedModals,
-    environment,
+    // mode,
+    // setMode,
+    // setOpenedModals,
+    // environment,
     configObject,
   } = useStore((state) => ({
     currentExercisePosition: state.currentExercisePosition,
@@ -47,11 +47,11 @@ export const NewHeader = () => {
     videoTutorial: state.videoTutorial,
     setShowVideoTutorial: state.setShowVideoTutorial,
     reportEnrichDataLayer: state.reportEnrichDataLayer,
-    mode: state.mode,
-    isCreator: state.isCreator,
-    setOpenedModals: state.setOpenedModals,
-    setMode: state.setMode,
-    environment: state.environment,
+    // mode: state.mode,
+    // isCreator: state.isCreator,
+    // setOpenedModals: state.setOpenedModals,
+    // setMode: state.setMode,
+    // environment: state.environment,
     configObject: state.configObject,
   }));
 
@@ -106,15 +106,6 @@ export const NewHeader = () => {
         <p className="m-0">{configObject?.config?.title[language] || ""}</p>
       </section>
       <section className="flex-x align-center">
-        {isCreator && environment === "localhost" && (
-          <SimpleButton
-            action={() => {
-              mode === "student" ? setMode("creator") : setMode("student");
-            }}
-            extraClass="svg-blue"
-            svg={mode === "student" ? svgs.edit : svgs.runCustom}
-          />
-        )}
         {!isIframe && language && <LanguageButton />}
         {hasSolution && (
           <SimpleButton
@@ -128,29 +119,8 @@ export const NewHeader = () => {
             action={hasSolution ? openSolutionFile : () => {}}
           />
         )}
-        {(mode === "creator" || videoTutorial) && (
+        {videoTutorial && (
           <div className="d-flex gap-small">
-            {mode === "creator" && (
-              <SimpleButton
-                title={t("add-video-tutorial")}
-                svg={
-                  !videoTutorial ? (
-                    <div className="d-flex align-center">
-                      {svgs.video}
-                      {svgs.plusSimple}
-                    </div>
-                  ) : (
-                    svgs.plusSimple
-                  )
-                }
-                extraClass="svg-blue "
-                action={async () => {
-                  setOpenedModals({
-                    addVideoTutorial: true,
-                  });
-                }}
-              />
-            )}
             {videoTutorial && (
               <SimpleButton
                 title="Video tutorial"

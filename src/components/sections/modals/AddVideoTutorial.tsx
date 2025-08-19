@@ -5,6 +5,8 @@ import SimpleButton from "../../mockups/SimpleButton";
 import { svgs } from "../../../assets/svgs";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
+import { cleanFloatString } from "../../../utils/lib";
+
 export const AddVideoTutorial = () => {
   const [tutorial, setTutorial] = useState("");
   const { t } = useTranslation();
@@ -13,19 +15,32 @@ export const AddVideoTutorial = () => {
     setOpenedModals,
     removeVideoTutorial,
     videoTutorial,
+    getCurrentExercise,
   } = useStore((state) => ({
     addVideoTutorial: state.addVideoTutorial,
     setOpenedModals: state.setOpenedModals,
     removeVideoTutorial: state.removeVideoTutorial,
     videoTutorial: state.videoTutorial,
+    getCurrentExercise: state.getCurrentExercise,
   }));
+
+  const ex = getCurrentExercise();
 
   return (
     <Modal
       outsideClickHandler={() => setOpenedModals({ addVideoTutorial: false })}
     >
       <div className="flex-y gap-small">
-        <h2>{t("pasteTutorialUrl")}</h2>
+        <h2>
+          {t("addAVideoToStep", {
+            step: cleanFloatString(ex.title.split("-")[0]),
+          })}
+        </h2>
+        <p>
+          {t("addVideoExplanation", {
+            step: cleanFloatString(ex.title.split("-")[0]),
+          })}
+        </p>
         <input
           type="text"
           className="input w-100"
@@ -35,7 +50,7 @@ export const AddVideoTutorial = () => {
         />
         <div className="flex-x justify-center">
           <SimpleButton
-            text={t("finish")}
+            text={t("addVideoToStep")}
             svg={svgs.checkIcon}
             extraClass=" active-on-hover padding-medium rounded"
             action={async () => {

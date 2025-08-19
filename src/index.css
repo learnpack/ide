@@ -860,8 +860,15 @@ a {
 }
 
 .svg-blue {
+  --read-font-color: var(--color-blue-rigo);
   & svg {
     --read-font-color: var(--color-blue-rigo);
+  }
+}
+.svg-gray {
+  --read-font-color: #a1a1a1;
+  & svg {
+    --read-font-color: #a1a1a1;
   }
 }
 
@@ -907,10 +914,6 @@ a {
 
 .margin-left-small {
   margin-left: 10px;
-}
-
-.svg-blue {
-  --read-font-color: var(--color-blue-rigo);
 }
 
 .textarea {

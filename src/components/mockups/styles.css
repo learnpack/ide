@@ -60,16 +60,25 @@
 }
 
 .loader-icon {
-  width: 30px;
-  height: 30px;
-
-  border: 2px solid var(--loader-color);
   border-top-color: transparent;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+.loader.sm .loader-icon {
+  width: 15px;
+  height: 15px;
+}
+.loader.md .loader-icon {
+  width: 25px;
+  height: 25px;
+}
+.loader.lg .loader-icon {
+  width: 40px;
+  height: 40px;
+}
+
 .loader-icon::after {
   content: "";
   display: block;

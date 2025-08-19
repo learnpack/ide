@@ -143,6 +143,26 @@ export const Markdowner = ({
           }
           return <h4>{children}</h4>;
         },
+        h5: ({ children, node }) => {
+          if (creatorModeActivated) {
+            return (
+              <CreatorWrapper node={node} tagName="h5">
+                <h5>{children}</h5>
+              </CreatorWrapper>
+            );
+          }
+          return <h5>{children}</h5>;
+        },
+        h6: ({ children, node }) => {
+          if (creatorModeActivated) {
+            return (
+              <CreatorWrapper node={node} tagName="h6">
+                <h6>{children}</h6>
+              </CreatorWrapper>
+            );
+          }
+          return <h6>{children}</h6>;
+        },
         p: ({ children, node }) => {
           if (creatorModeActivated) {
             return (

@@ -7,6 +7,9 @@ import { useTranslation } from "react-i18next";
 import { Modal } from "../../mockups/Modal";
 import { toast } from "react-hot-toast";
 import { FetchManager } from "../../../managers/fetchManager";
+import { Markdowner } from "../../composites/Markdowner/Markdowner";
+import { useConsumableCall } from "../../../utils/apiCalls";
+import { TConsumableSlug } from "../../../utils/storeTypes";
 
 const svgsLanguageMap: Record<string, JSX.Element> = {
   es: svgs.spainFlag,
@@ -105,15 +108,18 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
     reportEnrichDataLayer,
     environment,
     getCurrentExercise,
+    syllabus,
   } = useStore((state) => ({
     language: state.language,
     setLanguage: state.setLanguage,
     getCurrentExercise: state.getCurrentExercise,
     reportEnrichDataLayer: state.reportEnrichDataLayer,
     environment: state.environment,
+    syllabus: state.syllabus,
   }));
 
   const currentExercise = getCurrentExercise();
+  const [allowAddLanguage, setAllowAddLanguage] = useState(false);
 
   if (!currentExercise) return null;
 
@@ -134,6 +140,20 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
     });
   };
 
+  useEffect(() => {
+    if (environment === "creatorWeb" && syllabus.lessons.length > 0) {
+      // Check is there is any not generated lesson
+      const anyNotGenerated = syllabus.lessons.some(
+        (lesson) => !lesson.generated
+      );
+      if (anyNotGenerated) {
+        setAllowAddLanguage(false);
+      } else {
+        setAllowAddLanguage(true);
+      }
+    }
+  }, [syllabus]);
+
   return (
     <div className="language-dropdown">
       {languages.map((l, index) =>
@@ -144,51 +164,83 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
           </button>
         ) : null
       )}
-      {environment !== "localStorage" && <AddLanguageModal />}
+      {environment !== "localStorage" && (
+        <AddLanguageModal disabled={!allowAddLanguage} />
+      )}
     </div>
   );
 };
 
-const AddLanguageModal = () => {
+const AddLanguageModal = ({ disabled }: { disabled: boolean }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
+  const [warningData, setWarningData] = useState<{
+    language: string;
+    totalGenerations: number;
+    aiGenerationsLeft: number;
+    hasEnough: boolean;
+  } | null>(null);
   const inputLanguageRef = useRef<HTMLInputElement>(null);
   const exercises = useStore((state) => state.exercises);
   const token = useStore((state) => state.token);
-  const fetchExercises = useStore((state) => state.fetchExercises);
+  const bcToken = useStore((state) => state.bc_token);
   const getSidebar = useStore((state) => state.getSidebar);
   const language = useStore((state) => state.language);
+  const userConsumables = useStore((state) => state.userConsumables);
+  const getUserConsumables = useStore((state) => state.getUserConsumables);
 
   const handleAddLanguage = () => {
-    setIsOpen(true);
+    if (!disabled) {
+      setIsOpen(true);
+      getUserConsumables();
+    }
   };
 
   const handleTranslate = async () => {
+    if (!inputLanguageRef.current) return;
+    const languages = inputLanguageRef.current.value;
+
+    if (!languages) {
+      toast.error(t("invalidLanguage"), {
+        duration: 5000,
+      });
+      return;
+    }
+
+    const totalGenerations = exercises.length * 1;
+    const aiGenerationsLeft = userConsumables.ai_generation;
+
+    setWarningData({
+      language: languages,
+      totalGenerations,
+      aiGenerationsLeft,
+      hasEnough:
+        aiGenerationsLeft === -1 || aiGenerationsLeft >= totalGenerations,
+    });
+    setShowWarning(true);
+
+    // await performTranslation(languages);
+  };
+
+  const performTranslation = async (languages: string) => {
     const toastId = toast.loading(t("translatingExercises"));
     setIsLoading(true);
     try {
-      if (!inputLanguageRef.current) return;
-      const languages = inputLanguageRef.current.value;
-
-      if (!languages) {
-        toast.error(t("invalidLanguage"), {
-          duration: 5000,
-          id: toastId,
-        });
-        return;
-      }
-
       await FetchManager.translateExercises(
         exercises.map((e) => e.slug),
         languages,
         language,
         token
       );
-      toast.success(t("exercisesTranslated"), { id: toastId });
+      toast.success(t("exercisesTranslationStarted"), {
+        id: toastId,
+        duration: 7000,
+      });
       setIsLoading(false);
       setIsOpen(false);
-      await fetchExercises();
+      setShowWarning(false);
       await getSidebar();
     } catch (error) {
       toast.error(t("errorTranslatingExercises"), { id: toastId });
@@ -197,10 +249,51 @@ const AddLanguageModal = () => {
     }
   };
 
+  const consume = async (slug: TConsumableSlug, n: number) => {
+    const results: boolean[] = [];
+    const consumablePromise = Promise.all(
+      Array.from({ length: n }, async (_) => {
+        const result = await useConsumableCall(bcToken, slug);
+        if (result) {
+          results.push(result);
+        }
+      })
+    );
+
+    await consumablePromise;
+    console.log(results, "RESULTS FROM CONSUMPTION");
+    return results.some((result) => result);
+  };
+
+  const handleWarningConfirm = async () => {
+    if (warningData) {
+      const anySuccess = await consume(
+        "ai-generation",
+        warningData.totalGenerations
+      );
+      if (anySuccess) {
+        await performTranslation(warningData.language);
+        setIsOpen(false);
+      }
+    }
+    setShowWarning(false);
+  };
+
+  const handleWarningCancel = () => {
+    setShowWarning(false);
+    setWarningData(null);
+  };
+
   return (
     <>
       <SimpleButton
+        disabled={disabled}
         text={t("add-language")}
+        title={
+          disabled
+            ? t("cannotTranslateWhileGenerating")
+            : t("translateAllTheCourse")
+        }
         svg={svgs.plus}
         action={handleAddLanguage}
         extraClass="w-200px"
@@ -235,6 +328,46 @@ const AddLanguageModal = () => {
                 svg={svgs.rigoSoftBlue}
                 action={handleTranslate}
               />
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {showWarning && warningData && (
+        <Modal extraClass="bg-2">
+          <div className="gap-small">
+            <div className="flex-y align-center gap-small">
+              <h2 className="flex-x align-center gap-medium">
+                <span>⚠️</span>
+                {t("ai-generations-warning-title")}
+              </h2>
+              <div className="bg-white rounded padding-medium">
+                <div className="rounded padding-small">
+                  <Markdowner
+                    markdown={t("ai-generations-warning", {
+                      language: warningData.language,
+                      totalGenerations: warningData.totalGenerations,
+                      aiGenerationsLeft: warningData.aiGenerationsLeft,
+                    })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-x justify-center gap-medium">
+              <SimpleButton
+                extraClass="bg-gray text-black padding-small rounded"
+                text={t("cancel")}
+                action={handleWarningCancel}
+              />
+              {warningData.hasEnough && (
+                <SimpleButton
+                  extraClass="bg-blue-rigo text-white padding-small rounded row-reverse"
+                  text={t("translate")}
+                  svg={svgs.rigoSoftBlue}
+                  action={handleWarningConfirm}
+                />
+              )}
             </div>
           </div>
         </Modal>

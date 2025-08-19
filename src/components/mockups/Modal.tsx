@@ -12,6 +12,7 @@ interface IModal {
   minWidth?: string;
   showCloseButton?: boolean;
   addPadding?: boolean;
+  zIndex?: number;
 }
 
 export const Modal = ({
@@ -23,6 +24,7 @@ export const Modal = ({
   minWidth = "600px",
   showCloseButton = true,
   addPadding = true,
+  zIndex = 1000,
 }: IModal) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -68,6 +70,7 @@ export const Modal = ({
       style={
         {
           "--modal-min-width": minWidth,
+          zIndex: zIndex,
         } as React.CSSProperties
       }
     >

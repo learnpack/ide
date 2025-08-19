@@ -460,9 +460,20 @@ function ExerciseCard({
       </div>
 
       <div className="flex-x align-center gap-small">
-        {foundInSyllabus && !foundInSyllabus.generated && (
-          <Loader svg={svgs.tools} extraClass="svg-blue" />
-        )}
+        {foundInSyllabus &&
+          !foundInSyllabus.generated &&
+          foundInSyllabus.status === "GENERATING" && (
+            <Loader color="gray" extraClass="svg-blue" />
+          )}
+        {foundInSyllabus &&
+          !foundInSyllabus.generated &&
+          foundInSyllabus.status === "PENDING" && (
+            <SimpleButton
+              extraClass="svg-gray"
+              title={t("not-generated-yet")}
+              svg={svgs.pause}
+            />
+          )}
         {graded && mode === "student" && (
           <SimpleButton
             svg={done ? svgs.checkIcon : svgs.blankCircle}

@@ -16,28 +16,36 @@ const stepsJson: Record<
   { title: string; description: string; instructions: TStep[] }
 > = {
   en: {
-    title: "Welcome Teacher!",
+    title:
+      "What you can do as a Teacher with the Rigobot AI Agent in LearnPack",
     description:
-      "LearnPack is designed as a teacher copilot, before publishing the tutorial with your students, you can easily use AI for edits in the following ways:",
+      "LearnPack is designed as a teacher copilot, before publishing the tutorial with your students, you can easily use AI for edits and help you with the content of the course. ",
     instructions: [
       {
-        title: "Tell Rigobot to summarize, elaborate or rewrite any content.",
+        title: "Notion-style editing",
         description:
-          "Just select the content you want to edit and click on the pen icon in the left side of the text. You will see different options to edit the content.",
-        // video: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          "Update lessons block-by-block just by telling the Rigobot AI Agent what you want (rewrite, simplify, add examples, change tone).",
+        // video: "https://www.youtube.com/watch?v=2deT2CVN67Y",
         done: false,
       },
       {
-        title: "Create images and graphs using our internally trained models.",
+        title: "AI-powered content creation",
         description:
-          "Add a new element to the lesson clicking the plus icon in the bottom or top of any element. When you add the element, you can generate or upload an image in that section.",
+          "Create quizzes, coding challenges, file/URL deliverables, and multimedia in just a few back-and-forths with the Rigobot AI Agent.",
         // video: "https://www.youtube.com/watch?v=aOWtNBiksmg",
         done: false,
       },
       {
-        title: "Create a new lesson",
+        title: "Instant multilingual translation",
         description:
-          "Open the sidebar, locate the place where you want to add a new lesson and click on the plus icon. Write a name for the lesson and click on the check icon.",
+          "Translate your lessons into any language preserving meaning and content.",
+        // video: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        done: false,
+      },
+      {
+        title: "One-click publishing",
+        description:
+          "Once your content is ready, publish your course instantly and share it via link or social media, with the Rigobot AI Agent guiding your students if needed.",
         // video: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
         done: false,
       },
@@ -92,7 +100,7 @@ export const TeacherOnboarding = () => {
 
   // Estado local para instrucciones y paso actual
   const [instructions, setInstructions] = useState<TStep[]>(
-    steps.instructions.map(inst => ({ ...inst }))
+    steps.instructions.map((inst) => ({ ...inst }))
   );
   const [currentStep, setCurrentStep] = useState(0);
 
@@ -103,7 +111,7 @@ export const TeacherOnboarding = () => {
   };
 
   const handleStepChange = (stepIndex: number) => {
-    setInstructions(prev =>
+    setInstructions((prev) =>
       prev.map((inst, idx) =>
         idx === stepIndex ? { ...inst, done: true } : inst
       )
