@@ -341,5 +341,11 @@
     "addVideoToStep": "Add video to step",
     "addAVideoToStep": "Add a video to step {{step}}",
     "addVideoExplanation": "To add a video to this particular step {{step}}, please paste the URL from one of the supported sources",
-    "add-video-tutorial": "Add video tutorial"
+    "add-video-tutorial": "Add video tutorial",
+    "startReviewingMyPackage": "Start reviewing my package",
+    "iLikeItContinue": "I like it, continue generating",
+    "IHaveSomeFeedback": "I have some feedback",
+    "thisStepWillBeAbout": "This step will be about: ",
+    "you": "You",
+    "okIllIncorporateThat": "Ok, I will incorporate that into the lesson, would you like me to continue?"
 }

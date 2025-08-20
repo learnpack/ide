@@ -3,6 +3,8 @@ import useStore from "../../../utils/store";
 import { Modal } from "../../mockups/Modal";
 import { VideoPlayer } from "../../composites/VideoPlayer/VideoPlayer";
 import "./TeacherOnboarding.css";
+import SimpleButton from "../../mockups/SimpleButton";
+import { useTranslation } from "react-i18next";
 
 type TStep = {
   title: string;
@@ -84,6 +86,7 @@ const stepsJson: Record<
 };
 
 export const TeacherOnboarding = () => {
+  const { t } = useTranslation();
   const { setOpenedModals, language } = useStore((state) => ({
     setOpenedModals: state.setOpenedModals,
     language: state.language,
@@ -157,13 +160,20 @@ export const TeacherOnboarding = () => {
                 )}
               </div>
             ))}
+            <SimpleButton
+              extraClass="bg-blue-rigo padding-medium rounded text-white fit-content"
+              text={t("startReviewingMyPackage")}
+              action={handleClose}
+            />
           </div>
         </div>
 
         {/* Right Section - Video */}
-        {currentStepData && currentStepData.video && (
+        {currentStepData && (
           <div className="onboarding-video">
-            <VideoPlayer link={currentStepData.video} />
+            {currentStepData.video && (
+              <VideoPlayer link={currentStepData.video} />
+            )}
           </div>
         )}
       </div>

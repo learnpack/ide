@@ -8,11 +8,12 @@ import { RigoAI } from "../../Rigobot/AI";
 import {
   createExercise,
   deleteExercise,
+  markLessonAsDone,
   renameExercise,
 } from "../../../utils/creator";
 import { FetchManager } from "../../../managers/fetchManager";
 import { Syllabus, TMode } from "../../../utils/storeTypes";
-import { cleanFloatString } from "../../../utils/lib";
+import { cleanFloatString, DEV_MODE } from "../../../utils/lib";
 import { eventBus } from "../../../managers/eventBus";
 import { Loader } from "../../composites/Loader/Loader";
 interface IExerciseList {
@@ -350,12 +351,16 @@ function ExerciseCard({
     getCurrentExercise,
     sidebar,
     language,
+    token,
+    config,
   } = useStore((state) => ({
     handlePositionChange: state.handlePositionChange,
     fetchExercises: state.fetchExercises,
     getCurrentExercise: state.getCurrentExercise,
     sidebar: state.sidebar,
     language: state.language,
+    token: state.token,
+    config: state.configObject,
   }));
 
   const [isEditing, setIsEditing] = useState(false);
@@ -461,9 +466,23 @@ function ExerciseCard({
 
       <div className="flex-x align-center gap-small">
         {foundInSyllabus &&
-          !foundInSyllabus.generated &&
-          foundInSyllabus.status === "GENERATING" && (
-            <Loader color="gray" extraClass="svg-blue" />
+          !foundInSyllabus.generated && (
+            <>
+              <Loader color="gray" extraClass="svg-blue" />
+              {DEV_MODE && (
+                <button
+                  onClick={() => {
+                    markLessonAsDone(
+                      config.config.slug,
+                      foundInSyllabus.id,
+                      token
+                    );
+                  }}
+                >
+                  IS DONE
+                </button>
+              )}
+            </>
           )}
         {foundInSyllabus &&
           !foundInSyllabus.generated &&

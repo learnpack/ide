@@ -8,7 +8,6 @@ import SimpleButton from "../mockups/SimpleButton";
 import { continueGenerating } from "../../utils/creator";
 import toast from "react-hot-toast";
 import { svgs } from "../../assets/svgs";
-import { Modal } from "../mockups/Modal";
 import "./RealtimeLesson.css";
 const socketClient = new CreatorSocket(DEV_MODE ? "http://localhost:3000" : "");
 
@@ -78,27 +77,19 @@ export default function RealtimeLesson() {
           {lesson?.status}
         </div>
       </div>
-      {previousLesson &&
-        previousLesson.status === "DONE" &&
-        ["PENDING", "ERROR", "GENERATING"].includes(lesson?.status || "") && (
-          <ContinueGenerationButton
-            onGenerate={() => {
-              getSyllabus();
-              setUpdates((prev) => [
-                ...prev,
-                "🚀 " + t("lesson-generation-started"),
-              ]);
-            }}
-          />
-        )}
-
-      {lesson?.status === "GENERATING" && (
-        <ProgressBar duration={20} height={4} />
+      {previousLesson && previousLesson.status === "DONE" && (
+        <ContinueGenerationButton
+          status={lesson?.status || "PENDING"}
+          description={lesson?.description}
+          onGenerate={() => {
+            getSyllabus();
+            setUpdates((prev) => [
+              ...prev,
+              "🚀 " + t("lesson-generation-started"),
+            ]);
+          }}
+        />
       )}
-
-      <div className="bg-gray padding-big rounded">
-        {syllabus.lessons[Number(currentExercisePosition)]?.description}
-      </div>
 
       {updates.length > 0 && (
         <div
@@ -114,10 +105,19 @@ export default function RealtimeLesson() {
   );
 }
 
+type Message = {
+  type: "user" | "assistant";
+  text: string;
+};
+
 const ContinueGenerationButton = ({
   onGenerate,
+  description,
+  status,
 }: {
   onGenerate: () => void;
+  description: string;
+  status: "PENDING" | "GENERATING" | "DONE" | "ERROR";
 }) => {
   const { t } = useTranslation();
 
@@ -128,72 +128,136 @@ const ContinueGenerationButton = ({
   const config = useStore((state) => state.configObject);
 
   const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    setMessages([
+      { type: "assistant", text: t("thisStepWillBeAbout") + description },
+    ]);
+  }, []);
+
+  const handleContinue = async () => {
+    try {
+      const feedback = messages
+        .filter((msg) => msg.type === "user")
+        .map((msg) => msg.text)
+        .join("\n");
+
+      console.log("Feedback to Rigo", feedback);
+
+      await continueGenerating(
+        config.config.slug,
+        Number(currentExercisePosition),
+        feedback,
+        token
+      );
+      toast.success(t("lesson-generation-started"));
+      onGenerate();
+      setIsOpen(false);
+    } catch (error) {
+      console.log("error continue lesson", error);
+      toast.error(t("error-generating-lesson"));
+    }
+  };
+
+  const handleAddUserMessage = () => {
+    const value = textareaRef.current!.value || "";
+    setMessages((prev) => [
+      ...prev,
+      { type: "user", text: value },
+      {
+        type: "assistant",
+        text: t("okIllIncorporateThat"),
+      },
+    ]);
+    textareaRef.current!.value = "";
+    setIsOpen(false);
+  };
+
+  if (status === "GENERATING") {
+    return <ProgressBar duration={20} height={4} />;
+  }
+  if (status === "DONE") {
+    return null;
+  }
 
   return (
     <>
-      <SimpleButton
-        svg={svgs.nextArrowButton}
-        extraClass="continue-generation-btn border-blue rounded padding-small text-blue flex-x align-center gap-small svg-blue"
-        action={() => setIsOpen(true)}
-        text={t("continue")}
-      />
-      {isOpen && (
-        <Modal
-          addPadding={false}
-          showCloseButton={false}
-          outsideClickHandler={() => setIsOpen(false)}
-        >
-          <div className="chat-feedback-modal">
-            <div className="chat-header">
-              <div className="chat-avatar">
-                <div className="avatar-icon">{svgs.rigoSvg}</div>
-              </div>
-              <div className="chat-info">
-                <h3 className="chat-title">{t("rigobot-is-ready-to-help")}</h3>
-              </div>
-            </div>
-
-            <div className="chat-message-area">
-              <div className="message-bubble user-message">
-                <div className="message-content">
-                  <textarea
-                    ref={textareaRef}
-                    className="chat-textarea"
-                    placeholder={t("give-feedback-to-rigobot")}
-                    rows={4}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="chat-actions">
-              <SimpleButton
-                svg={svgs.nextArrowButton}
-                extraClass="chat-send-button svg-blue"
-                text={t("continue")}
-                action={async () => {
-                  try {
-                    const feedback = textareaRef.current?.value || "";
-                    console.log("feedback", feedback);
-                    await continueGenerating(
-                      config.config.slug,
-                      Number(currentExercisePosition),
-                      feedback,
-                      token
-                    );
-                    toast.success(t("lesson-generation-started"));
-                    onGenerate();
-                    setIsOpen(false);
-                  } catch (error) {
-                    console.log("error continue lesson", error);
-                    toast.error(t("error-generating-lesson"));
-                  }
+      <div className="flex-y gap-small padding-big">
+        {messages.map((message, index) => (
+          <div
+            key={index}
+            style={{
+              flexDirection: message.type === "user" ? "row-reverse" : "row",
+            }}
+            className="flex-x gap-small align-center"
+          >
+            {message.type === "assistant" && (
+              <div className="big-svg rigo-button">{svgs.rigoSoftBlue}</div>
+            )}
+            {message.type === "user" && (
+              <div
+                style={{
+                  border: "1px solid var(--color-blue-rigo)",
+                  borderRadius: "50%",
+                  width: "50px",
+                  height: "50px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "15px",
                 }}
-              />
-            </div>
+                className=" border-blue align-center justify-center bg-1 text-blue"
+              >
+                <span>{t("you")}</span>
+              </div>
+            )}
+            <p className="bg-2 padding-small rounded text-heavy-blue border-heavy-blue w-100">
+              {message.text}
+            </p>
           </div>
-        </Modal>
+        ))}
+      </div>
+
+      {isOpen ? (
+        <div className="">
+          <div className=" flex-x gap-small padding-small rounded">
+            <textarea
+              ref={textareaRef}
+              className=" textarea border-gray w-100"
+              onKeyUp={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleAddUserMessage();
+                }
+              }}
+              placeholder={t("give-feedback-to-rigobot")}
+              rows={2}
+            />
+            <SimpleButton
+              svg={svgs.nextArrowButton}
+              extraClass="svg-blue"
+              title={t("send")}
+              action={handleAddUserMessage}
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="flex-x gap-small justify-end">
+          <SimpleButton
+            svg={"😀"}
+            extraClass=" border-blue rounded padding-small text-blue flex-x align-center gap-small svg-blue bg-blue-rigo text-white"
+            action={handleContinue}
+            text={t("iLikeItContinue")}
+          />
+          <SimpleButton
+            svg={"🤔"}
+            extraClass=" border-blue rounded padding-small text-blue flex-x align-center gap-small svg-blue"
+            action={() => setIsOpen(true)}
+            text={t("IHaveSomeFeedback")}
+          />
+        </div>
       )}
     </>
   );

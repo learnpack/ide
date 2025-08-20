@@ -10,7 +10,7 @@
   --opaque-blue-editor: #a5d9f8;
 
   --color-blue-opaque: #eef9fe;
-  --heavy-blue: #9fbdf0;
+  --heavy-blue: #7697cf;
 
   --color-blue: #c1dfed;
 
@@ -1008,6 +1008,9 @@ a {
 
 .border-heavy-blue {
   border: 1px solid var(--heavy-blue);
+}
+.text-heavy-blue {
+  color: var(--heavy-blue);
 }
 
 .text-trimmed {

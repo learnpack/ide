@@ -53,33 +53,6 @@ export const CustomPictureInPicture: React.FC<CustomPictureInPictureProps> = ({
 
   return (
     <>
-      {/* {!isOpen && (
-        <div
-          ref={videoContainerRef}
-    
-        >
-          <div className="flex-x justify-between align-center">
-            <SimpleButton
-              extraClass="no-drag svg-black"
-              action={() => setIsOpen(true)}
-              svg={svgs.expand}
-            />
-
-            <span className="padding-small">
-              {currentExercisePosition === 0
-                ? t("video-introduction")
-                : t("video-solution")}
-            </span>
-            <SimpleButton
-              extraClass="no-drag"
-              action={hide}
-              svg={svgs.redClose}
-            />
-          </div>
-          <VideoPlayer link={link} />
-        </div>
-      )} */}
-
       <Draggable cancel=".no-drag">
         <div
           ref={videoContainerRef}

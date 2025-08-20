@@ -348,5 +348,11 @@
     "translateAllTheCourse": "Traduce todo el curso de una vez",
     "addVideoToStep": "Agrega un vídeo al paso {{step}}",
     "addVideoExplanation": "Para agregar un video al paso {{step}}, por favor pega la URL de uno de sitios soportados.",
-    "add-video-tutorial": "Agrega un video tutorial"
+    "add-video-tutorial": "Agrega un video tutorial",
+    "startReviewingMyPackage": "Empezar a revisar mi paquete",
+    "iLikeItContinue": "Me gusta, continuar generando",
+    "IHaveSomeFeedback": "Tengo algún feedback",
+    "thisStepWillBeAbout": "Este paso será sobre: ",
+    "you": "Tú",
+    "okIllIncorporateThat": "Ok, voy a incorporar eso en la lección, ¿quieres que siga generando?"
 }

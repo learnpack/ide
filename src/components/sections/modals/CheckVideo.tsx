@@ -42,8 +42,7 @@ export default function CheckVideo() {
   return (
     <>
       {showVideoTutorial && link ? (
-        // <VideoModal link={link} hideModal={hideModal} />
-        // <VideoPlayer link={link} />
+        
         <CustomPictureInPicture hide={hideModal} link={link} />
       ) : null}
     </>

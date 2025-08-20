@@ -5,52 +5,124 @@ interface IVideoPlayerProps {
   link: string;
 }
 
+interface VideoService {
+  type: "youtube" | "loom" | "dailymotion" | "raw";
+  embedUrl?: string;
+  videoId?: string;
+  rawUrl?: string;
+}
+
 export const VideoPlayer: React.FC<IVideoPlayerProps> = ({ link }) => {
   const videoRef = useRef<HTMLIFrameElement>(null);
-
   const { t } = useTranslation();
 
-  //   const handlePictureInPicture = async () => {
-  //     if (videoRef.current) {
-  //       // Verificar si actualmente está en modo Picture-in-Picture
-  //       if (document.pictureInPictureElement) {
-  //         await document.exitPictureInPicture();
-  //       } else {
-  //         try {
-  //           // @ts-ignore
-  //           await videoRef.current.requestPictureInPicture();
-  //         } catch (error) {
-  //           console.error("Error al entrar en Picture-in-Picture:", error);
-  //         }
-  //       }
-  //     }
-  //   };
-
-  // Extraer el ID del video de YouTube a partir del enlace
-  const getYouTubeVideoId = (url: string): string | null => {
-    const regex =
+  const parseVideoUrl = (url: string): VideoService | null => {
+    // YouTube
+    const youtubeRegex =
       /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^&\n]{11})/;
-    const match = url.match(regex);
-    return match ? match[1] : null;
+    const youtubeMatch = url.match(youtubeRegex);
+    if (youtubeMatch) {
+      return {
+        type: "youtube",
+        videoId: youtubeMatch[1],
+        embedUrl: `https://www.youtube.com/embed/${youtubeMatch[1]}?autoplay=1&enablejsapi=1`,
+      };
+    }
+
+    // Loom
+    const loomRegex =
+      /(?:https?:\/\/)?(?:www\.)?(?:loom\.com\/share\/|loom\.com\/embed\/)([a-zA-Z0-9-]+)/;
+    const loomMatch = url.match(loomRegex);
+    if (loomMatch) {
+      return {
+        type: "loom",
+        videoId: loomMatch[1],
+        embedUrl: `https://www.loom.com/embed/${loomMatch[1]}`,
+      };
+    }
+
+    // Daily Motion
+    const dailymotionRegex =
+      /(?:https?:\/\/)?(?:www\.)?(?:dailymotion\.com\/video\/|dai\.ly\/)([a-zA-Z0-9]+)/;
+    const dailymotionMatch = url.match(dailymotionRegex);
+    if (dailymotionMatch) {
+      return {
+        type: "dailymotion",
+        videoId: dailymotionMatch[1],
+        embedUrl: `https://www.dailymotion.com/embed/video/${dailymotionMatch[1]}?autoplay=1`,
+      };
+    }
+
+    // Raw video URLs (MP4, WebM, OGV, etc.)
+    const rawVideoRegex =
+      /\.(mp4|webm|ogg|ogv|mov|avi|wmv|flv|mkv|m4v|3gp)(\?.*)?$/i;
+    if (rawVideoRegex.test(url)) {
+      return {
+        type: "raw",
+        rawUrl: url,
+      };
+    }
+
+    return null;
   };
 
-  const videoId = getYouTubeVideoId(link);
+  const videoService = parseVideoUrl(link);
 
-  if (!videoId) {
-    return <div>{t("error-video-id-invalid")}</div>;
+  if (!videoService) {
+    return (
+      <div className="video-player-error">
+        {t("error-video-url-unsupported") || "Unsupported video URL format"}
+      </div>
+    );
   }
 
-  return (
-    <div className="video-player pos-relative">
-      <iframe
-        ref={videoRef}
-        width="100%"
-        style={{ aspectRatio: "16/9" }}
-        src={`https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1`}
-        title="YouTube Video Player"
-        frameBorder="0"
-        allowFullScreen
-      />
-    </div>
-  );
+  const renderVideoPlayer = () => {
+    switch (videoService.type) {
+      case "youtube":
+      case "loom":
+      case "dailymotion":
+        return (
+          <iframe
+            ref={videoRef}
+            width="100%"
+            style={{ aspectRatio: "16/9" }}
+            src={videoService.embedUrl}
+            title={`${
+              videoService.type.charAt(0).toUpperCase() +
+              videoService.type.slice(1)
+            } Video Player`}
+            frameBorder="0"
+            allowFullScreen
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          />
+        );
+
+      case "raw":
+        return (
+          <video
+            ref={videoRef as any}
+            width="100%"
+            style={{ aspectRatio: "16/9" }}
+            controls
+            autoPlay
+            muted
+            playsInline
+          >
+            <source
+              src={videoService.rawUrl}
+              type={`video/${
+                videoService.rawUrl?.split(".").pop()?.split("?")[0]
+              }`}
+            />
+            {t("error-video-not-supported") ||
+              "Your browser does not support the video tag."}
+          </video>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return <div className="video-player pos-relative">{renderVideoPlayer()}</div>;
 };

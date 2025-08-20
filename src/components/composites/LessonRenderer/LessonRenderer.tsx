@@ -9,6 +9,7 @@ import { eventBus } from "../../../managers/eventBus";
 import { fixLesson } from "../../../managers/EventProxy";
 import RealtimeNotificationListener from "../../Creator/RealtimeNotificationListener";
 import { svgs } from "../../../assets/svgs";
+import ProgressBar from "../ProgressBar/ProgressBar";
 // import toast from "react-hot-toast";
 
 const ContinueButton = () => {
@@ -128,6 +129,21 @@ const LessonInspector = () => {
   );
 };
 
+const CourseProgressBar = () => {
+  const exercises = useStore((s) => s.exercises);
+  const currentExercisePosition = useStore((s) => s.currentExercisePosition);
+
+  const progress =
+    ((Number(currentExercisePosition) + 1) / exercises.length) * 100;
+  console.log("progress", progress);
+
+  return (
+    <div className="flex-x align-center justify-center">
+      <ProgressBar height={4} initialProgress={progress} />
+    </div>
+  );
+};
+
 export const LessonRenderer = memo(() => {
   const currentContent = useStore((s) => s.currentContent);
   const agent = useStore((s) => s.agent);
@@ -136,6 +152,7 @@ export const LessonRenderer = memo(() => {
 
   return (
     <div className="lesson-content">
+      <CourseProgressBar />
       <LessonInspector />
       <AddVideoButton />
 
@@ -164,7 +181,7 @@ const AddVideoButton = () => {
   return (
     lesson &&
     lesson.generated && (
-      <div className="flex-x align-center justify-end gap-small ">
+      <div className="flex-x align-center justify-end gap-small padding-small">
         {mode === "creator" && (
           <SimpleButton
             text={t("add-video-tutorial")}

@@ -179,3 +179,21 @@ export const continueGenerating = async (
   );
   return response.data;
 };
+
+export const markLessonAsDone = async (
+  courseSlug: string,
+  lessonId: string,
+  rigoToken: string
+) => {
+  const headers = {
+    "x-rigo-token": rigoToken,
+  };
+  const response = await axios.post(
+    `${
+      DEV_MODE ? "http://localhost:3000" : ""
+    }/actions/mark-as-done/${courseSlug}/${lessonId}`,
+    {},
+    { headers }
+  );
+  return response.data;
+};

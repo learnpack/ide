@@ -7,59 +7,6 @@ import { useRef, useState } from "react";
 import { DEV_MODE, getSlugFromPath } from "../../../utils/lib";
 import toast from "react-hot-toast";
 
-// app.post("/actions/continue-course/:courseSlug", async (req, res) => {
-//   console.log("POST /actions/continue-course/:courseSlug")
-//   const { courseSlug } = req.params
-
-//   const { feedback }: { feedback: string } = req.body
-
-//   const rigoToken = req.header("x-rigo-token")
-//   const bcToken = req.header("x-breathecode-token")
-//   if (!rigoToken || !bcToken) {
-//     return res.status(400).json({ error: "Missing tokens" })
-//   }
-
-//   const syllabus = await bucket.file(
-//     `courses/${courseSlug}/.learn/initialSyllabus.json`
-//   )
-//   const [content] = await syllabus.download()
-//   const syllabusJson: Syllabus = JSON.parse(content.toString())
-//   const notGeneratedLessons = syllabusJson.lessons.filter(
-//     (lesson) => !lesson.generated
-//   )
-
-//   const lastGeneratedLesson = findLast(
-//     syllabusJson.lessons,
-//     (lesson) => lesson.generated ?? false
-//   )
-
-//   console.log("ABout to generate", notGeneratedLessons.length, "lessons")
-//   console.log("Last generated lesson", lastGeneratedLesson)
-
-//   let lastResult: string = JSON.stringify(lastGeneratedLesson ?? {})
-//   lastResult += `\n\nThe user provided this feedback in relation to the course: ${feedback}`
-
-//   for (const lesson of notGeneratedLessons) {
-//     lastResult = await processExercise(
-//       bucket,
-//       rigoToken,
-//       syllabusJson.lessons,
-//       syllabusJson.courseInfo,
-//       lesson,
-//       `courses/${courseSlug}`,
-//       slugify(syllabusJson.courseInfo.title),
-//       syllabusJson.courseInfo.purpose,
-//       lastResult
-//     )
-//     lastResult += `\n\nThe user provided this feedback in relation to the course: ${feedback}`
-//   }
-
-//   return res.json({
-//     message: "Course continued",
-//     slug: slugify(syllabusJson.courseInfo.title),
-//   })
-// })
-
 export const SyllabusFeedbackModal = () => {
   const { t } = useTranslation();
 
