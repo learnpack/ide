@@ -176,31 +176,36 @@ const AddVideoButton = () => {
   const currentExercisePosition = useStore((s) => s.currentExercisePosition);
   const { t } = useTranslation();
 
-  const lesson = syllabus.lessons[Number(currentExercisePosition)];
+  const lesson = syllabus.lessons
+    ? syllabus.lessons[Number(currentExercisePosition)]
+    : null;
+
+  if (lesson && !lesson.generated) {
+    return null;
+  }
+
+  if (mode !== "creator") {
+    return null;
+  }
 
   return (
-    lesson &&
-    lesson.generated && (
-      <div className="flex-x align-center justify-end gap-small padding-small">
-        {mode === "creator" && (
-          <SimpleButton
-            text={t("add-video-tutorial")}
-            svg={
-              !videoTutorial ? (
-                <div className="d-flex align-center">{svgs.video}</div>
-              ) : (
-                svgs.plusSimple
-              )
-            }
-            extraClass="svg-blue border-blue padding-small rounded"
-            action={async () => {
-              setOpenedModals({
-                addVideoTutorial: true,
-              });
-            }}
-          />
-        )}
-      </div>
-    )
+    <div className="flex-x align-center justify-end gap-small padding-small">
+      <SimpleButton
+        text={t("add-video-tutorial")}
+        svg={
+          !videoTutorial ? (
+            <div className="d-flex align-center">{svgs.video}</div>
+          ) : (
+            svgs.plusSimple
+          )
+        }
+        extraClass="svg-blue border-blue padding-small rounded"
+        action={async () => {
+          setOpenedModals({
+            addVideoTutorial: true,
+          });
+        }}
+      />
+    </div>
   );
 };

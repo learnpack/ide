@@ -1122,29 +1122,6 @@ The user's set up the application in "${language}" language, give your feedback 
     return syllabus;
   },
 
-  checkExerciseAvailability: async (desiredPosition) => {
-    const { exercises, environment, syllabus, setOpenedModals } = get();
-
-    if (environment !== "creatorWeb") {
-      return true;
-    }
-    if (!exercises || exercises.length === 0) {
-      return true;
-    }
-
-    if (!syllabus || syllabus.lessons.length === 0) {
-      return true;
-    }
-
-    const ex = syllabus.lessons[desiredPosition];
-    // console.log("EXERCISE in syllabys ", ex);
-    if (Boolean(ex.generated) === false) {
-      setOpenedModals({ syllabusFeedback: true });
-      return false;
-    }
-    return true;
-  },
-
   handlePositionChange: async (desiredPosition) => {
     const {
       configObject,

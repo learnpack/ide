@@ -141,9 +141,13 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
   };
 
   useEffect(() => {
-    if (environment === "creatorWeb" && syllabus.lessons.length > 0) {
+    if (
+      environment === "creatorWeb" &&
+      syllabus?.lessons &&
+      syllabus.lessons.length > 0
+    ) {
       // Check is there is any not generated lesson
-      const anyNotGenerated = syllabus.lessons.some(
+      const anyNotGenerated = syllabus.lessons?.some(
         (lesson) => !lesson.generated
       );
       if (anyNotGenerated) {

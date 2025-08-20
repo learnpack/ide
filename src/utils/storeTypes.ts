@@ -205,7 +205,7 @@ export type FormState = {
 };
 
 export type Syllabus = {
-  lessons: Lesson[];
+  lessons?: Lesson[];
   // courseInfo: FormState;
   // sources: ParsedLink[]
 };
@@ -280,7 +280,6 @@ export interface IStore {
   sidebar: TSidebar;
   syllabus: Syllabus;
   getSidebar: () => Promise<TSidebar>;
-  checkExerciseAvailability: (desiredPosition: number) => Promise<boolean>;
   getSyllabus: () => Promise<void>;
   setMode: (mode: TMode) => void;
   addVideoTutorial: (videoTutorial: string) => Promise<void>;

@@ -55,9 +55,13 @@ export default function RealtimeLesson() {
     };
   }, []);
 
-  const previousLesson = syllabus.lessons[Number(currentExercisePosition) - 1];
+  const previousLesson = syllabus.lessons
+    ? syllabus.lessons[Number(currentExercisePosition) - 1]
+    : null;
 
-  const lesson = syllabus.lessons[Number(currentExercisePosition)];
+  const lesson = syllabus.lessons
+    ? syllabus.lessons[Number(currentExercisePosition)]
+    : null;
 
   return (
     <div className="flex-y gap-big padding-big lesson-loader">
@@ -80,7 +84,7 @@ export default function RealtimeLesson() {
       {previousLesson && previousLesson.status === "DONE" && (
         <ContinueGenerationButton
           status={lesson?.status || "PENDING"}
-          description={lesson?.description}
+          description={lesson?.description || ""}
           onGenerate={() => {
             getSyllabus();
             setUpdates((prev) => [
