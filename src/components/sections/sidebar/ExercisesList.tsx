@@ -466,7 +466,8 @@ function ExerciseCard({
 
       <div className="flex-x align-center gap-small">
         {foundInSyllabus &&
-          !foundInSyllabus.generated && (
+          !foundInSyllabus.generated &&
+          foundInSyllabus.status === "GENERATING" && (
             <>
               <Loader color="gray" extraClass="svg-blue" />
               {DEV_MODE && (
