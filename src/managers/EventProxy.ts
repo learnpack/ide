@@ -175,6 +175,8 @@ localStorageEventEmitter.on("build", async (data) => {
 
     if (extensions.includes("html")) {
       const compiled = compileHTML(cachedEditorTabs);
+      console.debug(compiled, "COMPILED HTML");
+
       localStorage.setItem("htmlString", compiled);
 
       const outputTab = {

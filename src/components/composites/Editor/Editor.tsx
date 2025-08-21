@@ -262,7 +262,7 @@ const Terminal = ({
   };
 
   const foundPreviewTitle = (title: string) => {
-    if (!title) return;
+    if (!title || title === browserTabTitle) return;
     setBrowserTabTitle(title);
   };
 
@@ -352,6 +352,7 @@ const Terminal = ({
             removeTab(terminalTab.id, terminalTab.name)
           }
           showCloseButton={false}
+          addPadding={false}
         >
           <div className={`terminal ${terminalState} html browser`}>
             <div className="d-flex justify-between align-center browser-header">
@@ -385,7 +386,7 @@ const Terminal = ({
                 <Preview
                   onTitleRevealed={foundPreviewTitle}
                   html={terminalTab.content}
-                  useIframe={terminalTab.isReact}
+                  useIframe={true}
                 />
               ) : (
                 <Loader svg={svgs.blueRigoSvg} text={t("thinking...")} />
