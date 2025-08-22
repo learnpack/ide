@@ -9,8 +9,6 @@ import { eventBus } from "../../../managers/eventBus";
 import { fixLesson } from "../../../managers/EventProxy";
 import RealtimeNotificationListener from "../../Creator/RealtimeNotificationListener";
 import { svgs } from "../../../assets/svgs";
-import ProgressBar from "../ProgressBar/ProgressBar";
-// import toast from "react-hot-toast";
 
 const ContinueButton = () => {
   const { t } = useTranslation();
@@ -39,9 +37,8 @@ const ContinueButton = () => {
     !hasBodyLessonLoader() && (
       <div
         aria-disabled={loading}
-        className={`badge bg-blue  ${
-          editorTabs.length > 0 ? "hide-continue-button" : "continue-button"
-        }`}
+        className={`badge bg-blue  ${editorTabs.length > 0 ? "hide-continue-button" : "continue-button"
+          }`}
         role="button"
         tabIndex={0}
         onClick={() => {
@@ -78,13 +75,11 @@ const LessonInspector = () => {
       });
 
       if (katexErrors.length > 0 || errorTexts.length > 0) {
-        const foundKatexErrors = `Inside this lesson, there are ${
-          katexErrors.length
-        } katex errors and ${
-          errorTexts.length
-        } error texts related to mermaid diagrams. The titles of the katex errors are: ${katexErrorsTitles.join(
-          ", "
-        )}`;
+        const foundKatexErrors = `Inside this lesson, there are ${katexErrors.length
+          } katex errors and ${errorTexts.length
+          } error texts related to mermaid diagrams. The titles of the katex errors are: ${katexErrorsTitles.join(
+            ", "
+          )}`;
 
         if (environment !== "creatorWeb") {
           console.log("not creator web, skipping fix lesson");
@@ -129,20 +124,7 @@ const LessonInspector = () => {
   );
 };
 
-const CourseProgressBar = () => {
-  const exercises = useStore((s) => s.exercises);
-  const currentExercisePosition = useStore((s) => s.currentExercisePosition);
 
-  const progress =
-    ((Number(currentExercisePosition) + 1) / exercises.length) * 100;
-  console.log("progress", progress);
-
-  return (
-    <div className="flex-x align-center justify-center">
-      <ProgressBar height={4} initialProgress={progress} />
-    </div>
-  );
-};
 
 export const LessonRenderer = memo(() => {
   const currentContent = useStore((s) => s.currentContent);
@@ -152,7 +134,6 @@ export const LessonRenderer = memo(() => {
 
   return (
     <div className="lesson-content">
-      <CourseProgressBar />
       <LessonInspector />
       <AddVideoButton />
 

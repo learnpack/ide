@@ -635,6 +635,11 @@ const TelemetryManager: ITelemetryManager = {
 
         this.prevStep = stepPosition;
         this.prevStepStartedAt = now;
+        if (stepPosition === this.current.steps.length - 1 && !this.hasPendingTasks(stepPosition)) {
+          step.is_completed = true;
+          step.completed_at = now;
+          this.current.steps[stepPosition] = step;
+        }
 
         this.submit();
         break;

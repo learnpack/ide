@@ -354,5 +354,8 @@
     "IHaveSomeFeedback": "Tengo algún feedback",
     "thisStepWillBeAbout": "Este paso será sobre: ",
     "you": "Tú",
-    "okIllIncorporateThat": "Ok, voy a incorporar eso en la lección, ¿quieres que siga generando?"
+    "okIllIncorporateThat": "Ok, voy a incorporar eso en la lección, ¿quieres que siga generando?",
+    "loginAsSomeoneElse": "Iniciar sesión como alguien más",
+    "retryGeneration": "Reintentar generación",
+    "lesson-generation-timeout-description": "Rigobot está generando la lección, por favor espera un momento o reintenta la generación."
 }

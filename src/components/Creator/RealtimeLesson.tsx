@@ -180,7 +180,12 @@ const ContinueGenerationButton = ({
   };
 
   if (status === "GENERATING") {
-    return <ProgressBar duration={20} height={4} />;
+    return (
+      <div className="flex-y gap-small align-center justify-center">
+        <ProgressBar duration={60} height={4} />
+        <TimeOutButton handleContinue={handleContinue} timeoutSeconds={DEV_MODE ? 5 : 120} />
+      </div>
+    );
   }
   if (status === "DONE") {
     return null;
@@ -264,5 +269,45 @@ const ContinueGenerationButton = ({
         </div>
       )}
     </>
+  );
+};
+
+
+const TimeOutButton = ({
+  handleContinue,
+  timeoutSeconds = 10
+}: {
+  handleContinue: () => void;
+  timeoutSeconds?: number;
+}) => {
+  const { t } = useTranslation();
+  const [loading, setLoading] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, timeoutSeconds * 1000);
+
+    return () => clearTimeout(timer);
+  }, [timeoutSeconds]);
+
+  if (!isVisible) {
+    return null;
+  }
+
+  return (
+    <div className="flex-x gap-small align-center justify-center bg-1 padding-small rounded">
+      <p className="w-200px text-small">{t("lesson-generation-timeout-description")}</p>
+      <SimpleButton
+        text={loading ? t("loading") : t("retryGeneration")}
+        action={async () => {
+          setLoading(true);
+          await handleContinue();
+          setLoading(false);
+        }}
+        extraClass="bg-blue-rigo text-white padding-small w-fit-content rounded"
+      />
+    </div>
   );
 };
