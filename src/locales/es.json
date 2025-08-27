@@ -357,5 +357,13 @@
     "okIllIncorporateThat": "Ok, voy a incorporar eso en la lección, ¿quieres que siga generando?",
     "loginAsSomeoneElse": "Iniciar sesión como alguien más",
     "retryGeneration": "Reintentar generación",
-    "lesson-generation-timeout-description": "Rigobot está generando la lección, por favor espera un momento o reintenta la generación."
+    "lesson-generation-timeout-description": "Rigobot está generando la lección, por favor espera un momento o reintenta la generación.",
+    "pendingImageGeneration": "Generación de imagen pendiente",
+    "rigoIsPropossingTheFollowingPromptDescription": "Rigobot está proponiendo el siguiente prompt para generar la imagen: ",
+    "makeChanges": "Hacer cambios",
+    "whatchangesWouldYouLikeForTheImage": "¿Qué cambios te gustaría hacer para la imagen?",
+    "startingTranslation": "Iniciando traducción...",
+    "creatingStep": "Creando paso {{step}}...",
+    "waitImGeneratingTheLesson": "Espera, estoy generando la lección..."
+
 }

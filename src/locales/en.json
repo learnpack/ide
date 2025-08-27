@@ -350,5 +350,12 @@
     "okIllIncorporateThat": "Ok, I will incorporate that into the lesson, would you like me to continue?",
     "loginAsSomeoneElse": "Login as someone else",
     "retryGeneration": "Retry generation",
-    "lesson-generation-timeout-description": "Rigobot is still generating the lesson, please wait a moment or retry the generation."
+    "lesson-generation-timeout-description": "Rigobot is still generating the lesson, please wait a moment or retry the generation.",
+    "pendingImageGeneration": "Pending image generation",
+    "rigoIsPropossingTheFollowingPromptDescription": "Rigobot is proposing the following prompt to generate the image: ",
+    "makeChanges": "Make changes",
+    "whatchangesWouldYouLikeForTheImage": "What changes would you like for the image?",
+    "startingTranslation": "Starting translation...",
+    "creatingStep": "Creating step {{step}}...",
+    "waitImGeneratingTheLesson": "Wait! I’m  still generating this step of the package, give me a few more seconds!"
 }

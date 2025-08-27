@@ -7,15 +7,20 @@ import { DEV_MODE } from "../../utils/lib";
 import SimpleButton from "../mockups/SimpleButton";
 import { continueGenerating } from "../../utils/creator";
 import toast from "react-hot-toast";
-import { svgs } from "../../assets/svgs";
 import "./RealtimeLesson.css";
+import { Loader } from "../composites/Loader/Loader";
+import { MessageRenderer, UserTextarea } from "./RealtimeImage";
+import { svgs } from "../../assets/svgs";
 const socketClient = new CreatorSocket(DEV_MODE ? "http://localhost:3000" : "");
 
-const statusToTextKeyMap = {
-  GENERATING: "this-lesson-is-being-processed-and-will-be-ready-soon",
-  PENDING: "this-lesson-has-not-been-generated-yet",
-  ERROR: "this-lesson-has-an-error",
-  DONE: "this-lesson-has-been-generated-successfully",
+
+
+const statusToColorMap = {
+  // Generating is a yellow color
+  GENERATING: "#FFD700",
+  PENDING: "#9FBDD0",
+  ERROR: "#F7C6C5",
+  DONE: "#D1F7E3",
 };
 
 export default function RealtimeLesson() {
@@ -65,12 +70,23 @@ export default function RealtimeLesson() {
 
   return (
     <div className="flex-y gap-big padding-big lesson-loader">
-      {lesson && <h3>{lesson.title}</h3>}
-      <div className=" d-flex align-center gap-small justify-between">
-        <span>{t(statusToTextKeyMap[lesson?.status || "PENDING"])}</span>
+      {/* {lesson && <h3>{lesson.title}</h3>} */}
+      <div className=" d-flex align-center gap-small justify-between text-medium">
+        {["PENDING", "DONE"].includes(lesson?.status || "PENDING") && (
+          <span>{lesson?.title}</span>
+        )}
+        {lesson?.status === "GENERATING" && (
+          <span>
+            {t("creatingStep", {
+              step: lesson.title,
+            })}
+          </span>
+        )}
         <div
+          className="flex-x gap-small align-center"
           style={{
-            background: "#9FBDD0",
+            // background: statusToColorMap[lesson?.status || "PENDING"],
+            background: statusToColorMap[lesson?.status || "PENDING"],
             color: "01455E",
             width: "fit-content",
             borderRadius: "50vh",
@@ -78,12 +94,14 @@ export default function RealtimeLesson() {
             fontSize: "16px",
           }}
         >
+          {lesson?.status === "GENERATING" && <Loader size="sm" />}
           {lesson?.status}
         </div>
       </div>
       {previousLesson && previousLesson.status === "DONE" && (
         <ContinueGenerationButton
           status={lesson?.status || "PENDING"}
+          // status={"GENERATING"}
           description={lesson?.description || ""}
           onGenerate={() => {
             getSyllabus();
@@ -130,10 +148,10 @@ const ContinueGenerationButton = ({
   );
   const token = useStore((state) => state.token);
   const config = useStore((state) => state.configObject);
+  const userMessageRef = useRef<string>("");
 
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setMessages([
@@ -166,7 +184,7 @@ const ContinueGenerationButton = ({
   };
 
   const handleAddUserMessage = () => {
-    const value = textareaRef.current!.value || "";
+    const value = userMessageRef.current || "";
     setMessages((prev) => [
       ...prev,
       { type: "user", text: value },
@@ -175,15 +193,24 @@ const ContinueGenerationButton = ({
         text: t("okIllIncorporateThat"),
       },
     ]);
-    textareaRef.current!.value = "";
+    userMessageRef.current = "";
     setIsOpen(false);
   };
 
   if (status === "GENERATING") {
     return (
       <div className="flex-y gap-small align-center justify-center">
-        <ProgressBar duration={60} height={4} />
-        <TimeOutButton handleContinue={handleContinue} timeoutSeconds={DEV_MODE ? 5 : 120} />
+        <ProgressBar duration={60} height={2} />
+        <div className="rigo-message">
+          {svgs.rigoWait}
+          <p className="bg-1 border-heavy-blue rounded padding-small text-heavy-blue">
+            {t("waitImGeneratingTheLesson")}
+          </p>
+        </div>
+        <TimeOutButton
+          handleContinue={handleContinue}
+          timeoutSeconds={DEV_MODE ? 5 : 120}
+        />
       </div>
     );
   }
@@ -195,43 +222,25 @@ const ContinueGenerationButton = ({
     <>
       <div className="flex-y gap-small padding-big">
         {messages.map((message, index) => (
-          <div
+          <MessageRenderer
+            role={message.type}
+            message={message.text}
             key={index}
-            style={{
-              flexDirection: message.type === "user" ? "row-reverse" : "row",
-            }}
-            className="flex-x gap-small align-center"
-          >
-            {message.type === "assistant" && (
-              <div className="big-svg rigo-button">{svgs.rigoSoftBlue}</div>
-            )}
-            {message.type === "user" && (
-              <div
-                style={{
-                  border: "1px solid var(--color-blue-rigo)",
-                  borderRadius: "50%",
-                  width: "50px",
-                  height: "50px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "15px",
-                }}
-                className=" border-blue align-center justify-center bg-1 text-blue"
-              >
-                <span>{t("you")}</span>
-              </div>
-            )}
-            <p className="bg-2 padding-small rounded text-heavy-blue border-heavy-blue w-100">
-              {message.text}
-            </p>
-          </div>
+          />
         ))}
       </div>
 
       {isOpen ? (
         <div className="">
-          <div className=" flex-x gap-small padding-small rounded">
+          <UserTextarea
+            defaultValue={""}
+            onSubmit={handleAddUserMessage}
+            onChange={(value) => {
+              userMessageRef.current = value;
+            }}
+            placeholder={t("give-feedback-to-rigobot")}
+          />
+          {/* <div className=" flex-x gap-small padding-small rounded">
             <textarea
               ref={textareaRef}
               className=" textarea border-gray w-100"
@@ -250,7 +259,7 @@ const ContinueGenerationButton = ({
               title={t("send")}
               action={handleAddUserMessage}
             />
-          </div>
+          </div> */}
         </div>
       ) : (
         <div className="flex-x gap-small justify-end">
@@ -272,10 +281,9 @@ const ContinueGenerationButton = ({
   );
 };
 
-
 const TimeOutButton = ({
   handleContinue,
-  timeoutSeconds = 10
+  timeoutSeconds = 10,
 }: {
   handleContinue: () => void;
   timeoutSeconds?: number;
@@ -298,7 +306,9 @@ const TimeOutButton = ({
 
   return (
     <div className="flex-x gap-small align-center justify-center bg-1 padding-small rounded">
-      <p className="w-200px text-small">{t("lesson-generation-timeout-description")}</p>
+      <p className="w-200px text-small">
+        {t("lesson-generation-timeout-description")}
+      </p>
       <SimpleButton
         text={loading ? t("loading") : t("retryGeneration")}
         action={async () => {

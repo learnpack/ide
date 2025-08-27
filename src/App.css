@@ -140,14 +140,8 @@
 }
 
 .button {
-  background-color: var(--color-active);
   border-radius: 7px;
-  color: white;
   padding: 10px;
-}
-
-.button:hover {
-  color: white;
 }
 
 .text-center {

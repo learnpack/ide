@@ -38,8 +38,8 @@
   --gray-blue-color: #9fbdf0;
   --dropdown-bg-color: white;
   --standard-border-radius: 8px;
-  --bg-1: #fafdff;
-  --bg-2: #f3fafe;
+  --bg-1: #f9fcff;
+  --bg-2: #e1f6ff;
   --white: #ffffff;
 
   --sidebar-bg-color: #e4e8ee;
@@ -226,7 +226,10 @@ a {
 }
 
 .border-blue {
-  border: 1px solid var(--color-blue-rigo);
+  border: 1px solid var(--color-blue-rigo) !important;
+}
+.border-2 {
+  border-width: 2px;
 }
 .border-none {
   border: none !important;

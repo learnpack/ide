@@ -413,7 +413,7 @@ export const CreatorWrapper = ({
     <div className={`creator-wrapper  ${tagName}`}>
       <SimpleButton
         svg={svgs.plus}
-        extraClass="top-centered display-on-hover"
+        extraClass="top-centered display-on-hover above-all"
         action={async () => {
           if (node?.position?.start && node?.position?.end) {
             await insertBeforeOrAfter(
@@ -439,7 +439,7 @@ export const CreatorWrapper = ({
 
       <SimpleButton
         svg={svgs.plus}
-        extraClass="bottom-centered display-on-hover"
+        extraClass="bottom-centered display-on-hover above-all"
         action={async () => {
           if (node?.position?.start && node?.position?.end) {
             await insertBeforeOrAfter(
@@ -652,7 +652,7 @@ const ImageUploader = ({
 };
 
 const makeReplacement = (imgID: string, alt: string) => {
-  return `![${alt}](/.learn/assets/${imgID})`;
+  return `![GENERATING: ${alt}](/.learn/assets/${imgID})`;
 };
 
 const ImageGenerator = ({
@@ -779,7 +779,7 @@ const RigoInput = ({
         <SimpleButton
           svg={svgs.rigoSoftBlue}
           action={() => onSubmit(prompt)}
-          extraClass={"big-circle rigo-button"}
+          extraClass={"big-circle rigo-button mr-12"}
         />
         <AutoResizeTextarea
           onFocus={() => setShowPrompts(true)}

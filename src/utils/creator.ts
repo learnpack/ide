@@ -197,3 +197,23 @@ export const markLessonAsDone = async (
   );
   return response.data;
 };
+
+
+export const generateImageLearnPack = async (
+  courseSlug: string,
+  image: { url: string; alt: string },
+  rigoToken: string
+) => {
+
+  const headers = {
+    "x-rigo-token": rigoToken,
+  };
+  const response = await axios.post(
+    `${
+      DEV_MODE ? "http://localhost:3000" : ""
+    }/actions/generate-image/${courseSlug}`,
+    { image },
+    { headers }
+  );
+  return response.data;
+};

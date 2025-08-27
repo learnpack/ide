@@ -182,7 +182,6 @@ const AddLanguageModal = ({ disabled }: { disabled: boolean }) => {
   const [showWarning, setShowWarning] = useState(false);
   const [warningData, setWarningData] = useState<{
     language: string;
-    totalGenerations: number;
     aiGenerationsLeft: number;
     hasEnough: boolean;
   } | null>(null);
@@ -204,32 +203,40 @@ const AddLanguageModal = ({ disabled }: { disabled: boolean }) => {
 
   const handleTranslate = async () => {
     if (!inputLanguageRef.current) return;
+    const toastId = toast.loading(t("startingTranslation"));
     const languages = inputLanguageRef.current.value;
 
     if (!languages) {
       toast.error(t("invalidLanguage"), {
+        id: toastId,
         duration: 5000,
       });
       return;
     }
 
-    const totalGenerations = exercises.length * 1;
     const aiGenerationsLeft = userConsumables.ai_generation;
 
     setWarningData({
       language: languages,
-      totalGenerations,
       aiGenerationsLeft,
       hasEnough:
-        aiGenerationsLeft === -1 || aiGenerationsLeft >= totalGenerations,
+        aiGenerationsLeft === -1 || aiGenerationsLeft >= exercises.length,
     });
-    setShowWarning(true);
+    if (aiGenerationsLeft === -1) {
+      await handleWarningConfirm(languages);
+      toast.success(t("exercisesTranslationStarted"), {
+        id: toastId,
+        duration: 3000,
+      });
+      setIsOpen(false);
+    } else {
+      setShowWarning(true);
+    }
 
     // await performTranslation(languages);
   };
 
   const performTranslation = async (languages: string) => {
-    const toastId = toast.loading(t("translatingExercises"));
     setIsLoading(true);
     try {
       await FetchManager.translateExercises(
@@ -238,16 +245,12 @@ const AddLanguageModal = ({ disabled }: { disabled: boolean }) => {
         language,
         token
       );
-      toast.success(t("exercisesTranslationStarted"), {
-        id: toastId,
-        duration: 7000,
-      });
       setIsLoading(false);
       setIsOpen(false);
       setShowWarning(false);
       await getSidebar();
     } catch (error) {
-      toast.error(t("errorTranslatingExercises"), { id: toastId });
+      toast.error(t("errorTranslatingExercises"));
       console.log(error, "Error");
       setIsLoading(false);
     }
@@ -269,17 +272,13 @@ const AddLanguageModal = ({ disabled }: { disabled: boolean }) => {
     return results.some((result) => result);
   };
 
-  const handleWarningConfirm = async () => {
-    if (warningData) {
-      const anySuccess = await consume(
-        "ai-generation",
-        warningData.totalGenerations
-      );
-      if (anySuccess) {
-        await performTranslation(warningData.language);
-        setIsOpen(false);
-      }
+  const handleWarningConfirm = async (languages?: string) => {
+    const anySuccess = await consume("ai-generation", exercises.length);
+    if (anySuccess) {
+      await performTranslation(languages || warningData?.language || "");
+      setIsOpen(false);
     }
+
     setShowWarning(false);
   };
 
@@ -350,7 +349,7 @@ const AddLanguageModal = ({ disabled }: { disabled: boolean }) => {
                   <Markdowner
                     markdown={t("ai-generations-warning", {
                       language: warningData.language,
-                      totalGenerations: warningData.totalGenerations,
+                      totalGenerations: exercises.length,
                       aiGenerationsLeft: warningData.aiGenerationsLeft,
                     })}
                   />

@@ -37,8 +37,9 @@ const ContinueButton = () => {
     !hasBodyLessonLoader() && (
       <div
         aria-disabled={loading}
-        className={`badge bg-blue  ${editorTabs.length > 0 ? "hide-continue-button" : "continue-button"
-          }`}
+        className={`badge bg-blue  ${
+          editorTabs.length > 0 ? "hide-continue-button" : "continue-button"
+        }`}
         role="button"
         tabIndex={0}
         onClick={() => {
@@ -75,11 +76,13 @@ const LessonInspector = () => {
       });
 
       if (katexErrors.length > 0 || errorTexts.length > 0) {
-        const foundKatexErrors = `Inside this lesson, there are ${katexErrors.length
-          } katex errors and ${errorTexts.length
-          } error texts related to mermaid diagrams. The titles of the katex errors are: ${katexErrorsTitles.join(
-            ", "
-          )}`;
+        const foundKatexErrors = `Inside this lesson, there are ${
+          katexErrors.length
+        } katex errors and ${
+          errorTexts.length
+        } error texts related to mermaid diagrams. The titles of the katex errors are: ${katexErrorsTitles.join(
+          ", "
+        )}`;
 
         if (environment !== "creatorWeb") {
           console.log("not creator web, skipping fix lesson");
@@ -123,8 +126,6 @@ const LessonInspector = () => {
     </>
   );
 };
-
-
 
 export const LessonRenderer = memo(() => {
   const currentContent = useStore((s) => s.currentContent);

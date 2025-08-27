@@ -658,6 +658,7 @@ export const FetchManager = {
         }
       },
     };
+    console.log("TRANSLATING EXERCISES in ENVIRONMENT", FetchManager.ENVIRONMENT);
     return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
   },
 };
