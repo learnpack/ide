@@ -31,7 +31,7 @@ type TMethods = {
 export const FetchManager = {
   ENVIRONMENT: "",
   HOST: "",
-  LOGOUT_CALLBACK: () => {},
+  LOGOUT_CALLBACK: () => { },
   init: (
     environment: TEnvironment,
     host: string,
@@ -44,29 +44,44 @@ export const FetchManager = {
     }
   },
   getExercises: async (rigoToken: string) => {
-    const configUrl =
-      FetchManager.ENVIRONMENT === "localhost" ||
-      FetchManager.ENVIRONMENT === "creatorWeb"
-        ? "config"
-        : "config.json";
-    let url =
-      FetchManager.ENVIRONMENT === "localhost" ||
-      FetchManager.ENVIRONMENT === "creatorWeb"
-        ? `${FetchManager.HOST}/${configUrl}`
-        : "/config.json";
-
-    const slug = getSlugFromPath();
-
-    if (slug) {
-      url = `${url}?slug=${slug}`;
-    }
-
-    const res = await fetch(url, {
-      headers: {
-        "x-rigo-token": rigoToken,
+    const methods: TMethods = {
+      localhost: async () => {
+        const url = `${FetchManager.HOST}/config`;
+        const response = await fetch(url);
+        const config = await response.json();
+        return config;
       },
-    });
-    const config = await res.json();
+      localStorage: async () => {
+        const url = "/config.json";
+        const response = await fetch(url);
+        const config = await response.json();
+        return config;
+      },
+      creatorWeb: async () => {
+        let url = `${FetchManager.HOST}/config`;
+        const slug = getSlugFromPath();
+
+        if (slug) {
+          url = `${url}?slug=${slug}`;
+        }
+
+        const response = await fetch(url, {
+          headers: {
+            "x-rigo-token": rigoToken,
+          },
+        });
+        const config = await response.json();
+        return config;
+      },
+      scorm: async () => {
+        const url = `${FetchManager.HOST}/config/config.json`;
+        const response = await fetch(url);
+        const config = await response.json();
+        return config;
+      },
+    };
+
+    const config = await methods[FetchManager.ENVIRONMENT as keyof TMethods]();
     return config;
   },
 
@@ -75,10 +90,9 @@ export const FetchManager = {
     const exerciseSlug = getSlugFromPath();
     let url =
       FetchManager.ENVIRONMENT === "localhost" ||
-      FetchManager.ENVIRONMENT === "creatorWeb"
-        ? `${FetchManager.HOST}/exercise/${slug}/readme?lang=${fixedLanguage}${
-            exerciseSlug ? `&slug=${exerciseSlug}` : ""
-          }`
+        FetchManager.ENVIRONMENT === "creatorWeb"
+        ? `${FetchManager.HOST}/exercise/${slug}/readme?lang=${fixedLanguage}${exerciseSlug ? `&slug=${exerciseSlug}` : ""
+        }`
         : `/exercises/${slug}/README${getReadmeExtension(fixedLanguage)}`;
 
     const response = await fetch(url);
@@ -101,11 +115,7 @@ export const FetchManager = {
     file: string,
     opts: { cached: boolean } = { cached: false }
   ) => {
-    const methods: {
-      localhost: () => Promise<{ fileContent: string; edited: boolean }>;
-      localStorage: () => Promise<{ fileContent: string; edited: boolean }>;
-      creatorWeb: () => Promise<{ fileContent: string; edited: boolean }>;
-    } = {
+    const methods: TMethods = {
       localhost: async () => {
         const url = `${FetchManager.HOST}/exercise/${slug}/file/${file}`;
         const response = await fetch(url);
@@ -131,6 +141,13 @@ export const FetchManager = {
         }
 
         return { fileContent, edited };
+      },
+
+      scorm: async () => {
+        const url = `${FetchManager.HOST}/exercises/${slug}/${file}`;
+        const response = await fetch(url);
+        const fileContent = await response.text();
+        return { fileContent, edited: false };
       },
 
       creatorWeb: async () => {
@@ -172,7 +189,7 @@ export const FetchManager = {
         return exercise;
       },
       scorm: async () => {
-        const respose = await fetch("config/config.json");
+        const respose = await fetch(`${FetchManager.HOST}/config/config.json`);
         const config = await respose.json();
         const exercise = config.exercises.find((e: any) => e.slug === slug);
         return exercise;
@@ -181,8 +198,7 @@ export const FetchManager = {
         try {
           const exerciseSlug = getSlugFromPath();
           const respose = await fetch(
-            `${
-              DEV_MODE ? "http://localhost:3000" : ""
+            `${DEV_MODE ? "http://localhost:3000" : ""
             }/courses/${exerciseSlug}/exercises/${slug}/`
           );
           const exercise = await respose.json();
@@ -278,8 +294,33 @@ export const FetchManager = {
         return { ...json, user };
       },
       scorm: async () => {
-        console.log("CHECKING LOGGED STATUS IN SCORM: NOT IMPLEMENTED");
-        return null;
+        const session = LocalStorage.get("session");
+        if (!session) {
+          console.log("No session in LS");
+
+          throw Error("The user is not logged in");
+        }
+
+        const user = await validateUser(session.token);
+
+        if (!user) {
+          LocalStorage.remove("session");
+          throw Error("The token is invalid or inactive!");
+        }
+
+        const isValid = await validateRigobotToken(session.rigobot.key);
+
+        if (!isValid) {
+          LocalStorage.remove("session");
+          throw Error("The token is invalid or inactive!");
+        }
+
+        const loggedFormat = {
+          payload: { ...session },
+          rigoToken: session.rigobot.key,
+          user,
+        };
+        return loggedFormat;
       },
       creatorWeb: async () => {
         const session = LocalStorage.get("session");
@@ -324,7 +365,7 @@ export const FetchManager = {
       },
       scorm: async () => {
         console.log("GETTING SYLLABUS IN SCORM: NOT IMPLEMENTED");
-        const respose = await fetch("config/syllabus.json");
+        const respose = await fetch(`${FetchManager.HOST}/.learn/syllabus.json`);
         const syllabus = await respose.json();
         return syllabus;
       },
@@ -478,8 +519,9 @@ export const FetchManager = {
         }
       },
       scorm: async () => {
-        console.log("GETTING SIDEBAR IN SCORM: NOT IMPLEMENTED");
-        return {};
+        const respose = await fetch(`${FetchManager.HOST}/.learn/sidebar.json`);
+        const sidebar = await respose.json();
+        return sidebar;
       },
       localStorage: async () => {
         try {
@@ -582,9 +624,8 @@ export const FetchManager = {
   replaceReadme: async (slug: string, language: string, newReadme: string) => {
     const methods: TMethods = {
       localhost: async () => {
-        const url = `${
-          FetchManager.HOST
-        }/exercise/${slug}/file/README${getReadmeExtension(language)}`;
+        const url = `${FetchManager.HOST
+          }/exercise/${slug}/file/README${getReadmeExtension(language)}`;
         const res = await fetch(url, {
           method: "PUT",
           body: newReadme,
@@ -605,11 +646,10 @@ export const FetchManager = {
       },
       creatorWeb: async () => {
         const exerciseSlug = getSlugFromPath();
-        const url = `${
-          FetchManager.HOST
-        }/exercise/${slug}/file/README${getReadmeExtension(
-          language
-        )}?slug=${exerciseSlug}`;
+        const url = `${FetchManager.HOST
+          }/exercise/${slug}/file/README${getReadmeExtension(
+            language
+          )}?slug=${exerciseSlug}`;
         const res = await fetch(url, {
           method: "PUT",
           body: newReadme,

@@ -342,6 +342,7 @@ const useStore = create<IStore>((set, get) => ({
   figureEnvironment: async () => {
     const { setOpenedModals } = get();
     const env = await getEnvironment();
+    console.log("Environment figured out!", env);
     FetchManager.init(env, HOST, () => {
       if (env !== "scorm") {
         setOpenedModals({ login: true });
@@ -553,6 +554,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
     try {
       const config = await FetchManager.getExercises(token);
+      console.log("Config fetched from FetchManager!", config);
       if (!config) return;
 
       if (
@@ -622,7 +624,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
       return true;
     } catch (err) {
-      console.log(err, "ERROR");
+      console.log(err, "ERROR FETCHING EXERCISES!");
       disconnected();
       return false;
     }
@@ -916,6 +918,8 @@ The user's set up the application in "${language}" language, give your feedback 
       get();
 
     const exercise = getCurrentExercise();
+
+    console.log("ENVIRONMENT updating editor tabs", environment);
 
     // @ts-ignore
     const notHidden = exercise.files.filter((f) => !f.hidden);
@@ -1353,6 +1357,7 @@ The user's set up the application in "${language}" language, give your feedback 
     } = get();
     let storedTabHash = tabHash;
     let params = checkParams({ justReturn: true });
+    console.log("Config getting active session", configObject);
 
     if (params.autoclose) {
       return;
@@ -1367,6 +1372,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
     try {
       const session = await getSession(token, configObject.config.slug);
+
 
       if (!session.tab_hash) {
         await updateSession(
@@ -1887,7 +1893,12 @@ The user's set up the application in "${language}" language, give your feedback 
     return sidebar;
   },
   test: async () => {
-    disconnected();
+    const { configObject } = get();
+    const courseSlug = configObject.config.slug;
+    const format = "scorm";
+    const url = `${FetchManager.HOST}/export/${courseSlug}/${format}`;
+    window.open(url, "_blank");
+
   },
 
   addVideoTutorial: async (videoTutorial: string) => {

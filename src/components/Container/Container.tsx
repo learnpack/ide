@@ -182,15 +182,13 @@ export const Container = () => {
                 {t("instructions")}
               </div>
             )}
-            {editorTabs.length > 0 && !(agent === "vscode") && (
-              <>
-                <div
-                  onClick={() => onChangeTab("code")}
-                  data-visible={visibleTab === "code" ? true : false}
-                >
-                  {t("code")}
-                </div>
-              </>
+            {editorTabs.length > 0 && environment !== "localhost" && (
+              <div
+                onClick={() => onChangeTab("code")}
+                data-visible={visibleTab === "code" ? true : false}
+              >
+                {t("code")}
+              </div>
             )}
           </div>
           <section
@@ -208,7 +206,7 @@ export const Container = () => {
           </section>
 
           {editorTabs.length > 0 &&
-            (agent !== "vscode" || environment === "localStorage") && (
+            (agent !== "vscode" || ["localStorage", "scorm"].includes(environment)) && (
               <section
                 ref={codeSectionRef}
                 className="w-100 "
@@ -222,15 +220,6 @@ export const Container = () => {
                 <CodeEditor terminal={isRigoOpened ? "hidden" : "normal"} />
               </section>
             )}
-          {/* {!(environment === "localhost") && (
-            <section
-              style={{
-                display: visibleTab === "terminal" ? "block" : "none",
-              }}
-            >
-              <CodeEditor hideTerminal={hideTerminal} terminal="only" />
-            </section>
-          )} */}
         </div>
 
         {isRigoOpened && window.innerWidth > 768 && <ChatTab />}

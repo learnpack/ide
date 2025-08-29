@@ -17,7 +17,7 @@ export function getParams(opts) {
   let obj = {};
   //@ts-ignore
   opts.forEach((name) => (obj[name] = urlParams.get(name)));
-  //@ts-ignore
+  //@ts-ignoreR
   const result = opts.length == 1 ? obj[opts[0]] : obj;
   return result;
 }
@@ -48,21 +48,19 @@ export let ENVIRONMENT: TEnvironment = "localhost";
 
 export const getEnvironment = async () => {
   const host = getHost();
-
-  console.log("Getting environment", host);
-
   try {
     const slug = getSlugFromPath();
     const response = await fetch(`${host}/config?slug=${slug}`);
-    if (response.ok) {
-      console.log("The environment with be localhost")
+    const isJson = response.headers.get("Content-Type")?.includes("application/json");
+    if (response.ok && isJson) {
       let environment: TEnvironment = "localhost";
-
+      
       const isCreatorWeb = response.headers.get("X-Creator-Web");
-
+      
       if (isCreatorWeb) {
         environment = "creatorWeb";
       }
+      console.log("The environment will be:", environment);
 
       ENVIRONMENT = environment;
 
@@ -73,17 +71,17 @@ export const getEnvironment = async () => {
       document.dispatchEvent(myEvent);
 
       return environment;
+
     } else throw Error("The response was unsuccessful");
   } catch (e) {
-    console.log("Error fetching config", e);
     ENVIRONMENT = "localStorage";
 
     // Fetch config,jsonhandleEnvironmentChange
     try {
       const config = await fetch(`${host}/config.json`);
-      const configData = await config.json();
+      await config.json();
 
-      console.log(configData, "CONFIG DATA");
+      console.log("The environment will be localStorage");
 
       const myEvent = new CustomEvent("environment-change", {
         detail: { environment: "localStorage" },
@@ -93,17 +91,22 @@ export const getEnvironment = async () => {
 
       return "localStorage";
     } catch (e) {
-      console.error("Error fetching config.json", e);
-      // Try with config/config.json fro scorm format
-      const scormConfig = await fetch(`${host}/config/config.json`);
-      await scormConfig.json();
-
+      
+      try {
+        const scormConfig = await fetch(`${host}/config/config.json`);
+        await scormConfig.json();
+      
       const myEvent = new CustomEvent("environment-change", {
         detail: { environment: "scorm" },
       });
+      console.log("The environment will be scorm");
 
       document.dispatchEvent(myEvent);
       return "scorm";
+      } catch (e) {
+        console.error("Error fetching scorm config, impossible to detect environment", e);
+        return "localStorage";
+      }
     }
   }
 };
