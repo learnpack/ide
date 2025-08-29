@@ -15,7 +15,11 @@ import Socket from "./socket";
 import { RigoAI } from "../components/Rigobot/AI";
 import { DEV_MODE } from "../utils/lib";
 
-export type TEnvironment = "localhost" | "localStorage" | "creatorWeb";
+export type TEnvironment =
+  | "localhost"
+  | "localStorage"
+  | "creatorWeb"
+  | "scorm";
 
 type EventCallback = (data: any) => void;
 
@@ -484,6 +488,9 @@ export const EventProxy = {
         return localStorageEventEmitter;
       },
       creatorWeb: () => {
+        return localStorageEventEmitter;
+      },
+      scorm: () => {
         return localStorageEventEmitter;
       },
     };

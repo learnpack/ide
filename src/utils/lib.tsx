@@ -49,10 +49,13 @@ export let ENVIRONMENT: TEnvironment = "localhost";
 export const getEnvironment = async () => {
   const host = getHost();
 
+  console.log("Getting environment", host);
+
   try {
     const slug = getSlugFromPath();
     const response = await fetch(`${host}/config?slug=${slug}`);
     if (response.ok) {
+      console.log("The environment with be localhost")
       let environment: TEnvironment = "localhost";
 
       const isCreatorWeb = response.headers.get("X-Creator-Web");
@@ -72,14 +75,36 @@ export const getEnvironment = async () => {
       return environment;
     } else throw Error("The response was unsuccessful");
   } catch (e) {
+    console.log("Error fetching config", e);
     ENVIRONMENT = "localStorage";
 
-    const myEvent = new CustomEvent("environment-change", {
-      detail: { environment: "localStorage" },
-    });
+    // Fetch config,jsonhandleEnvironmentChange
+    try {
+      const config = await fetch(`${host}/config.json`);
+      const configData = await config.json();
 
-    document.dispatchEvent(myEvent);
-    return "localStorage";
+      console.log(configData, "CONFIG DATA");
+
+      const myEvent = new CustomEvent("environment-change", {
+        detail: { environment: "localStorage" },
+      });
+
+      document.dispatchEvent(myEvent);
+
+      return "localStorage";
+    } catch (e) {
+      console.error("Error fetching config.json", e);
+      // Try with config/config.json fro scorm format
+      const scormConfig = await fetch(`${host}/config/config.json`);
+      await scormConfig.json();
+
+      const myEvent = new CustomEvent("environment-change", {
+        detail: { environment: "scorm" },
+      });
+
+      document.dispatchEvent(myEvent);
+      return "scorm";
+    }
   }
 };
 
@@ -561,5 +586,3 @@ export function createBugReportUrl(
 
   return url;
 }
-
-

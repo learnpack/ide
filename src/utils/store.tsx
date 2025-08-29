@@ -343,7 +343,9 @@ const useStore = create<IStore>((set, get) => ({
     const { setOpenedModals } = get();
     const env = await getEnvironment();
     FetchManager.init(env, HOST, () => {
-      setOpenedModals({ login: true });
+      if (env !== "scorm") {
+        setOpenedModals({ login: true });
+      }
     });
     set({ compilerSocket: EventProxy.getEmitter(env) });
     if (env === "localStorage") {
@@ -353,6 +355,7 @@ const useStore = create<IStore>((set, get) => ({
     return { message: "Environment figured out!" };
   },
   handleEnvironmentChange: (event: any) => {
+    console.log("New environment detected", event)
     set({ environment: event.detail.environment });
   },
 

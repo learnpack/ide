@@ -1,13 +1,14 @@
 {
   "name": "learnpack-ai",
   "private": true,
-  "version": "5.0.248",
+  "version": "5.0.254",
   "scripts": {
     "dev": "node src/utils/development.js --turn on && vite",
     "build": "node src/utils/development.js --turn off && tsc && vite build && node src/utils/uploadLearnpack.js && node bin/publish.js && node src/utils/createVersionsFile.js ",
     "dev-build": "node src/utils/development.js --turn on && tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
+    "watch": "vite build --watch",
     "compile-command": "tsc src/utils/development.ts && node src/utils/development.js --turn on"
   },
   "dependencies": {

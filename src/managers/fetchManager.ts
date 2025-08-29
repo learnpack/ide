@@ -25,6 +25,7 @@ type TMethods = {
   localStorage: () => Promise<any>;
   localhost: () => Promise<any>;
   creatorWeb: () => Promise<any>;
+  scorm: () => Promise<any>;
 };
 
 export const FetchManager = {
@@ -170,6 +171,12 @@ export const FetchManager = {
         const exercise = config.exercises.find((e: any) => e.slug === slug);
         return exercise;
       },
+      scorm: async () => {
+        const respose = await fetch("config/config.json");
+        const config = await respose.json();
+        const exercise = config.exercises.find((e: any) => e.slug === slug);
+        return exercise;
+      },
       creatorWeb: async () => {
         try {
           const exerciseSlug = getSlugFromPath();
@@ -205,7 +212,10 @@ export const FetchManager = {
         }
       },
       localStorage: async () => {
-        // console.log("SAVING FILE IN LS");
+        console.log("SAVING FILE IN LS: NOT IMPLEMENTED");
+      },
+      scorm: async () => {
+        console.log("SAVING FILE IN SCORM: NOT IMPLEMENTED");
       },
       creatorWeb: async () => {
         const exerciseSlug = getSlugFromPath();
@@ -267,6 +277,10 @@ export const FetchManager = {
         }
         return { ...json, user };
       },
+      scorm: async () => {
+        console.log("CHECKING LOGGED STATUS IN SCORM: NOT IMPLEMENTED");
+        return null;
+      },
       creatorWeb: async () => {
         const session = LocalStorage.get("session");
         if (!session) {
@@ -307,6 +321,12 @@ export const FetchManager = {
     const methods: TMethods = {
       localhost: async () => {
         return null;
+      },
+      scorm: async () => {
+        console.log("GETTING SYLLABUS IN SCORM: NOT IMPLEMENTED");
+        const respose = await fetch("config/syllabus.json");
+        const syllabus = await respose.json();
+        return syllabus;
       },
       localStorage: async () => {
         // const respose = await fetch("/syllabus.json");
@@ -354,6 +374,10 @@ export const FetchManager = {
         await res.json();
         return true;
       },
+      scorm: async () => {
+        console.log("SETTING TAB HASH IN SCORM: NOT IMPLEMENTED");
+        return true;
+      },
       localStorage: async () => {
         LocalStorage.set("TAB_HASH", tabHash);
         return true;
@@ -383,6 +407,10 @@ export const FetchManager = {
         } else {
           return null;
         }
+      },
+      scorm: async () => {
+        console.log("GETTING SESSION KEY IN SCORM: NOT IMPLEMENTED");
+        return null;
       },
       localStorage: async () => {
         let sessionKey = LocalStorage.get("LEARNPACK_SESSION_KEY");
@@ -423,6 +451,10 @@ export const FetchManager = {
         await res.json();
         return true;
       },
+      scorm: async () => {
+        console.log("SETTING SESSION KEY IN SCORM: NOT IMPLEMENTED");
+        return true;
+      },
       localStorage: async () => {
         LocalStorage.set("LEARNPACK_SESSION_KEY", sessionKey);
       },
@@ -444,6 +476,10 @@ export const FetchManager = {
           console.error(e, "error getting sidebar");
           return {};
         }
+      },
+      scorm: async () => {
+        console.log("GETTING SIDEBAR IN SCORM: NOT IMPLEMENTED");
+        return {};
       },
       localStorage: async () => {
         try {
@@ -482,6 +518,9 @@ export const FetchManager = {
     const methods: TMethods = {
       localhost: async () => {
         return await loginLocalhost(loginInfo, FetchManager.HOST);
+      },
+      scorm: async () => {
+        return await loginLocalStorage(loginInfo);
       },
       localStorage: async () => {
         return await loginLocalStorage(loginInfo);
@@ -556,6 +595,10 @@ export const FetchManager = {
         // await res.json();
         return true;
       },
+      scorm: async () => {
+        console.log("REPLACING README IN SCORM: NOT IMPLEMENTED");
+        return false;
+      },
       localStorage: async () => {
         toast.error("IMPOSSIBLE TO REPLACE README IN LS");
         // console.log("REPLACING README IN LS");
@@ -585,6 +628,9 @@ export const FetchManager = {
     const methods: TMethods = {
       localhost: async () => {
         await logoutCLI(FetchManager.HOST);
+      },
+      scorm: async () => {
+        console.log("LOGOUT IN SCORM: NOT IMPLEMENTED");
       },
       localStorage: async () => {
         LocalStorage.remove("session");
@@ -630,8 +676,13 @@ export const FetchManager = {
         const json = await res.json();
         return json;
       },
+      scorm: async () => {
+        console.log("TRANSLATING EXERCISES IN SCORM: NOT IMPLEMENTED");
+        return null;
+      },
       localStorage: async () => {
         toast.error("IMPOSSIBLE TO TRANSLATE EXERCISES IN LS");
+        return null
       },
       creatorWeb: async () => {
         const exerciseSlug = getSlugFromPath();
@@ -658,7 +709,10 @@ export const FetchManager = {
         }
       },
     };
-    console.log("TRANSLATING EXERCISES in ENVIRONMENT", FetchManager.ENVIRONMENT);
+    console.log(
+      "TRANSLATING EXERCISES in ENVIRONMENT",
+      FetchManager.ENVIRONMENT
+    );
     return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
   },
 };

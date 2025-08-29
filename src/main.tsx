@@ -32,6 +32,10 @@ const router = createBrowserRouter([
         path: "/preview/:slug",
         element: <App />,
       },
+      {
+        path: "/config/index.html",
+        element: <App />,
+      },
     ],
   },
 ]);
