@@ -50,8 +50,6 @@ export const getHost = function (): string {
     // Return the full URL without the /config/index.html
     HOST = window.location.href.replace("/config/index.html", "");
   }
-  console.log("DETECTED HOST", HOST);
-  console.log("WINDOW LOCATION HREF", window.location.href);
 
   return HOST;
 };
@@ -107,7 +105,8 @@ export const getEnvironment = async () => {
     } catch (e) {
 
       try {
-        const scormConfig = await fetch(`${host}/config/config.json`);
+        const scormConfig = await fetch(`${host}/.learn/config.json`);
+        console.log("SCORM CONFIG PATH", scormConfig);
         await scormConfig.json();
 
         const myEvent = new CustomEvent("environment-change", {
