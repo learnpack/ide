@@ -45,10 +45,14 @@ export const getHost = function (): string {
     HOST = "http://localhost:3000";
   }
 
+  
+  
   if (includeScormPath) {
     // Return the full URL without the /config/index.html
     HOST = window.location.href.replace("/config/index.html", "");
   }
+  console.log("DETECTED HOST", HOST);
+  console.log("WINDOW LOCATION HREF", window.location.href);
 
   return HOST;
 };
