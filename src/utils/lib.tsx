@@ -46,7 +46,6 @@ export const getHost = function (): string {
   }
 
   
-  
   if (includeScormPath) {
     // Return the full URL without the /config/index.html
     HOST = window.location.href.replace("/config/index.html", "");
@@ -61,6 +60,8 @@ export let ENVIRONMENT: TEnvironment = "localhost";
 
 export const getEnvironment = async () => {
   const host = getHost();
+
+  console.log("DETECTED HOST", host);
   try {
     const slug = getSlugFromPath();
     const response = await fetch(`${host}/config?slug=${slug}`);
