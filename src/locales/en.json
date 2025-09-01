@@ -359,5 +359,9 @@
     "creatingStep": "Creating step {{step}}...",
     "waitImGeneratingTheLesson": "Wait! I’m  still generating this step of the package, give me a few more seconds!",
     "export-course": "Export course",
-    "export": "Export"
+    "export": "Export",
+    "export-to-epub": "Export your course to EPUB",
+    "epub-description": "Share your content as a digital book, keeping chapters, links, and media—ready to read on any device!",
+    "export-to-scorm": "Export your course to SCORM",
+    "scorm-description": "Share your content as a SCORM package, ready to be imported into your LMS."
 }

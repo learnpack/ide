@@ -87,6 +87,9 @@ export const FetchManager = {
 
   getReadme: async (slug: string, language: string) => {
     const fixedLanguage = fixLang(language, FetchManager.ENVIRONMENT);
+    console.log("FETCH MANAGER ENVIRONMENT", FetchManager.ENVIRONMENT);
+    console.log("FETCH MANAGER HOST", FetchManager.HOST);
+    console.log("FIXED LANGUAGE", fixedLanguage);
     const exerciseSlug = getSlugFromPath();
     let url =
       FetchManager.ENVIRONMENT === "localhost" ||

@@ -384,31 +384,41 @@ const ExportModal: FC<{ onClose: () => void }> = ({ onClose }) => {
         extraClass="svg-blue text-blue padding-small rounded "
         svg={svgs.export}
       />
-      {exportModalOpen && <Modal outsideClickHandler={() => { setExportModalOpen(false), onClose() }}>
+      {exportModalOpen && <Modal showCloseButton={false} outsideClickHandler={() => { setExportModalOpen(false), onClose() }}>
         <div>
-          <h1>{t("export-course")}</h1>
           <div className="flex-y gap-small">
-            <SimpleButton
-              text={"EPUB"}
-              action={() => {
-                
-                const format = "epub";
-                const url = `${FetchManager.HOST}/export/${courseSlug}/${format}?language=${language}`;
-                window.open(url, "_blank");
-              }}
-              extraClass="svg-blue text-blue padding-small rounded  w-100 align-center justify-center active-on-hover border-blue"
-              svg={svgs.edit}
-            />
-            <SimpleButton
-              text={"SCORM"}
-              action={() => {
-                const format = "scorm";
-                const url = `${FetchManager.HOST}/export/${courseSlug}/${format}`;
-                window.open(url, "_blank");
-              }}
-              extraClass="svg-blue text-blue padding-small rounded  w-100 align-center justify-center active-on-hover border-blue"
-              svg={svgs.play}
-            />
+
+            <div className="flex-y gap-small border-gray rounded padding-small box-shadow">
+
+              <div>
+                <SimpleButton
+                  text={t("export-to-epub")}
+                  action={() => {
+
+                    const format = "epub";
+                    const url = `${FetchManager.HOST}/export/${courseSlug}/${format}?language=${language}`;
+                    window.open(url, "_blank");
+                  }}
+                  extraClass="svg-blue text-blue padding-small rounded active-on-hover "
+                />
+                <p>{t("epub-description")}</p>
+              </div>
+            </div>
+              <div className="flex-y gap-small border-gray rounded padding-small box-shadow">
+                <SimpleButton
+                  text={t("export-to-scorm")}
+                  action={() => {
+
+                    const format = "scorm";
+                    const url = `${FetchManager.HOST}/export/${courseSlug}/${format}?language=${language}`;
+                    window.open(url, "_blank");
+                  }}
+                  extraClass="svg-blue text-blue padding-small rounded active-on-hover "
+                />
+                <p>{t("scorm-description")}</p>
+
+              </div>
+
           </div>
         </div>
       </Modal>}
