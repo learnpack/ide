@@ -74,7 +74,7 @@ export const FetchManager = {
         return config;
       },
       scorm: async () => {
-        const url = `${FetchManager.HOST}/config/config.json`;
+        const url = `${FetchManager.HOST}/.learn/config.json`;
         const response = await fetch(url);
         const config = await response.json();
         return config;
