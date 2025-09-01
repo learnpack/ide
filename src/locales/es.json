@@ -364,6 +364,8 @@
     "whatchangesWouldYouLikeForTheImage": "¿Qué cambios te gustaría hacer para la imagen?",
     "startingTranslation": "Iniciando traducción...",
     "creatingStep": "Creando paso {{step}}...",
-    "waitImGeneratingTheLesson": "Espera, estoy generando la lección..."
+    "waitImGeneratingTheLesson": "Espera, estoy generando la lección...",
+    "export-course": "Exportar curso",
+    "export": "Exportar"
 
 }

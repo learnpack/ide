@@ -10,6 +10,7 @@ import { publishTutorial } from "../../utils/creator";
 import { toast } from "react-hot-toast";
 import { playEffect } from "../../utils/lib";
 import { Notifier } from "../../managers/Notifier";
+import { FetchManager } from "../../managers/fetchManager";
 
 const PublishConfirmationModal: FC<{
   onClose: () => void;
@@ -370,6 +371,50 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
     </div>
   );
 };
+const ExportModal: FC<{ onClose: () => void }> = ({ onClose }) => {
+  const { t } = useTranslation();
+  const courseSlug = useStore((state) => state.configObject.config.slug);
+  const language = useStore((state) => state.language);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
+  return (
+    <div onMouseDown={(e) => e.stopPropagation()}>
+      <SimpleButton
+        text={t("export")}
+        action={() => setExportModalOpen(true)}
+        extraClass="svg-blue text-blue padding-small rounded "
+        svg={svgs.export}
+      />
+      {exportModalOpen && <Modal outsideClickHandler={() => { setExportModalOpen(false), onClose() }}>
+        <div>
+          <h1>{t("export-course")}</h1>
+          <div className="flex-y gap-small">
+            <SimpleButton
+              text={"EPUB"}
+              action={() => {
+                
+                const format = "epub";
+                const url = `${FetchManager.HOST}/export/${courseSlug}/${format}?language=${language}`;
+                window.open(url, "_blank");
+              }}
+              extraClass="svg-blue text-blue padding-small rounded  w-100 align-center justify-center active-on-hover border-blue"
+              svg={svgs.edit}
+            />
+            <SimpleButton
+              text={"SCORM"}
+              action={() => {
+                const format = "scorm";
+                const url = `${FetchManager.HOST}/export/${courseSlug}/${format}`;
+                window.open(url, "_blank");
+              }}
+              extraClass="svg-blue text-blue padding-small rounded  w-100 align-center justify-center active-on-hover border-blue"
+              svg={svgs.play}
+            />
+          </div>
+        </div>
+      </Modal>}
+    </div>
+  );
+};
 
 const PublishButton = () => {
   const { t } = useTranslation();
@@ -421,19 +466,9 @@ const PublishButton = () => {
               setDropdownOpen(false);
             }}
           />
-          {/* <SimpleButton
-            action={() => {
-              mode === "student" ? setMode("creator") : setMode("student");
-            }}
-            text={
-              mode === "student"
-                ? t("continue-editing")
-                : t("preview-as-student")
-            }
-            extraClass="svg-blue text-blue active-on-hover w-100 rounded padding-small"
-            svg={mode === "student" ? svgs.edit : svgs.runCustom}
-          /> */}
-          {/* <DeleteButton /> */}
+          <ExportModal onClose={() => {
+            // setDropdownOpen(false);
+          }} />
         </div>
       )}
     </div>

@@ -29,6 +29,10 @@ const fullURL =
   (location.port ? ":" + location.port : "");
 
 export const getHost = function (): string {
+
+
+  const includeScormPath = window.location.pathname.endsWith("/config/index.html");
+
   let preConfig = getParams("config");
   if (preConfig && preConfig !== "") preConfig = JSON.parse(atob(preConfig));
 
@@ -39,6 +43,11 @@ export const getHost = function (): string {
   // TODO: DO THIS BETTER
   if (DEV_MODE) {
     HOST = "http://localhost:3000";
+  }
+
+  if (includeScormPath) {
+    // Return the full URL without the /config/index.html
+    HOST = window.location.href.replace("/config/index.html", "");
   }
 
   return HOST;
@@ -54,9 +63,9 @@ export const getEnvironment = async () => {
     const isJson = response.headers.get("Content-Type")?.includes("application/json");
     if (response.ok && isJson) {
       let environment: TEnvironment = "localhost";
-      
+
       const isCreatorWeb = response.headers.get("X-Creator-Web");
-      
+
       if (isCreatorWeb) {
         environment = "creatorWeb";
       }
@@ -91,18 +100,18 @@ export const getEnvironment = async () => {
 
       return "localStorage";
     } catch (e) {
-      
+
       try {
         const scormConfig = await fetch(`${host}/config/config.json`);
         await scormConfig.json();
-      
-      const myEvent = new CustomEvent("environment-change", {
-        detail: { environment: "scorm" },
-      });
-      console.log("The environment will be scorm");
 
-      document.dispatchEvent(myEvent);
-      return "scorm";
+        const myEvent = new CustomEvent("environment-change", {
+          detail: { environment: "scorm" },
+        });
+        console.log("The environment will be scorm");
+
+        document.dispatchEvent(myEvent);
+        return "scorm";
       } catch (e) {
         console.error("Error fetching scorm config, impossible to detect environment", e);
         return "localStorage";
