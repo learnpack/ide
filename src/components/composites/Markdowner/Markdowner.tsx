@@ -22,6 +22,7 @@ import RealtimeLesson from "../../Creator/RealtimeLesson";
 import { DEV_MODE } from "../../../utils/lib";
 import RealtimeImage from "../../Creator/RealtimeImage";
 import { RigoAI } from "../../Rigobot/AI";
+import { FetchManager } from "../../../managers/fetchManager";
 const isRigoQuestion = (href: string) => {
   return href.startsWith("https://4geeks.com/ask?query=");
 };
@@ -305,10 +306,13 @@ export const Markdowner = ({
   );
 };
 
-const fixSrc = (src: string, slug: string) => {
+const fixSrc = (src: string, slug: string, environment: string) => {
   // Normalize leading ../../.learn to /.learn
   let normalizedSrc = src.replace(/^(\.\.\/)+\.learn/, "/.learn");
 
+  if (environment === "scorm") {
+    return FetchManager.HOST + normalizedSrc
+  }
   if (normalizedSrc.includes("/.learn/assets/")) {
     if (DEV_MODE) {
       return "http://localhost:3000" + normalizedSrc + "?slug=" + slug;
@@ -355,7 +359,7 @@ const CustomImage = ({
           ) : (
             <img
               onError={() => setHasError(true)}
-              src={fixSrc(src, config?.config?.slug)}
+              src={fixSrc(src, config?.config?.slug, environment)}
               alt={alt}
             />
           )}
@@ -374,7 +378,7 @@ const CustomImage = ({
         ) : (
           <img
             onError={() => setHasError(true)}
-            src={fixSrc(src, config?.config?.slug)}
+            src={fixSrc(src, config?.config?.slug, environment)}
             alt={alt}
           />
         )}

@@ -375,7 +375,50 @@ const ExportModal: FC<{ onClose: () => void }> = ({ onClose }) => {
   const { t } = useTranslation();
   const courseSlug = useStore((state) => state.configObject.config.slug);
   const language = useStore((state) => state.language);
+  const courseTitle = useStore((state) => state.configObject.config.title[language]);
+  const user = useStore((state) => state.user);
   const [exportModalOpen, setExportModalOpen] = useState(false);
+
+  const exportToFormat = async (format: string) => {
+    const url = `${FetchManager.HOST}/export/${courseSlug}/${format}`;
+    const body = {
+      language: language,
+      metadata: {
+        creator: user?.first_name + " " + user?.last_name,
+        publisher: "LearnPack LLC",
+        title: courseTitle,
+        rights: "LearnPack LLC",
+        lang: language,
+      }
+    }
+    const getExtension = () => {
+      if (format === "scorm") {
+        return "zip";
+      } else if (format === "epub") {
+        return "epub";
+      }
+    }
+    const response = await fetch(url, {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(data);
+    const a = document.createElement("a");
+    a.href = downloadUrl;
+    a.download = `${courseSlug}.${getExtension()}`;
+    a.click();
+    window.URL.revokeObjectURL(downloadUrl);
+  }
+
+  const handleClose = () => {
+    setExportModalOpen(false);
+    onClose();
+  };
+
   return (
     <div onMouseDown={(e) => e.stopPropagation()}>
       <SimpleButton
@@ -384,44 +427,66 @@ const ExportModal: FC<{ onClose: () => void }> = ({ onClose }) => {
         extraClass="svg-blue text-blue padding-small rounded "
         svg={svgs.export}
       />
-      {exportModalOpen && <Modal showCloseButton={false} outsideClickHandler={() => { setExportModalOpen(false), onClose() }}>
-        <div>
-          <div className="flex-y gap-small">
+      {exportModalOpen && (
+        <Modal 
+          showCloseButton={true} 
+          outsideClickHandler={handleClose}
+          minWidth="500px"
+        >
+          <div className="flex-y gap-big">
+            {/* Modal Header */}
+            <div className="text-center">
+              <h2 className="text-blue m-0 text-big">{t("export-your-course")}</h2>
+              <p className="text-gray m-0 margin-top-small">{t("choose-export-format")}</p>
+            </div>
 
-            <div className="flex-y gap-small border-gray rounded padding-small box-shadow">
-
-              <div>
+            {/* Export Options */}
+            <div className="flex-y gap-medium">
+              {/* EPUB Option */}
+              <div className={styles.exportOptionCard}>
+                <div className="flex-x align-center gap-medium">
+                  <div className={`${styles.exportIcon} ${styles.epubIcon}`}>
+                    📖
+                  </div>
+                  <div className="flex-y gap-small flex-1">
+                    <h3 className="text-blue m-0 text-medium">{t("export-to-epub")}</h3>
+                    <p className="text-gray m-0 text-small">{t("epub-description")}</p>
+                  </div>
+                </div>
                 <SimpleButton
                   text={t("export-to-epub")}
                   action={() => {
-
-                    const format = "epub";
-                    const url = `${FetchManager.HOST}/export/${courseSlug}/${format}?language=${language}`;
-                    window.open(url, "_blank");
+                    exportToFormat("epub");
+                    handleClose();
                   }}
-                  extraClass="svg-blue text-blue padding-small rounded active-on-hover "
+                  extraClass={`${styles.exportButton} ${styles.epubButton}`}
                 />
-                <p>{t("epub-description")}</p>
               </div>
-            </div>
-              <div className="flex-y gap-small border-gray rounded padding-small box-shadow">
+
+              {/* SCORM Option */}
+              <div className={styles.exportOptionCard}>
+                <div className="flex-x align-center gap-medium">
+                  <div className={`${styles.exportIcon} ${styles.scormIcon}`}>
+                    🎓
+                  </div>
+                  <div className="flex-y gap-small flex-1">
+                    <h3 className="text-blue m-0 text-medium">{t("export-to-scorm")}</h3>
+                    <p className="text-gray m-0 text-small">{t("scorm-description")}</p>
+                  </div>
+                </div>
                 <SimpleButton
                   text={t("export-to-scorm")}
                   action={() => {
-
-                    const format = "scorm";
-                    const url = `${FetchManager.HOST}/export/${courseSlug}/${format}?language=${language}`;
-                    window.open(url, "_blank");
+                    exportToFormat("scorm");
+                    handleClose();
                   }}
-                  extraClass="svg-blue text-blue padding-small rounded active-on-hover "
+                  extraClass={`${styles.exportButton} ${styles.scormButton}`}
                 />
-                <p>{t("scorm-description")}</p>
-
               </div>
-
+            </div>
           </div>
-        </div>
-      </Modal>}
+        </Modal>
+      )}
     </div>
   );
 };

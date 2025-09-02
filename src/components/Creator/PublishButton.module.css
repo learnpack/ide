@@ -27,3 +27,93 @@
   z-index: 100;
   padding: 0.5rem 10px;
 }
+
+/* Export Modal Styles */
+.exportOptionCard {
+  background: #ffffff;
+  border: 2px solid #e1e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.exportOptionCard:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+  transform: translateY(-2px);
+}
+
+.exportOptionCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.exportOptionCard:hover::before {
+  opacity: 1;
+}
+
+.exportIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.epubIcon {
+  background: linear-gradient(135deg, #fef3c7, #f59e0b);
+  color: #92400e;
+}
+
+.scormIcon {
+  background: linear-gradient(135deg, #dbeafe, #3b82f6);
+  color: #1e40af;
+}
+
+.exportButton {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.exportButton:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e3a8a);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.epubButton {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.epubButton:hover {
+  background: linear-gradient(135deg, #d97706, #b45309);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+.scormButton {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.scormButton:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e3a8a);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
