@@ -201,7 +201,7 @@ export const FetchManager = {
         return exercise;
       },
       scorm: async () => {
-        const respose = await fetch(`${FetchManager.HOST}/config/config.json`);
+        const respose = await fetch(`${FetchManager.HOST}/.learn/config.json`);
         const config = await respose.json();
         const exercise = config.exercises.find((e: any) => e.slug === slug);
         return exercise;
