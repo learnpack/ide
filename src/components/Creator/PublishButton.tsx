@@ -378,45 +378,84 @@ const ExportModal: FC<{ onClose: () => void }> = ({ onClose }) => {
   const courseTitle = useStore((state) => state.configObject.config.title[language]);
   const user = useStore((state) => state.user);
   const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [showEpubForm, setShowEpubForm] = useState(false);
+  const [epubMetadata, setEpubMetadata] = useState({
+    creator: user?.first_name + " " + user?.last_name || "",
+    publisher: "LearnPack LLC",
+    title: courseTitle || "",
+    rights: "Copyright 2025 LearnPack LLC. All rights reserved."
+  });
 
-  const exportToFormat = async (format: string) => {
-    const url = `${FetchManager.HOST}/export/${courseSlug}/${format}`;
-    const body = {
-      language: language,
-      metadata: {
-        creator: user?.first_name + " " + user?.last_name,
-        publisher: "LearnPack LLC",
-        title: courseTitle,
-        rights: "LearnPack LLC",
-        lang: language,
+  const exportToFormat = async (format: string, metadata?: typeof epubMetadata) => {
+    const tid = toast.loading(t("exporting-course"));
+    try {
+      const url = `${FetchManager.HOST}/export/${courseSlug}/${format}`;
+      const body = {
+        language: language,
+        metadata: {
+          creator: metadata?.creator || user?.first_name + " " + user?.last_name,
+          publisher: metadata?.publisher || "LearnPack LLC",
+          title: metadata?.title || courseTitle,
+          rights: metadata?.rights || "LearnPack LLC",
+          lang: language,
+        }
       }
-    }
-    const getExtension = () => {
-      if (format === "scorm") {
-        return "zip";
-      } else if (format === "epub") {
-        return "epub";
+      const getExtension = () => {
+        if (format === "scorm") {
+          return "zip";
+        } else if (format === "epub") {
+          return "epub";
+        }
       }
+      const response = await fetch(url, {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(data);
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = `${courseSlug}.${getExtension()}`;
+      a.click();
+      window.URL.revokeObjectURL(downloadUrl);
+      toast.success(t("course-exported-successfully"), { id: tid });
     }
-    const response = await fetch(url, {
-      method: "POST",
-      body: JSON.stringify(body),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const data = await response.blob();
-    const downloadUrl = window.URL.createObjectURL(data);
-    const a = document.createElement("a");
-    a.href = downloadUrl;
-    a.download = `${courseSlug}.${getExtension()}`;
-    a.click();
-    window.URL.revokeObjectURL(downloadUrl);
+    catch (error) {
+      toast.error(t("error-exporting-course"), { id: tid });
+      console.error(error, "ERROR FROM EXPORT ACTION");
+    }
+    finally {
+      toast.dismiss(tid);
+    }
   }
 
   const handleClose = () => {
     setExportModalOpen(false);
+    setShowEpubForm(false);
     onClose();
+  };
+
+  const handleEpubExport = () => {
+    setShowEpubForm(true);
+  };
+
+  const handleEpubFormSubmit = () => {
+    exportToFormat("epub", epubMetadata);
+    handleClose();
+  };
+
+  const handleEpubFormCancel = () => {
+    setShowEpubForm(false);
+  };
+
+  const handleMetadataChange = (field: keyof typeof epubMetadata, value: string) => {
+    setEpubMetadata(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   return (
@@ -427,17 +466,17 @@ const ExportModal: FC<{ onClose: () => void }> = ({ onClose }) => {
         extraClass="svg-blue text-blue padding-small rounded "
         svg={svgs.export}
       />
-      {exportModalOpen && (
-        <Modal 
-          showCloseButton={true} 
+      {exportModalOpen && !showEpubForm && (
+        <Modal
+          showCloseButton={true}
           outsideClickHandler={handleClose}
           minWidth="500px"
         >
           <div className="flex-y gap-big">
             {/* Modal Header */}
             <div className="text-center">
-              <h2 className="text-blue m-0 text-big">{t("export-your-course")}</h2>
-              <p className="text-gray m-0 margin-top-small">{t("choose-export-format")}</p>
+              <h2 className="text-blue m-0 text-big">{t("export-course")}</h2>
+
             </div>
 
             {/* Export Options */}
@@ -455,10 +494,7 @@ const ExportModal: FC<{ onClose: () => void }> = ({ onClose }) => {
                 </div>
                 <SimpleButton
                   text={t("export-to-epub")}
-                  action={() => {
-                    exportToFormat("epub");
-                    handleClose();
-                  }}
+                  action={handleEpubExport}
                   extraClass={`${styles.exportButton} ${styles.epubButton}`}
                 />
               </div>
@@ -482,6 +518,86 @@ const ExportModal: FC<{ onClose: () => void }> = ({ onClose }) => {
                   }}
                   extraClass={`${styles.exportButton} ${styles.scormButton}`}
                 />
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {exportModalOpen && showEpubForm && (
+        <Modal
+          showCloseButton={true}
+          outsideClickHandler={handleClose}
+          minWidth="600px"
+        >
+          <div className="flex-y gap-big">
+            {/* Modal Header */}
+            <div className="text-center">
+              <h2 className="text-blue m-0 text-big">{t("configure-epub-metadata")}</h2>
+              <p className="text-gray m-0 margin-top-small">{t("epub-metadata")}</p>
+            </div>
+
+            {/* EPUB Metadata Form */}
+            <div className={styles.metadataForm}>
+              <h3>{t("epub-metadata")}</h3>
+
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>{t("creator")}</label>
+                <input
+                  type="text"
+                  className={styles.formInput}
+                  placeholder={t("creator-placeholder")}
+                  value={epubMetadata.creator}
+                  onChange={(e) => handleMetadataChange("creator", e.target.value)}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>{t("publisher")}</label>
+                <input
+                  type="text"
+                  className={styles.formInput}
+                  placeholder={t("publisher-placeholder")}
+                  value={epubMetadata.publisher}
+                  onChange={(e) => handleMetadataChange("publisher", e.target.value)}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>{t("title")}</label>
+                <input
+                  type="text"
+                  className={styles.formInput}
+                  placeholder={t("title-placeholder")}
+                  value={epubMetadata.title}
+                  onChange={(e) => handleMetadataChange("title", e.target.value)}
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>{t("rights")}</label>
+                <input
+                  type="text"
+                  className={styles.formInput}
+                  placeholder={t("rights-placeholder")}
+                  value={epubMetadata.rights}
+                  onChange={(e) => handleMetadataChange("rights", e.target.value)}
+                />
+              </div>
+
+              <div className={styles.formActions}>
+                <button
+                  className={styles.cancelButton}
+                  onClick={handleEpubFormCancel}
+                >
+                  {t("cancel")}
+                </button>
+                <button
+                  className={styles.exportButton}
+                  onClick={handleEpubFormSubmit}
+                >
+                  {t("export-epub")}
+                </button>
               </div>
             </div>
           </div>

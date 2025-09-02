@@ -363,5 +363,19 @@
     "export-to-epub": "Export your course to EPUB",
     "epub-description": "Share your content as a digital book, keeping chapters, links, and media—ready to read on any device!",
     "export-to-scorm": "Export your course to SCORM",
-    "scorm-description": "Share your content as a SCORM package, ready to be imported into your LMS."
+    "epub-metadata": "EPUB Metadata",
+    "configure-epub-metadata": "Configure EPUB Metadata",
+    "creator": "Creator",
+    "publisher": "Publisher",
+    "title": "Title",
+    "rights": "Rights",
+    "creator-placeholder": "Enter creator name",
+    "publisher-placeholder": "Enter publisher name",
+    "title-placeholder": "Enter course title",
+    "rights-placeholder": "e.g., Copyright 2024 LearnPack LLC. All rights reserved.",
+    "export-epub": "Export EPUB",
+    "scorm-description": "Share your content as a SCORM package, ready to be imported into your LMS.",
+    "exporting-course": "Exporting course...",
+    "course-exported-successfully": "Course exported successfully",
+    "error-exporting-course": "Error exporting course"
 }

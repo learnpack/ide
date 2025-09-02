@@ -366,6 +366,21 @@
     "creatingStep": "Creando paso {{step}}...",
     "waitImGeneratingTheLesson": "Espera, estoy generando la lección...",
     "export-course": "Exportar curso",
-    "export": "Exportar"
+    "export": "Exportar",
+    "epub-metadata": "Metadatos EPUB",
+    "configure-epub-metadata": "Configurar Metadatos EPUB",
+    "creator": "Creador",
+    "publisher": "Editor",
+    "title": "Título",
+    "rights": "Derechos",
+    "creator-placeholder": "Ingresa el nombre del creador",
+    "publisher-placeholder": "Ingresa el nombre del editor",
+    "title-placeholder": "Ingresa el título del curso",
+    "rights-placeholder": "ej., Copyright 2024 LearnPack LLC. Todos los derechos reservados.",
+    "export-epub": "Exportar EPUB",
+    "scorm-description": "Comparte tu contenido como un paquete SCORM, listo para ser importado en tu LMS.",
+    "exporting-course": "Exportando curso...",
+    "course-exported-successfully": "Curso exportado correctamente",
+    "error-exporting-course": "Error al exportar curso"
 
 }

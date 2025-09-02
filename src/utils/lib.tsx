@@ -537,10 +537,11 @@ export const slugify = (text: string) => {
   return text
     .toLowerCase()
     .replace(/ /g, "-")
-    .replace(/[^\w-]+/g, "")
+    .replace(/[^\w.-]+/g, "") 
     .replace(/^-+|-+$/g, "")
     .replace(/-+/g, "-");
 };
+
 
 type TGenerateImageParams = {
   prompt: string;
