@@ -87,32 +87,41 @@ export const FetchManager = {
 
   getReadme: async (slug: string, language: string) => {
     const fixedLanguage = fixLang(language, FetchManager.ENVIRONMENT);
-    console.log("FETCH MANAGER ENVIRONMENT", FetchManager.ENVIRONMENT);
-    console.log("FETCH MANAGER HOST", FetchManager.HOST);
-    console.log("FIXED LANGUAGE", fixedLanguage);
     const exerciseSlug = getSlugFromPath();
-    let url =
-      FetchManager.ENVIRONMENT === "localhost" ||
-        FetchManager.ENVIRONMENT === "creatorWeb"
-        ? `${FetchManager.HOST}/exercise/${slug}/readme?lang=${fixedLanguage}${exerciseSlug ? `&slug=${exerciseSlug}` : ""
-        }`
-        : `/exercises/${slug}/README${getReadmeExtension(fixedLanguage)}`;
-
-    const response = await fetch(url);
-
-    if (
-      FetchManager.ENVIRONMENT === "localhost" ||
-      FetchManager.ENVIRONMENT === "creatorWeb"
-    ) {
-      const json = await response.json();
-      return json;
-    }
-
-    const mdContent = await response.text();
-    const matter = frontMatter(mdContent);
-    return matter;
+  
+    const methods: TMethods = {
+      localhost: async () => {
+        const url = `${FetchManager.HOST}/exercise/${slug}/readme?lang=${fixedLanguage}${exerciseSlug ? `&slug=${exerciseSlug}` : ""}`;
+        const response = await fetch(url);
+        const json = await response.json();
+        return json;
+      },
+      creatorWeb: async () => {
+        const url = `${FetchManager.HOST}/exercise/${slug}/readme?lang=${fixedLanguage}${exerciseSlug ? `&slug=${exerciseSlug}` : ""}`;
+        const response = await fetch(url);
+        const json = await response.json();
+        return json;
+      },
+      localStorage: async () => {
+        const url = `/exercises/${slug}/README${getReadmeExtension(fixedLanguage)}`;
+        const response = await fetch(url);
+        const mdContent = await response.text();
+        const matter = frontMatter(mdContent);
+        return matter;
+      },
+      scorm: async () => {
+        const url = `${FetchManager.HOST}/exercises/${slug}/README${getReadmeExtension(fixedLanguage)}`;
+        console.log("URL in SCORM", url);
+        const response = await fetch(url);
+        const mdContent = await response.text();
+        const matter = frontMatter(mdContent);
+        return matter;
+      },
+    };
+  
+    return await methods[FetchManager.ENVIRONMENT as keyof TMethods]();
   },
-
+  
   getFileContent: async (
     slug: string,
     file: string,
@@ -234,7 +243,7 @@ export const FetchManager = {
         console.log("SAVING FILE IN LS: NOT IMPLEMENTED");
       },
       scorm: async () => {
-        console.log("SAVING FILE IN SCORM: NOT IMPLEMENTED");
+        console.log("SAVING FILE IN SCORM: NOT ALLOWED");
       },
       creatorWeb: async () => {
         const exerciseSlug = getSlugFromPath();
