@@ -91,6 +91,9 @@ export default function LoginModal() {
   function getCurrentUrlWithQueryParams() {
     let currentUrl = window.location.origin + window.location.pathname;
 
+    console.log("Environment at the moment of redirecting to Github", environment);
+    
+
     if (environment === "localhost") {
       return `${currentUrl}?autoclose=true`;
     }

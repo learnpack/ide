@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import useStore from "../../utils/store";
 import CreatorSocket from "../../managers/creatorSocket";
 import ProgressBar from "../composites/ProgressBar/ProgressBar";
@@ -8,19 +8,24 @@ import SimpleButton from "../mockups/SimpleButton";
 import { continueGenerating } from "../../utils/creator";
 import toast from "react-hot-toast";
 import "./RealtimeLesson.css";
-import { Loader } from "../composites/Loader/Loader";
 import { MessageRenderer, UserTextarea } from "./RealtimeImage";
 import { svgs } from "../../assets/svgs";
+import { Lesson } from "../../utils/storeTypes";
+import { RigoAI } from "../Rigobot/AI";
+import CustomDropdown from "../CustomDropdown";
 const socketClient = new CreatorSocket(DEV_MODE ? "http://localhost:3000" : "");
 
-
-
-const statusToColorMap = {
-  // Generating is a yellow color
-  GENERATING: "#FFD700",
-  PENDING: "#9FBDD0",
-  ERROR: "#F7C6C5",
-  DONE: "#D1F7E3",
+const BigRigoMessage = ({ message, svg }: { message: string, svg: React.ReactNode }) => {
+  return (
+    <div className="rigo-message">
+      <p className="extra-big-svg">
+        {svg}
+      </p>
+      <p className="bg-1 rounded padding-small text-heavy-blue border-light-blue">
+        {message}
+      </p>
+    </div>
+  );
 };
 
 export default function RealtimeLesson() {
@@ -34,9 +39,12 @@ export default function RealtimeLesson() {
   const syllabus = useStore((state) => state.syllabus);
   const getSyllabus = useStore((state) => state.getSyllabus);
   const [updates, setUpdates] = useState<string[]>([]);
+  const [lesson, setLesson] = useState<Lesson | null>(null);
+  const [previousLesson, setPreviousLesson] = useState<Lesson | null>(null);
 
   const handleUpdate = (data: any) => {
     if (data && data.status === "done") {
+
       setTimeout(async () => {
         await fetchReadme();
       }, 1000);
@@ -60,48 +68,30 @@ export default function RealtimeLesson() {
     };
   }, []);
 
-  const previousLesson = syllabus.lessons
-    ? syllabus.lessons[Number(currentExercisePosition) - 1]
-    : null;
+  useEffect(() => {
+    const previousLesson = syllabus.lessons
+      ? syllabus.lessons[Number(currentExercisePosition) - 1]
+      : null;
 
-  const lesson = syllabus.lessons
-    ? syllabus.lessons[Number(currentExercisePosition)]
-    : null;
+    const lesson = syllabus.lessons
+      ? syllabus.lessons[Number(currentExercisePosition)]
+      : null;
+
+    setLesson(lesson);
+    setPreviousLesson(previousLesson);
+
+  }, [syllabus, currentExercisePosition]);
+
 
   return (
     <div className="flex-y gap-big padding-big lesson-loader">
       {/* {lesson && <h3>{lesson.title}</h3>} */}
-      <div className=" d-flex align-center gap-small justify-between text-medium">
-        {["PENDING", "DONE"].includes(lesson?.status || "PENDING") && (
-          <span>{lesson?.title}</span>
-        )}
-        {lesson?.status === "GENERATING" && (
-          <span>
-            {t("creatingStep", {
-              step: lesson.title,
-            })}
-          </span>
-        )}
-        <div
-          className="flex-x gap-small align-center"
-          style={{
-            // background: statusToColorMap[lesson?.status || "PENDING"],
-            background: statusToColorMap[lesson?.status || "PENDING"],
-            color: "01455E",
-            width: "fit-content",
-            borderRadius: "50vh",
-            padding: "2px 10px",
-            fontSize: "16px",
-          }}
-        >
-          {lesson?.status === "GENERATING" && <Loader size="sm" />}
-          {lesson?.status}
-        </div>
-      </div>
+
+
       {previousLesson && previousLesson.status === "DONE" && (
         <ContinueGenerationButton
           status={lesson?.status || "PENDING"}
-          // status={"GENERATING"}
+          title={lesson?.title || ""}
           description={lesson?.description || ""}
           onGenerate={() => {
             getSyllabus();
@@ -136,10 +126,12 @@ const ContinueGenerationButton = ({
   onGenerate,
   description,
   status,
+  title,
 }: {
   onGenerate: () => void;
   description: string;
   status: "PENDING" | "GENERATING" | "DONE" | "ERROR";
+  title: string;
 }) => {
   const { t } = useTranslation();
 
@@ -148,30 +140,23 @@ const ContinueGenerationButton = ({
   );
   const token = useStore((state) => state.token);
   const config = useStore((state) => state.configObject);
+  const useConsumable = useStore((state) => state.useConsumable);
   const userMessageRef = useRef<string>("");
 
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
 
-  useEffect(() => {
-    setMessages([
-      { type: "assistant", text: t("thisStepWillBeAbout") + description },
-    ]);
-  }, []);
-
-  const handleContinue = async () => {
+  const handleContinue = async (mode: "next-three" | "continue-with-all" = "next-three") => {
     try {
       const feedback = messages
-        .filter((msg) => msg.type === "user")
-        .map((msg) => msg.text)
+        .map((msg) => `${msg.type}: ${msg.text}`)
         .join("\n");
-
-      console.log("Feedback to Rigo", feedback);
 
       await continueGenerating(
         config.config.slug,
         Number(currentExercisePosition),
         feedback,
+        mode,
         token
       );
       toast.success(t("lesson-generation-started"));
@@ -188,12 +173,28 @@ const ContinueGenerationButton = ({
     setMessages((prev) => [
       ...prev,
       { type: "user", text: value },
-      {
-        type: "assistant",
-        text: t("okIllIncorporateThat"),
-      },
     ]);
     userMessageRef.current = "";
+
+    RigoAI.useTemplate({
+      slug: "pending-lesson-interaction",
+      inputs: {
+        current: description,
+        context: messages.map((msg) => `${msg.type}: ${msg.text}`).join("\n"),
+      },
+      onComplete: (success, data) => {
+        if (success) {
+          setMessages((prev) => [
+            ...prev,
+            { type: "assistant", text: data.data.parsed.aiMessage || "" },
+          ]);
+          useConsumable("ai-generation");
+        } else {
+          console.log("error pending lesson interaction", data);
+          toast.error(t("error-generating-lesson"));
+        }
+      },
+    });
     setIsOpen(false);
   };
 
@@ -201,12 +202,7 @@ const ContinueGenerationButton = ({
     return (
       <div className="flex-y gap-small align-center justify-center">
         <ProgressBar duration={60} height={2} />
-        <div className="rigo-message">
-          {svgs.rigoWait}
-          <p className="bg-1 border-heavy-blue rounded padding-small text-heavy-blue">
-            {t("waitImGeneratingTheLesson")}
-          </p>
-        </div>
+        <BigRigoMessage svg={svgs.rigoWait} message={t("waitImGeneratingTheLesson", { step: title })} />
         <TimeOutButton
           handleContinue={handleContinue}
           timeoutSeconds={DEV_MODE ? 5 : 120}
@@ -220,14 +216,27 @@ const ContinueGenerationButton = ({
 
   return (
     <>
-      <div className="flex-y gap-small padding-big">
-        {messages.map((message, index) => (
-          <MessageRenderer
-            role={message.type}
-            message={message.text}
-            key={index}
-          />
-        ))}
+      <div className="flex-y gap-small">
+        <BigRigoMessage svg={svgs.happyRigo} message={t("thisStepWillBeAbout") + description} />
+        {messages.map((message, index) => {
+          if (message.type === "assistant") {
+            return (
+              <BigRigoMessage
+                svg={svgs.happyRigo}
+                message={message.text}
+                key={index}
+              />
+            )
+          } else {
+            return (
+              <MessageRenderer
+                role={message.type}
+                message={message.text}
+                key={index}
+              />
+            )
+          }
+        })}
       </div>
 
       {isOpen ? (
@@ -240,35 +249,10 @@ const ContinueGenerationButton = ({
             }}
             placeholder={t("give-feedback-to-rigobot")}
           />
-          {/* <div className=" flex-x gap-small padding-small rounded">
-            <textarea
-              ref={textareaRef}
-              className=" textarea border-gray w-100"
-              onKeyUp={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleAddUserMessage();
-                }
-              }}
-              placeholder={t("give-feedback-to-rigobot")}
-              rows={2}
-            />
-            <SimpleButton
-              svg={svgs.nextArrowButton}
-              extraClass="svg-blue"
-              title={t("send")}
-              action={handleAddUserMessage}
-            />
-          </div> */}
         </div>
       ) : (
-        <div className="flex-x gap-small justify-end">
-          <SimpleButton
-            svg={"😀"}
-            extraClass=" border-blue rounded padding-small text-blue flex-x align-center gap-small svg-blue bg-blue-rigo text-white"
-            action={handleContinue}
-            text={t("iLikeItContinue")}
-          />
+        <div className="flex-x gap-small justify-end wrap-wrap">
+          <ContinueWithOptions handleContinue={handleContinue} />
           <SimpleButton
             svg={"🤔"}
             extraClass=" border-blue rounded padding-small text-blue flex-x align-center gap-small svg-blue"
@@ -279,6 +263,30 @@ const ContinueGenerationButton = ({
       )}
     </>
   );
+};
+
+const ContinueWithOptions = ({ handleContinue }: { handleContinue: (mode: "next-three" | "continue-with-all") => void }) => {
+  const { t } = useTranslation()
+  return <CustomDropdown menuClassName="w-250px flex-y gap-small" position="center" trigger={
+    <SimpleButton
+      svg={"😀"}
+      extraClass=" border-blue rounded padding-small text-blue flex-x align-center gap-small svg-blue bg-blue-rigo text-white"
+      text={t("iLikeItContinue")}
+    />
+  }>
+    <SimpleButton
+      extraClass=" border-blue rounded padding-small text-blue flex-x align-center gap-small bg-blue-rigo text-white w-100"
+      action={() => handleContinue("next-three")}
+      text={t("generateNextThree")}
+      svg={svgs.next}
+    />
+    <SimpleButton
+      extraClass=" border-blue rounded padding-small text-blue flex-x align-center gap-small  bg-blue-rigo text-white w-100"
+      action={() => handleContinue("continue-with-all")}
+      text={t("continueWithAll")}
+      svg={svgs.fastForward}
+    />
+  </CustomDropdown>
 };
 
 const TimeOutButton = ({

@@ -165,6 +165,7 @@ export const continueGenerating = async (
   courseSlug: string,
   position: number,
   feedback: string,
+  mode: "next-three" | "continue-with-all",
   rigoToken: string
 ) => {
   const headers = {
@@ -174,7 +175,7 @@ export const continueGenerating = async (
     `${
       DEV_MODE ? "http://localhost:3000" : ""
     }/actions/continue-generating/${courseSlug}/${position}`,
-    { position, feedback },
+    { position, feedback, mode },
     { headers }
   );
   return response.data;

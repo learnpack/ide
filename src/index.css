@@ -11,6 +11,7 @@
 
   --color-blue-opaque: #eef9fe;
   --heavy-blue: #7697cf;
+  --light-blue: #c7edff;
 
   --color-blue: #c1dfed;
 
@@ -993,6 +994,14 @@ a {
   width: 50px !important;
   height: 50px !important;
 }
+.extra-big-svg svg {
+  width: 70px !important;
+  height: 70px !important;
+}
+.medium-svg svg {
+  width: 40px !important;
+  height: 40px !important;
+}
 
 .padding-x-small {
   padding-inline: 10px;
@@ -1012,8 +1021,14 @@ a {
 .border-heavy-blue {
   border: 1px solid var(--heavy-blue);
 }
+.border-light-blue {
+  border: 1px solid var(--light-blue);
+}
 .text-heavy-blue {
   color: var(--heavy-blue);
+  & > * {
+    color: var(--heavy-blue);
+  }
 }
 
 .text-trimmed {

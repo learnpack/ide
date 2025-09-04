@@ -1,0 +1,48 @@
+/* CustomDropdown Styles */
+.customDropdown {
+  display: inline-block;
+}
+
+.dropdownTrigger {
+  cursor: pointer;
+}
+
+.dropdownMenu {
+  position: absolute;
+  background-color: #dce9ff;
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  padding: 0.5rem 10px;
+  min-width: 15rem;
+  animation: dropdownFadeIn 0.2s ease-out;
+}
+
+
+.dropdownCenter {
+  transform: translateX(-50%);
+  animation: dropdownFadeInCenter 0.2s ease-out;
+}
+
+/* Animation for smooth open/close */
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dropdownFadeInCenter {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}

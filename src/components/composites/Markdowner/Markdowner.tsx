@@ -353,6 +353,7 @@ const CustomImage = ({
           {hasError && environment === "creatorWeb" ? (
             <RealtimeImage
               onError={handleGenerationError}
+              allowCreate={allowCreate}
               imageId={src.split("/").pop() || ""}
               alt={alt || ""}
             />
@@ -371,7 +372,8 @@ const CustomImage = ({
       <>
         {hasError && environment === "creatorWeb" ? (
           <RealtimeImage
-            alt={alt || ""}
+            alt={alt || ""} 
+            allowCreate={allowCreate || false}
             onError={handleGenerationError}
             imageId={src.split("/").pop() || ""}
           />

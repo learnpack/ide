@@ -2747,7 +2747,7 @@ export const svgs = {
         <path
           d="M77.626 34.6748C77.6323 34.6784 77.65 34.6909 77.6719 34.7334C77.7213 34.8295 77.7627 35.0231 77.7627 35.374C77.7627 38.0849 75.2817 40.3309 72.1572 40.3311C69.0326 40.3311 66.5508 38.0849 66.5508 35.374C66.5508 35.0231 66.5921 34.8295 66.6416 34.7334C66.6636 34.6907 66.6822 34.6784 66.6885 34.6748C66.6948 34.6713 66.7102 34.6647 66.7451 34.667C66.8304 34.6727 66.9681 34.7241 67.1738 34.8457C67.3727 34.9633 67.6034 35.1271 67.8691 35.3203C68.3938 35.7017 69.0402 36.1886 69.7588 36.5771C70.4784 36.9662 71.2911 37.2686 72.1572 37.2686C73.0233 37.2685 73.836 36.9662 74.5557 36.5771C75.2742 36.1886 75.9207 35.7017 76.4453 35.3203C76.711 35.1272 76.9418 34.9632 77.1406 34.8457C77.3464 34.7241 77.4841 34.6725 77.5693 34.667C77.6049 34.6647 77.6199 34.6714 77.626 34.6748Z"
           stroke="#AECFFF"
-          stroke-width="0.5"
+          strokeWidth="0.5"
         />
         <path
           d="M79.8634 36.2663C79.8634 35.2447 79.2519 34.417 78.4974 34.417L65.2019 34.417C64.4474 34.417 63.8359 35.2447 63.8359 36.2663C63.8359 37.2879 64.4474 38.1156 65.2019 38.1156L78.4974 38.1156C79.2519 38.1156 79.8634 37.2879 79.8634 36.2663Z"
@@ -2756,7 +2756,7 @@ export const svgs = {
         <path
           d="M39.4072 34.6748C39.4135 34.6784 39.4312 34.6909 39.4531 34.7334C39.5026 34.8295 39.5439 35.0231 39.5439 35.374C39.5439 38.0849 37.063 40.3309 33.9385 40.3311C30.8139 40.3311 28.332 38.0849 28.332 35.374C28.3321 35.0231 28.3734 34.8295 28.4229 34.7334C28.4448 34.6907 28.4634 34.6784 28.4697 34.6748C28.476 34.6713 28.4914 34.6647 28.5264 34.667C28.6116 34.6727 28.7494 34.7241 28.9551 34.8457C29.1539 34.9633 29.3846 35.1271 29.6504 35.3203C30.175 35.7017 30.8215 36.1886 31.54 36.5771C32.2597 36.9662 33.0724 37.2686 33.9385 37.2686C34.8046 37.2685 35.6173 36.9662 36.3369 36.5771C37.0555 36.1886 37.702 35.7017 38.2266 35.3203C38.4922 35.1272 38.7231 34.9632 38.9219 34.8457C39.1277 34.7241 39.2654 34.6725 39.3506 34.667C39.3862 34.6647 39.4012 34.6714 39.4072 34.6748Z"
           stroke="#8EBDC5"
-          stroke-width="0.5"
+          strokeWidth="0.5"
         />
         <path
           d="M41.6407 36.2663C41.6407 35.2447 41.0293 34.417 40.2747 34.417L26.9793 34.417C26.2247 34.417 25.6133 35.2447 25.6133 36.2663C25.6133 37.2879 26.2247 38.1156 26.9793 38.1156L40.2747 38.1156C41.0293 38.1156 41.6407 37.2879 41.6407 36.2663Z"
@@ -2770,14 +2770,14 @@ export const svgs = {
       <path
         d="M87.0076 57.001L87.9323 50.2196M82.0761 56.3845L82.9268 49.2955M87.9323 50.2196C87.9323 50.2196 88.0412 51.1387 88.0068 50.1385M87.9323 50.2196C87.957 50.192 87.9818 50.165 88.0068 50.1385M82.9268 49.2955C82.9205 49.2772 82.914 49.259 82.9074 49.241M82.9268 49.2955C82.9268 49.2955 82.4437 52.0408 82.9074 49.241M88.0068 50.1385C90.0271 47.9903 92.5555 49.3293 92.5555 52.0694C92.5555 54.8434 91.6309 60.6991 91.6309 60.6991C91.0143 71.4869 81.4595 72.4114 75.2953 65.9388L72.213 60.3912C70.672 57.6172 74.3706 54.8431 76.5281 57.9251L78.6857 60.6991L80.535 63.1654L81.1514 62.8571L77.1446 57.001C77.1446 57.001 77.1446 52.9945 77.761 49.9119C78.3729 46.8522 82.0213 46.8303 82.9074 49.241M88.0068 50.1385C87.9966 49.8434 87.9739 49.3812 87.9323 48.679C87.7495 45.597 83.6172 44.98 83.0007 48.679C82.966 48.8872 82.935 49.074 82.9074 49.241"
         stroke="#92E6FF"
-        stroke-width="0.5"
-        stroke-linecap="round"
+        strokeWidth="0.5"
+        strokeLinecap="round"
       />
       <path
         d="M52.4297 59.0732C55.0364 57.6704 56.5405 56.9786 60.4434 58.4568"
         stroke="black"
-        stroke-width="2"
-        stroke-linecap="round"
+        strokeWidth="2"
+        strokeLinecap="round"
       />
       <defs>
         <filter
@@ -2787,9 +2787,9 @@ export const svgs = {
           width="119.004"
           height="85.7061"
           filterUnits="userSpaceOnUse"
-          color-interpolation-filters="sRGB"
+          colorInterpolationFilters="sRGB"
         >
-          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
           <feColorMatrix
             in="SourceAlpha"
             type="matrix"
@@ -2823,11 +2823,11 @@ export const svgs = {
           y2="14.9693"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#B0EFFF" />
-          <stop offset="0.44" stop-color="#ADECFE" />
-          <stop offset="0.67" stop-color="#A5E4FE" />
-          <stop offset="0.85" stop-color="#98D7FD" />
-          <stop offset="1" stop-color="#86C5FD" />
+          <stop stopColor="#B0EFFF" />
+          <stop offset="0.44" stopColor="#ADECFE" />
+          <stop offset="0.67" stopColor="#A5E4FE" />
+          <stop offset="0.85" stopColor="#98D7FD" />
+          <stop offset="1" stopColor="#86C5FD" />
         </linearGradient>
         <linearGradient
           id="paint1_linear_2193_4400"
@@ -2837,20 +2837,31 @@ export const svgs = {
           y2="57.6332"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="#B0EFFF" />
-          <stop offset="0.44" stop-color="#ADECFE" />
-          <stop offset="0.67" stop-color="#A5E4FE" />
-          <stop offset="0.85" stop-color="#98D7FD" />
-          <stop offset="1" stop-color="#86C5FD" />
+          <stop stopColor="#B0EFFF" />
+          <stop offset="0.44" stopColor="#ADECFE" />
+          <stop offset="0.67" stopColor="#A5E4FE" />
+          <stop offset="0.85" stopColor="#98D7FD" />
+          <stop offset="1" stopColor="#86C5FD" />
         </linearGradient>
       </defs>
     </svg>
   ),
   export: (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M13 11L21.2 2.80005" stroke="var(--read-font-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-      <path d="M22 6.8V2H17.2" stroke="var(--read-font-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-      <path d="M11 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22H15C20 22 22 20 22 15V13" stroke="var(--read-font-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M13 11L21.2 2.80005" stroke="var(--read-font-color)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M22 6.8V2H17.2" stroke="var(--read-font-color)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M11 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22H15C20 22 22 20 22 15V13" stroke="var(--read-font-color)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
-  )
+  ),
+  next: (
+    <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path fillRule="evenodd" clipRule="evenodd" d="M8.715 6.36694L14.405 10.6669C14.7769 10.9319 14.9977 11.3603 14.9977 11.8169C14.9977 12.2736 14.7769 12.702 14.405 12.9669L8.715 17.6669C8.23425 18.0513 7.58151 18.1412 7.01475 17.9011C6.44799 17.6611 6.05842 17.1297 6 16.5169V7.51694C6.05842 6.90422 6.44799 6.37281 7.01475 6.13275C7.58151 5.89269 8.23425 5.9826 8.715 6.36694Z" stroke="var(--read-font-color)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M18 6.01697V18.017" stroke="var(--read-font-color)" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  ),
+  fastForward: (
+    <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path fillRule="evenodd" clipRule="evenodd" d="M5.94601 5.59492C3.92853 4.15983 1 5.48359 1 7.83062V16.1694C1 18.5164 3.92853 19.8402 5.94601 18.4051L11 14.81V16.1694C11 18.5164 13.9285 19.8402 15.946 18.4051L21.8074 14.2357C23.3975 13.1046 23.3975 10.8954 21.8074 9.76429L15.946 5.59492C13.9285 4.15983 11 5.48359 11 7.83062V9.18996L5.94601 5.59492ZM3.0462 7.83062C3.0462 7.04828 4.02237 6.60703 4.69487 7.08539L10.5563 11.2548C11.0863 11.6318 11.0863 12.3682 10.5563 12.7452L4.69487 16.9146C4.02237 17.393 3.0462 16.9517 3.0462 16.1694V7.83062ZM13.0462 7.83062C13.0462 7.04828 14.0224 6.60703 14.6949 7.08539L20.5563 11.2548C21.0863 11.6318 21.0863 12.3682 20.5563 12.7452L14.6949 16.9146C14.0224 17.393 13.0462 16.9517 13.0462 16.1694V7.83062Z" fill="var(--read-font-color)" />
+    </svg>
+  ),
 };

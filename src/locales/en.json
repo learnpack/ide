@@ -357,7 +357,7 @@
     "whatchangesWouldYouLikeForTheImage": "What changes would you like for the image?",
     "startingTranslation": "Starting translation...",
     "creatingStep": "Creating step {{step}}...",
-    "waitImGeneratingTheLesson": "Wait! I’m  still generating this step of the package, give me a few more seconds!",
+    "waitImGeneratingTheLesson": "Wait! I’m  still generating the step '{{step}}', this may take a few seconds...",
     "export-course": "Export course",
     "export": "Export",
     "export-to-epub": "Export your course to EPUB",
@@ -377,5 +377,11 @@
     "scorm-description": "Share your content as a SCORM package, ready to be imported into your LMS.",
     "exporting-course": "Exporting course...",
     "course-exported-successfully": "Course exported successfully",
-    "error-exporting-course": "Error exporting course"
+    "error-exporting-course": "Error exporting course",
+    "pending": "Pending",
+    "error": "Error",
+    "done": "Done",
+    "generating": "Generating",
+    "generateNextThree": "Next three lessons",
+    "continueWithAll": "Continue with all"
 }

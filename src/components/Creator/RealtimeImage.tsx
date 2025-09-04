@@ -30,8 +30,8 @@ const RigoBubble = ({ action }: { action: () => void }) => {
 const RigoMessage = ({ message }: { message: string }) => {
   return (
     <div className="rigo-message">
-      <RigoBubble action={() => {}} />
-      <div className="markdown-container">
+      <RigoBubble action={() => { }} />
+      <div className="markdown-container text-heavy-blue" >
         <Markdowner markdown={message} allowCreate={false} />
       </div>
     </div>
@@ -98,10 +98,12 @@ export default function RealtimeImage({
   imageId,
   onError,
   alt,
+  allowCreate,
 }: {
   imageId: string;
   onError: () => void;
   alt: string;
+  allowCreate: boolean;
 }) {
   const { t } = useTranslation();
   const config = useStore((state) => state.configObject);
@@ -224,7 +226,7 @@ export default function RealtimeImage({
           `}
             />
 
-            {!showFeedbackInput ? (
+            {allowCreate && !showFeedbackInput && (
               <>
                 <div className="flex-x gap-small justify-center">
                   <SimpleButton
@@ -245,7 +247,8 @@ export default function RealtimeImage({
                   />
                 </div>
               </>
-            ) : (
+            )}
+            {allowCreate && showFeedbackInput && (
               <div className="flex-y gap-medium">
                 {messages.map((message) => (
                   <MessageRenderer
@@ -259,25 +262,6 @@ export default function RealtimeImage({
                   onChange={setFeedbackMessage}
                   placeholder={t("whatchangesWouldYouLikeForTheImage")}
                 />
-                {/* <div className="user-textarea">
-                  <textarea
-                    value={feedbackMessage}
-                    onChange={(e) => setFeedbackMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        handleFeedbackSubmit();
-                      }
-                    }}
-                    placeholder={t("whatchangesWouldYouLikeForTheImage")}
-                    className="flex-1 p-2 border border-gray rounded text-sm input w-100"
-                  />
-                  <SimpleButton
-                    extraClass={"action-button"}
-                    svg={svgs.send2}
-                    action={handleFeedbackSubmit}
-                  />
-                </div> */}
                 <div className="flex-x gap-small justify-center">
                   <SimpleButton
                     svg={svgs.checkIcon}

@@ -73,10 +73,6 @@ chatSocket.on("disconnect", () => {
 
 const defaultParams = getParamsObject() as TPossibleParams;
 
-FetchManager.init(ENVIRONMENT, HOST, () => {
-  window.location.reload();
-});
-
 const useStore = create<IStore>((set, get) => ({
   language: defaultParams.language || "en",
   mustLoginMessageKey: "you-must-login-message",
