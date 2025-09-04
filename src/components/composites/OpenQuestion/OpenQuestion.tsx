@@ -15,7 +15,7 @@ import { Modal } from "../../mockups/Modal";
 import { TMetadata } from "../Markdowner/types";
 import { AutoResizeTextarea } from "../AutoResizeTextarea/AutoResizeTextarea";
 import { Markdowner } from "../Markdowner/Markdowner";
-import TelemetryManager from "../../../managers/telemetry";
+import TelemetryManager, { TTesteableElement } from "../../../managers/telemetry";
 import { makeQuizSubmission } from "../QuizRenderer/QuizRenderer";
 import { RigoAI } from "../../Rigobot/AI";
 
@@ -66,6 +66,20 @@ export const Question = ({
   const hashRef = useRef<string>("");
   const startedAtRef = useRef<number>(0);
 
+  const register = async () => {
+    const hash = await asyncHashText(metadata.eval as string);
+    hashRef.current = hash;
+    const elem: TTesteableElement = {
+      type: "quiz",
+      hash: hash,
+      searchString: metadata.eval as string,
+    }
+    TelemetryManager.registerTesteableElement(Number(currentExercisePosition), elem);
+  };
+
+
+  const debouncedRegister = debounce(register, 2000);
+
   useEffect(() => {
     if (feedbackRef.current && mode !== "creator" && feedback) {
       feedbackRef.current.scrollIntoView({
@@ -78,17 +92,12 @@ export const Question = ({
     if (metadata.eval) {
       debouncedRegister();
     }
-  }, [metadata.eval]);
+    return () => {
+      debouncedRegister.cancel();
+    };
+  }, [metadata.eval, currentExercisePosition, wholeMD]);
 
-  const register = async () => {
-    const hash = await asyncHashText(metadata.eval as string);
-    hashRef.current = hash;
-    TelemetryManager.registerTesteableElement(Number(currentExercisePosition), {
-      type: "quiz",
-      hash: hash,
-    });
-  };
-  const debouncedRegister = debounce(register, 2000);
+
 
   const evaluateAnswer = async () => {
     if (!answer) {
@@ -132,7 +141,7 @@ export const Question = ({
             startedAtRef.current
           );
 
-          registerTelemetryEvent("quiz_submission", submission);
+
           if (result.exit_code === 0) {
             Notifier.confetti();
             reportEnrichDataLayer("quiz_success", {});
@@ -142,6 +151,7 @@ export const Question = ({
                 type: "quiz",
                 hash: hashRef.current,
                 is_completed: true,
+                searchString: metadata.eval as string,
               }
             );
             playEffect("success");
@@ -149,6 +159,8 @@ export const Question = ({
             playEffect("error");
             reportEnrichDataLayer("quiz_error", {});
           }
+
+          registerTelemetryEvent("quiz_submission", submission);
 
           setIsLoading(false);
           useConsumable("ai-compilation");
@@ -214,16 +226,15 @@ ${newExamples.join("\n")}
       <div ref={feedbackRef}>
         {feedback && (
           <div
-            className={`flex-y gap-small padding-medium rounded  ${
-              feedback.exit_code === 0 && "bg-soft-green text-dark-green"
-            } ${feedback.exit_code === 1 && "bg-soft-red text-dark-red"}`}
+            className={`flex-y gap-small padding-medium rounded  ${feedback.exit_code === 0 && "bg-soft-green text-dark-green"
+              } ${feedback.exit_code === 1 && "bg-soft-red text-dark-red"}`}
           >
             {feedback.exit_code > 0 && (
               <div className="d-flex gap-small align-center">
                 <SimpleButton
                   extraClass="text-red"
                   svg={svgs.closeIcon}
-                  action={() => {}}
+                  action={() => { }}
                 />
                 <h3 className="m-0 ">{t("yourAnswerNeedsImprovement")}</h3>
               </div>
@@ -281,9 +292,8 @@ const AddExampleButton = ({
   return (
     <>
       <SimpleButton
-        extraClass={`rounded padding-small ${
-          examples.length < 3 ? "bg-warning" : "border-gray"
-        }`}
+        extraClass={`rounded padding-small ${examples.length < 3 ? "bg-warning" : "border-gray"
+          }`}
         text={examples.length < 3 ? t("missingExamples") : t("editExamples")}
         svg={examples.length < 3 ? svgs.warning : svgs.edit}
         action={() => setIsOpen(!isOpen)}
@@ -411,9 +421,8 @@ const Suggestion = ({
   return (
     <div
       key={suggestion}
-      className={`rounded padding-small border-gray ${
-        accepted ? "bg-blue-opaque" : "bg-transparent"
-      }`}
+      className={`rounded padding-small border-gray ${accepted ? "bg-blue-opaque" : "bg-transparent"
+        }`}
     >
       <p>{suggestion}</p>
       <div className="d-flex gap-small justify-center ">

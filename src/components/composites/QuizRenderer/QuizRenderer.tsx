@@ -109,6 +109,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
         {
           type: "quiz",
           hash: quiz.current.hash,
+          searchString: quiz.current.renderedGroups[0] || "",
         }
       );
     }
@@ -171,6 +172,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
           type: "quiz",
           hash: quiz.current.hash,
           is_completed: true,
+          searchString: quiz.current.renderedGroups[0] || "",
         }
       );
       useConsumable("ai-compilation");
@@ -376,9 +378,8 @@ const QuizAnswer = ({
   return (
     <div
       ref={divRef}
-      className={`quiz-answer  ${
-        showResults && isSelected && isCorrect && "bg-soft-green "
-      } ${showResults && isSelected && !isCorrect && "bg-soft-red "}`}
+      className={`quiz-answer  ${showResults && isSelected && isCorrect && "bg-soft-green "
+        } ${showResults && isSelected && !isCorrect && "bg-soft-red "}`}
       onClick={() => {
         if (divRef.current) {
           onAnswer(divRef.current.textContent?.trim() || "");

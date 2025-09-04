@@ -440,7 +440,7 @@ export function calculateTestMetrics(
         1
       : step.tests.shift()?.started_at || step.completed_at || 1;
 
-  const resolution_time_seconds = ended_at - started_at;
+  const resolution_time_seconds = Number((ended_at - started_at)/1000);
 
   const n_ai_interactions = step.ai_interactions.filter(
     (a) => a.started_at >= started_at && a.ended_at <= ended_at

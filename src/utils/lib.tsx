@@ -247,17 +247,23 @@ export const getParamsObject = (): TPossibleParams => {
   return paramsObject;
 };
 
-export const debounce = (func: any, wait: any) => {
+export const debounce = (func: (...args: any[]) => void, wait: number) => {
   let timeout: any;
-  return function executedFunction(...args: any[]) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
+
+  function debounced(this: any, ...args: any[]) {
     clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
+    timeout = setTimeout(() => {
+      func.apply(this, args);
+    }, wait);
+  }
+
+  debounced.cancel = () => {
+    clearTimeout(timeout);
   };
+
+  return debounced;
 };
+
 
 export const removeSpecialCharacters = (inputString: string) => {
   return inputString.replace(/\x1B[@-_][0-?]*[ -/]*[@-~]/g, "");

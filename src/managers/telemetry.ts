@@ -158,8 +158,9 @@ export type TTestAttempt = {
 
 export type TTesteableElementType = "quiz" | "test";
 
-type TTesteableElement = {
+export type TTesteableElement = {
   hash: string;
+  searchString: string;
   is_completed?: boolean;
   type: TTesteableElementType;
   metrics?: TTesteableElementMetrics;
@@ -452,20 +453,28 @@ const TelemetryManager: ITelemetryManager = {
     stepPosition: number,
     testeableElement: TTesteableElement
   ) {
-    if (!this.current) return;
+    if (!this.current) {
+      console.log("No current telemetry to register testeable element", stepPosition, testeableElement);
+      return
+    };
+
+    console.log("Registering testeable element", stepPosition, testeableElement);
 
     // Chequea si el elemento ya existe en otro step
-    const existsInOtherStep = this.current.steps.some(
+    const existsInOtherStep = this.current.steps.findIndex(
       (step, idx) =>
         idx !== stepPosition &&
         step.testeable_elements?.some((e) => e.hash === testeableElement.hash)
     );
 
-    if (existsInOtherStep) {
-      return;
+    if (existsInOtherStep !== -1) {
+      console.log(`Testeable element already exists in at ${existsInOtherStep} step, moving on to current step`, stepPosition, testeableElement);
+      const otherStep = this.current.steps[existsInOtherStep];
+      // remove from other step
+      otherStep.testeable_elements = otherStep.testeable_elements?.filter((e) => e.hash !== testeableElement.hash);
+      this.current.steps[existsInOtherStep] = otherStep;
     }
 
-    // Asegura que la lista existe
     if (!this.current.steps[stepPosition]?.testeable_elements) {
       this.current.steps[stepPosition].testeable_elements = [];
     }
@@ -473,13 +482,9 @@ const TelemetryManager: ITelemetryManager = {
     const step = { ...this.current.steps[stepPosition] };
     let elements = [...(step.testeable_elements || [])];
 
-    // Busca si ya existe un elemento con el mismo hash en este step
     const prevElement = elements.find((e) => e.hash === testeableElement.hash);
 
-    // Elimina cualquier elemento existente con el mismo hash
     elements = elements.filter((e) => e.hash !== testeableElement.hash);
-
-    // Construye el nuevo elemento
     let newElement = prevElement
       ? { ...prevElement, ...testeableElement }
       : { ...testeableElement };
@@ -491,6 +496,7 @@ const TelemetryManager: ITelemetryManager = {
     elements.push(newElement);
 
     step.testeable_elements = elements;
+    console.log("step.testeable_elements", step.testeable_elements);
     this.current.steps[stepPosition] = step;
     this.save();
   },
@@ -570,6 +576,8 @@ const TelemetryManager: ITelemetryManager = {
         if (!hasPendingTasks && !step.completed_at && data.exit_code === 0) {
           step.completed_at = now;
           step.is_completed = true;
+        } else {
+          console.log("hasPendingTasks", hasPendingTasks);
         }
 
         this.current.steps[stepPosition] = step;
@@ -587,6 +595,7 @@ const TelemetryManager: ITelemetryManager = {
         if (!step.quiz_submissions) {
           step.quiz_submissions = [];
         }
+        console.log("quiz_submission", data);
 
         step.quiz_submissions.push(data);
 
@@ -595,6 +604,9 @@ const TelemetryManager: ITelemetryManager = {
         if (!hasPendingTasks && !step.completed_at) {
           step.completed_at = now;
           step.is_completed = true;
+        } else {
+          console.log("hasPendingTasks", hasPendingTasks);
+          console.log("step.testeable_elements", step.testeable_elements);
         }
 
         this.current.steps[stepPosition] = step;
