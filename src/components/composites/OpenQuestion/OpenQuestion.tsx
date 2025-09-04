@@ -95,7 +95,7 @@ export const Question = ({
     return () => {
       debouncedRegister.cancel();
     };
-  }, [metadata.eval, currentExercisePosition, wholeMD]);
+  }, [metadata.eval]);
 
 
 

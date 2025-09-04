@@ -3,7 +3,7 @@ import SimpleButton from "../../mockups/SimpleButton";
 import { AskForHint } from "../AskForHint/AskForHint";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { asyncHashText, playEffect } from "../../../utils/lib";
+import { asyncHashText, debounce, playEffect } from "../../../utils/lib";
 import useStore from "../../../utils/store";
 import { Notifier } from "../../../managers/Notifier";
 import { svgs } from "../../../assets/svgs";
@@ -56,6 +56,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
   const { t } = useTranslation();
   const [showResults, setShowResults] = useState<boolean>(false);
   const [readyToSubmit, setReadyToSubmit] = useState<boolean>(false);
+  const [quizRendered, setQuizRendered] = useState<boolean>(false);
 
   const {
     registerTelemetryEvent,
@@ -75,6 +76,8 @@ export const QuizRenderer = ({ children }: { children: any }) => {
     reportEnrichDataLayer: state.reportEnrichDataLayer,
   }));
 
+
+
   const liChildren = children.filter((child: any) => child.type === "li");
 
   const quiz = useRef<TQuiz>({
@@ -84,6 +87,30 @@ export const QuizRenderer = ({ children }: { children: any }) => {
     renderedGroups: [],
     started_at: 0,
   });
+
+  const register = async () => {
+    TelemetryManager.registerTesteableElement(
+      Number(currentExercisePosition),
+      {
+        type: "quiz",
+        hash: quiz.current.hash,
+        searchString: quiz.current.renderedGroups[0] || "",
+      }
+    );
+  };
+
+
+  const debouncedRegister = debounce(register, 2000);
+
+  useEffect(() => {
+    if (quiz.current.hash && quizRendered) {
+      debouncedRegister();
+    }
+    return () => {
+      debouncedRegister.cancel();
+    };
+  }, [quizRendered]);
+
 
   const onGroupReady = (group: TQuizGroup) => {
     if (quiz.current.started_at === 0) quiz.current.started_at = Date.now();
@@ -96,22 +123,13 @@ export const QuizRenderer = ({ children }: { children: any }) => {
   };
 
   const onGroupRendered = async (title: string) => {
-    // console.log("onGroupRendered", title);
     quiz.current.renderedGroups.push(title);
-
+    
     if (quiz.current.renderedGroups.length === liChildren.length) {
       quiz.current.hash = await asyncHashText(
         quiz.current.renderedGroups.join(" ")
       );
-
-      TelemetryManager.registerTesteableElement(
-        Number(currentExercisePosition),
-        {
-          type: "quiz",
-          hash: quiz.current.hash,
-          searchString: quiz.current.renderedGroups[0] || "",
-        }
-      );
+      setQuizRendered(true);
     }
   };
 
