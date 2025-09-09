@@ -371,7 +371,7 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
     </div>
   );
 };
-const ExportModal: FC<{ onClose: () => void }> = ({ onClose }) => {
+export const ExportModal: FC<{ onClose: () => void }> = ({ onClose }) => {
   const { t } = useTranslation();
   const courseSlug = useStore((state) => state.configObject.config.slug);
   const language = useStore((state) => state.language);
@@ -485,7 +485,7 @@ const ExportModal: FC<{ onClose: () => void }> = ({ onClose }) => {
               <div className={styles.exportOptionCard}>
                 <div className="flex-x align-center gap-medium">
                   <div className={`${styles.exportIcon} ${styles.epubIcon}`}>
-                    📖
+                    {svgs.epubExport}
                   </div>
                   <div className="flex-y gap-small flex-1">
                     <h3 className="text-blue m-0 text-medium">{t("export-to-epub")}</h3>
@@ -503,7 +503,7 @@ const ExportModal: FC<{ onClose: () => void }> = ({ onClose }) => {
               <div className={styles.exportOptionCard}>
                 <div className="flex-x align-center gap-medium">
                   <div className={`${styles.exportIcon} ${styles.scormIcon}`}>
-                    🎓
+                    {svgs.scormExport}
                   </div>
                   <div className="flex-y gap-small flex-1">
                     <h3 className="text-blue m-0 text-medium">{t("export-to-scorm")}</h3>
@@ -534,15 +534,13 @@ const ExportModal: FC<{ onClose: () => void }> = ({ onClose }) => {
             {/* Modal Header */}
             <div className="text-center">
               <h2 className="text-blue m-0 text-big">{t("configure-epub-metadata")}</h2>
-              <p className="text-gray m-0 margin-top-small">{t("epub-metadata")}</p>
             </div>
 
-            {/* EPUB Metadata Form */}
             <div className={styles.metadataForm}>
-              <h3>{t("epub-metadata")}</h3>
+
 
               <div className={styles.formGroup}>
-                <label className={styles.formLabel}>{t("creator")}</label>
+                <label className={styles.formLabel}>{t("author")}</label>j
                 <input
                   type="text"
                   className={styles.formInput}
@@ -556,6 +554,7 @@ const ExportModal: FC<{ onClose: () => void }> = ({ onClose }) => {
                 <label className={styles.formLabel}>{t("publisher")}</label>
                 <input
                   type="text"
+                  readOnly
                   className={styles.formInput}
                   placeholder={t("publisher-placeholder")}
                   value={epubMetadata.publisher}
@@ -585,18 +584,18 @@ const ExportModal: FC<{ onClose: () => void }> = ({ onClose }) => {
                 />
               </div>
 
-              <div className={styles.formActions}>
+              <div className="flex-x gap-small justify-center align-center mt-30px">
                 <button
-                  className={styles.cancelButton}
+                  className="bg-1 text-blue-rigo  rounded border-gray  padding-medium bg-white"
                   onClick={handleEpubFormCancel}
                 >
                   {t("cancel")}
                 </button>
                 <button
-                  className={styles.exportButton}
+                  className="bg-blue-rigo text-white rounded padding-medium"
                   onClick={handleEpubFormSubmit}
                 >
-                  {t("export-epub")}
+                  {t("export-epub")} 📖
                 </button>
               </div>
             </div>
@@ -657,9 +656,7 @@ const PublishButton = () => {
               setDropdownOpen(false);
             }}
           />
-          <ExportModal onClose={() => {
-            // setDropdownOpen(false);
-          }} />
+          {/* <ExportModal onClose={() => {}} /> */}
         </div>
       )}
     </div>

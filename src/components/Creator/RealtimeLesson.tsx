@@ -88,20 +88,20 @@ export default function RealtimeLesson() {
       {/* {lesson && <h3>{lesson.title}</h3>} */}
 
 
-      {previousLesson && previousLesson.status === "DONE" && (
-        <ContinueGenerationButton
-          status={lesson?.status || "PENDING"}
-          title={lesson?.title || ""}
-          description={lesson?.description || ""}
-          onGenerate={() => {
-            getSyllabus();
-            setUpdates((prev) => [
-              ...prev,
-              "🚀 " + t("lesson-generation-started"),
-            ]);
-          }}
-        />
-      )}
+      <ContinueGenerationButton
+        status={lesson?.status || "PENDING"}
+        prevLessonStatus={previousLesson?.status || "PENDING"}
+        title={lesson?.title || ""}
+        description={lesson?.description || ""}
+        onGenerate={() => {
+          getSyllabus();
+          setUpdates((prev) => [
+            ...prev,
+            "🚀 " + t("lesson-generation-started"),
+          ]);
+        }}
+      />
+
 
       {updates.length > 0 && (
         <div
@@ -127,11 +127,13 @@ const ContinueGenerationButton = ({
   description,
   status,
   title,
+  prevLessonStatus,
 }: {
   onGenerate: () => void;
   description: string;
   status: "PENDING" | "GENERATING" | "DONE" | "ERROR";
   title: string;
+  prevLessonStatus: "PENDING" | "GENERATING" | "DONE" | "ERROR";
 }) => {
   const { t } = useTranslation();
 
@@ -239,7 +241,19 @@ const ContinueGenerationButton = ({
         })}
       </div>
 
-      {isOpen ? (
+      {prevLessonStatus === "DONE" && !isOpen && (
+          <div className="flex-x gap-small justify-end wrap-wrap">
+          <ContinueWithOptions handleContinue={handleContinue} />
+          <SimpleButton
+            svg={"🤔"}
+            extraClass=" border-blue rounded padding-small text-blue flex-x align-center gap-small svg-blue"
+            action={() => setIsOpen(true)}
+            text={t("IHaveSomeFeedback")}
+          />
+        </div>
+      )}
+
+      {isOpen && (
         <div className="">
           <UserTextarea
             defaultValue={""}
@@ -248,16 +262,6 @@ const ContinueGenerationButton = ({
               userMessageRef.current = value;
             }}
             placeholder={t("give-feedback-to-rigobot")}
-          />
-        </div>
-      ) : (
-        <div className="flex-x gap-small justify-end wrap-wrap">
-          <ContinueWithOptions handleContinue={handleContinue} />
-          <SimpleButton
-            svg={"🤔"}
-            extraClass=" border-blue rounded padding-small text-blue flex-x align-center gap-small svg-blue"
-            action={() => setIsOpen(true)}
-            text={t("IHaveSomeFeedback")}
           />
         </div>
       )}

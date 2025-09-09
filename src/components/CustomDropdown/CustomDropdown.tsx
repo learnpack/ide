@@ -167,7 +167,7 @@ const CustomDropdown: FC<CustomDropdownProps> = ({
   };
 
   return (
-    <div ref={containerRef} className={`${styles.customDropdown} pos-relative z-index-2 ${className}`}>
+    <div ref={containerRef} className={`${styles.customDropdown} pos-relative ${className}`}>
       <div onClick={handleToggle} className={styles.dropdownTrigger}>
         {trigger}
       </div>

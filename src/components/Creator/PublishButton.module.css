@@ -1,5 +1,3 @@
-
-
 .button {
   background-color: var(--color-blue-rigo);
   color: #fff;
@@ -104,15 +102,11 @@
 
 /* EPUB Metadata Form Styles */
 .metadataForm {
-  background: #ffffff;
   border-radius: 12px;
-  padding: 1.5rem;
-  margin-top: 1rem;
-  border: 2px solid #e1e8f0;
 }
 
 .metadataForm h3 {
-  color: #1e40af;
+  color: var(--color-blue-rigo);
   margin: 0 0 1rem 0;
   font-size: 1.1rem;
   font-weight: 600;

@@ -1028,7 +1028,7 @@ The user's set up the application in "${language}" language, give your feedback 
       exercises,
       currentExercisePosition,
       fetchSingleExerciseInfo,
-      configObject,
+      configObject
     } = get();
 
     // @ts-ignore
