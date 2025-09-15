@@ -2,6 +2,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { compileHTML, compileReactHTML } from "../utils/compileHTML";
 import {
+  DEV_URL,
   disconnected,
   getHost,
   getSlugFromPath,
@@ -591,7 +592,7 @@ export const fixLesson = async (
   const slug = getSlugFromPath();
   const webhookUrl = `${
     DEV_MODE
-      ? "https://9cw5zmww-3000.use2.devtunnels.ms"
+      ? DEV_URL
       : window.location.origin
   }/webhooks/${slug}/${exerciseSlug}/${language}/update-readme/${randomId}`;
   const res = await axios.post(

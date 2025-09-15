@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import useStore from "../../utils/store";
 import CreatorSocket from "../../managers/creatorSocket";
-import { DEV_MODE, generateImage } from "../../utils/lib";
+import { DEV_MODE, DEV_URL, generateImage } from "../../utils/lib";
 // import { Loader } from "../composites/Loader/Loader";
 import { svgs } from "../../assets/svgs";
 import { useTranslation } from "react-i18next";
@@ -120,6 +120,7 @@ export default function RealtimeImage({
   >("PENDING");
   const [showFeedbackInput, setShowFeedbackInput] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [showLongWaitMessage, setShowLongWaitMessage] = useState(false);
   const [messages, setMessages] = useState<
     {
       role: "user" | "assistant";
@@ -157,22 +158,34 @@ export default function RealtimeImage({
     };
   }, []);
 
+  useEffect(() => {
+    console.log("status", status);
+    if (status === "GENERATING") {
+      const timer = setTimeout(() => {
+        setShowLongWaitMessage(true);
+      }, 20000);
+
+      return () => clearTimeout(timer);
+    } else {
+      setShowLongWaitMessage(false);
+    }
+  }, [status]);
+
+  useEffect(() => {
+    const isGenerating = alt.startsWith("GENERATING");
+    if (isGenerating) {
+      setStatus("GENERATING");
+    }
+  }, [alt]);
+
   const handleGeneration = async () => {
-    // await generateImageLearnPack(
-    //   config?.config?.slug,
-    //   {
-    //     url: imageId,
-    //     alt: innerAlt,
-    //   },
-    //   rigoToken
-    // );
     const randomID = Math.random().toString(36).substring(2, 15);
     await generateImage(rigoToken, {
       prompt: innerAlt,
       context: `The image to generate is part of a lesson in a tutorial, this is the content of the lesson: ${currentContent}`,
       callbackUrl: `${
         DEV_MODE
-          ? "https://9cw5zmww-3000.use2.devtunnels.ms"
+          ? DEV_URL
           : window.location.origin
       }/webhooks/${config.config?.slug}/images/${randomID}`,
     });
@@ -222,20 +235,18 @@ export default function RealtimeImage({
     setFeedbackMessage("");
   };
 
-  const isGenerating = alt.startsWith("GENERATING");
-
   return (
     <div className="flex-y padding-medium bg-2 gap-small rounded">
-      {(status === "GENERATING" || isGenerating) && (
+      {(status === "GENERATING") && (
         <Loader
           size="lg"
-          text={t("imageGenerationInProcess")}
+          text={showLongWaitMessage ? "Rigo is generating your image, this may take some minutes..." : t("imageGenerationInProcess")}
           svg={svgs.rigoSvg}
         />
       )}
 
       {status === "ERROR" ||
-        (status === "PENDING" && !isGenerating && (
+        (status === "PENDING" && (
           <>
             <h3 className="text-center text-blue m-0">
               <div className="text-center">{svgs.imagePlaceholder}</div>

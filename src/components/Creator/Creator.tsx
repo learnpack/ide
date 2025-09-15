@@ -11,6 +11,7 @@ import { AutoResizeTextarea } from "../composites/AutoResizeTextarea/AutoResizeT
 import toast from "react-hot-toast";
 import {
   DEV_MODE,
+  DEV_URL,
   generateImage,
   slugify,
   uploadBlobToBucket,
@@ -682,7 +683,7 @@ const ImageGenerator = ({
           context: `The image to generate is part of a lesson in a tutorial, this is the content of the lesson: ${currentContent}`,
           callbackUrl: `${
             DEV_MODE
-              ? "https://9cw5zmww-3000.use2.devtunnels.ms"
+              ? DEV_URL
               : window.location.origin
           }/webhooks/${config.config?.slug}/images/${randomID}`,
         });
