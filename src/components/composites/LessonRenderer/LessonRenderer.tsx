@@ -129,6 +129,7 @@ const LessonInspector = () => {
 
 export const LessonRenderer = memo(() => {
   const currentContent = useStore((s) => s.currentContent);
+  const editingContent = useStore((s) => s.editingContent);
   const agent = useStore((s) => s.agent);
 
   const environment = useStore((s) => s.environment);
@@ -138,7 +139,7 @@ export const LessonRenderer = memo(() => {
       <LessonInspector />
       <AddVideoButton />
 
-      <Markdowner markdown={currentContent} allowCreate={true} />
+      <Markdowner markdown={editingContent || currentContent} allowCreate={true} />
 
       {/* <TestLatex /> */}
       <ContinueButton />

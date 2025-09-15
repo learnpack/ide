@@ -4,11 +4,11 @@ import { useTranslation } from "react-i18next";
 import useStore from "../../utils/store";
 import { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
-import { ChatTab } from "../Rigobot/Rigobot";
 import Chat from "../sections/modals/Chat";
 import Sidebar from "../sections/sidebar/Sidebar";
 import { LessonRenderer } from "../composites/LessonRenderer/LessonRenderer";
 import ProgressBar from "../composites/ProgressBar/ProgressBar";
+import { AgentTab } from "../Rigobot/Agent";
 
 const CourseProgressBar = () => {
   const exercises = useStore((s) => s.exercises);
@@ -222,7 +222,7 @@ export const Container = () => {
             )}
         </div>
 
-        {isRigoOpened && window.innerWidth > 768 && <ChatTab />}
+        {isRigoOpened && window.innerWidth > 768 && <AgentTab />}
         {showSidebar && window.innerWidth > 768 && <Sidebar />}
       </main>
     </>

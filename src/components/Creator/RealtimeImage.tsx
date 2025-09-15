@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import useStore from "../../utils/store";
 import CreatorSocket from "../../managers/creatorSocket";
-import { DEV_MODE } from "../../utils/lib";
+import { DEV_MODE, generateImage } from "../../utils/lib";
 // import { Loader } from "../composites/Loader/Loader";
 import { svgs } from "../../assets/svgs";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 import SimpleButton from "../mockups/SimpleButton";
 import { Markdowner } from "../composites/Markdowner/Markdowner";
-import { generateImageLearnPack } from "../../utils/creator";
 import { Loader } from "../composites/Loader/Loader";
 import { RigoAI } from "../Rigobot/AI";
+import { makeReplacement } from "./Creator";
 
 const socketClient = new CreatorSocket(DEV_MODE ? "http://localhost:3000" : "");
 type TImageData = {
@@ -99,17 +99,21 @@ export default function RealtimeImage({
   onError,
   alt,
   allowCreate,
+  node,
 }: {
   imageId: string;
   onError: () => void;
   alt: string;
   allowCreate: boolean;
+  node: any;
 }) {
   const { t } = useTranslation();
   const config = useStore((state) => state.configObject);
   const rigoToken = useStore((state) => state.token);
   const fetchReadme = useStore((state) => state.fetchReadme);
   const useConsumable = useStore((state) => state.useConsumable);
+  const currentContent = useStore((state) => state.currentContent);
+  const replaceInReadme = useStore((state) => state.replaceInReadme);
   const [innerAlt, setInnerAlt] = useState(alt);
   const [status, setStatus] = useState<
     "PENDING" | "GENERATING" | "ERROR" | "SUCCESS"
@@ -154,14 +158,32 @@ export default function RealtimeImage({
   }, []);
 
   const handleGeneration = async () => {
-    await generateImageLearnPack(
-      config?.config?.slug,
-      {
-        url: imageId,
-        alt: innerAlt,
-      },
-      rigoToken
-    );
+    // await generateImageLearnPack(
+    //   config?.config?.slug,
+    //   {
+    //     url: imageId,
+    //     alt: innerAlt,
+    //   },
+    //   rigoToken
+    // );
+    const randomID = Math.random().toString(36).substring(2, 15);
+    await generateImage(rigoToken, {
+      prompt: innerAlt,
+      context: `The image to generate is part of a lesson in a tutorial, this is the content of the lesson: ${currentContent}`,
+      callbackUrl: `${
+        DEV_MODE
+          ? "https://9cw5zmww-3000.use2.devtunnels.ms"
+          : window.location.origin
+      }/webhooks/${config.config?.slug}/images/${randomID}`,
+    });
+    const replacement = makeReplacement(randomID, innerAlt);
+    if (node?.position?.start && node?.position?.end) {
+      await replaceInReadme(
+        replacement,
+        node?.position?.start,
+        node?.position?.end
+      );
+    }
     setStatus("GENERATING");
   };
 

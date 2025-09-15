@@ -23,6 +23,7 @@ import { DEV_MODE } from "../../../utils/lib";
 import RealtimeImage from "../../Creator/RealtimeImage";
 import { RigoAI } from "../../Rigobot/AI";
 import { FetchManager } from "../../../managers/fetchManager";
+import { DIFF_SEPARATOR } from "../../Rigobot/Agent";
 const isRigoQuestion = (href: string) => {
   return href.startsWith("https://4geeks.com/ask?query=");
 };
@@ -356,6 +357,7 @@ const CustomImage = ({
               allowCreate={allowCreate}
               imageId={src.split("/").pop() || ""}
               alt={alt || ""}
+              node={node}
             />
           ) : (
             <img
@@ -376,6 +378,7 @@ const CustomImage = ({
             allowCreate={allowCreate || false}
             onError={handleGenerationError}
             imageId={src.split("/").pop() || ""}
+            node={node}
           />
         ) : (
           <img
@@ -457,6 +460,10 @@ const CustomCodeBlock = ({
   }
   if (language === "mermaid") {
     return <MermaidRenderer code={code} />;
+  }
+
+  if (language === "changesDiff") {
+    return <ChangesDiffRenderer node={node} code={code} />;
   }
 
   if (language === "loader") {
@@ -543,6 +550,56 @@ const CustomCodeBlock = ({
           {executionResult}
         </div>
       )}
+    </div>
+  );
+};
+
+const ChangesDiffRenderer = ({ code, node }: { code: string, node: any }) => {
+  const [original, newContent] = code.split(DIFF_SEPARATOR);
+  const replaceInReadme = useStore((state) => state.replaceInReadme);
+  const setEditingContent = useStore((state) => state.setEditingContent);
+  const { t } = useTranslation();
+
+  const acceptChanges = async () => {
+    console.log("acceptChanges", newContent, node.position.start, node.position.end);
+    await replaceInReadme(newContent, node.position.start, node.position.end);
+    toast.success(t("changesAccepted"));
+    
+    setEditingContent("");
+  };
+
+  const rejectChanges = async () => {
+    console.log("rejectChanges", original, node.position.start, node.position.end);
+    await replaceInReadme(original, node.position.start, node.position.end);
+    toast.success(t("changesRejected"));
+  };
+
+  return (
+    <div className="flex-y gap-medium">
+      <div className="flex-y">
+        <div className="bg-soft-red padding-small">
+            <Markdowner markdown={original} allowCreate={false} />
+        </div>
+        <div className="bg-soft-green padding-small">
+            <Markdowner markdown={newContent} allowCreate={false} />
+        </div>
+      </div>
+        <div className="d-flex gap-small justify-center">
+          <SimpleButton
+            title={t("acceptChanges")}
+            svg={svgs.iconCheck}
+            extraClass="bg-soft-green button "
+            action={acceptChanges}
+            text={t("acceptChanges")}
+          />  
+          <SimpleButton
+            title={t("rejectChanges")}
+            svg={svgs.iconClose}
+            extraClass="bg-soft-red button"
+            action={rejectChanges}
+            text={t("rejectChanges")}
+          />
+        </div>
     </div>
   );
 };

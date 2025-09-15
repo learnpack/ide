@@ -119,6 +119,7 @@ type TTranslations = {
   testButtonRunning: string;
 };
 
+
 type TSessionActionsOpts = {
   action: "new" | "continue";
 };
@@ -264,6 +265,7 @@ export interface IStore {
   isIframe: boolean;
   isRigoOpened: boolean;
   theme: string;
+  editingContent: string;
   authentication: {
     mandatory: boolean;
   };
@@ -290,6 +292,8 @@ export interface IStore {
   setShowSidebar: (show: boolean) => void;
   setRigoContext: (context: Partial<TRigoContext>) => void;
   toggleRigo: (opts?: ToggleRigoOpts) => void;
+  setEditingContent: (content: string) => void;
+  resetEditingContent: () => void;
   setTerminalShouldShow: (shouldShow: boolean) => void;
   start: () => void;
   handleEnvironmentChange: (event: any) => void;

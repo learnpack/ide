@@ -1,5 +1,5 @@
 import useStore from "../../../utils/store";
-import { ChatTab } from "../../Rigobot/Rigobot";
+import { AgentTab } from "../../Rigobot/Agent";
 
 export default function Chat() {
   const { isRigoOpened } = useStore((state) => ({
@@ -10,7 +10,7 @@ export default function Chat() {
     <>
       {isRigoOpened && (
         <div className="chat-modal">
-          <ChatTab />
+          <AgentTab />
         </div>
       )}
     </>

@@ -122,6 +122,7 @@ const useStore = create<IStore>((set, get) => ({
   sessionKey: "",
   lastState: "",
   isRigoOpened: false,
+  editingContent: "",
   editorTabs: [],
   feedbackbuttonProps: {
     text: "execute-my-code",
@@ -804,6 +805,7 @@ The user's set up the application in "${language}" language, give your feedback 
       reportEnrichDataLayer,
       getOrCreateActiveSession,
       getUserConsumables,
+      initRigoAI,
     } = get();
 
     try {
@@ -833,6 +835,7 @@ The user's set up the application in "${language}" language, give your feedback 
         agent: "cloud",
       });
       getUserConsumables();
+      initRigoAI();
     } catch (error) {
       if (error instanceof MissingRigobotAccountError) {
         setOpenedModals({ login: false, rigobotInvite: true });
@@ -1698,8 +1701,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
       console.log(
         "User to init telemetry",
-        user.first_name + " " + user.last_name,
-        user.email
+        user.first_name + " " + user.last_name
       );
 
       const params = checkParams({ justReturn: true });
@@ -1707,8 +1709,8 @@ The user's set up the application in "${language}" language, give your feedback 
       TelemetryManager.start(agent, steps, tutorialSlug, STORAGE_KEY, {
         token: bc_token,
         user_id: String(user.id),
-        email: user.email,
         fullname: user.first_name + " " + user.last_name,
+        email: user.email,
         rigo_token: token,
         cohort_id: params.cohort_id || "",
         academy_id: params.academy_id || "",
@@ -2041,6 +2043,13 @@ The user's set up the application in "${language}" language, give your feedback 
       context:
         "You are a helpful teacher assistant. Please provide your responses always in MARKDOWN. ",
     });
+  },
+  setEditingContent: (content) => {
+    set({ editingContent: content });
+  },
+  // TODO: I think we should delete this function
+  resetEditingContent: () => {
+    set((state) => ({ editingContent: state.currentContent }));
   },
 }));
 

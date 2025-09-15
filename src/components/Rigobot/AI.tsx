@@ -6,6 +6,30 @@ export type TRigoMessage = {
   type: "assistant" | "user";
 };
 
+export type TTool = {
+  schema: {
+    function: {
+      name: string;
+      description: string;
+      parameters: any;
+    };
+  };
+  function: (args: any) => Promise<any>;
+};
+
+export type TAgentLoop = {
+  task: string;
+  context: string;
+  tools: TTool[];
+  onMessage?: (message: string) => void;
+  onComplete?: (success: boolean, data: any) => void;
+};
+
+export type TAgentJob = {
+  stop: () => void;
+  run: () => void;
+};
+
 export const RigoAI = {
   started: false,
   load: () => {
@@ -14,7 +38,7 @@ export const RigoAI = {
       return;
     }
     const rigoAI = document.createElement("script");
-    rigoAI.src = "https://unpkg.com/rigo-ai@0.1.12/dist/main.js";
+    rigoAI.src = "https://unpkg.com/rigo-ai@0.1.14/dist/main.js";
     rigoAI.type = "text/javascript";
     rigoAI.async = true;
     document.head.appendChild(rigoAI);
@@ -138,5 +162,39 @@ export const RigoAI = {
     if (job) {
       job.run();
     }
+  },
+
+  agentLoop: function ({
+    task,
+    context,
+    tools,
+    onMessage,
+    onComplete,
+  }: TAgentLoop): TAgentJob {
+    // @ts-ignore
+    if (!window.rigo) {
+      console.error("RIGOBOT AI NOT LOADED");
+      throw new Error("RigoAI not loaded");
+    }
+
+    // @ts-ignore
+    return window.rigo.agentLoop({
+      task,
+      context,
+      tools,
+      onMessage,
+      onComplete,
+    });
+  },
+
+  convertTool: function (func: any, name: string, description: string, parameters: any): TTool {
+    // @ts-ignore
+    if (!window.rigo) {
+      console.error("RIGOBOT AI NOT LOADED");
+      throw new Error("RigoAI not loaded");
+    }
+
+    // @ts-ignore
+    return window.rigo.convertTool(func, name, description, parameters);
   },
 };

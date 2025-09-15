@@ -651,7 +651,7 @@ const ImageUploader = ({
   );
 };
 
-const makeReplacement = (imgID: string, alt: string) => {
+export const makeReplacement = (imgID: string, alt: string) => {
   return `![GENERATING: ${alt}](/.learn/assets/${imgID})`;
 };
 

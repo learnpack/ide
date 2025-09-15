@@ -248,9 +248,15 @@ export const FetchManager = {
       },
       creatorWeb: async () => {
         const exerciseSlug = getSlugFromPath();
-        const respose = await fetch(`/steps/${slug}?slug=${exerciseSlug}`);
-        const exercise = await respose.json();
-        return exercise;
+        const url = `${FetchManager.HOST}/exercise/${slug}/file/${filename}?slug=${exerciseSlug}`;
+        const res = await fetch(url, {
+          method: "PUT",
+          body: content,
+        });
+        if (!res.ok) {
+          return false;
+        }
+        return true;
       },
     };
 
@@ -766,6 +772,91 @@ export const FetchManager = {
       "TRANSLATING EXERCISES in ENVIRONMENT",
       FetchManager.ENVIRONMENT
     );
+    return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
+  },
+
+  getMemoryBank: async (rigoToken: string) => {
+    const methods: TMethods = {
+      localhost: async () => {
+        console.log("GETTING MEMORY BANK IN LOCALHOST: NOT IMPLEMENTED");
+        return { content: "" };
+      },
+      scorm: async () => {
+        console.log("GETTING MEMORY BANK IN SCORM: NOT IMPLEMENTED");
+        return { content: "" };
+      },
+      localStorage: async () => {
+        console.log("GETTING MEMORY BANK IN LOCALSTORAGE: NOT IMPLEMENTED");
+        return { content: "" };
+      },
+      creatorWeb: async () => {
+        try {
+          const courseSlug = getSlugFromPath();
+          const url = `${FetchManager.HOST}/memory-bank/${courseSlug}`;
+          const res = await fetch(url, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "x-rigo-token": rigoToken,
+            },
+          });
+          
+          if (!res.ok) {
+            console.error("Error fetching memory bank:", res.statusText);
+            return { content: "" };
+          }
+          
+          const json = await res.json();
+          return json;
+        } catch (e) {
+          console.error(e, "error getting memory bank");
+          return { content: "" };
+        }
+      },
+    };
+    return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
+  },
+
+  saveMemoryBank: async (content: string, rigoToken: string) => {
+    const methods: TMethods = {
+      localhost: async () => {
+        console.log("SAVING MEMORY BANK IN LOCALHOST: NOT IMPLEMENTED");
+        return { success: false };
+      },
+      scorm: async () => {
+        console.log("SAVING MEMORY BANK IN SCORM: NOT IMPLEMENTED");
+        return { success: false };
+      },
+      localStorage: async () => {
+        console.log("SAVING MEMORY BANK IN LOCALSTORAGE: NOT IMPLEMENTED");
+        return { success: false };
+      },
+      creatorWeb: async () => {
+        try {
+          const courseSlug = getSlugFromPath();
+          const url = `${FetchManager.HOST}/memory-bank/${courseSlug}`;
+          const res = await fetch(url, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "x-rigo-token": rigoToken,
+            },
+            body: JSON.stringify({ content }),
+          });
+          
+          if (!res.ok) {
+            console.error("Error saving memory bank:", res.statusText);
+            return { success: false };
+          }
+          
+          const json = await res.json();
+          return { success: true, message: json.message };
+        } catch (e) {
+          console.error(e, "error saving memory bank");
+          return { success: false };
+        }
+      },
+    };
     return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
   },
 };
