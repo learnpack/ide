@@ -1828,9 +1828,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
     console.table({ ai_compilation, ai_conversation_message, ai_generation });
 
-    const isCreator =
-      (ai_generation > 0 || ai_generation === -1) &&
-      environment !== "localStorage";
+    const isCreator = environment === "creatorWeb";
 
     set({ isCreator });
 
