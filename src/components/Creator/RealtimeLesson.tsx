@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import useStore from "../../utils/store";
 import CreatorSocket from "../../managers/creatorSocket";
 import ProgressBar from "../composites/ProgressBar/ProgressBar";
@@ -8,10 +8,8 @@ import SimpleButton from "../mockups/SimpleButton";
 import { continueGenerating } from "../../utils/creator";
 import toast from "react-hot-toast";
 import "./RealtimeLesson.css";
-import { MessageRenderer, UserTextarea } from "./RealtimeImage";
 import { svgs } from "../../assets/svgs";
 import { Lesson } from "../../utils/storeTypes";
-import { RigoAI } from "../Rigobot/AI";
 import CustomDropdown from "../CustomDropdown";
 const socketClient = new CreatorSocket(DEV_MODE ? "http://localhost:3000" : "");
 
@@ -82,6 +80,7 @@ export default function RealtimeLesson() {
 
   }, [syllabus, currentExercisePosition]);
 
+  
 
   return (
     <div className="flex-y gap-big padding-big lesson-loader">
@@ -117,10 +116,6 @@ export default function RealtimeLesson() {
   );
 }
 
-type Message = {
-  type: "user" | "assistant";
-  text: string;
-};
 
 const ContinueGenerationButton = ({
   onGenerate,
@@ -142,62 +137,22 @@ const ContinueGenerationButton = ({
   );
   const token = useStore((state) => state.token);
   const config = useStore((state) => state.configObject);
-  const useConsumable = useStore((state) => state.useConsumable);
-  const userMessageRef = useRef<string>("");
-
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
 
   const handleContinue = async (mode: "next-three" | "continue-with-all" = "next-three") => {
     try {
-      const feedback = messages
-        .map((msg) => `${msg.type}: ${msg.text}`)
-        .join("\n");
-
       await continueGenerating(
         config.config.slug,
         Number(currentExercisePosition),
-        feedback,
+        "",
         mode,
         token
       );
       toast.success(t("lesson-generation-started"));
       onGenerate();
-      setIsOpen(false);
     } catch (error) {
       console.log("error continue lesson", error);
       toast.error(t("error-generating-lesson"));
     }
-  };
-
-  const handleAddUserMessage = () => {
-    const value = userMessageRef.current || "";
-    setMessages((prev) => [
-      ...prev,
-      { type: "user", text: value },
-    ]);
-    userMessageRef.current = "";
-
-    RigoAI.useTemplate({
-      slug: "pending-lesson-interaction",
-      inputs: {
-        current: description,
-        context: messages.map((msg) => `${msg.type}: ${msg.text}`).join("\n"),
-      },
-      onComplete: (success, data) => {
-        if (success) {
-          setMessages((prev) => [
-            ...prev,
-            { type: "assistant", text: data.data.parsed.aiMessage || "" },
-          ]);
-          useConsumable("ai-generation");
-        } else {
-          console.log("error pending lesson interaction", data);
-          toast.error(t("error-generating-lesson"));
-        }
-      },
-    });
-    setIsOpen(false);
   };
 
   if (status === "GENERATING") {
@@ -220,48 +175,26 @@ const ContinueGenerationButton = ({
     <>
       <div className="flex-y gap-small">
         <BigRigoMessage svg={svgs.happyRigo} message={t("thisStepWillBeAbout") + description} />
-        {messages.map((message, index) => {
-          if (message.type === "assistant") {
-            return (
-              <BigRigoMessage
-                svg={svgs.happyRigo}
-                message={message.text}
-                key={index}
-              />
-            )
-          } else {
-            return (
-              <MessageRenderer
-                role={message.type}
-                message={message.text}
-                key={index}
-              />
-            )
-          }
-        })}
       </div>
 
-      {prevLessonStatus === "DONE" && !isOpen && (
+      {prevLessonStatus === "DONE" && (
           <div className="flex-x gap-small justify-end wrap-wrap">
           <ContinueWithOptions handleContinue={handleContinue} />
           <SimpleButton
             svg={"🤔"}
             extraClass=" border-blue rounded padding-small text-blue flex-x align-center gap-small svg-blue"
-            action={() => setIsOpen(true)}
-            text={t("IHaveSomeFeedback")}
-          />
-        </div>
-      )}
-
-      {isOpen && (
-        <div className="">
-          <UserTextarea
-            defaultValue={""}
-            onSubmit={handleAddUserMessage}
-            onChange={(value) => {
-              userMessageRef.current = value;
+            action={() => {
+              // Open agent with lesson modification context
+              const { toggleRigo, setRigoContext } = useStore.getState();
+              setRigoContext({
+                context: `Current lesson: ${title}\nDescription: ${description}\nStatus: ${status}`,
+                userMessage: `I want to modify the content of this lesson: "${title}". ${description}`,
+                performTests: false,
+                allowedFunctions: ["continueGeneration"],
+              });
+              toggleRigo({ ensure: "open" });
             }}
-            placeholder={t("give-feedback-to-rigobot")}
+            text={t("IHaveSomeFeedback")}
           />
         </div>
       )}

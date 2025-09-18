@@ -630,7 +630,6 @@ export const FetchManager = {
     ) {
       LocalStorage.set("session", {
         token: breathecodeToken,
-        email: loggedFormat.user.email,
         user_id: loggedFormat.user_id,
         rigobot: { ...loggedFormat.rigobot },
         user: { ...loggedFormat.user },
@@ -952,7 +951,17 @@ const loginLocalStorage = async (loginInfo: any) => {
   const user = await validateUser(json.token);
   const returns = { ...json, rigobot: { ...rigoJson }, user };
 
-  LocalStorage.set("session", returns);
+  // Store session without email for security
+  const sessionData = {
+    ...returns,
+    user: {
+      ...returns.user,
+      email: undefined // Remove email from stored session
+    }
+  };
+  delete sessionData.user.email;
+
+  LocalStorage.set("session", sessionData);
 
   return returns;
 };

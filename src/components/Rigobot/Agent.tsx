@@ -10,7 +10,7 @@ import { formatInitialMessage, slugToTitle } from "./utils";
 import toast from "react-hot-toast";
 import { validateRigobotToken, FetchManager } from "../../managers/fetchManager";
 import { TAIInteraction } from "../../managers/telemetry";
-import { RigoAI, TAgentJob } from "./AI";
+import { RigoAI, TAgentJob, TTool } from "./AI";
 import { ConversationManager, type Message } from "../../managers/conversationManager";
 
 export const DIFF_SEPARATOR = "---SEPARATOR---";
@@ -37,6 +37,8 @@ export const AgentTab = () => {
     token,
     isRigoOpened,
     toggleRigo,
+    configObject,
+    getSyllabus,
     user,
     getCurrentExercise,
     chatInitialMessage,
@@ -50,6 +52,7 @@ export const AgentTab = () => {
     environment,
     setEditingContent,
     resetEditingContent,
+    rigoContext,
   } = useStore((state) => ({
     currentExercisePosition: state.currentExercisePosition,
     exerciseMessages: state.exerciseMessages,
@@ -61,7 +64,9 @@ export const AgentTab = () => {
     user: state.user, 
     currentContent: state.currentContent,
     getCurrentExercise: state.getCurrentExercise,
+    getSyllabus: state.getSyllabus,
     chatInitialMessage: state.chatInitialMessage,
+    configObject: state.configObject,
     environment: state.environment,
     hasSolution: state.hasSolution,
     videoTutorial: state.videoTutorial,
@@ -70,6 +75,7 @@ export const AgentTab = () => {
     editingContent: state.editingContent,
     setEditingContent: state.setEditingContent,
     resetEditingContent: state.resetEditingContent,
+    rigoContext: state.rigoContext,
   }));
 
   const initialMessages: Message[] = [
@@ -156,29 +162,11 @@ export const AgentTab = () => {
   }, [currentExercisePosition]);
 
 
-  const changeBackgroundTool = RigoAI.convertTool(
-    async (args: { color: string }) => {
-      console.log(args, "IA is trying to get website content");
-      
-      try {
-        document.body.style.backgroundColor = args.color;
-        return `Background color changed to ${args.color}`;
-      } catch (error) {
-        console.log("error trying to change background color", error);
-        return "There was an error trying to change the background color. the error was: " + error;
-      }
-    },
-    "changeBackground",
-    "Change the background color of the application",
-    {
-      color: { type: "string", description: "The color to set as background (e.g., '#ff0000', 'blue', 'rgb(255,0,0)')" },
-    }
-  );
-
   const replaceReadmeContentTool = RigoAI.convertTool(
-    async (args: { lineStart: number; lineEnd: number; content: string }) => {
+    async (args: { message: string; lineStart: number; lineEnd: number; content: string }) => {
       console.log("Agent is modifying readme content");
       console.log(args, "args");
+      setMessages((prev) => [...prev, { type: "bot", text: args.message, timestamp: Date.now() }]);
       
       try {
         // Initialize editingContent if it's empty
@@ -198,9 +186,6 @@ export const AgentTab = () => {
         const originalLines = lines.slice(args.lineStart - 1, args.lineEnd);
         const originalContent = originalLines.join('\n');
 
-        console.log("originalContent", originalContent);
-        console.log("args.content", args.content);
-        
         // Create the changesDiff block
         const changesDiff = `\`\`\`changesDiff
 ${originalContent}
@@ -223,14 +208,14 @@ ${args.content}
         
         setEditingContent(updatedEditingContent);
         
-        return `I've updated lines ${args.lineStart}-${args.lineEnd}. The changes are now visible in the editing area.`;
+        return `Lesson content updated from line ${args.lineStart} to ${args.lineEnd}. The changes are now visible in the editing area.`;
       } catch (error) {
         console.log("error modifying readme content", error);
         return "There was an error modifying the content. the error was: " + error;
       }
     },
     "replaceReadmeContent",
-    "Replace specific lines in the readme content. The content is provided with line numbers for reference. IMPORTANT: Line numbers are for orientation only and should NOT be included in the replacement content.",
+    "Replace specific lines in the readme content. The content is provided with line numbers for reference. IMPORTANT: Line numbers are for orientation only and should NOT be included in the replacement content. Its better to perform multiple smaller changes instead of one big change.",
     {
       lineStart: { 
         type: "number", 
@@ -244,12 +229,16 @@ ${args.content}
         type: "string", 
         description: "The new content to replace the specified line range." 
       },
+      message: { 
+        type: "string", 
+        description: "The message to say to the user while doing the replacement" 
+      },
     }
   );
 
   const saveToMemoryBankTool = RigoAI.convertTool(
     async (args: { content: string }) => {
-      console.log("Agent is saving to memory bank");
+      console.log("Agent is saving to memory bank" , args.content);
       
       try {
         const result = await FetchManager.saveMemoryBank(args.content, token);
@@ -265,7 +254,7 @@ ${args.content}
       }
     },
     "saveToMemoryBank",
-    "Save information to the course memory bank for future reference",
+    "Save information to the course memory bank for future reference. You must detect the user's intent and save the information to the memory bank accordingly when needed. Call this function everytime the user provides relevant information about rules on how to create the content, things he like, things he doesn't like, etc.",
     {
       content: { 
         type: "string", 
@@ -273,6 +262,68 @@ ${args.content}
       },
     }
   );
+
+  const startLessonGenerationTool = RigoAI.convertTool(
+    async (args: { feedback: string; mode?: "next-three" | "continue-with-all" }) => {
+      console.log("Agent is starting lesson generation");
+      
+      try {
+        const { continueGenerating } = await import("../../utils/creator");
+
+        const currentExercisePosition = useStore.getState().currentExercisePosition;
+        const syllabus = useStore.getState().syllabus;
+
+        console.log("ARGS", args);
+        
+        // Check if current lesson status allows generation
+        const currentLesson = syllabus.lessons?.[Number(currentExercisePosition)];
+        if (currentLesson && currentLesson.status && !["PENDING", "ERROR"].includes(currentLesson.status)) {
+          return `Cannot start lesson generation. Current lesson status is "${currentLesson.status}". This tool is only available when lesson status is PENDING or ERROR.`;
+        }
+        
+        await continueGenerating(
+          configObject.config.slug,
+          Number(currentExercisePosition),
+          args.feedback,
+          args.mode || "next-three",
+          token
+        );
+        toast.success(t("lesson-generation-started"));
+        getSyllabus();
+        
+        return `Successfully started lesson generation with feedback: "${args.feedback}". The lesson will be generated in the background.`;
+      } catch (error) {
+        console.log("error starting lesson generation", error);
+        return "There was an error starting lesson generation. The error was: " + error;
+      }
+    },
+    "startLessonGeneration",
+    "Start generating the current lesson with the provided feedback, the ideas of this function is to improve the quality of the lesson to generate, the lesson has not been generated yet, so you need to provide feedback to improve the lesson based in the interactions with the user, only call this function if you already understand the user requirements and have user confirmation to generate the lesson",
+    {
+      feedback: { 
+        type: "string", 
+        description: "The feedback or instructions for generating the lesson content, this will be passed to an AI to improve the lesson generation" 
+      },
+      mode: { 
+        type: "string", 
+        description: "Generation mode: 'next-three' to generate next 3 lessons, or 'continue-with-all' to generate all remaining lessons",
+        enum: ["next-three", "continue-with-all"]
+      },
+    }
+  );
+
+  const decideTools = () => {
+    const _tools: TTool[] = []
+    if (environment !== "creatorWeb") {
+      return _tools
+    }
+    if (rigoContext.allowedFunctions?.includes("continueGeneration")) {
+      _tools.push(startLessonGenerationTool, saveToMemoryBankTool)
+      return _tools
+    }
+    _tools.push(replaceReadmeContentTool, saveToMemoryBankTool)
+    return _tools
+  }
 
   const processUserMessage = debounce(async () => {
     const message = userMessage.current;
@@ -307,6 +358,8 @@ ${args.content}
     // Add memory bank content to context
     try {
       const memoryBankResult = await FetchManager.getMemoryBank(token);
+      console.log("MEMORY BANK RESULT", memoryBankResult);
+      
       if (memoryBankResult.content) {
         context += `\n\nMEMORY BANK (Previous context and rules):\n${memoryBankResult.content}`;
       }
@@ -329,13 +382,16 @@ ${args.content}
     setMessages((prev) => [...prev, { type: "bot", text: "", timestamp: Date.now() }]);
     setIsGenerating(true);
 
+    const toolsToUse = decideTools()
+
+    console.log("toolsToUse", toolsToUse);
+    
     try {
        const agentJob = RigoAI.agentLoop({
          task: message,
          context: context,
-         tools: [changeBackgroundTool, replaceReadmeContentTool, saveToMemoryBankTool],
+         tools: toolsToUse,
         onMessage: (message: any) => {
-          console.log("Agent message:", message);
           setMessages((prev) => {
             const newMessages = [...prev];
             const lastMessage = newMessages[newMessages.length - 1];

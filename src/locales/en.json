@@ -362,6 +362,8 @@
     "export": "Export",
     "export-to-epub": "Export your course to EPUB",
     "epub-description": "Share your content as a digital book, keeping chapters, links, and media—ready to read on any device!",
+    "export-to-zip": "Export your course to ZIP",
+    "zip-description": "Download all course files as a compressed ZIP archive",
     "export-to-scorm": "Export your course to SCORM",
     "epub-metadata": "EPUB Metadata",
     "configure-epub-metadata": "Configure EPUB Metadata",

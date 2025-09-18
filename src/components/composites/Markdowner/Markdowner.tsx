@@ -70,6 +70,11 @@ const extractMetadata = (metadata: string) => {
   return metadataObject;
 };
 
+const generateHeadingID = (md: string) => {
+  // This function should remove specia characters, replace spaces with - and make it lowercase
+  return md.toLowerCase().replace(/ /g, "-").replace(/[^a-z0-9-]/g, "");
+}
+
 export const Markdowner = ({
   markdown,
   allowCreate = false,
@@ -77,11 +82,12 @@ export const Markdowner = ({
   markdown: string;
   allowCreate?: boolean;
 }) => {
-  const { openLink, mode, isCreator, config } = useStore((state) => ({
+  const { openLink, mode, isCreator, config, getPortion } = useStore((state) => ({
     openLink: state.openLink,
     mode: state.mode,
     isCreator: state.isCreator,
     config: state.configObject,
+    getPortion: state.getPortion,
   }));
 
   const creatorModeActivated = isCreator && mode === "creator" && allowCreate;
@@ -113,6 +119,13 @@ export const Markdowner = ({
               </CreatorWrapper>
             );
           }
+          console.log("NODE", node);
+          if (typeof node?.position?.start?.offset === "number" && typeof node?.position?.end?.offset === "number") {
+
+            const md = getPortion(node?.position?.start?.offset, node?.position?.end?.offset);
+            
+            return <h1 id={generateHeadingID(md)}>{children}</h1>;
+          }
           return <h1>{children}</h1>;
         },
         h2: ({ children, node }) => {
@@ -122,6 +135,10 @@ export const Markdowner = ({
                 <h2>{children}</h2>
               </CreatorWrapper>
             );
+          }
+          if (node?.position?.start?.offset && node?.position?.end?.offset) {
+            const md = getPortion(node?.position?.start?.offset, node?.position?.end?.offset);
+            return <h2 id={generateHeadingID(md)}>{children}</h2>;
           }
           return <h2>{children}</h2>;
         },
@@ -133,6 +150,10 @@ export const Markdowner = ({
               </CreatorWrapper>
             );
           }
+          if (typeof node?.position?.start?.offset === "number" && typeof node?.position?.end?.offset === "number") {
+            const md = getPortion(node?.position?.start?.offset, node?.position?.end?.offset);
+            return <h3 id={generateHeadingID(md)}>{children}</h3>;
+          }
           return <h3>{children}</h3>;
         },
         h4: ({ children, node }) => {
@@ -142,6 +163,10 @@ export const Markdowner = ({
                 <h4>{children}</h4>
               </CreatorWrapper>
             );
+          }
+          if (typeof node?.position?.start?.offset === "number" && typeof node?.position?.end?.offset === "number") {
+            const md = getPortion(node?.position?.start?.offset, node?.position?.end?.offset);
+            return <h4 id={generateHeadingID(md)}>{children}</h4>;
           }
           return <h4>{children}</h4>;
         },
@@ -153,6 +178,10 @@ export const Markdowner = ({
               </CreatorWrapper>
             );
           }
+          if (typeof node?.position?.start?.offset === "number" && typeof node?.position?.end?.offset === "number") {
+            const md = getPortion(node?.position?.start?.offset, node?.position?.end?.offset);
+            return <h5 id={generateHeadingID(md)}>{children}</h5>;
+          }
           return <h5>{children}</h5>;
         },
         h6: ({ children, node }) => {
@@ -162,6 +191,10 @@ export const Markdowner = ({
                 <h6>{children}</h6>
               </CreatorWrapper>
             );
+          }
+          if (typeof node?.position?.start?.offset === "number" && typeof node?.position?.end?.offset === "number") {
+            const md = getPortion(node?.position?.start?.offset, node?.position?.end?.offset);
+            return <h6 id={generateHeadingID(md)}>{children}</h6>;
           }
           return <h6>{children}</h6>;
         },

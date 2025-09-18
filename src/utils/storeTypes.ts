@@ -164,6 +164,7 @@ type TRigoContext = {
   context: string;
   userMessage: string;
   performTests: boolean;
+  allowedFunctions?: string[];
 };
 
 export type TAgent = "vscode" | "cloud" | "os";
@@ -364,6 +365,7 @@ export interface IStore {
     startPosition: Point,
     endPosition: Point
   ) => Promise<void>;
+  getPortion: (startPoint: number, endPoint: number) => string;
   initRigoAI: () => void;
 }
 

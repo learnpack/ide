@@ -697,6 +697,8 @@ The user's set up the application in "${language}" language, give your feedback 
 
     const exercise = await FetchManager.getExerciseInfo(slug);
 
+    console.log("EXERCISE sINGLE", exercise);
+
     let isTesteable = exercise.graded;
     let isBuildable;
     let hasSolution = false;
@@ -1710,7 +1712,6 @@ The user's set up the application in "${language}" language, give your feedback 
         token: bc_token,
         user_id: String(user.id),
         fullname: user.first_name + " " + user.last_name,
-        email: user.email,
         rigo_token: token,
         cohort_id: params.cohort_id || "",
         academy_id: params.academy_id || "",
@@ -1978,6 +1979,11 @@ The user's set up the application in "${language}" language, give your feedback 
     set({
       currentContent: editedReadme.body,
     });
+  },
+
+  getPortion: (startPoint: number, endPoint: number) => {
+    const { currentContent } = get();
+    return currentContent.slice(startPoint, endPoint);
   },
 
   insertBeforeOrAfter: async (

@@ -215,7 +215,6 @@ type TWorkoutSession = {
 type TStudent = {
   token: string;
   user_id: string;
-  email: string;
   fullname: string;
   rigo_token: string;
   academy_id: string;
@@ -269,7 +268,6 @@ export interface ITelemetryJSONSchema {
   telemetry_id?: string;
   user_id?: number | string;
   fullname?: string;
-  email?: string;
   slug: string;
   version: string;
   cohort_id: string | null;
@@ -300,7 +298,6 @@ type TUser = {
   token: string;
   rigo_token: string;
   id: string;
-  email: string;
   fullname: string;
 };
 
@@ -359,7 +356,6 @@ const TelemetryManager: ITelemetryManager = {
     token: "",
     rigo_token: "",
     id: "",
-    email: "",
     fullname: "",
   },
   tutorialSlug: "",
@@ -377,7 +373,7 @@ const TelemetryManager: ITelemetryManager = {
     this.user.token = student.token;
     this.user.rigo_token = student.rigo_token;
     this.user.fullname = student.fullname;
-    this.user.email = student.email;
+    // Email removed for security - not stored in telemetry
 
     if (!this.current) {
       this.retrieve()
@@ -405,7 +401,6 @@ const TelemetryManager: ITelemetryManager = {
                 },
               ],
               fullname: this.user.fullname,
-              email: this.user.email,
               cohort_id: null,
               academy_id: null,
             };
@@ -413,7 +408,6 @@ const TelemetryManager: ITelemetryManager = {
 
           this.current.user_id = this.user.id;
           this.current.fullname = this.user.fullname;
-          this.current.email = this.user.email;
           this.current.cohort_id = student.cohort_id;
           this.current.academy_id = student.academy_id;
 

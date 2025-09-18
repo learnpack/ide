@@ -405,6 +405,8 @@ export const ExportModal: FC<{ onClose: () => void }> = ({ onClose }) => {
           return "zip";
         } else if (format === "epub") {
           return "epub";
+        } else if (format === "zip") {
+          return "zip";
         }
       }
       const response = await fetch(url, {
@@ -496,6 +498,27 @@ export const ExportModal: FC<{ onClose: () => void }> = ({ onClose }) => {
                   text={t("export-to-epub")}
                   action={handleEpubExport}
                   extraClass={`${styles.exportButton} ${styles.epubButton}`}
+                />
+              </div>
+
+              {/* ZIP Option */}
+              <div className={styles.exportOptionCard}>
+                <div className="flex-x align-center gap-medium">
+                  <div className={`${styles.exportIcon} ${styles.zipIcon}`}>
+                    {svgs.zipExport}
+                  </div>
+                  <div className="flex-y gap-small flex-1">
+                    <h3 className="text-blue m-0 text-medium">{t("export-to-zip")}</h3>
+                    <p className="text-gray m-0 text-small">{t("zip-description")}</p>
+                  </div>
+                </div>
+                <SimpleButton
+                  text={t("export-to-zip")}
+                  action={() => {
+                    exportToFormat("zip");
+                    handleClose();
+                  }}
+                  extraClass={`${styles.exportButton} ${styles.zipButton}`}
                 />
               </div>
 
