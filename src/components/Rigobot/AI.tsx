@@ -69,8 +69,8 @@ export const RigoAI = {
     }
 
     const initialize = (retries = 0) => {
-      if (retries > 3) {
-        console.error("Failed to initialize RigoAI after 3 retries");
+      if (retries > 5) {
+        console.error("Failed to initialize RigoAI after 5 retries");
         return;
       }
 
@@ -92,11 +92,15 @@ export const RigoAI = {
           collapsed: true,
         });
       } else {
+
         console.error(
           `No window.rigo found, initializing RigoAI failed, retrying in ${
             1000 * (retries + 1)
           }ms`
         );
+        // @ts-ignore
+        console.log("WINDOWS RIGO", window.rigo);
+        
         setTimeout(() => {
           initialize(retries + 1);
         }, 1000 * (retries + 1));
