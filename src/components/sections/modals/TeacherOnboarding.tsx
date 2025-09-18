@@ -27,28 +27,28 @@ const stepsJson: Record<
         title: "Notion-style editing",
         description:
           "Update lessons block-by-block just by telling the Rigobot AI Agent what you want (rewrite, simplify, add examples, change tone).",
-        // video: "https://www.youtube.com/watch?v=2deT2CVN67Y",
+        video: "youtube.com/watch?v=blPx2dKW4lg&feature=youtu.be",
         done: false,
       },
       {
         title: "AI-powered content creation",
         description:
           "Create quizzes, coding challenges, file/URL deliverables, and multimedia in just a few back-and-forths with the Rigobot AI Agent.",
-        // video: "https://www.youtube.com/watch?v=aOWtNBiksmg",
+        video: "youtube.com/watch?v=blPx2dKW4lg&feature=youtu.be",
         done: false,
       },
       {
         title: "Instant multilingual translation",
         description:
           "Translate your lessons into any language preserving meaning and content.",
-        // video: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        video: "youtube.com/watch?v=blPx2dKW4lg&feature=youtu.be",
         done: false,
       },
       {
         title: "One-click publishing",
         description:
           "Once your content is ready, publish your course instantly and share it via link or social media, with the Rigobot AI Agent guiding your students if needed.",
-        // video: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        video: "youtube.com/watch?v=blPx2dKW4lg&feature=youtu.be",
         done: false,
       },
     ],
