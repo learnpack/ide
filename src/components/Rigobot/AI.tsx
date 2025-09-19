@@ -181,6 +181,8 @@ export const RigoAI = {
       throw new Error("RigoAI not loaded");
     }
 
+    console.log("Starting Agent loop", task, context, tools, onMessage, onComplete);
+
     // @ts-ignore
     return window.rigo.agentLoop({
       task,

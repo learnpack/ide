@@ -1581,7 +1581,7 @@ The user's set up the application in "${language}" language, give your feedback 
   },
 
   refreshDataFromAnotherTab: ({ newToken, newTabHash, newBCToken }) => {
-    const { token, bc_token, tabHash, getOrCreateActiveSession } = get();
+    const { token, bc_token, tabHash, getOrCreateActiveSession, initRigoAI } = get();
 
     if (!(token === newToken)) {
       set({ token: newToken });
@@ -1593,6 +1593,7 @@ The user's set up the application in "${language}" language, give your feedback 
       set({ tabHash: newTabHash });
     }
     getOrCreateActiveSession();
+    initRigoAI();
   },
   toggleTheme: () => {
     const { theme, checkParams } = get();
@@ -1889,13 +1890,81 @@ The user's set up the application in "${language}" language, give your feedback 
     set({ sidebar });
     return sidebar;
   },
-  test: async () => {
+  uploadFileToCourse: async (file: File, destination: string) => {
     const { configObject } = get();
     const courseSlug = configObject.config.slug;
-    const format = "scorm";
-    const url = `${FetchManager.HOST}/export/${courseSlug}/${format}`;
-    window.open(url, "_blank");
+    
+    if (!courseSlug) {
+      throw new Error("Course slug not found");
+    }
 
+    const content = await file.text();
+    const fullDestination = `courses/${courseSlug}/${destination}`;
+
+    const response = await fetch(`${FetchManager.HOST}/upload`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        content,
+        destination: fullDestination,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to upload file: ${response.statusText}`);
+    }
+
+    return await response.text();
+  },
+
+  test: async () => {
+    const { configObject, uploadFileToCourse } = get();
+    const courseSlug = configObject.config.slug;
+    
+    if (!courseSlug) {
+      alert("Course slug not found");
+      return;
+    }
+
+    // Create file input element
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".md";
+    input.multiple = true;
+    
+    input.onchange = async (event) => {
+      const files = (event.target as HTMLInputElement).files;
+      if (!files || files.length === 0) return;
+
+      try {
+        for (const file of Array.from(files)) {
+          const fileName = file.name.toLowerCase();
+          let destination = "";
+          
+          if (fileName === "readme.md") {
+            destination = "README.md";
+          } else if (fileName === "readme.es.md") {
+            destination = "README.es.md";
+          } else {
+            console.warn(`Skipping file ${file.name} - only README.md and README.es.md are supported`);
+            continue;
+          }
+
+          await uploadFileToCourse(file, destination);
+          console.log(`✅ Successfully uploaded ${file.name} to ${destination}`);
+        }
+        
+        alert("Files uploaded successfully!");
+      } catch (error) {
+        console.error("Error uploading files:", error);
+        alert(`Error uploading files: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    };
+
+    // Trigger file selection
+    input.click();
   },
 
   addVideoTutorial: async (videoTutorial: string) => {
@@ -2033,12 +2102,23 @@ The user's set up the application in "${language}" language, give your feedback 
     });
   },
   initRigoAI: () => {
-    const { token } = get();
+    const { token, environment } = get();
 
     if (!token) {
       console.log("ERROR: No token found, initializing RigoAI failed");
       return;
     }
+
+    let purposeSlug = "learnpack-lesson-writer";
+
+    if (environment === "creatorWeb") {
+      purposeSlug = "learnpack-lesson-writer";
+    }
+    if (environment === "localStorage") {
+      purposeSlug = "learnpack-ai-tutor";
+    }
+
+    console.log("Initializing RigoAI with purpose slug", purposeSlug);
 
     RigoAI.init({
       chatHash: "529ca5a219084bc7b93c172ad78ef92a",

@@ -61,7 +61,7 @@ export const AgentTab = () => {
     token: state.token,
     isRigoOpened: state.isRigoOpened,
     toggleRigo: state.toggleRigo,
-    user: state.user, 
+    user: state.user,
     currentContent: state.currentContent,
     getCurrentExercise: state.getCurrentExercise,
     getSyllabus: state.getSyllabus,
@@ -113,7 +113,7 @@ export const AgentTab = () => {
       getCurrentExercise().slug,
       "en" // You might want to get this from store
     );
-    
+
     const savedConversation = ConversationManager.getConversation(conversationKey);
     if (savedConversation && savedConversation.messages.length > 0) {
       setMessages(savedConversation.messages);
@@ -130,7 +130,7 @@ export const AgentTab = () => {
         getCurrentExercise().slug,
         "en" // You might want to get this from store
       );
-      
+
       ConversationManager.saveConversation(conversationKey, messages);
     }
   }, [messages, currentExercisePosition, environment]);
@@ -167,21 +167,21 @@ export const AgentTab = () => {
       console.log("Agent is modifying readme content");
       console.log(args, "args");
       setMessages((prev) => [...prev, { type: "bot", text: args.message, timestamp: Date.now() }]);
-      
+
       try {
         // Initialize editingContent if it's empty
         if (!editingContent) {
           resetEditingContent();
         }
-        
+
         const currentEditingContent = editingContent || currentContent;
         const lines = currentEditingContent.split('\n');
-        
+
         // Validate line range
         if (args.lineStart < 1 || args.lineEnd > lines.length || args.lineStart > args.lineEnd) {
           return `Invalid line range. Content has ${lines.length} lines. Please provide valid lineStart (1-${lines.length}) and lineEnd (${args.lineStart}-${lines.length}) values.`;
         }
-        
+
         // Get the original lines that will be replaced
         const originalLines = lines.slice(args.lineStart - 1, args.lineEnd);
         const originalContent = originalLines.join('\n');
@@ -194,7 +194,7 @@ ${args.content}
 \`\`\``;
 
         console.log("changesDiff", changesDiff);
-        
+
         // Replace the lines with the changesDiff block
         const beforeLines = lines.slice(0, args.lineStart - 1);
         const afterLines = lines.slice(args.lineEnd);
@@ -203,11 +203,11 @@ ${args.content}
           changesDiff,
           ...afterLines
         ].join('\n');
-        
+
         console.log("updatedEditingContent", updatedEditingContent);
-        
+
         setEditingContent(updatedEditingContent);
-        
+
         return `Lesson content updated from line ${args.lineStart} to ${args.lineEnd}. The changes are now visible in the editing area.`;
       } catch (error) {
         console.log("error modifying readme content", error);
@@ -217,32 +217,32 @@ ${args.content}
     "replaceReadmeContent",
     "Replace specific lines in the readme content. The content is provided with line numbers for reference. IMPORTANT: Line numbers are for orientation only and should NOT be included in the replacement content. Its better to perform multiple smaller changes instead of one big change.",
     {
-      lineStart: { 
-        type: "number", 
-        description: "Starting line number (1-based). Line numbers are for orientation only and should NOT be included in replacement content." 
+      lineStart: {
+        type: "number",
+        description: "Starting line number (1-based). Line numbers are for orientation only and should NOT be included in replacement content."
       },
-      lineEnd: { 
-        type: "number", 
-        description: "Ending line number (1-based). Line numbers are for orientation only and should NOT be included in replacement content." 
+      lineEnd: {
+        type: "number",
+        description: "Ending line number (1-based). Line numbers are for orientation only and should NOT be included in replacement content."
       },
-      content: { 
-        type: "string", 
-        description: "The new content to replace the specified line range." 
+      content: {
+        type: "string",
+        description: "The new content to replace the specified line range."
       },
-      message: { 
-        type: "string", 
-        description: "The message to say to the user while doing the replacement" 
+      message: {
+        type: "string",
+        description: "The message to say to the user while doing the replacement"
       },
     }
   );
 
   const saveToMemoryBankTool = RigoAI.convertTool(
     async (args: { content: string }) => {
-      console.log("Agent is saving to memory bank" , args.content);
-      
+      console.log("Agent is saving to memory bank", args.content);
+
       try {
         const result = await FetchManager.saveMemoryBank(args.content, token);
-        
+
         if (result.success) {
           return `Successfully saved to memory bank: ${args.content}`;
         } else {
@@ -256,9 +256,9 @@ ${args.content}
     "saveToMemoryBank",
     "Save information to the course memory bank for future reference. You must detect the user's intent and save the information to the memory bank accordingly when needed. Call this function everytime the user provides relevant information about rules on how to create the content, things he like, things he doesn't like, etc.",
     {
-      content: { 
-        type: "string", 
-        description: "The content to save to the memory bank" 
+      content: {
+        type: "string",
+        description: "The content to save to the memory bank"
       },
     }
   );
@@ -266,7 +266,7 @@ ${args.content}
   const startLessonGenerationTool = RigoAI.convertTool(
     async (args: { feedback: string; mode?: "next-three" | "continue-with-all" }) => {
       console.log("Agent is starting lesson generation");
-      
+
       try {
         const { continueGenerating } = await import("../../utils/creator");
 
@@ -274,13 +274,13 @@ ${args.content}
         const syllabus = useStore.getState().syllabus;
 
         console.log("ARGS", args);
-        
+
         // Check if current lesson status allows generation
         const currentLesson = syllabus.lessons?.[Number(currentExercisePosition)];
         if (currentLesson && currentLesson.status && !["PENDING", "ERROR"].includes(currentLesson.status)) {
           return `Cannot start lesson generation. Current lesson status is "${currentLesson.status}". This tool is only available when lesson status is PENDING or ERROR.`;
         }
-        
+
         await continueGenerating(
           configObject.config.slug,
           Number(currentExercisePosition),
@@ -290,7 +290,7 @@ ${args.content}
         );
         toast.success(t("lesson-generation-started"));
         getSyllabus();
-        
+
         return `Successfully started lesson generation with feedback: "${args.feedback}". The lesson will be generated in the background.`;
       } catch (error) {
         console.log("error starting lesson generation", error);
@@ -300,12 +300,12 @@ ${args.content}
     "startLessonGeneration",
     "Start generating the current lesson with the provided feedback, the ideas of this function is to improve the quality of the lesson to generate, the lesson has not been generated yet, so you need to provide feedback to improve the lesson based in the interactions with the user, only call this function if you already understand the user requirements and have user confirmation to generate the lesson",
     {
-      feedback: { 
-        type: "string", 
-        description: "The feedback or instructions for generating the lesson content, this will be passed to an AI to improve the lesson generation" 
+      feedback: {
+        type: "string",
+        description: "The feedback or instructions for generating the lesson content, this will be passed to an AI to improve the lesson generation"
       },
-      mode: { 
-        type: "string", 
+      mode: {
+        type: "string",
         description: "Generation mode: 'next-three' to generate next 3 lessons, or 'continue-with-all' to generate all remaining lessons",
         enum: ["next-three", "continue-with-all"]
       },
@@ -314,15 +314,24 @@ ${args.content}
 
   const decideTools = () => {
     const _tools: TTool[] = []
+    // return _tools
     if (environment !== "creatorWeb") {
       return _tools
     }
     if (rigoContext.allowedFunctions?.includes("continueGeneration")) {
       _tools.push(startLessonGenerationTool, saveToMemoryBankTool)
+      setMessages((prev) => [...prev, { type: "bot", text: "Which changes you want to make to the lesson? Please provide feedback to improve the lesson generation", timestamp: Date.now() }]);
       return _tools
     }
     _tools.push(replaceReadmeContentTool, saveToMemoryBankTool)
     return _tools
+  }
+
+  const getTask = (message: string) => {
+    if (environment === "creatorWeb") {
+      return `You are a helpful teacher assistant. Please provide your responses always in MARKDOWN. Keep your message short and concise. This is the user message: ${message}`;
+    }
+    return `You are a helpful tutor with many years of experience teaching students. Keep your messages short and concise. Help the user when needed, clarify if you don't undestand the requirements. This is the user message: ${message}`;
   }
 
   const processUserMessage = debounce(async () => {
@@ -349,7 +358,7 @@ ${args.content}
 
     const contextFilesContent = await getContextFilesContent();
     let context = contextFilesContent;
-    
+
     // Add line-numbered content for better AI understanding
     const lines = currentContent.split('\n');
     const numberedContent = lines.map((line, index) => `${index + 1}: ${line}`).join('\n');
@@ -359,7 +368,7 @@ ${args.content}
     try {
       const memoryBankResult = await FetchManager.getMemoryBank(token);
       console.log("MEMORY BANK RESULT", memoryBankResult);
-      
+
       if (memoryBankResult.content) {
         context += `\n\nMEMORY BANK (Previous context and rules):\n${memoryBankResult.content}`;
       }
@@ -385,12 +394,14 @@ ${args.content}
     const toolsToUse = decideTools()
 
     console.log("toolsToUse", toolsToUse);
+
     
+
     try {
-       const agentJob = RigoAI.agentLoop({
-         task: message,
-         context: context,
-         tools: toolsToUse,
+      const agentJob = RigoAI.agentLoop({
+        task: getTask(message),
+        context: context,
+        tools: toolsToUse,
         onMessage: (message: any) => {
           setMessages((prev) => {
             const newMessages = [...prev];
@@ -405,7 +416,7 @@ ${args.content}
         onComplete: (success: boolean, data: any) => {
           console.log("Agent completed:", success, data);
           setIsGenerating(false);
-          
+
           if (success) {
             aiInteraction.ended_at = Date.now();
             aiInteraction.ai_response = messages[messages.length - 1].text;
@@ -482,16 +493,16 @@ ${args.content}
               svg={svgs.cancel}
             />
           </section>
-           <section
-             onScroll={handleScroll}
-             className="chat-messages"
-             ref={messagesRef}
-           >
-             {messages.map((message, index) => (
-               <Message key={index} {...message} />
-             ))}
-           </section>
-         </div>
+          <section
+            onScroll={handleScroll}
+            className="chat-messages"
+            ref={messagesRef}
+          >
+            {messages.map((message, index) => (
+              <Message key={index} {...message} />
+            ))}
+          </section>
+        </div>
 
         <section className="chat-footer">
           <section className="chat-input">

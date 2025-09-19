@@ -961,6 +961,8 @@ const loginLocalStorage = async (loginInfo: any) => {
   };
   delete sessionData.user.email;
 
+  console.log("SESSION DATA", sessionData);
+
   LocalStorage.set("session", sessionData);
 
   return returns;

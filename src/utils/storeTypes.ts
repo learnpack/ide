@@ -351,6 +351,7 @@ export interface IStore {
   getOrCreateActiveSession: () => void;
   updateDBSession: () => void;
   test: () => void;
+  uploadFileToCourse: (file: File, destination: string) => Promise<string>;
   figureEnvironment: () => Promise<object>;
   cleanTerminal: () => void;
   setEditorTabs: (tabs: TEditorTab[]) => void;
