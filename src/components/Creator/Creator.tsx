@@ -391,11 +391,13 @@ export const CreatorWrapper = ({
   ];
 
   const getPortion = () => {
-    if (node?.position?.start?.offset && node?.position?.end?.offset) {
+    console.log(node?.position?.start?.offset && node?.position?.end?.offset);
+    
+    if (typeof(node?.position?.start?.offset) === "number" && typeof(node?.position?.end?.offset) === "number") {
       return getPortionFromText(
         currentContent,
-        node?.position?.start.offset || 0,
-        node?.position?.end.offset || 0
+        node?.position?.start.offset,
+        node?.position?.end.offset
       );
     }
     return "";
