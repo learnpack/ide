@@ -119,7 +119,6 @@ export const Markdowner = ({
               </CreatorWrapper>
             );
           }
-          console.log("NODE", node);
           if (typeof node?.position?.start?.offset === "number" && typeof node?.position?.end?.offset === "number") {
 
             const md = getPortion(node?.position?.start?.offset, node?.position?.end?.offset);
@@ -510,6 +509,9 @@ const CustomCodeBlock = ({
       return <CreatorWrapper node={node} tagName="new" />;
     } else return null;
   }
+  if (language === "fill_in_the_blank" || language === "fill") {
+    return <FillInTheBlankRenderer node={node} code={code} metadata={metadata} />;
+  }
 
   const metadataComponents = {
     runnable: (value: boolean | string) => {
@@ -635,6 +637,173 @@ const ChangesDiffRenderer = ({ code, node }: { code: string, node: any }) => {
             text={t("rejectChanges")}
           />
         </div>
+    </div>
+  );
+};
+
+
+const randomFrom0to9 = () => {
+  return Math.floor(Math.random() * 10);
+};
+
+const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, metadata: TMetadata }) => {
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [submitted, setSubmitted] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const { t } = useTranslation();
+  console.log(code, "fill in the blank code", metadata);
+
+  // Extract correct answers from metadata
+  const correctAnswers: Record<string, string[]> = {};
+  Object.keys(metadata).forEach(key => {
+    if (key.match(/^\d+$/)) { // Check if key is a number
+      const answers = metadata[key] as string;
+      correctAnswers[key] = answers.split(',').map(answer => answer.trim().toLowerCase());
+    }
+  });
+
+  // Parse the text and create JSX elements
+  const parseTextWithInputs = () => {
+    const parts: (string | JSX.Element)[] = [];
+    const blankRegex = /_(\d+)_/g;
+    let lastIndex = 0;
+    let match;
+
+    while ((match = blankRegex.exec(code)) !== null) {
+      // Add text before the blank
+      if (match.index > lastIndex) {
+        parts.push(code.slice(lastIndex, match.index));
+      }
+
+      // Add input field for the blank
+      const blankNum = match[1];
+      const isCorrect = submitted && correctAnswers[blankNum]?.includes(answers[blankNum]?.toLowerCase());
+      const isIncorrect = submitted && answers[blankNum] && !correctAnswers[blankNum]?.includes(answers[blankNum]?.toLowerCase());
+      
+      let inputClassName = "fill-blank-input";
+      if (submitted) {
+        if (isCorrect) {
+          inputClassName += " correct-answer";
+        } else if (isIncorrect) {
+          inputClassName += " incorrect-answer";
+        }
+      }
+
+      parts.push(
+        <input
+          key={`blank-${blankNum}`}
+          type="text"
+          className={inputClassName}
+          placeholder="Type your answer..."
+          value={answers[blankNum] || ''}
+          onChange={(e) => setAnswers(prev => ({ ...prev, [blankNum]: e.target.value }))}
+          readOnly={submitted}
+        />
+      );
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Add remaining text
+    if (lastIndex < code.length) {
+      parts.push(code.slice(lastIndex));
+    }
+
+    return parts;
+  };
+
+  // Get all blank numbers
+  const blankRegex = /_(\d+)_/g;
+  const blanks: string[] = [];
+  let match;
+  while ((match = blankRegex.exec(code)) !== null) {
+    blanks.push(match[1]);
+  }
+  const uniqueBlanks = [...new Set(blanks)].sort((a, b) => parseInt(a) - parseInt(b));
+
+  // Check if all blanks are filled
+  const allFilled = uniqueBlanks.every(blankNum => answers[blankNum]?.trim());
+
+  // Calculate score
+  const correctCount = uniqueBlanks.filter(blankNum => 
+    correctAnswers[blankNum]?.includes(answers[blankNum]?.toLowerCase())
+  ).length;
+  const totalCount = uniqueBlanks.length;
+
+  const handleSubmit = () => {
+    setSubmitted(true);
+    setShowResults(true);
+    
+    if (correctCount === totalCount) {
+      toast.success(`Perfect! You got all ${totalCount} answers correct!`);
+    } else {
+      toast.error(`You got ${correctCount} out of ${totalCount} correct. ${t("Keep practicing!")}`);
+    }
+  };
+
+  const handleReset = () => {
+    setAnswers({});
+    setSubmitted(false);
+    setShowResults(false);
+  };
+
+  return (
+    <div className="fill-in-the-blank-container">
+      <h4 className="fill-blank-title">{t("Fill in the blank")}</h4>
+      <p className="fill-blank-help">{t("Fill in the blanks with the correct words to complete the exercise. Type your answers in the input fields and click 'Check Answers' when you're done.")}</p>
+      
+      <div className="fill-in-the-blank-content">
+        {parseTextWithInputs()}
+      </div>
+      
+      <div className="fill-blank-buttons">
+        {!submitted ? (
+          <button
+            onClick={handleSubmit}
+            disabled={!allFilled}
+            className="check-answers-btn"
+          >
+            {t("Check Answers")}
+          </button>
+        ) : (
+          <button
+            onClick={handleReset}
+            className="try-again-btn"
+          >
+            {t("Try again")}
+          </button>
+        )}
+      </div>
+
+      {showResults && (
+        <div className="fill-blank-results">
+          <div className="results-header">
+            <div className="results-title">{t("Results")}</div>
+            <div className="score-badge">{correctCount}/{totalCount}</div>
+          </div>
+          
+          <div className="results-content">
+            <div className={`result-message ${correctCount === totalCount ? "perfect" : correctCount > totalCount / 2 ? "good" : "needs-improvement"}`}>
+              {correctCount === totalCount ? (
+                <>
+                  <div className="celebration">🎉</div>
+                  <div className="message-text">{t(`perfectSuccess.${randomFrom0to9()}`)}</div>
+                </>
+              ) : correctCount > totalCount / 2 ? (
+                <>
+                  <div className="celebration">👍</div>
+                  <div className="message-text">{t(`goodSuccess.${randomFrom0to9()}`)}</div>
+                </>
+              ) : (
+                <>
+                  <div className="celebration">💪</div>
+                  <div className="message-text">{t(`encouragement.${randomFrom0to9()}`)}</div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
