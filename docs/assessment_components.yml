@@ -1,0 +1,62 @@
+version: "1.0.0"
+components:
+  - name: open-text-question
+    description: >-
+      The open text question is a type of interactive question where users can write down a text answer (1-5 sentences). The component consists in a markdown code block with the language set to `question` and has a metadata property eval in the metadata section of the code block with instructions on how to evaluate the answer. Inside the code block, you must write down 3-5 example answers with CORRECT: or INCORRECT: prefix.
+    goodFor: reflection, explanation, recall
+    avoid: multiple choice, true/false, fill in the blank, this component is intended only for free form answers
+    props:
+      - eval: string (required)
+    example: |
+      ```question eval="The user needs to write using its own words what is console.log"
+      CORRECT: The console.log is a function that logs a message to the console.
+      INCORRECT: It is used to solve logarithms problems.
+      CORRECT: It prints things to the console.  
+      ```
+
+  - name: multiple-choice-question
+    intentedUse: evaluation, knowledge assessment
+    description: >-
+      This is a set of questions, from 1 to 5 questions, each one with multiple options. The component leverages task-list syntax to render the quiz. Each group of options should have a question title separated by an empty line from the options. Each option should be indented by 3 to 6 spaces for proper parsing from markdown to HTML.
+    goodFor: reflection, explanation, recall, knowledge assessment
+    avoid: open text question, this component is intended only for multiple choice answers
+    rules:
+      - Each group of options should have a question title separated by an empty line from the options
+      - Each group of options must have a unique correct answer
+      - Each option should be a checkbox indented by 3 to 6 spaces
+      - There must be an empty line between the question title and the options
+      - Use [x] for correct answers and [ ] for incorrect options
+    example: |
+      1. What is the purpose of HTML?
+
+         - [ ] To write code
+         - [x] To create websites
+         - [ ] To create a database
+
+      2. What is the purpose of CSS?
+
+         - [ ] To create websites
+         - [x] To style websites
+         - [ ] To create a database
+
+  - name: fill-in-the-blank
+    intentedUse: reflection, explanation, recall, knowledge assessment
+    description: >-
+      A fill in the blank is a component that allows the user to fill in the blank with the correct answer. It consists in a markdown code block with the language set to `fill-in-the-blank`. Inside the code block, you must write the question with the blank (or blanks) to be filled. In the metadata section, you must include the valid answers for each blank. The blanks are numbered starting from 1. Case insensitive answers are allowed. If multiple answer are alloed for a blank, you must include them separated by a comma in the proper metadata property.
+    goodFor: reflection, explanation, recall, knowledge assessment
+    avoid: open text question, this component is intended only for fill in the blank answers
+    example: |
+      ### Let's recall!
+      FIll the blanks with the correct answers.
+      
+      ```fill_in_the_blank 1="Paris" 2="Berlin"
+      The capital of France is _1_, the capital of Germany is _2_.
+      ```
+
+      ### Are you really learning? Let's check it!
+
+      Complete the sentence with number of hours of sleep per day that are recommended based on the lesson.
+
+      ```fill_in_the_blank 1="7,8,9,10" 
+      I need to sleep at least _1_ hours a day to be healthy.
+      ```
