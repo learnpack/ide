@@ -121,3 +121,19 @@ components:
       I need to sleep at least _1_ hours a day to be healthy.
       ```
 
+  - name: image
+    intentedUse: explanation, visualization, complementary to the main content
+    description: >-
+      Images are used to enhance learning through visual content. They consist of simple markdown image links with descriptive help text that provides context for image generation. The help text should be detailed enough to guide the creation of relevant and educational images. The alt text must contain a prompt to generate the image with an AI model, at least 20 words. The image url must contain the filename of the image. And it should start with ./.learn/assets/.
+    goodFor: visual learning, concept illustration, step-by-step processes, diagrams, screenshots, examples
+    avoid: decorative images without educational value, overly complex images that might not render well
+    rules:
+      - Use standard markdown image syntax: "![alt text](image-url)"
+      - Include descriptive help text that explains what the image should show
+      - Alt text should be descriptive and educational
+      - Images should directly support the learning content
+    example: |
+      ![HTML structure diagram showing the relationship between head, body, and main elements](./.learn/assets/html-structure.png)
+      
+      Help text: "Create a visual diagram showing the basic HTML document structure with head, body, and main elements clearly labeled, demonstrating the hierarchical relationship between these components."
+
