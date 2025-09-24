@@ -5,6 +5,8 @@ components:
       The open text question is a type of interactive question where users can write down a text answer (1-5 sentences). The component consists in a markdown code block with the language set to `question` and has a metadata property eval in the metadata section of the code block with instructions on how to evaluate the answer. Inside the code block, you must write down 3-5 example answers with CORRECT: or INCORRECT: prefix.
     goodFor: reflection, explanation, recall
     avoid: multiple choice, true/false, fill in the blank, this component is intended only for free form answers
+    props:
+      - eval: string (required)
     example: |
       ```question eval="The user needs to write using its own words what is console.log"
       CORRECT: The console.log is a function that logs a message to the console.
@@ -12,9 +14,10 @@ components:
       CORRECT: It prints things to the console.  
       ```
 
-  - name: quiz
+  - name: multiple-choice-question
+    intentedUse: evaluation, knowledge assessment
     description: >-
-      A quiz is a set of questions, from 1 to 5 questions, each one with multiple options. The component leverages task-list syntax to render the quiz. Each group of options should have a question title separated by an empty line from the options. Each option should be indented by 3 to 6 spaces for proper parsing from markdown to HTML.
+      This is a set of questions, from 1 to 5 questions, each one with multiple options. The component leverages task-list syntax to render the quiz. Each group of options should have a question title separated by an empty line from the options. Each option should be indented by 3 to 6 spaces for proper parsing from markdown to HTML.
     goodFor: reflection, explanation, recall, knowledge assessment
     avoid: open text question, this component is intended only for multiple choice answers
     rules:
@@ -37,9 +40,11 @@ components:
          - [ ] To create a database
 
   - name: mermaid-diagram
+    intentedUse: explanation, complementary to the main content
     description: >-
       Mermaid diagrams allow you to create various types of diagrams including flowcharts, sequence diagrams, class diagrams, and more. The component renders Mermaid syntax into interactive diagrams.
-    goodFor: visualization, process explanation, system architecture, data flow
+    goodFor: visualization, process explanation, system architecture, data flow.
+    whenToUse: Use it only when the diagram
     avoid: complex diagrams that might not render well, use for simple to medium complexity diagrams
     rules: 
       - NEVER under ANY circumstances use write parentheses inside [] because it will break the mermaid syntax and won't render properly
@@ -53,6 +58,7 @@ components:
       ```
 
   - name: ask-rigo-button
+    intentedUse: explanation, complementary to the main content
     description: >-
       The Ask Rigo button provides AI-powered assistance for quizzes and tests. It allows users to get hints and help from the Rigo AI assistant based on the current context. It consist in a link that starts with https://4geeks.com/ask?query= and the query is the current question to make to the Rigo AI assistant.
     goodFor: providing hints, AI assistance, learning support
@@ -62,12 +68,13 @@ components:
       [Ask Rigo about HTML](https://4geeks.com/ask?query=What is the purpose of HTML?)
 
   - name: runnable-code
+    intentedUse: code experimentation, immediate feedback, understand code.
     description: >-
       Code blocks with the runnable metadata that can be executed directly in the browser. Users can run the code and see the output, making it interactive for learning programming concepts.
     goodFor: code experimentation, immediate feedback, understand code.
     avoid: complex code that might not run in the browser environment easily, this is intended only for demostrative purposes.
     example: |
-      ```javascript runnable=true
+      ```javascript runnable="true"
       console.log("Hello, World!");
       let x = 5;
       let y = 10;
@@ -75,6 +82,7 @@ components:
       ```
 
   - name: code-file-proposal
+    intentedUse: hands-on learning, code experimentation, immediate feedback on code execution, this renders in a separate tab where the student can edit the code file. The student will see all the files from the lessons. So you need to suggest as many files as needed for the exercise.
     description: >-
       A code file proposal is a component the teacher will use to generate a coding files used to solve an exercise in the instructions, it consists in a markdown code block with the language set to `code-file-proposal`. Inside the code block, you must write a 5 to 10 sentences description of the exercise. It has a metadata property file_name in the metadata section of the code block with the name of the file to be generated, including  the extension. Keep in mind that for HTML, CSS and Javascript files, the code is executed directly in the browser, for other programming languages, the code executing will be inferred by an AI model. Prefer a single file instead of multiple ones per lesson. But if multiple files are needed, suggest them all.
     goodFor: hands-on learning, code experimentation, immediate feedback on code execution, this renders in a separate tab where the student can edit the code file. The student will see all the files from the lessons. So you need to suggest as many files as needed for the exercise.
@@ -92,6 +100,7 @@ components:
       In this file, the student needs to create a simple HTML page with a title and a paragraph. This page is linked to the app.css file and the app.js files.
       ```
   - name: fill-in-the-blank
+    intentedUse: reflection, explanation, recall, knowledge assessment
     description: >-
       A fill in the blank is a component that allows the user to fill in the blank with the correct answer. It consists in a markdown code block with the language set to `fill-in-the-blank`. Inside the code block, you must write the question with the blank (or blanks) to be filled. In the metadata section, you must include the valid answers for each blank. The blanks are numbered starting from 1. Case insensitive answers are allowed. If multiple answer are alloed for a blank, you must include them separated by a comma in the proper metadata property.
     goodFor: reflection, explanation, recall, knowledge assessment
