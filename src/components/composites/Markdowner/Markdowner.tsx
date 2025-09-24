@@ -467,6 +467,8 @@ const CustomCodeBlock = ({
   const { t } = useTranslation();
   const [executionResult, setExecutionResult] = useState<string | null>(null);
 
+  console.log(language, "language");
+
   if (language === "stdout" || language === "stderr") {
     return (
       <div className={`${language}`}>

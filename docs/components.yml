@@ -109,7 +109,7 @@ components:
       ### Let's recall!
       FIll the blanks with the correct answers.
       
-      ```fill-in-the-blank 1="Paris" 2="Berlin"
+      ```fill_in_the_blank 1="Paris" 2="Berlin"
       The capital of France is _1_, the capital of Germany is _2_.
       ```
 
