@@ -1090,3 +1090,11 @@ a {
 .box-shadow {
   box-shadow: 0px 4px 10px 0px rgba(30, 42, 50, 0.10);
 }
+
+.bg-light-red {
+  background-color: #ffe9e9;
+}
+
+.bg-light-green {
+  background-color: #daffe4;
+}

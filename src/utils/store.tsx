@@ -530,6 +530,8 @@ The user's set up the application in "${language}" language, give your feedback 
   fetchExercises: async () => {
     const { user_id, setOpenedModals, environment, token } = get();
 
+    console.log("Fetching exercises", environment, token);
+
     if (environment === "creatorWeb") {
       const slug = getSlugFromPath();
       if (!token || token === "") {
@@ -1371,8 +1373,13 @@ The user's set up the application in "${language}" language, give your feedback 
       set({ tabHash: storedTabHash });
     }
 
+    const fallbackSlug = getSlugFromPath();
+
+    console.log("Getting session", token, configObject.config.slug);
+    
+
     try {
-      const session = await getSession(token, configObject.config.slug);
+      const session = await getSession(token, configObject.config.slug || fallbackSlug || "");
 
 
       if (!session.tab_hash) {

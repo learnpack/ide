@@ -1,7 +1,6 @@
 import { svgs } from "../../../assets/svgs";
 import { toast } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { suggestExamples } from "../../../managers/EventProxy";
 import { Element } from "hast";
 import { useEffect, useRef, useState } from "react";
 import { asyncHashText, debounce, playEffect } from "../../../utils/lib";
@@ -254,7 +253,6 @@ const convertToSingleLine = (text: string) => {
 };
 
 const AddExampleButton = ({
-  wholeMD,
   evaluation,
   addExamples,
   examples,
@@ -266,7 +264,6 @@ const AddExampleButton = ({
 }) => {
   const { t } = useTranslation();
   const evaluationRef = useRef<HTMLParagraphElement>(null);
-  const token = useStore((state) => state.token);
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
@@ -275,19 +272,6 @@ const AddExampleButton = ({
   const [acceptedSuggestions, setAcceptedSuggestions] =
     useState<string[]>(examples);
 
-  const makeSuggestions = async () => {
-    const result = await suggestExamples(token, {
-      lesson_content: wholeMD,
-      evaluation: evaluation,
-    });
-    setSuggestions(result.examples);
-  };
-
-  useEffect(() => {
-    if (isOpen && suggestions.length === 0) {
-      makeSuggestions();
-    }
-  }, [isOpen]);
 
   return (
     <>
@@ -308,7 +292,7 @@ const AddExampleButton = ({
           <div className="flex-y">
             <h4>{t("evaluationCriteria")}</h4>
             <p
-              className="m-0"
+              className="m-0 bg-white rounded padding-medium"
               contentEditable
               suppressContentEditableWarning
               ref={evaluationRef}
@@ -341,26 +325,7 @@ const AddExampleButton = ({
                 }}
               />
             ))}
-            {/* Only show the first suggestion */}
-            {suggestions.length > 1 && (
-              <Suggestion
-                suggestion={suggestions[0]}
-                onAccept={() => {
-                  setAcceptedSuggestions([
-                    ...acceptedSuggestions,
-                    suggestions[0],
-                  ]);
-                  setSuggestions(
-                    suggestions.filter((s) => s !== suggestions[0])
-                  );
-                }}
-                onReject={() => {
-                  setSuggestions(
-                    suggestions.filter((s) => s !== suggestions[0])
-                  );
-                }}
-              />
-            )}
+
             <SimpleButton
               title={t("finish")}
               extraClass="w-100 justify-center bg-blue rounded padding-medium"
@@ -385,23 +350,40 @@ const WriteSuggestion = ({ submit }: { submit: (answer: string) => void }) => {
   const { t } = useTranslation();
   const textRef = useRef<HTMLTextAreaElement>(null);
   return (
-    <div className="d-flex gap-small">
+    <div className="flex-y gap-small">
       <textarea
         ref={textRef}
         className="textarea w-100 rounded padding-small"
-        placeholder={t("writeAnExampleCorrectAnswer")}
+        placeholder={t("writeAnExampleAnswer")}
         rows={2}
       />
-      <SimpleButton
-        title={t("add")}
-        text={t("add")}
-        svg={svgs.iconCheck}
-        action={() => {
-          if (textRef.current) {
-            submit(textRef.current.value);
-          }
-        }}
-      />
+      <div className="d-flex gap-small justify-center">
+        <SimpleButton
+        extraClass="bg-soft-green padding-small rounded"
+          title={t("saveAsCorrect")}
+          
+          text={t("saveAsCorrect")}
+          svg={svgs.iconCheck}
+          action={() => {
+            if (textRef.current) {
+              submit("CORRECT: " + textRef.current.value);
+              textRef.current.value = "";
+            }
+          }}
+        />
+        <SimpleButton
+          extraClass="bg-soft-red padding-small rounded"
+          title={t("saveAsIncorrect")}
+          text={t("saveAsIncorrect")}
+          svg={svgs.iconClose}
+          action={() => {
+            if (textRef.current) {
+              submit("INCORRECT: " + textRef.current.value);
+              textRef.current.value = "";
+            }
+          }}
+        />
+      </div>
     </div>
   );
 };
@@ -418,13 +400,14 @@ const Suggestion = ({
   accepted?: boolean;
 }) => {
   const { t } = useTranslation();
+
+  const isIncorrect = suggestion.startsWith("INCORRECT: ");
   return (
     <div
       key={suggestion}
-      className={`rounded padding-small border-gray ${accepted ? "bg-blue-opaque" : "bg-transparent"
-        }`}
+        className={`rounded padding-small border-gray ${isIncorrect ? "bg-light-red" : "bg-light-green"}	`}
     >
-      <p>{suggestion}</p>
+      <p>{suggestion.replace("INCORRECT:", "").replace("CORRECT:", "")}</p>
       <div className="d-flex gap-small justify-center ">
         {onAccept && (
           <SimpleButton

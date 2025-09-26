@@ -425,5 +425,8 @@
     "generating": "Generating",
     "generateNextThree": "Next three lessons",
     "continueWithAll": "Continue with all",
-    "author": "Author"
+    "author": "Author",
+    "saveAsCorrect": "Save as correct",
+    "saveAsIncorrect": "Save as incorrect",
+    "writeAnExampleAnswer": "Write an example answer"
 }

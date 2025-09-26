@@ -432,6 +432,8 @@
     "generating": "Generando",
     "generateNextThree": "Próximas tres lecciones",
     "continueWithAll": "Continuar con todos",
-    "author": "Autor"
-
+    "author": "Autor",
+    "saveAsCorrect": "Guardar como correcto",
+    "saveAsIncorrect": "Guardar como incorrecto",
+    "writeAnExampleAnswer": "Escribe un ejemplo de respuesta"
 }

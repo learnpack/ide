@@ -132,6 +132,8 @@ export const isPackageAuthor = async (
 ): Promise<{ isAuthor: boolean; status: number }> => {
   const url = `${RIGOBOT_HOST}/v1/learnpack/package/${packageSlug}/`;
 
+  console.log("Checking if package is author", url, token);
+
   const headers = {
     Authorization: `Token ${token}`,
   };
