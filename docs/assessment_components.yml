@@ -33,37 +33,54 @@ components:
       - rubric: application_problem_solving
         weight: 0.20
     description: >-
-      This is a set of questions, from 1 to 5 questions, each one with multiple options. The component leverages task-list syntax to render the quiz. Each group of options should have a question title separated by an empty line from the options. Each option should be indented by 3 to 6 spaces for proper parsing from markdown to HTML.  Keep in mind that quizzes must NOT be wrapped in a code block, they should be written directly in the markdown file without any wrapping. If you wrap the quiz in a code block, the component will not be able to render it and it will not work.
-    goodFor: reflection, explanation, recall, knowledge assessment
-    avoid: open text question, this component is intended only for multiple choice answers
-    rules:
-      - Each group of options should have a question title separated by an empty line from the options
-      - Each group of options must have a unique correct answer
-      - Each option should be a checkbox indented by 3 to 6 spaces
-      - There must be an empty line between the question title and the options
-      - Use [x] for correct answers and [ ] for incorrect options
-    example: |
-      ### Put your knowledge to the test!
+      Quizzes or multiple choice questions are a great way to test the knowledge of the user. They are a great way to make the user think and to make the lesson more interactive. In LearnPack, the quizzes are rendered from task list syntax.
 
+      ### Rules
+
+      1. Each group of options should have a question that is a list item, numbered or not, separated by an empty line from the options.
+      2. Each group of options must have an unique correct answer marked with [x]
+      3. Each option should be a checkbox indented by 3 to 6 spaces, this is important for the parsing from markdown to HTML.
+      4. It must be an empty line between the question title and the options. This is important for the parsing from markdown to HTML.
+
+    goodFor: reflection, explanation, recall, knowledge assessment
+    avoid: open text question, this component is intended only for multiple choice answers with an unique correct answer per group of options
+    example: |
+
+      ### Put your knowledge to the test!
       Select the correct answer for each question.
 
 
-      1. What is the purpose of HTML?
+      1. Question number 1 (This is the title for the group of questions)
+        <!-- Each group of options should have an empty line between the question title and the options -->
 
-         - [ ] To write code
-         - [x] To create websites
-         - [ ] To create a database
+        - [ ] Incorrect option
+        - [ ] Incorrect option
+        - [x] Correct option (This is the correct answer)
 
-      2. What is the purpose of CSS?
+      2. Question number 2
+        <!-- Each group of options should have an empty line between the question title and the options -->
+        - [ ] Incorrect option
+        - [x] Correct option
+        - [ ] Incorrect option
 
-         - [ ] To create websites
-         - [x] To style websites
-         - [ ] To create a database
+
+      --- Second Example ---
+
+      - Question number 1
+
+        - [x] Correct option
+        - [ ] Incorrect option
+        - [ ] Incorrect option
+
+      - Question number 2
+
+        - [ ] Incorrect option
+        - [x] Correct option
+        - [ ] Incorrect option
 
   - name: fill-in-the-blank
     intentedUse: reflection, explanation, recall, knowledge assessment
     measures:
-      A fill in the blank is a component that allows the user to fill in the blank with the correct answer. It consists in a markdown code block with the language set to `fill_in_the_blank`. Inside the code block, you must write the question with the blank (or blanks) to be filled. Each blank consist in _1_, _2_, _3_, etc. In the metadata section, you must include the valid answers for each blank. The blanks are numbered starting from 1. Case insensitive answers are allowed. If multiple answer are alloed for a blank, you must include them separated by a comma in the proper metadata property.
       - rubric: content_mastery        
         weight: 0.70
       - rubric: communication          
@@ -71,6 +88,7 @@ components:
       - rubric: application_problem_solving
         weight: 0.15
     description: >-
+      A fill in the blank is a component that allows the user to fill in the blank with the correct answer. It consists in a markdown code block with the language set to `fill_in_the_blank`. Inside the code block, you must write the question with the blank (or blanks) to be filled. Each blank consist in _1_, _2_, _3_, etc. In the metadata section, you must include the valid answers for each blank. The blanks are numbered starting from 1. Case insensitive answers are allowed. If multiple answer are alloed for a blank, you must include them separated by a comma in the proper metadata property.
     goodFor: reflection, explanation, recall, knowledge assessment
     avoid: open text question, this component is intended only for fill in the blank answers
     example: |
