@@ -1,5 +1,8 @@
 export const LocalStorage = {
   get: (key: string, asJson = true) => {
+    if (!localStorage) {
+      return null;
+    }
     const value = localStorage.getItem(key);
 
     if (!value) {
@@ -9,7 +12,9 @@ export const LocalStorage = {
     return parsed;
   },
   set: (key: string, value: any) => {
-    localStorage.setItem(key, JSON.stringify(value));
+    if (localStorage) {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
   },
   remove: (key: string) => {
     localStorage.removeItem(key);

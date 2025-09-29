@@ -5,6 +5,8 @@ import { VideoPlayer } from "../../composites/VideoPlayer/VideoPlayer";
 import "./TeacherOnboarding.css";
 import SimpleButton from "../../mockups/SimpleButton";
 import { useTranslation } from "react-i18next";
+import { LocalStorage } from "../../../managers/localStorage";
+import { getTeacherOnboardingKey } from "../../../utils/lib";
 
 type TStep = {
   title: string;
@@ -111,6 +113,7 @@ export const TeacherOnboarding = () => {
 
   const handleClose = () => {
     setOpenedModals({ teacherOnboarding: false });
+    LocalStorage.set(getTeacherOnboardingKey(), true);
   };
 
   const handleStepChange = (stepIndex: number) => {

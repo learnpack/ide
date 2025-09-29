@@ -435,5 +435,8 @@
     "author": "Autor",
     "saveAsCorrect": "Guardar como correcto",
     "saveAsIncorrect": "Guardar como incorrecto",
+    "save": "Guardar",
+    "asCorrect": "Como Correcto",
+    "asIncorrect": "Como Incorrecto",
     "writeAnExampleAnswer": "Escribe un ejemplo de respuesta"
 }

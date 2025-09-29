@@ -5,6 +5,7 @@ import TaskLists from "markdown-it-task-lists";
 import TagManager from "react-gtm-module";
 import * as yaml from "js-yaml";
 import axios from "axios";
+import { LocalStorage } from "../managers/localStorage";
 // import toast from "react-hot-toast";
 export const DEV_MODE =false;
 export const DEV_URL = "https://1gm40gnb-3000.use2.devtunnels.ms";
@@ -498,6 +499,15 @@ export function getSlugFromPath() {
 
   // Si no, devolvemos el último segmento (por si cambian la estructura)
   return segments.pop() || null;
+}
+
+export function getTeacherOnboardingKey() {
+  const slug = getSlugFromPath();
+  return `teacherOnboardingClosed_${slug || 'default'}`;
+}
+
+export function getTeacherOnboardingClosed() {
+  return LocalStorage.get(getTeacherOnboardingKey(), false) === true;
 }
 
 export function getMainIndex(title: string): number | null {

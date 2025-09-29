@@ -428,5 +428,8 @@
     "author": "Author",
     "saveAsCorrect": "Save as correct",
     "saveAsIncorrect": "Save as incorrect",
+    "save": "Save",
+    "asCorrect": "As Correct",
+    "asIncorrect": "As Incorrect",
     "writeAnExampleAnswer": "Write an example answer"
 }

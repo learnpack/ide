@@ -1376,7 +1376,7 @@ The user's set up the application in "${language}" language, give your feedback 
     const fallbackSlug = getSlugFromPath();
 
     console.log("Getting session", token, configObject.config.slug);
-    
+
 
     try {
       const session = await getSession(token, configObject.config.slug || fallbackSlug || "");
@@ -1470,10 +1470,10 @@ The user's set up the application in "${language}" language, give your feedback 
           files: e.files.map((f: any) => {
             return f.name === tab.name
               ? {
-                  ...f,
-                  content: tab.content,
-                  modified: true,
-                }
+                ...f,
+                content: tab.content,
+                modified: true,
+              }
               : f;
           }),
         };
@@ -1900,7 +1900,7 @@ The user's set up the application in "${language}" language, give your feedback 
   uploadFileToCourse: async (file: File, destination: string) => {
     const { configObject } = get();
     const courseSlug = configObject.config.slug;
-    
+
     if (!courseSlug) {
       throw new Error("Course slug not found");
     }
@@ -1929,7 +1929,7 @@ The user's set up the application in "${language}" language, give your feedback 
   test: async () => {
     const { configObject, uploadFileToCourse } = get();
     const courseSlug = configObject.config.slug;
-    
+
     if (!courseSlug) {
       alert("Course slug not found");
       return;
@@ -1940,7 +1940,7 @@ The user's set up the application in "${language}" language, give your feedback 
     input.type = "file";
     input.accept = ".md";
     input.multiple = true;
-    
+
     input.onchange = async (event) => {
       const files = (event.target as HTMLInputElement).files;
       if (!files || files.length === 0) return;
@@ -1949,7 +1949,7 @@ The user's set up the application in "${language}" language, give your feedback 
         for (const file of Array.from(files)) {
           const fileName = file.name.toLowerCase();
           let destination = "";
-          
+
           if (fileName === "readme.md") {
             destination = "README.md";
           } else if (fileName === "readme.es.md") {
@@ -1962,7 +1962,7 @@ The user's set up the application in "${language}" language, give your feedback 
           await uploadFileToCourse(file, destination);
           console.log(`✅ Successfully uploaded ${file.name} to ${destination}`);
         }
-        
+
         alert("Files uploaded successfully!");
       } catch (error) {
         console.error("Error uploading files:", error);

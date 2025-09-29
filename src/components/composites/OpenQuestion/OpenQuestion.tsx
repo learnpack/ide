@@ -17,6 +17,7 @@ import { Markdowner } from "../Markdowner/Markdowner";
 import TelemetryManager, { TTesteableElement } from "../../../managers/telemetry";
 import { makeQuizSubmission } from "../QuizRenderer/QuizRenderer";
 import { RigoAI } from "../../Rigobot/AI";
+import CustomDropdown from "../../CustomDropdown";
 
 const splitInLines = (code: string) => {
   return code.split("\n").filter((line) => line.trim() !== "");
@@ -263,7 +264,7 @@ const AddExampleButton = ({
   examples: string[];
 }) => {
   const { t } = useTranslation();
-  const evaluationRef = useRef<HTMLParagraphElement>(null);
+  const [evaluationValue, setEvaluationValue] = useState<string>(evaluation);
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
@@ -291,28 +292,26 @@ const AddExampleButton = ({
           <h2>{t("questionEditor")}</h2>
           <div className="flex-y">
             <h4>{t("evaluationCriteria")}</h4>
-            <p
-              className="m-0 bg-white rounded padding-medium"
-              contentEditable
-              suppressContentEditableWarning
-              ref={evaluationRef}
-            >
-              {evaluation}
-            </p>
-          </div>
-          <div className="separator">
-            <div></div>
-            <h4></h4>
-            <div></div>
-          </div>
-          {/* <p>{t("missingExamplesExplanation")}</p> */}
-          <div className="flex-y gap-small">
-            <h4>{t("examples")}</h4>
-            <WriteSuggestion
-              submit={(answer) => {
-                setAcceptedSuggestions([...acceptedSuggestions, answer]);
+            <AutoResizeTextarea
+              className="padding-medium"
+              defaultValue={evaluationValue}
+              onChange={(e) => {
+
+                setEvaluationValue(e.target.value);
               }}
             />
+
+          </div>
+
+
+
+          <WriteSuggestion
+            submit={(answer) => {
+              setAcceptedSuggestions([...acceptedSuggestions, answer]);
+            }}
+          />
+          <div className="flex-y gap-small">
+            <h4 className="mt-10px">{t("examples")}</h4>
             {acceptedSuggestions.map((suggestion) => (
               <Suggestion
                 suggestion={suggestion}
@@ -334,12 +333,13 @@ const AddExampleButton = ({
               action={() => {
                 addExamples(
                   acceptedSuggestions,
-                  convertToSingleLine(evaluationRef.current?.innerText || "")
+                  convertToSingleLine(evaluationValue)
                 );
                 setIsOpen(false);
               }}
             />
           </div>
+
         </Modal>
       )}
     </>
@@ -348,41 +348,58 @@ const AddExampleButton = ({
 
 const WriteSuggestion = ({ submit }: { submit: (answer: string) => void }) => {
   const { t } = useTranslation();
-  const textRef = useRef<HTMLTextAreaElement>(null);
+  const [textValue, setTextValue] = useState<string>("");
   return (
-    <div className="flex-y gap-small">
-      <textarea
-        ref={textRef}
-        className="textarea w-100 rounded padding-small"
+    <div className="flex-y gap-small border-gray rounded padding-small mt-10px">
+      <h4>{t("writeAnExampleAnswer")}</h4>
+      <AutoResizeTextarea
+        defaultValue={textValue}
+        onChange={(e) => {
+          setTextValue(e.target.value);
+        }}
+        className="w-100 rounded padding-medium"
         placeholder={t("writeAnExampleAnswer")}
         rows={2}
       />
       <div className="d-flex gap-small justify-center">
-        <SimpleButton
-        extraClass="bg-soft-green padding-small rounded"
-          title={t("saveAsCorrect")}
-          
-          text={t("saveAsCorrect")}
-          svg={svgs.iconCheck}
-          action={() => {
-            if (textRef.current) {
-              submit("CORRECT: " + textRef.current.value);
-              textRef.current.value = "";
-            }
-          }}
-        />
-        <SimpleButton
-          extraClass="bg-soft-red padding-small rounded"
-          title={t("saveAsIncorrect")}
-          text={t("saveAsIncorrect")}
-          svg={svgs.iconClose}
-          action={() => {
-            if (textRef.current) {
-              submit("INCORRECT: " + textRef.current.value);
-              textRef.current.value = "";
-            }
-          }}
-        />
+        <CustomDropdown
+          menuClassName="w-200px flex-y gap-small"
+          position="center"
+          trigger={
+            <SimpleButton
+              extraClass="bg-blue-rigo text-white padding-small rounded flex-x align-center gap-small"
+              text={t("save")}
+              svg={svgs.publish}
+            />
+          }
+        >
+          <SimpleButton
+            extraClass="border-green rounded padding-small text-green flex-x align-center gap-small w-100 active-on-hover"
+            action={() => {
+              if (textValue) {
+                submit("CORRECT: " + textValue);
+                setTextValue("");
+              } else {
+                toast.error(t("pleaseEnterAnAnswer"));
+              }
+            }}
+            text={t("asCorrect")}
+            svg={svgs.iconCheck}
+          />
+          <SimpleButton
+            extraClass="border-red rounded padding-small text-red flex-x align-center gap-small w-100 active-on-hover"
+            action={() => {
+              if (textValue) {
+                submit("INCORRECT: " + textValue);
+                setTextValue("");
+              } else {
+                toast.error(t("pleaseEnterAnAnswer"));
+              }
+            }}
+            text={t("asIncorrect")}
+            svg={svgs.iconClose}
+          />
+        </CustomDropdown>
       </div>
     </div>
   );
@@ -405,9 +422,15 @@ const Suggestion = ({
   return (
     <div
       key={suggestion}
-        className={`rounded padding-small border-gray ${isIncorrect ? "bg-light-red" : "bg-light-green"}	`}
+      className={`rounded padding-small border-gray pos-relative	`}
     >
-      <p>{suggestion.replace("INCORRECT:", "").replace("CORRECT:", "")}</p>
+      <div className="d-flex gap-small align-start">
+        <p className="w-100">{suggestion.replace("INCORRECT:", "").replace("CORRECT:", "")}</p>
+        <div className={`d-flex align-center justify-center  rounded  w-fit-content ${isIncorrect ? "pill-incorrect" : "pill-correct"}`}>
+          {isIncorrect ? "✗ Incorrect" : "✓ Correct"}
+        </div>
+
+      </div>
       <div className="d-flex gap-small justify-center ">
         {onAccept && (
           <SimpleButton

@@ -20,6 +20,8 @@ import { PackageNotFoundModal } from "./PackageNotFound";
 import { SyllabusFeedbackModal } from "./SyllabusFeedback";
 import { TeacherOnboarding } from "./TeacherOnboarding";
 import { useEffect } from "react";
+import { LocalStorage } from "../../../managers/localStorage";
+import { getTeacherOnboardingKey } from "../../../utils/lib";
 
 export const ModalsContainer = () => {
   const { openedModals, setOpenedModals, mode, teacherOnboardingClosed } =
@@ -59,7 +61,7 @@ export const ModalsContainer = () => {
       {openedModals.notAuthor && <NotAuthorModal />}
       {openedModals.packageNotFound && <PackageNotFoundModal />}
       {openedModals.syllabusFeedback && <SyllabusFeedbackModal />}
-      {openedModals.teacherOnboarding && <TeacherOnboarding />}
+      {openedModals.teacherOnboarding && !LocalStorage.get(getTeacherOnboardingKey(), false) && <TeacherOnboarding />}
     </>
   );
 };
