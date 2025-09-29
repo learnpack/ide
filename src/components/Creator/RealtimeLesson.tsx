@@ -167,6 +167,38 @@ const ContinueGenerationButton = ({
       </div>
     );
   }
+  
+  if (status === "ERROR") {
+    return (
+      <div className="flex-y gap-small align-center justify-center">
+        <BigRigoMessage svg={svgs.rigoWait} message={`❌ Error generating lesson: ${title}`} />
+        <div className="flex-x gap-small justify-center">
+          <SimpleButton
+            svg={"🔄"}
+            extraClass="border-red rounded padding-small text-red flex-x align-center gap-small bg-red-50"
+            action={() => handleContinue("next-three")}
+            text="Retry Generation"
+          />
+          <SimpleButton
+            svg={"🤔"}
+            extraClass="border-blue rounded padding-small text-blue flex-x align-center gap-small svg-blue"
+            action={() => {
+              const { toggleRigo, setRigoContext } = useStore.getState();
+              setRigoContext({
+                context: `Current lesson: ${title}\nDescription: ${description}\nStatus: ${status}`,
+                userMessage: `I want to modify the content of this lesson: "${title}". ${description}`,
+                performTests: false,
+                allowedFunctions: ["continueGeneration"],
+              });
+              toggleRigo({ ensure: "open" });
+            }}
+            text={t("IHaveSomeFeedback")}
+          />
+        </div>
+      </div>
+    );
+  }
+  
   if (status === "DONE") {
     return null;
   }

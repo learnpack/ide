@@ -9,12 +9,14 @@ components:
     - rubric: content_mastery        
       weight: 0.30
     description: >-
-      The open text question is a type of interactive question where users can write down a text answer (1-5 sentences). The component consists in a markdown code block with the language set to `question` and has a metadata property eval in the metadata section of the code block with instructions on how to evaluate the answer. Inside the code block, you must write down 3-5 example answers with CORRECT: or INCORRECT: prefix.
+      The open text question is a type of interactive question where users can write down a text answer (1-5 sentences). The component consists in a markdown code block with the language set to `question` and has a metadata property eval in the metadata section of the code block with instructions on how to evaluate the answer. Inside the code block, you must write down 3-5 example answers with CORRECT: or INCORRECT: prefix. The actual question must be written outside the code block so the user can see it.
     goodFor: reflection, explanation, recall
     avoid: multiple choice, true/false, fill in the blank, this component is intended only for free form answers
     props:
       - eval: string (required)
     example: |
+      ### What is console.log in your own words?
+  
       ```question eval="The user needs to write using its own words what is console.log"
       CORRECT: The console.log is a function that logs a message to the console.
       INCORRECT: It is used to solve logarithms problems.
@@ -31,7 +33,7 @@ components:
       - rubric: application_problem_solving
         weight: 0.20
     description: >-
-      This is a set of questions, from 1 to 5 questions, each one with multiple options. The component leverages task-list syntax to render the quiz. Each group of options should have a question title separated by an empty line from the options. Each option should be indented by 3 to 6 spaces for proper parsing from markdown to HTML.
+      This is a set of questions, from 1 to 5 questions, each one with multiple options. The component leverages task-list syntax to render the quiz. Each group of options should have a question title separated by an empty line from the options. Each option should be indented by 3 to 6 spaces for proper parsing from markdown to HTML.  Keep in mind that quizzes must NOT be wrapped in a code block, they should be written directly in the markdown file without any wrapping. If you wrap the quiz in a code block, the component will not be able to render it and it will not work.
     goodFor: reflection, explanation, recall, knowledge assessment
     avoid: open text question, this component is intended only for multiple choice answers
     rules:
@@ -41,6 +43,11 @@ components:
       - There must be an empty line between the question title and the options
       - Use [x] for correct answers and [ ] for incorrect options
     example: |
+      ### Put your knowledge to the test!
+
+      Select the correct answer for each question.
+
+
       1. What is the purpose of HTML?
 
          - [ ] To write code
@@ -68,7 +75,6 @@ components:
     avoid: open text question, this component is intended only for fill in the blank answers
     example: |
       ### Let's recall!
-      FIll the blanks with the correct answers.
       
       ```fill_in_the_blank 1="Paris" 2="Berlin"
       The capital of France is _1_, the capital of Germany is _2_.

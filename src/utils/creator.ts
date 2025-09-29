@@ -171,11 +171,16 @@ export const continueGenerating = async (
   const headers = {
     "x-rigo-token": rigoToken,
   };
+  
+  // Add random 6-digit number to feedback to avoid cache issues
+  const randomCacheEvict = Math.floor(100000 + Math.random() * 900000);
+  const feedbackWithCacheEvict = feedback + `-${randomCacheEvict}`;
+  
   const response = await axios.post(
     `${
       DEV_MODE ? "http://localhost:3000" : ""
     }/actions/continue-generating/${courseSlug}/${position}`,
-    { position, feedback, mode },
+    { position, feedback: feedbackWithCacheEvict, mode },
     { headers }
   );
   return response.data;
