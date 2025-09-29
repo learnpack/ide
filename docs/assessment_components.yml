@@ -56,14 +56,14 @@ components:
   - name: fill-in-the-blank
     intentedUse: reflection, explanation, recall, knowledge assessment
     measures:
+      A fill in the blank is a component that allows the user to fill in the blank with the correct answer. It consists in a markdown code block with the language set to `fill_in_the_blank`. Inside the code block, you must write the question with the blank (or blanks) to be filled. Each blank consist in _1_, _2_, _3_, etc. In the metadata section, you must include the valid answers for each blank. The blanks are numbered starting from 1. Case insensitive answers are allowed. If multiple answer are alloed for a blank, you must include them separated by a comma in the proper metadata property.
       - rubric: content_mastery        
         weight: 0.70
       - rubric: communication          
-        weight: 0.15
+        weight: 0.15 
       - rubric: application_problem_solving
         weight: 0.15
     description: >-
-      A fill in the blank is a component that allows the user to fill in the blank with the correct answer. It consists in a markdown code block with the language set to `fill_in_the_blank`. Inside the code block, you must write the question with the blank (or blanks) to be filled. Each blank consist in _1_, _2_, _3_, etc. In the metadata section, you must include the valid answers for each blank. The blanks are numbered starting from 1. Case insensitive answers are allowed. If multiple answer are alloed for a blank, you must include them separated by a comma in the proper metadata property.
     goodFor: reflection, explanation, recall, knowledge assessment
     avoid: open text question, this component is intended only for fill in the blank answers
     example: |
