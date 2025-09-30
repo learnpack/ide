@@ -39,6 +39,7 @@ export const Notifier = {
         spread: randomInRange(50, 70),
         particleCount: randomInRange(50, 100),
         origin: { y: 0.6 },
+        zIndex: 10000,
       });
     }
   },

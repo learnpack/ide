@@ -405,9 +405,16 @@ function ExerciseCard({
     return lesson.id === index;
   });
 
+  const current = getCurrentExercise();
+  const isCurrent = current.slug === slug;
+
+  console.log(current, slug, isCurrent);
+
   return (
     <div
-      className={`exercise-card ${selected ? "bg-2" : "bg-white"}`}
+      className={`exercise-card  ${
+        isCurrent ? "bg-2" : selected ? "bg-1" : "bg-white"
+      }`}
       onClick={
         mode === "student"
           ? () => {

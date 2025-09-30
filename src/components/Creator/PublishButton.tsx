@@ -204,10 +204,8 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
 
       toast.success(t("tutorial-published-successfully"));
       setDeployedUrl(res.url);
-      // setDeployedUrl("https://www.google.com");
-
-      playEffect("success");
       Notifier.confetti();
+      playEffect("success");
     } catch (error) {
       toast.error(t("error-publishing-tutorial"));
       console.error(error, "ERROR FROM PUBLISH BUTTON");

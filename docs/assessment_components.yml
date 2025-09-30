@@ -9,9 +9,9 @@ components:
     - rubric: content_mastery        
       weight: 0.30
     description: >-
-      The open text question is a type of interactive question where users can write down a text answer (1-5 sentences). The component consists in a markdown code block with the language set to `question` and has a metadata property eval in the metadata section of the code block with instructions on how to evaluate the answer. Inside the code block, you must write down 3-5 example answers with CORRECT: or INCORRECT: prefix. The actual question must be written outside the code block so the user can see it.
+      The open text question is a type of interactive question where users can write down a text answer. The component consists in a markdown code block with the language set to `question` and has a metadata property eval in the metadata section of the code block with instructions on how to evaluate the answer. Inside the code block, you must write down 3-5 example answers with CORRECT: or INCORRECT: prefix. The actual question must be written before the code block so the user can see it.
     goodFor: reflection, explanation, recall
-    avoid: multiple choice, true/false, fill in the blank, this component is intended only for free form answers
+    avoid: multiple choice, true/false, fill in the blank, this component is intended only for free form answers, never use for visual questions, only for textual easy to evaluate questions.
     props:
       - eval: string (required)
     example: |
@@ -88,15 +88,15 @@ components:
       - rubric: application_problem_solving
         weight: 0.15
     description: >-
-      A fill in the blank is a component that allows the user to fill in the blank with the correct answer. It consists in a markdown code block with the language set to `fill_in_the_blank`. Inside the code block, you must write the question with the blank (or blanks) to be filled. Each blank consist in _1_, _2_, _3_, etc. In the metadata section, you must include the valid answers for each blank. The blanks are numbered starting from 1. Case insensitive answers are allowed. If multiple answer are alloed for a blank, you must include them separated by a comma in the proper metadata property.
-    goodFor: reflection, explanation, recall, knowledge assessment
-    avoid: open text question, this component is intended only for fill in the blank answers
+      A fill in the blank is a component that allows the user to fill in the blank with the correct answer. It consists in a markdown code block with the language set to `fill_in_the_blank`. Inside the code block, you must write the question with the blank (or blanks) to be filled. Each blank consist in _1_, _2_, _3_, etc. In the metadata section, you must include the valid answers for each blank. The blanks are numbered starting from 1. Case insensitive answers are allowed. If multiple answer are alloed for a blank, you must include them separated by a comma in the proper metadata property. You can also use fill in the black for numerical questions.
+    avoid: open text question, this component is intended only for fill in the blank answers, never use for visual questions, only for textual easy to evaluate questions.
     example: |
       ### Let's recall!
       
       ```fill_in_the_blank 1="Paris" 2="Berlin"
       The capital of France is _1_, the capital of Germany is _2_.
       ```
+      --- Second Example ---
 
       ### Are you really learning? Let's check it!
 
@@ -104,4 +104,14 @@ components:
 
       ```fill_in_the_blank 1="7,8,9,10" 
       I need to sleep at least _1_ hours a day to be healthy.
+      ```
+
+      --- Third Example ---
+
+      ### Let's check your math skills!
+
+      ```fill_in_the_blank 1="12" 2="5" 3="4"
+      Calculate the result of 2 * 6 = _1_
+      If we divide 20 by 4, the result is _2_
+      The square root of 16 is _3_
       ```
