@@ -7,23 +7,8 @@ import toast from "react-hot-toast";
 import Chat from "../sections/modals/Chat";
 import Sidebar from "../sections/sidebar/Sidebar";
 import { LessonRenderer } from "../composites/LessonRenderer/LessonRenderer";
-import ProgressBar from "../composites/ProgressBar/ProgressBar";
 import { AgentTab } from "../Rigobot/Agent";
-
-const CourseProgressBar = () => {
-  const exercises = useStore((s) => s.exercises);
-  const currentExercisePosition = useStore((s) => s.currentExercisePosition);
-
-  const progress =
-    ((Number(currentExercisePosition) + 1) / exercises.length) * 100;
-
-  return (
-    <div className="flex-x align-center justify-center">
-      <ProgressBar height={4} initialProgress={progress} />
-    </div>
-  );
-};
-
+import StepsProgress from "../composites/StepsProgress/StepsProgress";
 
 type TPossibleTabs = "instructions" | "terminal" | "all" | "code";
 
@@ -158,7 +143,7 @@ export const Container = () => {
 
   return (
     <>
-      <CourseProgressBar />
+      <StepsProgress />
       {isRigoOpened && window.innerWidth < 768 && <Chat />}
       {showSidebar && window.innerWidth < 768 && <Sidebar />}
       <main className={styles.container}>

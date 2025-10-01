@@ -1,0 +1,20 @@
+.container {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  width: 100%;
+}
+
+.step {
+  flex: 1;
+  border-radius: 2px;
+  transition: background-color 0.2s ease;
+}
+
+.completed {
+  background-color: var(--color-blue-rigo);
+}
+
+.remaining {
+  background-color: var(--light-grey);
+}

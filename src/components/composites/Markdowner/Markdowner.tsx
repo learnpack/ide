@@ -24,6 +24,32 @@ import RealtimeImage from "../../Creator/RealtimeImage";
 import { RigoAI } from "../../Rigobot/AI";
 import { FetchManager } from "../../../managers/fetchManager";
 import { DIFF_SEPARATOR } from "../../Rigobot/Agent";
+
+
+const ClickMeToGetID = ({ id }: { id: string }) => {
+  // This component renders a button when the parent is hovered, if clicked, it appens the id to the hash of the url
+
+  return null;
+
+
+  
+  return (
+    <SimpleButton
+      extraClass="click-me-button"
+      svg={svgs.share}
+      action={() => {
+        // Verify current hash
+        const currentHash = window.location.hash;
+        if (currentHash.includes(id)) {
+          return;
+        }
+        window.location.hash = `${currentHash}${id}`;
+      }}
+    />
+  );
+};
+
+
 const isRigoQuestion = (href: string) => {
   return href.startsWith("https://4geeks.com/ask?query=");
 };
@@ -122,8 +148,8 @@ export const Markdowner = ({
           if (typeof node?.position?.start?.offset === "number" && typeof node?.position?.end?.offset === "number") {
 
             const md = getPortion(node?.position?.start?.offset, node?.position?.end?.offset);
-            
-            return <h1 id={generateHeadingID(md)}>{children}</h1>;
+
+            return <h1 className="click-me-container" id={generateHeadingID(md)}><ClickMeToGetID id={generateHeadingID(md)} />{children}</h1>;
           }
           return <h1>{children}</h1>;
         },
@@ -406,7 +432,7 @@ const CustomImage = ({
       <>
         {hasError && environment === "creatorWeb" ? (
           <RealtimeImage
-            alt={alt || ""} 
+            alt={alt || ""}
             allowCreate={allowCreate || false}
             onError={handleGenerationError}
             imageId={src.split("/").pop() || ""}
@@ -439,13 +465,13 @@ const CustomCodeBlock = ({
   wholeMD,
   node,
 }: // metadata,
-{
-  code: string;
-  language: string;
-  metadata: TMetadata;
-  wholeMD: string;
-  node: any;
-}) => {
+  {
+    code: string;
+    language: string;
+    metadata: TMetadata;
+    wholeMD: string;
+    node: any;
+  }) => {
   const {
     getCurrentExercise,
     isIframe,
@@ -601,7 +627,7 @@ const ChangesDiffRenderer = ({ code, node }: { code: string, node: any }) => {
     console.log("acceptChanges", newContent, node.position.start, node.position.end);
     await replaceInReadme(newContent, node.position.start, node.position.end);
     toast.success(t("changesAccepted"));
-    
+
     setEditingContent("");
   };
 
@@ -615,28 +641,28 @@ const ChangesDiffRenderer = ({ code, node }: { code: string, node: any }) => {
     <div className="flex-y gap-medium">
       <div className="flex-y">
         <div className="bg-soft-red padding-small">
-            <Markdowner markdown={original} allowCreate={false} />
+          <Markdowner markdown={original} allowCreate={false} />
         </div>
         <div className="bg-soft-green padding-small">
-            <Markdowner markdown={newContent} allowCreate={false} />
+          <Markdowner markdown={newContent} allowCreate={false} />
         </div>
       </div>
-        <div className="d-flex gap-small justify-center">
-          <SimpleButton
-            title={t("acceptChanges")}
-            svg={svgs.iconCheck}
-            extraClass="bg-soft-green button "
-            action={acceptChanges}
-            text={t("acceptChanges")}
-          />  
-          <SimpleButton
-            title={t("rejectChanges")}
-            svg={svgs.iconClose}
-            extraClass="bg-soft-red button"
-            action={rejectChanges}
-            text={t("rejectChanges")}
-          />
-        </div>
+      <div className="d-flex gap-small justify-center">
+        <SimpleButton
+          title={t("acceptChanges")}
+          svg={svgs.iconCheck}
+          extraClass="bg-soft-green button "
+          action={acceptChanges}
+          text={t("acceptChanges")}
+        />
+        <SimpleButton
+          title={t("rejectChanges")}
+          svg={svgs.iconClose}
+          extraClass="bg-soft-red button"
+          action={rejectChanges}
+          text={t("rejectChanges")}
+        />
+      </div>
     </div>
   );
 };
@@ -679,7 +705,7 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
       const blankNum = match[1];
       const isCorrect = submitted && correctAnswers[blankNum]?.includes(answers[blankNum]?.toLowerCase());
       const isIncorrect = submitted && answers[blankNum] && !correctAnswers[blankNum]?.includes(answers[blankNum]?.toLowerCase());
-      
+
       let inputClassName = "fill-blank-input";
       if (submitted) {
         if (isCorrect) {
@@ -725,7 +751,7 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
   const allFilled = uniqueBlanks.every(blankNum => answers[blankNum]?.trim());
 
   // Calculate score
-  const correctCount = uniqueBlanks.filter(blankNum => 
+  const correctCount = uniqueBlanks.filter(blankNum =>
     correctAnswers[blankNum]?.includes(answers[blankNum]?.toLowerCase())
   ).length;
   const totalCount = uniqueBlanks.length;
@@ -733,7 +759,7 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
   const handleSubmit = () => {
     setSubmitted(true);
     setShowResults(true);
-    
+
     if (correctCount === totalCount) {
       toast.success(`Perfect! You got all ${totalCount} answers correct!`);
     } else {
@@ -751,11 +777,11 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
     <div className="fill-in-the-blank-container">
       <h4 className="fill-blank-title">{t("Fill in the blank")}</h4>
       <p className="fill-blank-help">{t("Fill in the blanks with the correct words to complete the exercise. Type your answers in the input fields and click 'Check Answers' when you're done.")}</p>
-      
+
       <div className="fill-in-the-blank-content">
         {parseTextWithInputs()}
       </div>
-      
+
       <div className="fill-blank-buttons">
         {!submitted ? (
           <button
@@ -781,7 +807,7 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
             <div className="results-title">{t("Results")}</div>
             <div className="score-badge">{correctCount}/{totalCount}</div>
           </div>
-          
+
           <div className="results-content">
             <div className={`result-message ${correctCount === totalCount ? "perfect" : correctCount > totalCount / 2 ? "good" : "needs-improvement"}`}>
               {correctCount === totalCount ? (

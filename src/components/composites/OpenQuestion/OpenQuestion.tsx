@@ -1,6 +1,7 @@
 import { svgs } from "../../../assets/svgs";
 import { toast } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import { suggestExamples } from "../../../managers/EventProxy";
 import { Element } from "hast";
 import { useEffect, useRef, useState } from "react";
 import { asyncHashText, debounce, playEffect } from "../../../utils/lib";
@@ -254,6 +255,7 @@ const convertToSingleLine = (text: string) => {
 };
 
 const AddExampleButton = ({
+  wholeMD,
   evaluation,
   addExamples,
   examples,
@@ -265,13 +267,26 @@ const AddExampleButton = ({
 }) => {
   const { t } = useTranslation();
   const [evaluationValue, setEvaluationValue] = useState<string>(evaluation);
+  const token = useStore((state) => state.token);
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
-
   const [suggestions, setSuggestions] = useState<string[]>([]);
-
   const [acceptedSuggestions, setAcceptedSuggestions] =
     useState<string[]>(examples);
+
+  const makeSuggestions = async () => {
+    const result = await suggestExamples(token, {
+      lesson_content: wholeMD,
+      evaluation: evaluation,
+    });
+    setSuggestions(result.examples);
+  };
+
+  useEffect(() => {
+    if (isOpen && suggestions.length === 0 && examples.length < 3) {
+      makeSuggestions();
+    }
+  }, [isOpen]);
 
 
   return (
@@ -324,6 +339,26 @@ const AddExampleButton = ({
                 }}
               />
             ))}
+            {/* Show suggestions only if there are less than 3 examples */}
+            {examples.length < 3 && suggestions.length > 0 && (
+              <Suggestion
+                suggestion={suggestions[0]}
+                onAccept={() => {
+                  setAcceptedSuggestions([
+                    ...acceptedSuggestions,
+                    suggestions[0],
+                  ]);
+                  setSuggestions(
+                    suggestions.filter((s) => s !== suggestions[0])
+                  );
+                }}
+                onReject={() => {
+                  setSuggestions(
+                    suggestions.filter((s) => s !== suggestions[0])
+                  );
+                }}
+              />
+            )}
 
             <SimpleButton
               title={t("finish")}
@@ -409,7 +444,6 @@ const Suggestion = ({
   suggestion,
   onAccept,
   onReject,
-  accepted = false,
 }: {
   suggestion: string;
   onAccept?: () => void;
@@ -432,18 +466,17 @@ const Suggestion = ({
 
       </div>
       <div className="d-flex gap-small justify-center ">
-        {onAccept && (
+        {onAccept &&
           <SimpleButton
-            title={t("correct")}
-            text={t("correct")}
-            svg={svgs.iconCheck}
-            extraClass="border-gray padding-small rounded success-on-hover"
+            extraClass="bg-blue-rigo text-white padding-small rounded flex-x align-center gap-small"
+            text={t("save")}
+            svg={svgs.publish}
             action={onAccept}
           />
-        )}
+        }
         <SimpleButton
-          title={accepted ? t("remove") : t("incorrect")}
-          text={accepted ? t("remove") : t("incorrect")}
+          title={t("remove")}
+          text={t("remove")}
           extraClass="border-gray padding-small rounded danger-on-hover"
           svg={svgs.trash}
           action={onReject}

@@ -487,3 +487,19 @@
   margin: 0;
   width: 20px;
 }
+
+.click-me-button {
+  display: none;
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 10px);
+  transform: translate(50%, -50%);
+}
+
+.click-me-container {
+  position: relative;
+}
+
+.click-me-container:hover .click-me-button {
+  display: block;
+}

@@ -21,6 +21,9 @@ export const AutoResizeTextarea = ({
       ref.current.style.height = "auto";
       ref.current.style.height = `${ref.current.scrollHeight}px`;
       ref.current.value = defaultValue;
+    } else {
+      console.error("[TEXTAREA] ref.current is null");
+      
     }
   }, [defaultValue]);
 
