@@ -633,8 +633,9 @@ const ChangesDiffRenderer = ({ code, node }: { code: string, node: any }) => {
 
   const rejectChanges = async () => {
     console.log("rejectChanges", original, node.position.start, node.position.end);
-    await replaceInReadme(original, node.position.start, node.position.end);
     toast.success(t("changesRejected"));
+    setEditingContent("");
+    
   };
 
   return (

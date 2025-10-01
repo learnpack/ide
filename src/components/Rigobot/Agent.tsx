@@ -92,48 +92,84 @@ export const AgentTab = () => {
   ];
 
   const [isGenerating, setIsGenerating] = useState(false);
-  const [messages, setMessages] = useState<Message[]>(
-    (exerciseMessages[Number(currentExercisePosition)] || initialMessages).map(msg => ({
-      type: msg.type as "user" | "bot",
-      text: msg.text,
-      timestamp: (msg as any).timestamp || Date.now()
-    }))
-  );
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const autoScrollRef = useRef(true);
   const messagesRef = useRef<HTMLDivElement>(null);
   const scrollPosition = useRef(0);
 
-  // Load conversation from localStorage
+  // Initialize messages from the best available source
   useEffect(() => {
-    if (environment === "localhost") return;
+    const initializeMessages = () => {
+      let messagesToLoad: Message[] = [];
 
-    const conversationKey = ConversationManager.generateKey(
-      getCurrentExercise().slug,
-      getCurrentExercise().slug,
-      "en" // You might want to get this from store
-    );
+      // Try localStorage first (if available and not localhost)
+      if (environment !== "localhost") {
+        try {
+          const conversationKey = ConversationManager.generateKey(
+            getCurrentExercise().slug,
+            getCurrentExercise().slug,
+            "en"
+          );
+          const savedConversation = ConversationManager.getConversation(conversationKey);
+          if (savedConversation && savedConversation.messages.length > 0) {
+            messagesToLoad = savedConversation.messages;
+          }
+        } catch (error) {
+          console.log("localStorage not available, falling back to store");
+        }
+      }
 
-    const savedConversation = ConversationManager.getConversation(conversationKey);
-    if (savedConversation && savedConversation.messages.length > 0) {
-      setMessages(savedConversation.messages);
-    }
+      // Fallback to exerciseMessages from store
+      if (messagesToLoad.length === 0) {
+        const storeMessages = exerciseMessages[Number(currentExercisePosition)];
+        if (storeMessages && storeMessages.length > 0) {
+          messagesToLoad = storeMessages.map(msg => ({
+            type: msg.type as "user" | "bot",
+            text: msg.text,
+            timestamp: (msg as any).timestamp || Date.now()
+          }));
+        }
+      }
+
+      // Final fallback to initial messages
+      if (messagesToLoad.length === 0) {
+        messagesToLoad = initialMessages;
+      }
+
+      setMessages(messagesToLoad);
+      setIsInitialized(true);
+    };
+
+    initializeMessages();
   }, [currentExercisePosition, environment]);
 
-  // Save conversation to localStorage whenever messages change
+  // Save conversation to both localStorage and store
   useEffect(() => {
-    if (environment === "localhost") return;
+    if (!isInitialized || messages.length === 0) return;
 
-    if (messages.length > 0) {
-      const conversationKey = ConversationManager.generateKey(
-        getCurrentExercise().slug,
-        getCurrentExercise().slug,
-        "en" // You might want to get this from store
-      );
+    // Save to store
+    setExerciseMessages(messages.map(msg => ({
+      type: msg.type,
+      text: msg.text,
+      timestamp: msg.timestamp
+    })), Number(currentExercisePosition));
 
-      ConversationManager.saveConversation(conversationKey, messages);
+    // Save to localStorage (if available and not localhost)
+    if (environment !== "localhost") {
+      try {
+        const conversationKey = ConversationManager.generateKey(
+          getCurrentExercise().slug,
+          getCurrentExercise().slug,
+          "en"
+        );
+        ConversationManager.saveConversation(conversationKey, messages);
+      } catch (error) {
+        console.log("Failed to save to localStorage:", error);
+      }
     }
-  }, [messages, currentExercisePosition, environment]);
+  }, [messages, currentExercisePosition, environment, isInitialized]);
 
   useEffect(() => {
     scrollPosition.current = messagesRef.current?.scrollTop || 0;
@@ -151,20 +187,37 @@ export const AgentTab = () => {
     };
   }, []);
 
+  // Cleanup: Save conversation when component unmounts
   useEffect(() => {
-    setMessages(
-      (exerciseMessages[Number(currentExercisePosition)] || initialMessages).map(msg => ({
-        type: msg.type as "user" | "bot",
-        text: msg.text,
-        timestamp: (msg as any).timestamp || Date.now()
-      }))
-    );
-  }, [currentExercisePosition]);
+    return () => {
+      if (messages.length > 0) {
+        // Save to store
+        setExerciseMessages(messages.map(msg => ({
+          type: msg.type,
+          text: msg.text,
+          timestamp: msg.timestamp
+        })), Number(currentExercisePosition));
+
+        // Save to localStorage (if available)
+        if (environment !== "localhost") {
+          try {
+            const conversationKey = ConversationManager.generateKey(
+              getCurrentExercise().slug,
+              getCurrentExercise().slug,
+              "en"
+            );
+            ConversationManager.saveConversation(conversationKey, messages);
+          } catch (error) {
+            console.log("Failed to save to localStorage on cleanup:", error);
+          }
+        }
+      }
+    };
+  }, [messages, currentExercisePosition, environment]);
 
 
   const replaceReadmeContentTool = RigoAI.convertTool(
     async (args: { message: string; lineStart: number; lineEnd: number; content: string }) => {
-      console.log("Agent is modifying readme content");
       console.log(args, "args");
       setMessages((prev) => [...prev, { type: "bot", text: args.message, timestamp: Date.now() }]);
 
@@ -215,7 +268,7 @@ ${args.content}
       }
     },
     "replaceReadmeContent",
-    "Replace specific lines in the readme content. The content is provided with line numbers for reference. IMPORTANT: Line numbers are for orientation only and should NOT be included in the replacement content. Its better to perform multiple smaller changes instead of one big change.",
+    "Replace specific lines in the readme content. The content is provided with line numbers for reference. IMPORTANT: Line numbers are for orientation only and should NOT be included in the replacement content. Its better to perform multiple smaller changes instead of one big change. Make A SINGLE change at a time, so approach the problem the user wants to solve in a single tool call.",
     {
       lineStart: {
         type: "number",
@@ -433,11 +486,6 @@ ${args.content}
               started_at: 0,
               ended_at: 0,
             };
-            setExerciseMessages(messages.map(msg => ({
-              type: msg.type,
-              text: msg.text,
-              timestamp: msg.timestamp
-            })), Number(currentExercisePosition));
           }
         },
       });

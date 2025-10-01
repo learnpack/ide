@@ -62,16 +62,25 @@ components:
       ```
 
   - name: image
-    intentedUse: explanation, visualization, complementary to the main content
+    intendedUse: explanation, visualization, complementary to the main content
     description: >-
-      Images are used to enhance learning through visual content. They consist of simple markdown image links with descriptive help text that provides context for image generation. The help text should be detailed enough to guide the creation of relevant and educational images. The alt tbext must contain a prompt to generate the image with an AI model, at least 20 words. The image url must contain the filename of the image. And it should start with ./.learn/assets/.
-    goodFor: visual learning, concept illustration, step-by-step processes, diagrams, screenshots, examples
-    avoid: decorative images without educational value, overly complex images that might not render well
-    rules:
+      Images are used to support learning through clear and meaningful visual content.
+      They should illustrate concepts, examples, or processes that help the student 
+      understand the main content better. Each image is generated from a descriptive 
+      alt text that acts as a detailed prompt for AI.
+    goodFor: visual learning, illustrating concepts, step-by-step guides, data visualization
+    whenToUse: when a concept is abstract, complex, or easier to understand with a visual aid
+    avoid: decorative images without educational value, overly abstract prompts, 
+           using images where text or code is clearer
+    rules: 
       - Use standard markdown image syntax: "![alt text](image-url)"
-      - Include descriptive help text that explains what the image should show
-      - Alt text should be descriptive and educational
-      - Images should directly support the learning content
+      - The alt text must contain a detailed prompt with at least 20 words
+      - The alt text should describe the educational purpose of the image, not only its appearance
+      - The image URL must always start with "./.learn/assets/" and contain a meaningful filename
+      - Images should be directly relevant to the learning objective of the lesson
+      - Prefer clarity and simplicity over unnecessary visual complexity
+      - Ensure consistency with other media (diagrams, code, etc.)
     example: |
-      ![A visual diagram showing the basic HTML document structure with head, body, and main elements clearly labeled, demonstrating the hierarchical relationship between these components](./.learn/assets/html-structure.png)
-      
+      ![An educational illustration showing the process of how a web browser requests a web page from a server, 
+      including the client, DNS lookup, server response, and HTML rendering, step by step with arrows and labels](./.learn/assets/browser-request-flow.png)
+
