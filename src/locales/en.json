@@ -431,5 +431,7 @@
     "save": "Save",
     "asCorrect": "As Correct",
     "asIncorrect": "As Incorrect",
-    "writeAnExampleAnswer": "Write an example answer"
+    "writeAnExampleAnswer": "Write an example answer",
+    "copy-link-to-this-section": "Copy link to this section",
+    "link-copied-to-clipboard": "Link copied to clipboard"
 }

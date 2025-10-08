@@ -4,7 +4,7 @@ import {
   getParamsObject,
   MissingRigobotAccountError,
   RIGOBOT_HOST,
-  setWindowHash,
+  setQueryParams,
   TokenExpiredError,
   getSlugFromPath,
   DEV_MODE,
@@ -696,7 +696,7 @@ export const FetchManager = {
         if (params.token) {
           delete params.token;
         }
-        setWindowHash(params);
+        setQueryParams(params);
 
         if (typeof FetchManager.LOGOUT_CALLBACK === "function") {
           FetchManager.LOGOUT_CALLBACK();
@@ -708,7 +708,7 @@ export const FetchManager = {
         if (params.token) {
           delete params.token;
         }
-        setWindowHash(params);
+        setQueryParams(params);
       },
     };
 

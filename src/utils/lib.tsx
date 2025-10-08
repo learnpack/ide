@@ -215,38 +215,19 @@ export const onConnectCli = () => {
   }
 };
 
-function fixParams(str: string) {
-  return str.replace(/\?/g, "&");
-}
-
-export const getParamsObject = (): TPossibleParams => {
-  let hashParams = window.location.hash.substring(1);
-
-  hashParams = fixParams(hashParams);
-  const url = window.location.href;
-  const urlObj = new URL(url);
-  const searchParams = urlObj.search;
-  if (searchParams) {
-    hashParams += fixParams(searchParams);
-  }
-  hashParams = fixParams(hashParams);
-
-  if (hashParams.includes("%3F")) {
-    hashParams = hashParams.replace(/%3F/g, "&");
-  }
-
-  if (hashParams.includes("%3D")) {
-    hashParams = hashParams.replace(/%3D/g, "=");
-  }
-
-  const decodedHashParams = decodeURIComponent(hashParams);
-  const paramsUrlSearch = new URLSearchParams(decodedHashParams);
-
+export const getQueryParams = (): TPossibleParams => {
+  const urlParams = new URLSearchParams(window.location.search);
   let paramsObject: Record<string, string> = {};
-  for (const [key, value] of paramsUrlSearch.entries()) {
+  
+  for (const [key, value] of urlParams.entries()) {
     paramsObject[key] = value;
   }
+  
   return paramsObject;
+};
+
+export const getParamsObject = (): TPossibleParams => {
+  return getQueryParams();
 };
 
 export const debounce = (func: (...args: any[]) => void, wait: number) => {
@@ -280,21 +261,24 @@ export const replaceSlot = (
   return string.replace(slotRegex, value);
 };
 
-export const setWindowHash = (params: TPossibleParams) => {
-  // Create a hash string from the params object
-  const hashString = Object.entries(params)
-    .map(
-      ([key, value]) =>
-        `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
-    )
-    .join("&");
-
-  const url = window.location.origin + window.location.pathname;
-  history.replaceState(null, "", url);
-
-  // Set the window location hash
-  window.location.hash = hashString;
+export const setQueryParams = (params: TPossibleParams) => {
+  const searchParams = new URLSearchParams();
+  
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      searchParams.set(key, String(value));
+    }
+  });
+  
+  const queryString = searchParams.toString();
+  const newUrl = queryString 
+    ? `${window.location.pathname}?${queryString}${window.location.hash}` 
+    : `${window.location.pathname}${window.location.hash}`;
+  
+  window.history.replaceState(null, '', newUrl);
 };
+
+export const setWindowHash = setQueryParams;
 
 export function randomInRange(min: number, max: number): number {
   return Math.random() * (max - min) + min;

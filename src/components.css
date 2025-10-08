@@ -503,3 +503,11 @@
 .click-me-container:hover .click-me-button {
   display: block;
 }
+
+
+.heading-with-link {
+  position: relative;
+}
+.heading-with-link:hover .heading-link-button {
+  opacity: 1 !important;
+}

@@ -15,7 +15,7 @@ import {
   removeSpecialCharacters,
   ENVIRONMENT,
   getEnvironment,
-  setWindowHash,
+  setQueryParams,
   MissingRigobotAccountError,
   countConsumables,
   removeParam,
@@ -183,6 +183,22 @@ const useStore = create<IStore>((set, get) => ({
 
   // setters
   start: () => {
+    if (window.location.hash.includes('=')) {
+      const hashParams = window.location.hash.substring(1);
+      const fixedParams = hashParams.replace(/\?/g, '&');
+      const urlParams = new URLSearchParams(fixedParams);
+      const paramsObject: Record<string, string> = {};
+      
+      for (const [key, value] of urlParams.entries()) {
+        paramsObject[key] = value;
+      }
+      
+      if (Object.keys(paramsObject).length > 0) {
+        setQueryParams(paramsObject as TPossibleParams);
+        window.location.hash = '';
+      }
+    }
+
     const {
       fetchExercises,
       fetchReadme,
@@ -744,7 +760,7 @@ The user's set up the application in "${language}" language, give your feedback 
     } = get();
 
     let params = checkParams({ justReturn: true });
-    setWindowHash({ ...params, currentExercise: String(newPosition) });
+    setQueryParams({ ...params, currentExercise: String(newPosition) });
 
     set({ currentExercisePosition: newPosition });
 
@@ -1101,7 +1117,7 @@ The user's set up the application in "${language}" language, give your feedback 
     set({ language: language });
 
     let params = checkParams({ justReturn: true });
-    setWindowHash({ ...params, language: language });
+    setQueryParams({ ...params, language: language });
 
     if (fetchExercise) {
       fetchReadme();
@@ -1606,10 +1622,10 @@ The user's set up the application in "${language}" language, give your feedback 
     const { theme, checkParams } = get();
     let params = checkParams({ justReturn: true });
     if (theme === "dark") {
-      setWindowHash({ ...params, theme: "light" });
+      setQueryParams({ ...params, theme: "light" });
       set({ theme: "light" });
     } else {
-      setWindowHash({ ...params, theme: "dark" });
+      setQueryParams({ ...params, theme: "dark" });
       set({ theme: "dark" });
     }
   },
@@ -1850,7 +1866,7 @@ The user's set up the application in "${language}" language, give your feedback 
     if (params.token) {
       const withoutToken = { ...params };
       delete withoutToken.token;
-      setWindowHash({ ...withoutToken });
+      setQueryParams({ ...withoutToken });
     }
 
     return { ai_compilation, ai_conversation_message, ai_generation };

@@ -1,4 +1,4 @@
-import { useTranslation } from "react-i18next";
+// import { useTranslation } from "react-i18next";
 import { svgs } from "../../assets/svgs";
 import { DEV_MODE } from "../../utils/lib";
 import useStore from "../../utils/store";
@@ -22,10 +22,10 @@ export const NewHeader = () => {
     test,
     isIframe,
     language,
-    hasSolution,
-    getCurrentExercise,
-    updateEditorTabs,
-    compilerSocket,
+    // hasSolution,
+    // getCurrentExercise,
+    // updateEditorTabs,
+    // compilerSocket,
     videoTutorial,
     // isCreator,
     setShowVideoTutorial,
@@ -41,10 +41,10 @@ export const NewHeader = () => {
     test: state.test,
     isIframe: state.isIframe,
     language: state.language,
-    hasSolution: state.hasSolution,
-    getCurrentExercise: state.getCurrentExercise,
-    updateEditorTabs: state.updateEditorTabs,
-    compilerSocket: state.compilerSocket,
+    // hasSolution: state.hasSolution,
+    // getCurrentExercise: state.getCurrentExercise,
+    // updateEditorTabs: state.updateEditorTabs,
+    // compilerSocket: state.compilerSocket,
     videoTutorial: state.videoTutorial,
     setShowVideoTutorial: state.setShowVideoTutorial,
     reportEnrichDataLayer: state.reportEnrichDataLayer,
@@ -56,22 +56,22 @@ export const NewHeader = () => {
     configObject: state.configObject,
   }));
 
-  const { t } = useTranslation();
+  // const { t } = useTranslation();
 
-  const openSolutionFile = () => {
-    const solutionFile = getCurrentExercise().files.filter((file: any) =>
-      file.name.includes("solution.hide")
-    );
+  // const openSolutionFile = () => {
+  //   const solutionFile = getCurrentExercise().files.filter((file: any) =>
+  //     file.name.includes("solution.hide")
+  //   );
 
-    const data = {
-      exerciseSlug: getCurrentExercise().slug,
-      files: solutionFile.map((file: any) => file.path),
-      solutionFileName: solutionFile.map((file: any) => file.name),
-      updateEditorTabs: updateEditorTabs,
-    };
-    compilerSocket.emit("open", data);
-    reportEnrichDataLayer("learnpack_open_solution", {});
-  };
+  //   const data = {
+  //     exerciseSlug: getCurrentExercise().slug,
+  //     files: solutionFile.map((file: any) => file.path),
+  //     solutionFileName: solutionFile.map((file: any) => file.name),
+  //     updateEditorTabs: updateEditorTabs,
+  //   };
+  //   compilerSocket.emit("open", data);
+  //   reportEnrichDataLayer("learnpack_open_solution", {});
+  // };
 
   return (
     <header className={styles.header}>
@@ -113,7 +113,7 @@ export const NewHeader = () => {
       </section>
       <section className="flex-x align-center">
         {!isIframe && language && <LanguageButton />}
-        {hasSolution && (
+        {/* {hasSolution && (
           <SimpleButton
             title={
               hasSolution
@@ -124,7 +124,7 @@ export const NewHeader = () => {
             disabled={!hasSolution}
             action={hasSolution ? openSolutionFile : () => {}}
           />
-        )}
+        )} */}
         {videoTutorial && (
           <div className="d-flex gap-small">
             {videoTutorial && (

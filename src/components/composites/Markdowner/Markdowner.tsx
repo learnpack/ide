@@ -14,7 +14,7 @@ import SimpleButton from "../../mockups/SimpleButton";
 import { svgs } from "../../../assets/svgs";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import MermaidRenderer from "../MermaidRenderer/MermaidRenderer";
 import { Question } from "../OpenQuestion/OpenQuestion";
@@ -24,28 +24,47 @@ import RealtimeImage from "../../Creator/RealtimeImage";
 import { RigoAI } from "../../Rigobot/AI";
 import { FetchManager } from "../../../managers/fetchManager";
 import { DIFF_SEPARATOR } from "../../Rigobot/Agent";
+import { Icon } from "../../Icon";
 
 
 const ClickMeToGetID = ({ id }: { id: string }) => {
-  // This component renders a button when the parent is hovered, if clicked, it appens the id to the hash of the url
+  const { t } = useTranslation();
 
-  return null;
+  const copyLinkToClipboard = () => {
+    const currentUrl = window.location.origin + window.location.pathname + window.location.search;
+    const fullUrl = `${currentUrl}#${id}`;
 
+    navigator.clipboard.writeText(fullUrl);
+    toast.success(t("link-copied-to-clipboard"));
 
-  
+    window.location.hash = id;
+  };
+
   return (
-    <SimpleButton
-      extraClass="click-me-button"
-      svg={svgs.share}
-      action={() => {
-        // Verify current hash
-        const currentHash = window.location.hash;
-        if (currentHash.includes(id)) {
-          return;
-        }
-        window.location.hash = `${currentHash}${id}`;
+    <button
+      className="heading-link-button"
+      onClick={copyLinkToClipboard}
+      title={t("copy-link-to-this-section")}
+      aria-label={t("copy-link-to-this-section")}
+      style={{
+        opacity: 0,
+        transition: 'opacity 0.2s ease',
+        position: 'absolute',
+        left: '-25px',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        background: 'var(--bg-2)',
+        border: 'none',
+        cursor: 'pointer',
+        padding: '4px',
+        borderRadius: '4px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
       }}
-    />
+    >
+      <Icon name="Link" size={16} />
+    </button>
   );
 };
 
@@ -118,250 +137,308 @@ export const Markdowner = ({
 
   const creatorModeActivated = isCreator && mode === "creator" && allowCreate;
 
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash) {
+      const id = hash.substring(1);
+      setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          setTimeout(() => {
+            window.history.replaceState(null, '', window.location.pathname + window.location.search);
+          }, 1000);
+        }
+      }, 1000);
+    }
+  }, [markdown]);
+
   return (
-    <Markdown
-      skipHtml={true}
-      remarkPlugins={[remarkGfm, remarkMath, emoji]}
-      rehypePlugins={[rehypeKatex]}
-      components={{
-        a: ({ href, children }) => {
-          if (href) {
-            if (isRigoQuestion(href)) {
-              return <RigoQuestion href={href}>{children}</RigoQuestion>;
+    <>
+      <Markdown
+        skipHtml={true}
+        remarkPlugins={[remarkGfm, remarkMath, emoji]}
+        rehypePlugins={[rehypeKatex]}
+        components={{
+          a: ({ href, children }) => {
+            if (href) {
+              if (isRigoQuestion(href)) {
+                return <RigoQuestion href={href}>{children}</RigoQuestion>;
+              }
+              return (
+                <a onClick={() => openLink(href)} target="_blank" href={href}>
+                  {children}
+                </a>
+              );
             }
-            return (
-              <a onClick={() => openLink(href)} target="_blank" href={href}>
-                {children}
-              </a>
-            );
-          }
-          return <span>{children}</span>;
-        },
-        h1: ({ children, node }) => {
-          if (creatorModeActivated) {
-            return (
-              <CreatorWrapper node={node} tagName="h1">
-                <h1>{children}</h1>
-              </CreatorWrapper>
-            );
-          }
-          if (typeof node?.position?.start?.offset === "number" && typeof node?.position?.end?.offset === "number") {
-
-            const md = getPortion(node?.position?.start?.offset, node?.position?.end?.offset);
-
-            return <h1 className="click-me-container" id={generateHeadingID(md)}><ClickMeToGetID id={generateHeadingID(md)} />{children}</h1>;
-          }
-          return <h1>{children}</h1>;
-        },
-        h2: ({ children, node }) => {
-          if (creatorModeActivated) {
-            return (
-              <CreatorWrapper node={node} tagName="h2">
-                <h2>{children}</h2>
-              </CreatorWrapper>
-            );
-          }
-          if (node?.position?.start?.offset && node?.position?.end?.offset) {
-            const md = getPortion(node?.position?.start?.offset, node?.position?.end?.offset);
-            return <h2 id={generateHeadingID(md)}>{children}</h2>;
-          }
-          return <h2>{children}</h2>;
-        },
-        h3: ({ children, node }) => {
-          if (creatorModeActivated) {
-            return (
-              <CreatorWrapper node={node} tagName="h3">
-                <h3>{children}</h3>
-              </CreatorWrapper>
-            );
-          }
-          if (typeof node?.position?.start?.offset === "number" && typeof node?.position?.end?.offset === "number") {
-            const md = getPortion(node?.position?.start?.offset, node?.position?.end?.offset);
-            return <h3 id={generateHeadingID(md)}>{children}</h3>;
-          }
-          return <h3>{children}</h3>;
-        },
-        h4: ({ children, node }) => {
-          if (creatorModeActivated) {
-            return (
-              <CreatorWrapper node={node} tagName="h4">
-                <h4>{children}</h4>
-              </CreatorWrapper>
-            );
-          }
-          if (typeof node?.position?.start?.offset === "number" && typeof node?.position?.end?.offset === "number") {
-            const md = getPortion(node?.position?.start?.offset, node?.position?.end?.offset);
-            return <h4 id={generateHeadingID(md)}>{children}</h4>;
-          }
-          return <h4>{children}</h4>;
-        },
-        h5: ({ children, node }) => {
-          if (creatorModeActivated) {
-            return (
-              <CreatorWrapper node={node} tagName="h5">
-                <h5>{children}</h5>
-              </CreatorWrapper>
-            );
-          }
-          if (typeof node?.position?.start?.offset === "number" && typeof node?.position?.end?.offset === "number") {
-            const md = getPortion(node?.position?.start?.offset, node?.position?.end?.offset);
-            return <h5 id={generateHeadingID(md)}>{children}</h5>;
-          }
-          return <h5>{children}</h5>;
-        },
-        h6: ({ children, node }) => {
-          if (creatorModeActivated) {
-            return (
-              <CreatorWrapper node={node} tagName="h6">
-                <h6>{children}</h6>
-              </CreatorWrapper>
-            );
-          }
-          if (typeof node?.position?.start?.offset === "number" && typeof node?.position?.end?.offset === "number") {
-            const md = getPortion(node?.position?.start?.offset, node?.position?.end?.offset);
-            return <h6 id={generateHeadingID(md)}>{children}</h6>;
-          }
-          return <h6>{children}</h6>;
-        },
-        p: ({ children, node }) => {
-          if (creatorModeActivated) {
-            return (
-              <CreatorWrapper node={node} tagName="p">
-                <p>{children}</p>
-              </CreatorWrapper>
-            );
-          }
-          return <p>{children}</p>;
-        },
-        blockquote: ({ children, node }) => {
-          if (creatorModeActivated) {
-            return (
-              <CreatorWrapper node={node} tagName="blockquote">
-                <blockquote>{children}</blockquote>
-              </CreatorWrapper>
-            );
-          }
-          return <blockquote>{children}</blockquote>;
-        },
-        // @ts-ignore
-        ol: ({ children, node }) => {
-          const containsTaskList = checkForQuiz(node);
-
-          if (containsTaskList) {
+            return <span>{children}</span>;
+          },
+          h1: ({ children, node }) => {
             if (creatorModeActivated) {
               return (
-                <CreatorWrapper node={node} tagName="quiz">
-                  <QuizRenderer children={children} />
+                <CreatorWrapper node={node} tagName="h1">
+                  <h1>{children}</h1>
                 </CreatorWrapper>
               );
             }
-            return <QuizRenderer children={children} />;
-          }
+            if (typeof node?.position?.start?.offset === "number" && typeof node?.position?.end?.offset === "number") {
+              const md = getPortion(node?.position?.start?.offset, node?.position?.end?.offset);
+              const headingId = generateHeadingID(md);
 
-          const start = node?.properties?.start;
-
-          if (creatorModeActivated) {
-            return (
-              <CreatorWrapper node={node} tagName="ol">
-                <ol start={start ? Number(start) : undefined}>{children}</ol>
-              </CreatorWrapper>
-            );
-          }
-          return <ol start={start ? Number(start) : undefined}>{children}</ol>;
-        },
-        // @ts-ignore
-        ul: ({ children, node }) => {
-          const containsTaskList = checkForQuiz(node);
-
-          if (containsTaskList) {
+              return (
+                <h1 className="heading-with-link" id={headingId}>
+                  {children}
+                  <ClickMeToGetID id={headingId} />
+                </h1>
+              );
+            }
+            return <h1>{children}</h1>;
+          },
+          h2: ({ children, node }) => {
             if (creatorModeActivated) {
               return (
-                <CreatorWrapper node={node} tagName="quiz">
-                  <QuizRenderer children={children} />
+                <CreatorWrapper node={node} tagName="h2">
+                  <h2>{children}</h2>
                 </CreatorWrapper>
               );
             }
-            return <QuizRenderer children={children} />;
-          }
+            if (node?.position?.start?.offset && node?.position?.end?.offset) {
+              const md = getPortion(node?.position?.start?.offset, node?.position?.end?.offset);
+              const headingId = generateHeadingID(md);
 
-          if (isCreator && mode === "creator" && allowCreate) {
-            return (
-              <CreatorWrapper node={node} tagName="ul">
-                <ul>{children}</ul>
-              </CreatorWrapper>
-            );
-          }
+              return (
+                <h2 className="heading-with-link" id={headingId}>
+                  {children}
+                  <ClickMeToGetID id={headingId} />
+                </h2>
+              );
+            }
+            return <h2>{children}</h2>;
+          },
+          h3: ({ children, node }) => {
+            if (creatorModeActivated) {
+              return (
+                <CreatorWrapper node={node} tagName="h3">
+                  <h3>{children}</h3>
+                </CreatorWrapper>
+              );
+            }
+            if (typeof node?.position?.start?.offset === "number" && typeof node?.position?.end?.offset === "number") {
+              const md = getPortion(node?.position?.start?.offset, node?.position?.end?.offset);
+              const headingId = generateHeadingID(md);
 
-          return <ul onClick={() => console.log(node)}>{children}</ul>;
-        },
-        img: ({ src, alt, node }) => {
-          return (
-            <CustomImage
-              src={src}
-              alt={alt}
-              node={node}
-              allowCreate={allowCreate}
-              isCreator={isCreator}
-              mode={mode}
-              config={config}
-            />
-          );
-        },
+              return (
+                <h3 className="heading-with-link" id={headingId}>
+                  {children}
+                  <ClickMeToGetID id={headingId} />
+                </h3>
+              );
+            }
+            return <h3>{children}</h3>;
+          },
+          h4: ({ children, node }) => {
+            if (creatorModeActivated) {
+              return (
+                <CreatorWrapper node={node} tagName="h4">
+                  <h4>{children}</h4>
+                </CreatorWrapper>
+              );
+            }
+            if (typeof node?.position?.start?.offset === "number" && typeof node?.position?.end?.offset === "number") {
+              const md = getPortion(node?.position?.start?.offset, node?.position?.end?.offset);
+              const headingId = generateHeadingID(md);
 
-        pre(props) {
-          const codeBlocks = props.node?.children.map((child) => {
-            // @ts-ignore
-            const code = child.children.map((c) => c.value).join("");
-            // @ts-ignore
-            const classNames = child.properties?.className;
-            // @ts-ignore F
-            const metadata = child.data?.meta || "";
-            let metadataObject: TMetadata = {};
-            let lang = "text";
-            if (classNames && classNames?.length > 0) {
-              lang = classNames[0].split("-")[1];
+              return (
+                <h4 className="heading-with-link" id={headingId}>
+                  {children}
+                  <ClickMeToGetID id={headingId} />
+                </h4>
+              );
+            }
+            return <h4>{children}</h4>;
+          },
+          h5: ({ children, node }) => {
+            if (creatorModeActivated) {
+              return (
+                <CreatorWrapper node={node} tagName="h5">
+                  <h5>{children}</h5>
+                </CreatorWrapper>
+              );
+            }
+            if (typeof node?.position?.start?.offset === "number" && typeof node?.position?.end?.offset === "number") {
+              const md = getPortion(node?.position?.start?.offset, node?.position?.end?.offset);
+              const headingId = generateHeadingID(md);
+
+              return (
+                <h5 className="heading-with-link" id={headingId}>
+                  {children}
+                  <ClickMeToGetID id={headingId} />
+                </h5>
+              );
+            }
+            return <h5>{children}</h5>;
+          },
+          h6: ({ children, node }) => {
+            if (creatorModeActivated) {
+              return (
+                <CreatorWrapper node={node} tagName="h6">
+                  <h6>{children}</h6>
+                </CreatorWrapper>
+              );
+            }
+            if (typeof node?.position?.start?.offset === "number" && typeof node?.position?.end?.offset === "number") {
+              const md = getPortion(node?.position?.start?.offset, node?.position?.end?.offset);
+              const headingId = generateHeadingID(md);
+
+              return (
+                <h6 className="heading-with-link" id={headingId}>
+                  {children}
+                  <ClickMeToGetID id={headingId} />
+                </h6>
+              );
+            }
+            return <h6>{children}</h6>;
+          },
+          p: ({ children, node }) => {
+            if (creatorModeActivated) {
+              return (
+                <CreatorWrapper node={node} tagName="p">
+                  <p>{children}</p>
+                </CreatorWrapper>
+              );
+            }
+            return <p>{children}</p>;
+          },
+          blockquote: ({ children, node }) => {
+            if (creatorModeActivated) {
+              return (
+                <CreatorWrapper node={node} tagName="blockquote">
+                  <blockquote>{children}</blockquote>
+                </CreatorWrapper>
+              );
+            }
+            return <blockquote>{children}</blockquote>;
+          },
+          // @ts-ignore
+          ol: ({ children, node }) => {
+            const containsTaskList = checkForQuiz(node);
+
+            if (containsTaskList) {
+              if (creatorModeActivated) {
+                return (
+                  <CreatorWrapper node={node} tagName="quiz">
+                    <QuizRenderer children={children} />
+                  </CreatorWrapper>
+                );
+              }
+              return <QuizRenderer children={children} />;
             }
 
-            if (metadata) {
-              metadataObject = extractMetadata(metadata);
-            }
-            return {
-              lang,
-              code,
-              metadata: metadataObject,
-            };
-          });
-          if (!codeBlocks || codeBlocks.length === 0) {
-            return <pre>{props.children}</pre>;
-          }
+            const start = node?.properties?.start;
 
-          if (creatorModeActivated) {
+            if (creatorModeActivated) {
+              return (
+                <CreatorWrapper node={node} tagName="ol">
+                  <ol start={start ? Number(start) : undefined}>{children}</ol>
+                </CreatorWrapper>
+              );
+            }
+            return <ol start={start ? Number(start) : undefined}>{children}</ol>;
+          },
+          // @ts-ignore
+          ul: ({ children, node }) => {
+            const containsTaskList = checkForQuiz(node);
+
+            if (containsTaskList) {
+              if (creatorModeActivated) {
+                return (
+                  <CreatorWrapper node={node} tagName="quiz">
+                    <QuizRenderer children={children} />
+                  </CreatorWrapper>
+                );
+              }
+              return <QuizRenderer children={children} />;
+            }
+
+            if (isCreator && mode === "creator" && allowCreate) {
+              return (
+                <CreatorWrapper node={node} tagName="ul">
+                  <ul>{children}</ul>
+                </CreatorWrapper>
+              );
+            }
+
+            return <ul onClick={() => console.log(node)}>{children}</ul>;
+          },
+          img: ({ src, alt, node }) => {
             return (
-              <CreatorWrapper node={props.node} tagName="pre">
-                <CustomCodeBlock
-                  node={props.node}
-                  code={codeBlocks[0].code}
-                  language={codeBlocks[0].lang}
-                  metadata={codeBlocks[0].metadata}
-                  wholeMD={markdown}
-                />
-              </CreatorWrapper>
+              <CustomImage
+                src={src}
+                alt={alt}
+                node={node}
+                allowCreate={allowCreate}
+                isCreator={isCreator}
+                mode={mode}
+                config={config}
+              />
             );
-          }
-          return (
-            <CustomCodeBlock
-              node={props.node}
-              code={codeBlocks[0].code}
-              language={codeBlocks[0].lang}
-              metadata={codeBlocks[0].metadata}
-              wholeMD={markdown}
-            />
-          );
-        },
-      }}
-    >
-      {markdown}
-    </Markdown>
+          },
+
+          pre(props) {
+            const codeBlocks = props.node?.children.map((child) => {
+              // @ts-ignore
+              const code = child.children.map((c) => c.value).join("");
+              // @ts-ignore
+              const classNames = child.properties?.className;
+              // @ts-ignore F
+              const metadata = child.data?.meta || "";
+              let metadataObject: TMetadata = {};
+              let lang = "text";
+              if (classNames && classNames?.length > 0) {
+                lang = classNames[0].split("-")[1];
+              }
+
+              if (metadata) {
+                metadataObject = extractMetadata(metadata);
+              }
+              return {
+                lang,
+                code,
+                metadata: metadataObject,
+              };
+            });
+            if (!codeBlocks || codeBlocks.length === 0) {
+              return <pre>{props.children}</pre>;
+            }
+
+            if (creatorModeActivated) {
+              return (
+                <CreatorWrapper node={props.node} tagName="pre">
+                  <CustomCodeBlock
+                    node={props.node}
+                    code={codeBlocks[0].code}
+                    language={codeBlocks[0].lang}
+                    metadata={codeBlocks[0].metadata}
+                    wholeMD={markdown}
+                  />
+                </CreatorWrapper>
+              );
+            }
+            return (
+              <CustomCodeBlock
+                node={props.node}
+                code={codeBlocks[0].code}
+                language={codeBlocks[0].lang}
+                metadata={codeBlocks[0].metadata}
+                wholeMD={markdown}
+              />
+            );
+          },
+        }}
+      >
+        {markdown}
+      </Markdown>
+    </>
   );
 };
 
@@ -635,7 +712,7 @@ const ChangesDiffRenderer = ({ code, node }: { code: string, node: any }) => {
     console.log("rejectChanges", original, node.position.start, node.position.end);
     toast.success(t("changesRejected"));
     setEditingContent("");
-    
+
   };
 
   return (
