@@ -1,6 +1,6 @@
 version: "1.0.0"
 components:
-  - name: open-text-question
+  - name: open_text_question
     measures:
     - rubric: communication       
       weight: 0.35
@@ -23,7 +23,7 @@ components:
       CORRECT: It prints things to the console.  
       ```
 
-  - name: multiple-choice-question
+  - name: multiple_choice_question
     intentedUse: evaluation, knowledge assessment
     measures:
       - rubric: content_mastery       
@@ -78,7 +78,7 @@ components:
         - [x] Correct option
         - [ ] Incorrect option
 
-  - name: fill-in-the-blank
+  - name: fill_in_the_blank
     intentedUse: reflection, explanation, recall, knowledge assessment
     measures:
       - rubric: content_mastery        
@@ -114,4 +114,18 @@ components:
       Calculate the result of 2 * 6 = _1_
       If we divide 20 by 4, the result is _2_
       The square root of 16 is _3_
+      ```
+
+  - name: code_challenge_proposal
+    intentedUse: hands-on learning, code experimentation, immediate feedback on code execution, this will render an acceptable component for the teacher, so the teacher can generate a coding challenge for the student. The student will see all the files from the lessons. So you need to suggest as many files as needed for the exercise.
+    description: >-
+      A code file proposal is a component the teacher will use to generate some coding files used to solve an exercise in the instructions, it consists in a markdown code block with the language set to `code_challenge_proposal`. Inside the code block, you must explain what the student needs to do in the exercise in at most 20 sentences. You need to explain the files that will be generated and the instructions for the student to complete the exercise.
+    avoid: complex code that might not be inferred correctly by an AI model. 
+    example: |
+      ```code_challenge_proposal 
+      In this exercise, the student needs to complete a function "multiply" that multiplies two numbers and print the result to the console. This exercise required an app.js where the student will write the code to complete the function. The app.js will contain a skeleton of the function to be completed.
+      ```
+
+      ```code_challenge_proposal
+      In this exercise, the student needs to create a simple HTML page with a title and a paragraph. This page is linked to the app.css file with basic styling. The HTML files contains a heading but is missing the paragraph. The styles contain the rules for two id: #title and #paragraph, but the student needs to add the ids to the correct elements in the HTML file.
       ```
