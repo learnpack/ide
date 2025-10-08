@@ -62,25 +62,27 @@ components:
       ```
 
   - name: image
-    intendedUse: explanation, visualization, complementary to the main content
+    intendedUse: educational explanation and diagrammatic visualization that improves content comprehension
     description: >-
-      Images are used to support learning through clear and meaningful visual content.
-      They should illustrate concepts, examples, or processes that help the student 
-      understand the main content better. Each image is generated from a descriptive 
-      alt text that acts as a detailed prompt for AI.
-    goodFor: visual learning, illustrating concepts, step-by-step guides, data visualization
-    whenToUse: when a concept is abstract, complex, or easier to understand with a visual aid
-    avoid: decorative images without educational value, overly abstract prompts, 
-           using images where text or code is clearer
+      Images must be educational and explanatory, designed to enhance understanding of concepts.
+      They should be diagrammatic in nature, using visual elements like arrows, labels, numbered steps,
+      annotations, and clear visual hierarchies to explain processes, relationships, or structures.
+      Images must provide real educational value beyond what text alone can convey. Each image is 
+      generated from a descriptive alt text that acts as a detailed prompt for AI, specifying the 
+      educational elements and diagrammatic features needed.
+    goodFor: process flows with labeled steps, system architecture diagrams, concept relationships with arrows and connections, data structure visualizations, comparative diagrams showing before/after or different approaches, annotated technical illustrations, step-by-step visual guides with numbered elements
+    whenToUse: Only when the visual representation significantly improves comprehension compared to text or code alone. Use when explaining relationships between components, sequential processes, spatial arrangements, hierarchical structures, or when comparing multiple concepts visually. The image must answer the question "How does this help the student understand better than text?"
+    avoid: purely decorative images, generic stock photos without educational annotations, images that merely illustrate what the text already says clearly, artistic or abstract images without clear educational purpose, screenshots without annotations or highlights, images where a mermaid diagram or code example would be clearer, overly complex visuals that confuse rather than clarify
     rules: 
       - Use standard markdown image syntax: "![alt text](image-url)"
-      - The alt text must contain a detailed prompt with at least 20 words
-      - The alt text should describe the educational purpose of the image, not only its appearance
-      - The image URL must always start with "./.learn/assets/" and contain a meaningful filename
-      - Images should be directly relevant to the learning objective of the lesson
-      - Prefer clarity and simplicity over unnecessary visual complexity
-      - Ensure consistency with other media (diagrams, code, etc.)
+      - The alt text must contain a detailed prompt with at least 30 words describing the educational and diagrammatic elements
+      - The alt text must specify visual teaching elements like "with arrows showing", "labeled with", "numbered steps", "annotated to highlight", "color-coded to differentiate"
+      - The alt text should describe what the student will learn from the image, not just what it looks like
+      - The image URL must always start with "./.learn/assets/" and contain a meaningful descriptive filename
+      - Images must be directly relevant to the learning objective and add value beyond the text
+      - Every image should be explanatory and diagrammatic with clear labels, annotations, or visual guides
+      - Prefer diagrams with educational annotations over plain illustrations
+      - Include visual cues like arrows, numbers, labels, highlights, or color coding to guide understanding
     example: |
-      ![An educational illustration showing the process of how a web browser requests a web page from a server, 
-      including the client, DNS lookup, server response, and HTML rendering, step by step with arrows and labels](./.learn/assets/browser-request-flow.png)
+      ![A technical diagram illustrating the HTTP request-response cycle between client and server, with numbered steps from 1 to 5, arrows showing data flow direction, labels identifying DNS resolution, TCP connection, request headers, server processing, and response payload, color-coded to differentiate client-side actions in blue and server-side actions in green, with annotations explaining each component's role in the process](./.learn/assets/http-request-response-diagram.png)
 
