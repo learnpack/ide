@@ -755,7 +755,6 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
   const [submitted, setSubmitted] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const { t } = useTranslation();
-  console.log(code, "fill in the blank code", metadata);
 
   // Extract correct answers from metadata
   const correctAnswers: Record<string, string[]> = {};

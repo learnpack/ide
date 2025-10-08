@@ -715,7 +715,6 @@ The user's set up the application in "${language}" language, give your feedback 
 
     const exercise = await FetchManager.getExerciseInfo(slug);
 
-    console.log("EXERCISE sINGLE", exercise);
 
     let isTesteable = exercise.graded;
     let isBuildable;

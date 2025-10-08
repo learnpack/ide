@@ -440,5 +440,6 @@
     "asIncorrect": "Como Incorrecto",
     "writeAnExampleAnswer": "Escribe un ejemplo de respuesta",
     "copy-link-to-this-section": "Copiar enlace a esta sección",
-    "link-copied-to-clipboard": "Enlace copiado al portapapeles"
+    "link-copied-to-clipboard": "Enlace copiado al portapapeles",
+    "conversation-cleared": "Conversación limpiada"
 }

@@ -433,5 +433,6 @@
     "asIncorrect": "As Incorrect",
     "writeAnExampleAnswer": "Write an example answer",
     "copy-link-to-this-section": "Copy link to this section",
-    "link-copied-to-clipboard": "Link copied to clipboard"
+    "link-copied-to-clipboard": "Link copied to clipboard",
+    "conversation-cleared": "Conversation cleared"
 }

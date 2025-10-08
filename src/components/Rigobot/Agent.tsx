@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, memo } from "react";
 import { useTranslation } from "react-i18next";
 import SimpleButton from "../mockups/SimpleButton";
-import { debounce, TokenExpiredError } from "../../utils/lib";
+import { debounce, getSlugFromPath, TokenExpiredError } from "../../utils/lib";
 import { svgs } from "../../assets/svgs";
 import useStore from "../../utils/store";
 import { Loader } from "../composites/Loader/Loader";
@@ -12,6 +12,7 @@ import { validateRigobotToken, FetchManager } from "../../managers/fetchManager"
 import { TAIInteraction } from "../../managers/telemetry";
 import { RigoAI, TAgentJob, TTool } from "./AI";
 import { ConversationManager, type Message } from "../../managers/conversationManager";
+import { Icon } from "../Icon";
 
 export const DIFF_SEPARATOR = "---SEPARATOR---";
 
@@ -101,6 +102,8 @@ export const AgentTab = () => {
 
   // Initialize messages from the best available source
   useEffect(() => {
+    console.log("INITIALIZING MESSAGES", currentExercisePosition, environment);
+
     const initializeMessages = () => {
       let messagesToLoad: Message[] = [];
 
@@ -108,14 +111,20 @@ export const AgentTab = () => {
       if (environment !== "localhost") {
         try {
           const conversationKey = ConversationManager.generateKey(
-            getCurrentExercise().slug,
+            getSlugFromPath() || "",
             getCurrentExercise().slug,
             "en"
           );
+          console.log("CONVERSATION KEY", conversationKey);
           const savedConversation = ConversationManager.getConversation(conversationKey);
           if (savedConversation && savedConversation.messages.length > 0) {
             messagesToLoad = savedConversation.messages;
           }
+          console.log(
+            "SAVED CONVERSATION",
+            savedConversation
+          );
+          
         } catch (error) {
           console.log("localStorage not available, falling back to store");
         }
@@ -125,6 +134,7 @@ export const AgentTab = () => {
       if (messagesToLoad.length === 0) {
         const storeMessages = exerciseMessages[Number(currentExercisePosition)];
         if (storeMessages && storeMessages.length > 0) {
+          console.log("STORE MESSAGES", storeMessages);
           messagesToLoad = storeMessages.map(msg => ({
             type: msg.type as "user" | "bot",
             text: msg.text,
@@ -135,7 +145,18 @@ export const AgentTab = () => {
 
       // Final fallback to initial messages
       if (messagesToLoad.length === 0) {
-        messagesToLoad = initialMessages;
+        messagesToLoad = [
+          {
+            type: "bot",
+            text: formatInitialMessage(
+              t("chat-initial-message"),
+              user,
+              slugToTitle(getCurrentExercise().slug),
+              chatInitialMessage
+            ),
+            timestamp: Date.now(),
+          },
+        ];
       }
 
       setMessages(messagesToLoad);
@@ -160,7 +181,7 @@ export const AgentTab = () => {
     if (environment !== "localhost") {
       try {
         const conversationKey = ConversationManager.generateKey(
-          getCurrentExercise().slug,
+          getSlugFromPath() || "",
           getCurrentExercise().slug,
           "en"
         );
@@ -180,12 +201,24 @@ export const AgentTab = () => {
     if (inputRef.current) {
       inputRef.current.focus();
     }
+
+    // Check if there's a userMessage in rigoContext and send it automatically
+    if (rigoContext.userMessage && rigoContext.userMessage.trim() !== "") {
+      userMessage.current = rigoContext.userMessage;
+      // Clear the context message after using it
+      useStore.getState().setRigoContext({ userMessage: "" });
+      // Send the message automatically after a short delay
+      setTimeout(() => {
+        processUserMessage();
+      }, 500);
+    }
+
     return () => {
       if (agentJobRef.current) {
         agentJobRef.current.stop();
       }
     };
-  }, []);
+  }, [rigoContext.userMessage]);
 
   // Cleanup: Save conversation when component unmounts
   useEffect(() => {
@@ -202,7 +235,7 @@ export const AgentTab = () => {
         if (environment !== "localhost") {
           try {
             const conversationKey = ConversationManager.generateKey(
-              getCurrentExercise().slug,
+              getSlugFromPath() || "",
               getCurrentExercise().slug,
               "en"
             );
@@ -373,7 +406,7 @@ ${args.content}
     }
     if (rigoContext.allowedFunctions?.includes("continueGeneration")) {
       _tools.push(startLessonGenerationTool, saveToMemoryBankTool)
-      setMessages((prev) => [...prev, { type: "bot", text: "Which changes you want to make to the lesson? Please provide feedback to improve the lesson generation", timestamp: Date.now() }]);
+      // setMessages((prev) => [...prev, { type: "bot", text: "Which changes you want to make to the lesson? Please provide feedback to improve the lesson generation", timestamp: Date.now() }]);
       return _tools
     }
     _tools.push(replaceReadmeContentTool, saveToMemoryBankTool)
@@ -412,6 +445,13 @@ ${args.content}
     const contextFilesContent = await getContextFilesContent();
     let context = contextFilesContent;
 
+    // Add rigoContext.context if available
+    if (rigoContext.context && rigoContext.context.trim() !== "") {
+      context += `\n\nSPECIFIC CONTEXT FOR THIS QUERY:\n${rigoContext.context}`;
+      // Clear the context after using it
+      useStore.getState().setRigoContext({ context: "" });
+    }
+
     // Add line-numbered content for better AI understanding
     const lines = currentContent.split('\n');
     const numberedContent = lines.map((line, index) => `${index + 1}: ${line}`).join('\n');
@@ -446,9 +486,10 @@ ${args.content}
 
     const toolsToUse = decideTools()
 
-    console.log("toolsToUse", toolsToUse);
+    // ADd the message to the context
+    context += messages.map(msg => `${msg.type}: ${msg.text}`).join('\n');
 
-    
+
 
     try {
       const agentJob = RigoAI.agentLoop({
@@ -526,6 +567,30 @@ ${args.content}
     }
   };
 
+  const clearConversation = () => {
+    // Reset messages to initial state
+    setMessages(initialMessages);
+
+    // Clear from store
+    setExerciseMessages([], Number(currentExercisePosition));
+
+    // Clear from localStorage if available
+    if (environment !== "localhost") {
+      try {
+        const conversationKey = ConversationManager.generateKey(
+          getCurrentExercise().slug,
+          getCurrentExercise().slug,
+          "en"
+        );
+        ConversationManager.deleteConversation(conversationKey);
+      } catch (error) {
+        console.log("Failed to clear localStorage conversation:", error);
+      }
+    }
+
+    toast.success(t("conversation-cleared"));
+  };
+
 
 
   return (
@@ -535,11 +600,22 @@ ${args.content}
           <section className="chat-tab-header">
             <p className="m-0 text-white">{t("Rigobot")}</p>
 
-            <SimpleButton
-              extraClass="text-white"
-              action={toggleRigo}
-              svg={svgs.cancel}
-            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                onClick={clearConversation}
+                className="text-white hover:text-gray-300 transition-colors p-1"
+                title={t("start-new-chat")}
+              >
+                <Icon name="MessageSquarePlus" size={18} />
+              </button>
+              <button
+                onClick={() => toggleRigo()}
+                className="text-white hover:text-gray-300 transition-colors p-1"
+                title={t("start-new-chat")}
+              >
+                <Icon name="X" size={18} />
+              </button>
+            </div>
           </section>
           <section
             onScroll={handleScroll}
