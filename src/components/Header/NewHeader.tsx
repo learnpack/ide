@@ -7,6 +7,7 @@ import { RigoToggler } from "../Rigobot/Rigobot";
 import LanguageButton from "../sections/header/LanguageButton";
 import styles from "./NewHeader.module.css";
 import { ToggleSidebar } from "../sections/sidebar/ToggleSidebar";
+import { Icon } from "../Icon";
 // import TelemetryManager from "../../managers/telemetry";
 // import { useState } from "react";
 // import { Modal } from "../mockups/Modal";
@@ -100,7 +101,12 @@ export const NewHeader = () => {
           {svgs.nextArrowButton}
         </button>
 
-        {DEV_MODE && <button onClick={test}>TEST</button>}
+        {DEV_MODE && (
+          <button onClick={test} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <Icon name="FlaskConical" size={18} />
+            TEST
+          </button>
+        )}
       </section>
       <section className="hidden-mobile">
         <p className="m-0">{configObject?.config?.title[language] || ""}</p>
