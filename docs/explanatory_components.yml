@@ -21,12 +21,14 @@ components:
   - name: ask-rigo-button
     intentedUse: explanation, complementary to the main content
     description: >-
-      The Ask Rigo button provides AI-powered assistance for quizzes and tests. It allows users to get hints and help from the Rigo AI assistant based on the current context. It consist in a link that starts with https://4geeks.com/ask?query= and the query is the current question to make to the Rigo AI assistant.
+      The Ask Rigo button provides AI-powered assistance for quizzes and tests. It allows users to get hints and help from the Rigo AI assistant based on the current context. It consist in a link that starts with https://4geeks.com/ask?query= and the query is the current question to make to the Rigo AI assistant. Keep in mind that the query must be always in this syntax: this-is-a-question. The question should be in lower case and without special characters, separated by hyphens. The question should be good enough to  guide the AI to provide a meaningful answer, not just a vague question, provide specific details on what and how to explain to the student.
     goodFor: providing hints, AI assistance, learning support
     avoid: overuse, should be used sparingly to encourage independent thinking
     usage: Automatically appears in quiz and test components, no manual configuration needed
     example: |
-      [Ask Rigo about HTML](https://4geeks.com/ask?query=What is the purpose of HTML?)
+      [Ask Rigo how to declare a variable in JavaScript](https://4geeks.com/ask?query=can-you-explain-me-in-simple-terms-how-to-declare-a-variable-in-javascript)
+
+      [Ask Rigo how to create a function in Python](https://4geeks.com/ask?query=help-me-understand-how-to-create-a-function-in-python-in-the-simplest-possible-way)
 
   - name: runnable-code
     intentedUse: code experimentation, immediate feedback, understand code.

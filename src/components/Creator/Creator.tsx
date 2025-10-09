@@ -13,6 +13,7 @@ import {
   DEV_MODE,
   DEV_URL,
   generateImage,
+  getComponentsInfo,
   slugify,
   uploadBlobToBucket,
 } from "../../utils/lib";
@@ -231,20 +232,25 @@ export const CreatorWrapper = ({
         node?.position?.end.offset || 0
       );
     }
+    console.log(getComponentsInfo(), "components info");
+    
     if (elementText && targetRef.current && question) {
       RigoAI.useTemplate({
-        slug: "request-changes-in-lesson",
+        slug: "request-changes-in-lesson-v2",
         inputs: {
           prompt: question,
           whole_lesson: currentContent,
           text_selected: tagName === "new" ? "empty" : elementText,
           prev_interactions: JSON.stringify(interactions),
+          components_info: getComponentsInfo(),
         },
         target: targetRef.current,
         onComplete: (success: boolean, data: any) => {
           if (success) {
             setIsGenerating(false);
-            setReplacementValue(data.ai_response);
+            console.log(data, "DATE RETURNED BY RIGOBOT");
+            
+            setReplacementValue(data.data.parsed.replacement);
             const interaction: TInteraction = {
               initial: elementText,
               prompt: question,

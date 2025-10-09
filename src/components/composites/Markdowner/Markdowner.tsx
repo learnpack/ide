@@ -1,4 +1,5 @@
 import Markdown from "react-markdown";
+import { Element } from "hast";
 import remarkGfm from "remark-gfm";
 import { TMetadata } from "./types";
 import remarkMath from "remark-math";
@@ -15,16 +16,20 @@ import { svgs } from "../../../assets/svgs";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
+import { DEV_MODE } from "../../../utils/lib";
+
 
 import MermaidRenderer from "../MermaidRenderer/MermaidRenderer";
 import { Question } from "../OpenQuestion/OpenQuestion";
 import RealtimeLesson from "../../Creator/RealtimeLesson";
-import { DEV_MODE } from "../../../utils/lib";
 import RealtimeImage from "../../Creator/RealtimeImage";
 import { RigoAI } from "../../Rigobot/AI";
 import { FetchManager } from "../../../managers/fetchManager";
 import { DIFF_SEPARATOR } from "../../Rigobot/Agent";
 import { Icon } from "../../Icon";
+import { generateCodeChallenge } from "../../../utils/creator";
+import { Loader } from "../Loader/Loader";
+import { useCompletionJobStatus } from "../../../hooks/useCompletionJobStatus";
 
 
 const ClickMeToGetID = ({ id }: { id: string }) => {
@@ -420,6 +425,7 @@ export const Markdowner = ({
                     language={codeBlocks[0].lang}
                     metadata={codeBlocks[0].metadata}
                     wholeMD={markdown}
+                    allowCreate={allowCreate}
                   />
                 </CreatorWrapper>
               );
@@ -431,6 +437,7 @@ export const Markdowner = ({
                 language={codeBlocks[0].lang}
                 metadata={codeBlocks[0].metadata}
                 wholeMD={markdown}
+                allowCreate={allowCreate}
               />
             );
           },
@@ -541,6 +548,7 @@ const CustomCodeBlock = ({
   metadata,
   wholeMD,
   node,
+  allowCreate,
 }: // metadata,
   {
     code: string;
@@ -548,6 +556,7 @@ const CustomCodeBlock = ({
     metadata: TMetadata;
     wholeMD: string;
     node: any;
+    allowCreate: boolean;
   }) => {
   const {
     getCurrentExercise,
@@ -605,6 +614,10 @@ const CustomCodeBlock = ({
 
   if (language === "loader") {
     return <RealtimeLesson />;
+  }
+
+  if (language === "code_challenge_proposal") {
+    return <CodeChallengeProposalRenderer node={node} code={code} allowCreate={allowCreate} />;
   }
 
   if (language === "new") {
@@ -703,14 +716,14 @@ const ChangesDiffRenderer = ({ code, node }: { code: string, node: any }) => {
   const acceptChanges = async () => {
     console.log("acceptChanges", newContent, node.position.start, node.position.end);
     await replaceInReadme(newContent, node.position.start, node.position.end);
-    toast.success(t("changesAccepted"));
+    toast.success(t("changes-accepted"));
 
     setEditingContent("");
   };
 
   const rejectChanges = async () => {
     console.log("rejectChanges", original, node.position.start, node.position.end);
-    toast.success(t("changesRejected"));
+    toast.success(t("changes-rejected"));
     setEditingContent("");
 
   };
@@ -910,3 +923,163 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
     </div>
   );
 };
+
+
+const CodeChallengeProposalRenderer = ({ code, node, allowCreate }: { code: string, node: Element, allowCreate: boolean }) => {
+  if (!node) return null;
+  const {
+    replaceInReadme,
+    token,
+    currentExercisePosition,
+    currentContent,
+    configObject,
+    fetchReadme,
+    fetchExercises
+  } = useStore((state) => ({
+    replaceInReadme: state.replaceInReadme,
+    token: state.token,
+    currentExercisePosition: state.currentExercisePosition,
+    currentContent: state.currentContent,
+    configObject: state.configObject,
+    fetchReadme: state.fetchReadme,
+    fetchExercises: state.fetchExercises,
+  }));
+  const { t } = useTranslation();
+
+  // Check if this is a generating status
+  const isGenerating = code.startsWith("GENERATING(");
+  const generatingId = isGenerating ? code.match(/GENERATING\((\d+)\)/)?.[1] : null;
+  const originalCode = isGenerating ? code.replace(/GENERATING\(\d+\)\s*/, '') : code;
+
+  // Polling hook for completion job status (as fallback)
+  const { status: pollingStatus, data: pollingData } = useCompletionJobStatus({
+    completionId: generatingId || null,
+    token: token || null,
+    pollingInterval: 7000,
+    enabled: isGenerating && !!generatingId && !!token,
+  });
+
+  // Log polling results
+  useEffect(() => {
+    if (pollingStatus === "SUCCESS") {
+      handleCodeChallengeUpdate(pollingStatus);
+    } else if (pollingStatus === "ERROR") {
+      handleCodeChallengeUpdate(pollingStatus);
+    } else if (pollingStatus === "PENDING") {
+      console.log("⏳ POLLING: Code challenge running...", pollingData);
+    }
+  }, [pollingStatus]);
+
+  // Handle socket updates for code challenge completion
+  const handleCodeChallengeUpdate = async (status: string) => {
+    if (status === "SUCCESS") {
+      // Remove the code challenge proposal
+      const finalContent = "";
+      if (node?.position?.start && node?.position?.end) {
+        replaceInReadme(finalContent, node.position.start, node.position.end);
+      }
+
+      toast.success(t("code-challenge-generation-completed"));
+      setTimeout(async () => {
+        await fetchExercises();
+        await fetchReadme();
+
+      }, 1000);
+    } else if (status === "ERROR") {
+      toast.error(t("code-challenge-generation-failed"));
+      const errorContent = `\`\`\`code_challenge_proposal
+      ${originalCode}
+      \`\`\``;
+      if (node?.position?.start && node?.position?.end) {
+        replaceInReadme(errorContent, node.position.start, node.position.end);
+      }
+    }
+  };
+
+
+  const handleReject = () => {
+    if (!node.position) {
+      toast.error(t("error-rejecting-changes"));
+      return;
+    };
+    replaceInReadme("", node.position.start, node.position.end);
+    toast.success(t("changes-rejected"));
+    console.log("reject");
+  };
+
+  const handleAccept = async () => {
+    if (!token) {
+      toast.error(t("authentication-required"));
+      return;
+    }
+
+    if (!code || !currentContent) {
+      toast.error(t("missing-required-content"));
+      return;
+    }
+
+    const courseSlug = configObject?.config?.slug;
+    if (!courseSlug) {
+      toast.error(t("course-slug-not-found"));
+      return;
+    }
+
+    const tid = toast.loading(t("generating-code-challenge"));
+    try {
+
+      const result = await generateCodeChallenge(
+        code,
+        currentContent,
+        Number(currentExercisePosition),
+        token,
+        courseSlug
+      );
+
+      if (result.status === "QUEUED") {
+        // Update the markdown to show GENERATING status
+        const generatingContent = `\`\`\`code_challenge_proposal\nGENERATING(${result.id}) ${code}\n\`\`\``;
+        if (node?.position?.start && node?.position?.end) {
+          await replaceInReadme(generatingContent, node.position.start, node.position.end);
+        }
+
+        toast.success(t("code-challenge-generation-started"), { id: tid });
+        console.log("Code challenge generation started with ID:", result.id);
+      } else {
+        toast.error(t("failed-to-start-code-challenge-generation"), { id: tid });
+      }
+    } catch (error) {
+      console.error("Error generating code challenge:", error);
+      toast.error(t("error-generating-code-challenge-files"), { id: tid });
+    }
+  };
+
+  // Show loader if generating
+  if (isGenerating) {
+    return (
+      <div className="bg-2 padding-medium rounded border-blue">
+        <h4 className="gap-small text-center flex-x align-center justify-center">
+          <Icon name="Code" /> {t("code-challenge-proposal")}
+        </h4>
+        <div className="flex-y gap-small align-center justify-center">
+          <Loader
+            size="lg"
+            text={`Generating code challenge files... (ID: ${generatingId})`}
+            svg={svgs.rigoSvg}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-2 padding-medium rounded border-blue">
+      <h4 className="gap-small text-center flex-x align-center justify-center"><Icon name="Code" /> {t("code-challenge-proposal")}</h4>
+      <p>{originalCode}</p>
+      {allowCreate && <div className="d-flex gap-small justify-center" >
+        <SimpleButton action={handleAccept} extraClass="bg-blue-rigo text-white padding-small rounded" text={t("accept")} svg={<Icon name="Check" />} />
+        <SimpleButton action={handleReject} extraClass="bg-gray padding-small rounded" text={t("reject")} svg={<Icon name="X" />} />
+      </div>}
+    </div>
+  );
+};
+

@@ -6,6 +6,8 @@ import TagManager from "react-gtm-module";
 import * as yaml from "js-yaml";
 import axios from "axios";
 import { LocalStorage } from "../managers/localStorage";
+import assessmentComponentsRaw from "../../docs/assessment_components.yml?raw";
+import explanatoryComponentsRaw from "../../docs/explanatory_components.yml?raw";
 // import toast from "react-hot-toast";
 export const DEV_MODE =false;
 export const DEV_URL = "https://1gm40gnb-3000.use2.devtunnels.ms";
@@ -47,7 +49,7 @@ export const getHost = function (): string {
     HOST = "http://localhost:3000";
   }
 
-  
+
   if (includeScormPath) {
     // Return the full URL without the /config/index.html
     HOST = window.location.href.replace("/config/index.html", "");
@@ -218,11 +220,11 @@ export const onConnectCli = () => {
 export const getQueryParams = (): TPossibleParams => {
   const urlParams = new URLSearchParams(window.location.search);
   let paramsObject: Record<string, string> = {};
-  
+
   for (const [key, value] of urlParams.entries()) {
     paramsObject[key] = value;
   }
-  
+
   return paramsObject;
 };
 
@@ -263,18 +265,18 @@ export const replaceSlot = (
 
 export const setQueryParams = (params: TPossibleParams) => {
   const searchParams = new URLSearchParams();
-  
+
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') {
       searchParams.set(key, String(value));
     }
   });
-  
+
   const queryString = searchParams.toString();
-  const newUrl = queryString 
-    ? `${window.location.pathname}?${queryString}${window.location.hash}` 
+  const newUrl = queryString
+    ? `${window.location.pathname}?${queryString}${window.location.hash}`
     : `${window.location.pathname}${window.location.hash}`;
-  
+
   window.history.replaceState(null, '', newUrl);
 };
 
@@ -538,7 +540,7 @@ export const slugify = (text: string) => {
   return text
     .toLowerCase()
     .replace(/ /g, "-")
-    .replace(/[^\w.-]+/g, "") 
+    .replace(/[^\w.-]+/g, "")
     .replace(/^-+|-+$/g, "")
     .replace(/-+/g, "-");
 };
@@ -604,3 +606,18 @@ export function createBugReportUrl(
 
   return url;
 }
+
+
+export const getComponentsInfo = (): string => {
+  let componentsInfoString = `
+  These are the valid LearnPAck components up to date:
+  ## ASSESSMENT COMPONENTS:
+  ${assessmentComponentsRaw}
+
+  --------------------------------
+
+  ## EXPLANATORY COMPONENTS:
+  ${explanatoryComponentsRaw}
+  `
+  return componentsInfoString;
+};

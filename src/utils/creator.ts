@@ -204,6 +204,31 @@ export const markLessonAsDone = async (
   return response.data;
 };
 
+export const generateCodeChallenge = async (
+  codeChallenge: string,
+  lessonContent: string,
+  exercisePosition: number,
+  rigoToken: string,
+  courseSlug: string
+) => {
+  const headers = {
+    "x-rigo-token": rigoToken,
+    "Content-Type": "application/json",
+  };
+
+  const response = await axios.post(
+    `${DEV_MODE ? "http://localhost:3000" : ""}/actions/generate-code-challenge`,
+    {
+      code_challenge: codeChallenge,
+      lesson_content: lessonContent,
+      exercise_position: exercisePosition,
+      course_slug: courseSlug,
+    },
+    { headers }
+  );
+  return response.data;
+};
+
 
 export const generateImageLearnPack = async (
   courseSlug: string,

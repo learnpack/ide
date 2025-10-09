@@ -434,5 +434,17 @@
     "writeAnExampleAnswer": "Write an example answer",
     "copy-link-to-this-section": "Copy link to this section",
     "link-copied-to-clipboard": "Link copied to clipboard",
-    "conversation-cleared": "Conversation cleared"
+    "conversation-cleared": "Conversation cleared",
+    "code-challenge-proposal": "Code challenge proposal",
+    "generating-code-challenge": "Generating code challenge files...",
+    "code-challenge-generation-started": "Code challenge generation started!",
+    "failed-to-start-code-challenge-generation": "Failed to start code challenge generation",
+    "error-generating-code-challenge-files": "Error generating code challenge files",
+    "authentication-required": "Authentication required",
+    "missing-required-content": "Missing required content",
+    "course-slug-not-found": "Course slug not found",
+    "changes-accepted": "Changes accepted",
+    "changes-rejected": "Changes rejected",
+    "error-rejecting-changes": "Error rejecting changes",
+    "code-challenge-generation-completed": "Code challenge generation completed"
 }
