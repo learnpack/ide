@@ -81,7 +81,6 @@ export const CreatorWrapper = ({
   }, []);
 
   const simplifyLanguage = () => {
-    setIsGenerating(true);
     let text = elemRef.current?.innerHTML;
     if (node?.position?.start?.offset && node?.position?.end?.offset) {
       const textPortion = getPortionFromText(
@@ -91,8 +90,9 @@ export const CreatorWrapper = ({
       );
       text = textPortion;
     }
-
+    
     if (text && targetRef.current) {
+      setIsGenerating(true);
       RigoAI.useTemplate({
         slug: "simplify-language",
         inputs: {
@@ -128,6 +128,7 @@ export const CreatorWrapper = ({
       );
     }
     if (text && targetRef.current) {
+      setIsGenerating(true);
       RigoAI.useTemplate({
         slug: "explain-further",
         inputs: {
@@ -139,6 +140,7 @@ export const CreatorWrapper = ({
           if (success) {
             setReplacementValue(data.ai_response);
             useConsumable("ai-generation");
+            setIsGenerating(false);
           }
           reportEnrichDataLayer("creator_template_used", {
             template: "explain-further",
@@ -318,8 +320,8 @@ export const CreatorWrapper = ({
         node?.position?.end
       );
       setReplacementValue("");
+      reportEnrichDataLayer("creator_result_accepted", {});
     }
-    reportEnrichDataLayer("creator_result_accepted", {});
   };
 
   const rejectChanges = () => {
