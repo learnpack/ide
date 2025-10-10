@@ -453,5 +453,7 @@
     "changes-accepted": "Cambios aceptados",
     "changes-rejected": "Cambios rechazados",
     "error-rejecting-changes": "Error al rechazar cambios",
-    "code-challenge-generation-completed": "Generación de ejercicio de código completada"
+    "code-challenge-generation-completed": "Generación de ejercicio de código completada",
+    "confirm-delete-file": "¿Estás seguro de querer eliminar este archivo?",
+    "error-deleting-file": "Error al eliminar archivo"
 }

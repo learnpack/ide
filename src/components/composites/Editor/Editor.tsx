@@ -19,6 +19,8 @@ import { TEditorTab } from "../../../utils/storeTypes";
 import { Markdowner } from "../Markdowner/Markdowner";
 import { eventBus } from "../../../managers/eventBus";
 import { Modal } from "../../mockups/Modal";
+import { deleteFile } from "../../../utils/creator";
+import { Icon } from "../../Icon"
 
 const languageMap: { [key: string]: string } = {
   ".js": "javascript",
@@ -53,6 +55,8 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     cleanTerminal,
     theme,
     updateDBSession,
+    mode,
+    fetchExercises,
   } = useStore((state) => ({
     tabs: state.editorTabs,
     setTabs: state.setEditorTabs,
@@ -61,6 +65,8 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     cleanTerminal: state.cleanTerminal,
     theme: state.theme,
     updateDBSession: state.updateDBSession,
+    mode: state.mode,
+    fetchExercises: state.fetchExercises,
   }));
 
   const { t } = useTranslation();
@@ -115,6 +121,26 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     }
   };
 
+  const handleDeleteFile = async (fileName: string) => {
+    if (!window.confirm(t("confirm-delete-file") || `Are you sure you want to delete ${fileName}?`)) {
+      return;
+    }
+
+    try {
+      const ex = getCurrentExercise();
+      await deleteFile(ex.slug, fileName);
+      
+      removeTab(tabs.find(tab => tab.name === fileName)?.id || 0, fileName);
+      
+      await fetchExercises();
+      
+      console.log(`✅ File ${fileName} deleted successfully`);
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      alert(t("error-deleting-file") || "Error deleting file. Please try again.");
+    }
+  };
+
   const handleTabClick = (id: number) => {
     const newTabs = tabs.map((tab) =>
       tab.id === id ? { ...tab, isActive: true } : { ...tab, isActive: false }
@@ -156,6 +182,25 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                 ? t("model-solution")
                 : tab.name}
             </button>
+            {mode === "creator" && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteFile(tab.name);
+                }}
+                className="delete-file-btn"
+                title={t("delete-file") || "Delete file"}
+                style={{
+                  marginLeft: "8px",
+                  padding: "2px 6px",
+                  fontSize: "12px",
+                  cursor: "pointer",
+                  color: "#ff4444",
+                }}
+              >
+                <Icon size={10} name="Trash" />
+              </button>
+            )}
           </div>
         ))}
       </div>

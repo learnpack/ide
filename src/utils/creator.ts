@@ -248,3 +248,18 @@ export const generateImageLearnPack = async (
   );
   return response.data;
 };
+
+export const deleteFile = async (exerciseSlug: string, filename: string) => {
+  try {
+    const courseSlug = getSlugFromPath();
+    const response = await axios.delete(
+      `${
+        DEV_MODE ? "http://localhost:3000" : ""
+      }/courses/${courseSlug}/exercises/${exerciseSlug}/file/${filename}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting file:", error);
+    throw error;
+  }
+};
