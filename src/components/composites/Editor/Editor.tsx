@@ -20,7 +20,7 @@ import { Markdowner } from "../Markdowner/Markdowner";
 import { eventBus } from "../../../managers/eventBus";
 import { Modal } from "../../mockups/Modal";
 import { deleteFile } from "../../../utils/creator";
-import { Icon } from "../../Icon"
+import { Icon } from "../../Icon";
 
 const languageMap: { [key: string]: string } = {
   ".js": "javascript",
@@ -97,7 +97,9 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     const tab = newTabs.find((t) => t.id === id);
 
     if (tab) {
-      updateFileContent(ex.slug, tab);
+      if (mode === "creator") {
+        updateFileContent(ex.slug, tab);
+      }
       debouncedStore();
     }
   };
@@ -122,22 +124,29 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
   };
 
   const handleDeleteFile = async (fileName: string) => {
-    if (!window.confirm(t("confirm-delete-file") || `Are you sure you want to delete ${fileName}?`)) {
+    if (
+      !window.confirm(
+        t("confirm-delete-file") ||
+          `Are you sure you want to delete ${fileName}?`
+      )
+    ) {
       return;
     }
 
     try {
       const ex = getCurrentExercise();
       await deleteFile(ex.slug, fileName);
-      
-      removeTab(tabs.find(tab => tab.name === fileName)?.id || 0, fileName);
-      
+
+      removeTab(tabs.find((tab) => tab.name === fileName)?.id || 0, fileName);
+
       await fetchExercises();
-      
+
       console.log(`✅ File ${fileName} deleted successfully`);
     } catch (error) {
       console.error("Error deleting file:", error);
-      alert(t("error-deleting-file") || "Error deleting file. Please try again.");
+      alert(
+        t("error-deleting-file") || "Error deleting file. Please try again."
+      );
     }
   };
 

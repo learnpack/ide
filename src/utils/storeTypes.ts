@@ -339,7 +339,7 @@ export interface IStore {
   toggleTheme: () => void;
   toastFromStatus: (status: string) => void;
   setShouldBeTested: (value: boolean) => void;
-  openTerminal: () => void;
+  // openTerminal: () => void;
   runExerciseTests: (
     opts?: Partial<TRunExerciseTestsOptions>,
     submittedInputs?: string[]

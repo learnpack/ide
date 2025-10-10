@@ -32,15 +32,15 @@ function generateUUID() {
   });
 }
 
-const inputByLang = {
-  js: "prompt(",
-  py: "input(",
-  java: "Scanner(System.in).nextLine()",
-  cs: "Console.ReadLine()",
-  rb: "gets",
-  php: "$_POST['input']",
-  go: "bufio.NewReader(os.Stdin).ReadString('\\n')",
-  swift: "readLine()",
+const inputByLang: Record<string, string[]> = {
+  js: ["prompt(", "window.prompt("],
+  py: ["input("],
+  java: ["Scanner(System.in).nextLine()", "Scanner(System.in).next("],
+  cs: ["Console.ReadLine(", "Console.Read("],
+  rb: ["gets", "gets.chomp"],
+  php: ["readline(", "fgets(STDIN", "$_POST['input']", "$_GET['input']"],
+  go: ["bufio.NewReader(os.Stdin).ReadString(", "fmt.Scan("],
+  swift: ["readLine("],
 };
 
 function escapeRegExp(string: string) {
@@ -49,32 +49,39 @@ function escapeRegExp(string: string) {
 
 function searchInputsForFile(filename: string, fileContent: string) {
   try {
-    // Get the extension of the filename
     const extension = filename.split(".").pop();
     if (!extension) return null;
-    const input = inputByLang[extension as keyof typeof inputByLang];
-    if (!input) return null;
+    const patterns = inputByLang[extension as keyof typeof inputByLang];
+    if (!patterns || patterns.length === 0) return null;
 
-    let regex;
+    const allMatches: string[] = [];
 
-    if (extension === "js" || extension === "py" || extension === "swift") {
-      const escapedInput = escapeRegExp(input);
-      regex = new RegExp(`${escapedInput}\\s*\\s*("(.*?)"|'(.*?)')`, "g");
-    }
+    for (const pattern of patterns) {
+      let regex;
 
-    const matches = [];
-    let match;
+      if (pattern.endsWith("(")) {
+        const escapedPattern = escapeRegExp(pattern);
+        regex = new RegExp(`${escapedPattern}\\s*("(.*?)"|'(.*?)')`, "g");
+      } else if (pattern.includes("['") || pattern.includes('["')) {
+        const escapedPattern = escapeRegExp(pattern.split("[")[0]);
+        regex = new RegExp(`${escapedPattern}\\[['"]([^'"]+)['"]\\]`, "g");
+      } else {
+        continue;
+      }
 
-    while ((match = regex?.exec(fileContent)) !== null) {
-      if (match) {
-        matches.push(match[1] || match[2]);
+      let match;
+      while ((match = regex.exec(fileContent)) !== null) {
+        const capturedValue = match[2] || match[3] || match[1];
+        if (capturedValue) {
+          allMatches.push(capturedValue);
+        }
       }
     }
 
-    const fixedMatches = matches.map((match) => match.replace(/['"]/g, ""));
+    const fixedMatches = allMatches.map((match) => match.replace(/['"]/g, ""));
     return fixedMatches.length > 0 ? fixedMatches : null;
   } catch (error) {
-    console.error("Something went wrong:", error);
+    console.error("Something went wrong searching inputs:", error);
     return null;
   }
 }
