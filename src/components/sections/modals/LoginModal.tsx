@@ -7,6 +7,7 @@ import { Modal } from "../../mockups/Modal";
 import { svgs } from "../../../assets/svgs";
 import toast from "react-hot-toast";
 import { BREATHECODE_HOST } from "../../../utils/lib";
+import { Icon } from "../../Icon";
 
 export default function LoginModal() {
   const {
@@ -33,6 +34,7 @@ export default function LoginModal() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleClickOutside = (event: any) => {
     if (backdropRef.current === event.target) {
@@ -180,16 +182,31 @@ export default function LoginModal() {
                   setEmail(e.target.value);
                 }}
               />
-              <div>
+              <div style={{ position: "relative" }}>
                 <input
                   placeholder={t("Password")}
                   autoComplete="current-password"
-                  type={"password"}
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   onChange={(e) => {
                     setPassword(e.target.value);
                   }}
+                  style={{ paddingRight: "40px" }}
                 />
+                <span
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: "absolute",
+                    right: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <Icon name={showPassword ? "Eye" : "EyeOff"} size={18} />
+                </span>
               </div>
 
               <div className="my-2">
