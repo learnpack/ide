@@ -13,12 +13,16 @@ import { Lesson } from "../../utils/storeTypes";
 import CustomDropdown from "../CustomDropdown";
 const socketClient = new CreatorSocket(DEV_MODE ? "http://localhost:3000" : "");
 
-const BigRigoMessage = ({ message, svg }: { message: string, svg: React.ReactNode }) => {
+const BigRigoMessage = ({
+  message,
+  svg,
+}: {
+  message: string;
+  svg: React.ReactNode;
+}) => {
   return (
     <div className="rigo-message">
-      <p className="extra-big-svg">
-        {svg}
-      </p>
+      <p className="extra-big-svg">{svg}</p>
       <p className="bg-1 rounded padding-small text-heavy-blue border-light-blue">
         {message}
       </p>
@@ -42,7 +46,6 @@ export default function RealtimeLesson() {
 
   const handleUpdate = (data: any) => {
     if (data && data.status === "done") {
-
       setTimeout(async () => {
         await fetchReadme();
       }, 1000);
@@ -77,15 +80,11 @@ export default function RealtimeLesson() {
 
     setLesson(lesson);
     setPreviousLesson(previousLesson);
-
   }, [syllabus, currentExercisePosition]);
-
-  
 
   return (
     <div className="flex-y gap-big padding-big lesson-loader">
       {/* {lesson && <h3>{lesson.title}</h3>} */}
-
 
       <ContinueGenerationButton
         status={lesson?.status || "PENDING"}
@@ -101,7 +100,6 @@ export default function RealtimeLesson() {
         }}
       />
 
-
       {updates.length > 0 && (
         <div
           style={{ background: "#FAFDFF", border: "1px solidrgb(6, 10, 15)" }}
@@ -115,7 +113,6 @@ export default function RealtimeLesson() {
     </div>
   );
 }
-
 
 const ContinueGenerationButton = ({
   onGenerate,
@@ -131,6 +128,7 @@ const ContinueGenerationButton = ({
   prevLessonStatus: "PENDING" | "GENERATING" | "DONE" | "ERROR";
 }) => {
   const { t } = useTranslation();
+  console.debug(prevLessonStatus, "prevLessonStatus");
 
   const currentExercisePosition = useStore(
     (state) => state.currentExercisePosition
@@ -138,7 +136,9 @@ const ContinueGenerationButton = ({
   const token = useStore((state) => state.token);
   const config = useStore((state) => state.configObject);
 
-  const handleContinue = async (mode: "next-three" | "continue-with-all" = "next-three") => {
+  const handleContinue = async (
+    mode: "next-three" | "continue-with-all" = "next-three"
+  ) => {
     try {
       await continueGenerating(
         config.config.slug,
@@ -159,7 +159,10 @@ const ContinueGenerationButton = ({
     return (
       <div className="flex-y gap-small align-center justify-center">
         <ProgressBar duration={60} height={2} />
-        <BigRigoMessage svg={svgs.rigoWait} message={t("waitImGeneratingTheLesson", { step: title })} />
+        <BigRigoMessage
+          svg={svgs.rigoWait}
+          message={t("waitImGeneratingTheLesson", { step: title })}
+        />
         <TimeOutButton
           handleContinue={handleContinue}
           timeoutSeconds={DEV_MODE ? 5 : 120}
@@ -167,11 +170,14 @@ const ContinueGenerationButton = ({
       </div>
     );
   }
-  
+
   if (status === "ERROR") {
     return (
       <div className="flex-y gap-small align-center justify-center">
-        <BigRigoMessage svg={svgs.rigoWait} message={`❌ Error generating lesson: ${title}`} />
+        <BigRigoMessage
+          svg={svgs.rigoWait}
+          message={`❌ Error generating lesson: ${title}`}
+        />
         <div className="flex-x gap-small justify-center">
           <SimpleButton
             svg={"🔄"}
@@ -198,7 +204,7 @@ const ContinueGenerationButton = ({
       </div>
     );
   }
-  
+
   if (status === "DONE") {
     return null;
   }
@@ -206,56 +212,67 @@ const ContinueGenerationButton = ({
   return (
     <>
       <div className="flex-y gap-small">
-        <BigRigoMessage svg={svgs.happyRigo} message={t("thisStepWillBeAbout") + description} />
+        <BigRigoMessage
+          svg={svgs.happyRigo}
+          message={t("thisStepWillBeAbout") + description}
+        />
       </div>
 
-      {prevLessonStatus === "DONE" && (
-          <div className="flex-x gap-small justify-end wrap-wrap">
-          <ContinueWithOptions handleContinue={handleContinue} />
-          <SimpleButton
-            svg={"🤔"}
-            extraClass=" border-blue rounded padding-small text-blue flex-x align-center gap-small svg-blue"
-            action={() => {
-              // Open agent with lesson modification context
-              const { toggleRigo, setRigoContext } = useStore.getState();
-              setRigoContext({
-                context: `Current lesson: ${title}\nDescription: ${description}\nStatus: ${status}`,
-                userMessage: `I want to modify the content of this lesson: "${title}". ${description}`,
-                performTests: false,
-                allowedFunctions: ["continueGeneration"],
-              });
-              toggleRigo({ ensure: "open" });
-            }}
-            text={t("IHaveSomeFeedback")}
-          />
-        </div>
-      )}
+      <div className="flex-x gap-small justify-end wrap-wrap">
+        <ContinueWithOptions handleContinue={handleContinue} />
+        <SimpleButton
+          svg={"🤔"}
+          extraClass=" border-blue rounded padding-small text-blue flex-x align-center gap-small svg-blue"
+          action={() => {
+            // Open agent with lesson modification context
+            const { toggleRigo, setRigoContext } = useStore.getState();
+            setRigoContext({
+              context: `Current lesson: ${title}\nDescription: ${description}\nStatus: ${status}`,
+              userMessage: `I want to modify the content of this lesson: "${title}". ${description}`,
+              performTests: false,
+              allowedFunctions: ["continueGeneration"],
+            });
+            toggleRigo({ ensure: "open" });
+          }}
+          text={t("IHaveSomeFeedback")}
+        />
+      </div>
     </>
   );
 };
 
-const ContinueWithOptions = ({ handleContinue }: { handleContinue: (mode: "next-three" | "continue-with-all") => void }) => {
-  const { t } = useTranslation()
-  return <CustomDropdown menuClassName="w-250px flex-y gap-small" position="center" trigger={
-    <SimpleButton
-      svg={"😀"}
-      extraClass=" border-blue rounded padding-small text-blue flex-x align-center gap-small svg-blue bg-blue-rigo text-white"
-      text={t("iLikeItContinue")}
-    />
-  }>
-    <SimpleButton
-      extraClass=" border-blue rounded padding-small text-blue flex-x align-center gap-small bg-blue-rigo text-white w-100"
-      action={() => handleContinue("next-three")}
-      text={t("generateNextThree")}
-      svg={svgs.next}
-    />
-    <SimpleButton
-      extraClass=" border-blue rounded padding-small text-blue flex-x align-center gap-small  bg-blue-rigo text-white w-100"
-      action={() => handleContinue("continue-with-all")}
-      text={t("continueWithAll")}
-      svg={svgs.fastForward}
-    />
-  </CustomDropdown>
+const ContinueWithOptions = ({
+  handleContinue,
+}: {
+  handleContinue: (mode: "next-three" | "continue-with-all") => void;
+}) => {
+  const { t } = useTranslation();
+  return (
+    <CustomDropdown
+      menuClassName="w-250px flex-y gap-small"
+      position="center"
+      trigger={
+        <SimpleButton
+          svg={"😀"}
+          extraClass=" border-blue rounded padding-small text-blue flex-x align-center gap-small svg-blue bg-blue-rigo text-white"
+          text={t("iLikeItContinue")}
+        />
+      }
+    >
+      <SimpleButton
+        extraClass=" border-blue rounded padding-small text-blue flex-x align-center gap-small bg-blue-rigo text-white w-100"
+        action={() => handleContinue("next-three")}
+        text={t("generateNextThree")}
+        svg={svgs.next}
+      />
+      <SimpleButton
+        extraClass=" border-blue rounded padding-small text-blue flex-x align-center gap-small  bg-blue-rigo text-white w-100"
+        action={() => handleContinue("continue-with-all")}
+        text={t("continueWithAll")}
+        svg={svgs.fastForward}
+      />
+    </CustomDropdown>
+  );
 };
 
 const TimeOutButton = ({
