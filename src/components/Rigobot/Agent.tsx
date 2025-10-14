@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, memo } from "react";
 import { useTranslation } from "react-i18next";
 import SimpleButton from "../mockups/SimpleButton";
-import { debounce, getSlugFromPath, TokenExpiredError } from "../../utils/lib";
+import { debounce, getSlugFromPath, slugify, TokenExpiredError } from "../../utils/lib";
 import { svgs } from "../../assets/svgs";
 import useStore from "../../utils/store";
 import { Loader } from "../composites/Loader/Loader";
@@ -356,20 +356,23 @@ ${args.content}
       try {
         const { continueGenerating } = await import("../../utils/creator");
 
-        const currentExercisePosition = useStore.getState().currentExercisePosition;
+        const currentExercise = useStore.getState().getCurrentExercise();
         const syllabus = useStore.getState().syllabus;
 
-        console.log("ARGS", args);
+        const lesson = syllabus?.lessons?.find(lesson => {
+          const slug = slugify(lesson.id + "-" + lesson.title);
+          return slug === currentExercise.slug;
+        });
 
-        // Check if current lesson status allows generation
-        const currentLesson = syllabus.lessons?.[Number(currentExercisePosition)];
-        if (currentLesson && currentLesson.status && !["PENDING", "ERROR"].includes(currentLesson.status)) {
-          return `Cannot start lesson generation. Current lesson status is "${currentLesson.status}". This tool is only available when lesson status is PENDING or ERROR.`;
+          console.log("ARGS", args);
+
+        if (lesson && lesson.status && !["PENDING", "ERROR"].includes(lesson.status)) {
+          return `Cannot start lesson generation. Current lesson status is "${lesson.status}". This tool is only available when lesson status is PENDING or ERROR.`;
         }
 
         await continueGenerating(
           configObject.config.slug,
-          Number(currentExercisePosition),
+          lesson?.id || "",
           args.feedback,
           args.mode || "next-three",
           token

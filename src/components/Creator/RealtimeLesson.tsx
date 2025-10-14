@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import useStore from "../../utils/store";
 import CreatorSocket from "../../managers/creatorSocket";
 import ProgressBar from "../composites/ProgressBar/ProgressBar";
-import { DEV_MODE } from "../../utils/lib";
+import { DEV_MODE, slugify } from "../../utils/lib";
 import SimpleButton from "../mockups/SimpleButton";
 import { continueGenerating } from "../../utils/creator";
 import toast from "react-hot-toast";
@@ -33,16 +33,13 @@ const BigRigoMessage = ({
 export default function RealtimeLesson() {
   const { t } = useTranslation();
   const getCurrentExercise = useStore((state) => state.getCurrentExercise);
-  const currentExercisePosition = useStore(
-    (state) => state.currentExercisePosition
-  );
   const config = useStore((state) => state.configObject);
   const fetchReadme = useStore((state) => state.fetchReadme);
   const syllabus = useStore((state) => state.syllabus);
   const getSyllabus = useStore((state) => state.getSyllabus);
   const [updates, setUpdates] = useState<string[]>([]);
-  const [lesson, setLesson] = useState<Lesson | null>(null);
-  const [previousLesson, setPreviousLesson] = useState<Lesson | null>(null);
+  const [lesson, setLesson] = useState<Lesson | null>(null); 
+
 
   const handleUpdate = (data: any) => {
     if (data && data.status === "done") {
@@ -70,17 +67,18 @@ export default function RealtimeLesson() {
   }, []);
 
   useEffect(() => {
-    const previousLesson = syllabus.lessons
-      ? syllabus.lessons[Number(currentExercisePosition) - 1]
-      : null;
 
-    const lesson = syllabus.lessons
-      ? syllabus.lessons[Number(currentExercisePosition)]
-      : null;
+
+    
+  const currentSlug = getCurrentExercise()?.slug;
+  const currentLesson = syllabus.lessons?.find((lesson) => {
+    const slug = slugify(lesson.id + "-" + lesson.title);
+    return slug === currentSlug;
+  });
+    const lesson = currentLesson || null; 
 
     setLesson(lesson);
-    setPreviousLesson(previousLesson);
-  }, [syllabus, currentExercisePosition]);
+  }, [syllabus]);
 
   return (
     <div className="flex-y gap-big padding-big lesson-loader">
@@ -88,8 +86,8 @@ export default function RealtimeLesson() {
 
       <ContinueGenerationButton
         status={lesson?.status || "PENDING"}
-        prevLessonStatus={previousLesson?.status || "PENDING"}
         title={lesson?.title || ""}
+        lessonId={lesson?.id || ""}
         description={lesson?.description || ""}
         onGenerate={() => {
           getSyllabus();
@@ -117,22 +115,18 @@ export default function RealtimeLesson() {
 const ContinueGenerationButton = ({
   onGenerate,
   description,
+  lessonId,
   status,
   title,
-  prevLessonStatus,
 }: {
   onGenerate: () => void;
   description: string;
+  lessonId: string;
   status: "PENDING" | "GENERATING" | "DONE" | "ERROR";
   title: string;
-  prevLessonStatus: "PENDING" | "GENERATING" | "DONE" | "ERROR";
 }) => {
   const { t } = useTranslation();
-  console.debug(prevLessonStatus, "prevLessonStatus");
 
-  const currentExercisePosition = useStore(
-    (state) => state.currentExercisePosition
-  );
   const token = useStore((state) => state.token);
   const config = useStore((state) => state.configObject);
 
@@ -142,7 +136,7 @@ const ContinueGenerationButton = ({
     try {
       await continueGenerating(
         config.config.slug,
-        Number(currentExercisePosition),
+        lessonId,
         "",
         mode,
         token

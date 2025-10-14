@@ -536,14 +536,27 @@ export const checkPreviewImage = async (slug: string) => {
   }
 };
 
+// export const slugify = (text: string) => {
+//   return text
+//     .toLowerCase()
+//     .replace(/ /g, "-")
+//     .replace(/[^\w.-]+/g, "")
+//     .replace(/^-+|-+$/g, "")
+//     .replace(/-+/g, "-");
+// };
+
 export const slugify = (text: string) => {
   return text
+    .toString()
+    .normalize("NFD") // Remove paccents
+    .replace(/[\u0300-\u036F]/g, "") // Remove diacritics
     .toLowerCase()
-    .replace(/ /g, "-")
-    .replace(/[^\w.-]+/g, "")
-    .replace(/^-+|-+$/g, "")
-    .replace(/-+/g, "-");
-};
+    .trim()
+    .replace(/[^\d\s._a-z-]/g, "") // Hyphen at the end, no escape needed
+    .replace(/\s+/g, "-") // Replace spaces with hyphens
+    .replace(/-+/g, "-") // Remove duplicate hyphens
+    .replace(/^-+|-+$/g, "") // Trim hyphens from start/end
+}
 
 
 type TGenerateImageParams = {

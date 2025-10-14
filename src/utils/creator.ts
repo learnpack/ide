@@ -163,7 +163,7 @@ export const deleteTutorial = async (
 
 export const continueGenerating = async (
   courseSlug: string,
-  position: number,
+  lessonId: string,
   feedback: string,
   mode: "next-three" | "continue-with-all",
   rigoToken: string
@@ -179,8 +179,8 @@ export const continueGenerating = async (
   const response = await axios.post(
     `${
       DEV_MODE ? "http://localhost:3000" : ""
-    }/actions/continue-generating/${courseSlug}/${position}`,
-    { position, feedback: feedbackWithCacheEvict, mode },
+    }/actions/continue-generating/${courseSlug}/${lessonId}`,
+    { lessonId, feedback: feedbackWithCacheEvict, mode },
     { headers }
   );
   return response.data;
