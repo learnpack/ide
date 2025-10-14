@@ -677,7 +677,7 @@ const PublishButton = () => {
               setDropdownOpen(false);
             }}
           />
-          {/* <ExportModal onClose={() => {}} /> */}
+          <ExportModal onClose={() => {}} />
         </div>
       )}
     </div>
