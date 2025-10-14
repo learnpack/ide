@@ -39,8 +39,9 @@ components:
 
       1. Each group of options should have a question that is a list item, numbered or not, separated by an empty line from the options.
       2. Each group of options must have an unique correct answer marked with [x]
-      3. Each option should be a checkbox indented by 3 to 6 spaces, this is important for the parsing from markdown to HTML.
+      3. Each option should be a checkbox (task list item) indented by 3 to 6 spaces, this is important for the parsing from markdown to HTML.
       4. It must be an empty line between the question title and the options. This is important for the parsing from markdown to HTML.
+      5. Ignoring any rule from the above list will break the parsing from markdown to HTML and the quiz will not be rendered correctly.
 
     goodFor: reflection, explanation, recall, knowledge assessment
     avoid: open text question, this component is intended only for multiple choice answers with an unique correct answer per group of options
@@ -50,12 +51,11 @@ components:
       Select the correct answer for each question.
 
 
-      1. Question number 1 (This is the title for the group of questions)
+      1. Question number 1 (This is the title for the group of questions) -> this is the question title (can be numbered or not)
         <!-- Each group of options should have an empty line between the question title and the options -->
-
-        - [ ] Incorrect option
-        - [ ] Incorrect option
-        - [x] Correct option (This is the correct answer)
+        - [ ] Incorrect option -> this is the incorrect option (can be marked with [ ])
+        - [ ] Incorrect option -> Each task list item has between 3 and 6 spaces of indentation
+        - [x] Correct option (This is the correct answer) -> this is the correct answer (is the only one that can be marked with [x])
 
       2. Question number 2
         <!-- Each group of options should have an empty line between the question title and the options -->
