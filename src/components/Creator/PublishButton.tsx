@@ -119,7 +119,7 @@ const PublishConfirmationModal: FC<{
               text={t("buy-more-consumables")}
               action={() => {
                 openLink(
-                  `https://www.learnpack.co/my-tutorials?token=${bcToken}`
+                  `https://learn.learnpack.co/my-learning-packages?token=${bcToken}`
                 );
                 setIsOpen(false);
               }}
