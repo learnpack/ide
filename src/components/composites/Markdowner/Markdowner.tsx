@@ -304,6 +304,28 @@ export const Markdowner = ({
             }
             return <h6>{children}</h6>;
           },
+          table: ({ children, node }) => {
+            if (creatorModeActivated) {
+              return (
+                <CreatorWrapper node={node} tagName="table">
+                  <table>{children}</table>
+                </CreatorWrapper>
+              );
+            }
+            return <table>{children}</table>;
+          },
+          hr: ({ children, node }) => {
+            if (creatorModeActivated) {
+              return (
+                <CreatorWrapper node={node} tagName="hr">
+                  <div className="padding-small">
+                    <hr />
+                  </div>
+                </CreatorWrapper>
+              );
+            }
+            return <h1>{children}</h1>;
+          },
           p: ({ children, node }) => {
             if (creatorModeActivated) {
               return (

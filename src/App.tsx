@@ -45,6 +45,9 @@ export default function Home() {
     };
   }, []);
 
+  console.log("Refreshing app");
+  
+
   return (
     <main
       id="main-container"
