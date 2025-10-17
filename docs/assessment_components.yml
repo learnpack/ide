@@ -10,7 +10,7 @@ components:
       weight: 0.30
     description: >-
       The open text question is a type of interactive question where users can write down a text answer. The component consists in a markdown code block with the language set to `question` and has a metadata property eval in the metadata section of the code block with instructions on how to evaluate the answer. Inside the code block, you must write down 3-5 example answers with CORRECT: or INCORRECT: prefix. The actual question must be written before the code block so the user can see it.
-    goodFor: reflection, explanation, recall
+    goodFor: explanation, recall, understanding
     avoid: multiple choice, true/false, fill in the blank, this component is intended only for free form answers, never use for visual questions, only for textual easy to evaluate questions.
     props:
       - eval: string (required)
