@@ -335,6 +335,7 @@ export interface IStore {
     tab: Tab,
     updateTabs?: boolean
   ) => void;
+  createNewFile: (filename: string, content?: string) => Promise<void>;
   toggleSidebar: () => void;
   toggleTheme: () => void;
   toastFromStatus: (status: string) => void;

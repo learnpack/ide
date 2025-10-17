@@ -249,6 +249,27 @@ export const generateImageLearnPack = async (
   return response.data;
 };
 
+export const createFile = async (exerciseSlug: string, filename: string, content: string = "") => {
+  try {
+    const courseSlug = getSlugFromPath();
+    const response = await axios.put(
+      `${
+        DEV_MODE ? "http://localhost:3000" : ""
+      }/exercise/${exerciseSlug}/file/${filename}?slug=${courseSlug}`,
+      content,
+      {
+        headers: {
+          'Content-Type': 'text/plain',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error creating file:", error);
+    throw error;
+  }
+};
+
 export const deleteFile = async (exerciseSlug: string, filename: string) => {
   try {
     const courseSlug = getSlugFromPath();

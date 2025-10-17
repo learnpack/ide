@@ -54,12 +54,14 @@ export const CreatorWrapper = ({
     currentContent,
     useConsumable,
     reportEnrichDataLayer,
+    isBuildable,
   } = useStore((state) => ({
     replaceInReadme: state.replaceInReadme,
     insertBeforeOrAfter: state.insertBeforeOrAfter,
     currentContent: state.currentContent,
     useConsumable: state.useConsumable,
     reportEnrichDataLayer: state.reportEnrichDataLayer,
+    isBuildable: state.isBuildable,
   }));
 
   const [isOpen, setIsOpen] = useState(false);
@@ -234,9 +236,9 @@ export const CreatorWrapper = ({
         node?.position?.end.offset || 0
       );
     }
-    console.log(getComponentsInfo(), "components info");
     
     if (elementText && targetRef.current && question) {
+      console.log(getComponentsInfo(isBuildable), "COMPONENTS INFO");
       RigoAI.useTemplate({
         slug: "request-changes-in-lesson-v2",
         inputs: {
@@ -244,7 +246,7 @@ export const CreatorWrapper = ({
           whole_lesson: currentContent,
           text_selected: tagName === "new" ? "empty" : elementText,
           prev_interactions: JSON.stringify(interactions),
-          components_info: getComponentsInfo(),
+          components_info: getComponentsInfo(isBuildable),
         },
         target: targetRef.current,
         onComplete: (success: boolean, data: any) => {

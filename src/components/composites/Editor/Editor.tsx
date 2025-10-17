@@ -57,6 +57,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     updateDBSession,
     mode,
     fetchExercises,
+    createNewFile,
   } = useStore((state) => ({
     tabs: state.editorTabs,
     setTabs: state.setEditorTabs,
@@ -67,12 +68,15 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     updateDBSession: state.updateDBSession,
     mode: state.mode,
     fetchExercises: state.fetchExercises,
+    createNewFile: state.createNewFile,
   }));
 
   const { t } = useTranslation();
 
   const [editorTheme, setEditorTheme] = useState("vs-dark");
   const [editorStatus, setEditorStatus] = useState<TEditorStatus>("UNMODIFIED");
+  const [showCreateFileModal, setShowCreateFileModal] = useState(false);
+  const [newFileName, setNewFileName] = useState("");
 
   const debouncedStore = useCallback(
     debounce(() => {
@@ -157,6 +161,22 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     setTabs(newTabs);
   };
 
+  const handleCreateFile = async () => {
+    if (!newFileName.trim()) {
+      alert(t("file-name-required") || "File name is required");
+      return;
+    }
+
+    try {
+      await createNewFile(newFileName.trim());
+      setShowCreateFileModal(false);
+      setNewFileName("");
+    } catch (error) {
+      console.error("Error creating file:", error);
+      alert(t("error-creating-file") || "Error creating file. Please try again.");
+    }
+  };
+
   useEffect(() => {
     setEditorTheme("vs-dark");
   }, [theme]);
@@ -212,6 +232,17 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
             )}
           </div>
         ))}
+        {mode === "creator" && (
+          <div className="tab add-file-tab">
+            <button
+              onClick={() => setShowCreateFileModal(true)}
+              className="bg-2 padding-small rounded text-blue"
+              title={t("new-file") || "New File"}
+            >
+              <Icon size={14} name="Plus" />
+            </button>
+          </div>
+        )}
       </div>
 
       {!(terminal === "only") && (
@@ -281,6 +312,77 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
           removeTab={removeTab}
           editorStatus={editorStatus}
         />
+      )}
+
+      {showCreateFileModal && (
+        <Modal
+          outsideClickHandler={() => {
+            setShowCreateFileModal(false);
+            setNewFileName("");
+          }}
+          showCloseButton={true}
+          addPadding={true}
+        >
+          <div style={{ padding: "20px", minWidth: "300px" }}>
+            <h3 style={{ marginBottom: "16px", color: "#333" }}>
+              {t("create-new-file") || "Create New File"}
+            </h3>
+            <div style={{ marginBottom: "16px" }}>
+              <label style={{ display: "block", marginBottom: "8px", fontWeight: "500" }}>
+                {t("file-name") || "File Name"}
+              </label>
+              <input
+                type="text"
+                value={newFileName}
+                onChange={(e) => setNewFileName(e.target.value)}
+                placeholder={t("enter-file-name") || "Enter file name (e.g., script.js)"}
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  fontSize: "14px",
+                }}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    handleCreateFile();
+                  }
+                }}
+                autoFocus
+              />
+            </div>
+            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+              <button
+                onClick={() => {
+                  setShowCreateFileModal(false);
+                  setNewFileName("");
+                }}
+                style={{
+                  padding: "8px 16px",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  background: "white",
+                  cursor: "pointer",
+                }}
+              >
+                {t("cancel") || "Cancel"}
+              </button>
+              <button
+                onClick={handleCreateFile}
+                style={{
+                  padding: "8px 16px",
+                  border: "none",
+                  borderRadius: "4px",
+                  background: "#02A9EA",
+                  color: "white",
+                  cursor: "pointer",
+                }}
+              >
+                {t("create") || "Create"}
+              </button>
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   );

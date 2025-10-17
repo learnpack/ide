@@ -621,11 +621,24 @@ export function createBugReportUrl(
 }
 
 
-export const getComponentsInfo = (): string => {
+export const getComponentsInfo = (has_coding_challenges: boolean = false): string => {
+  let filteredAssessmentComponents = assessmentComponentsRaw;
+  
+  if (has_coding_challenges) {
+    const assessmentComponents = yaml.load(assessmentComponentsRaw) as any;
+    if (assessmentComponents && assessmentComponents.components) {
+      const filteredComponents = assessmentComponents.components.filter(
+        (component: any) => component.name !== 'code_challenge_proposal'
+      );
+      assessmentComponents.components = filteredComponents;
+      filteredAssessmentComponents = yaml.dump(assessmentComponents);
+    }
+  }
+
   let componentsInfoString = `
   These are the valid LearnPAck components up to date:
   ## ASSESSMENT COMPONENTS:
-  ${assessmentComponentsRaw}
+  ${filteredAssessmentComponents}
 
   --------------------------------
 

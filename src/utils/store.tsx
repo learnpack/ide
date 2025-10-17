@@ -1504,6 +1504,37 @@ The user's set up the application in "${language}" language, give your feedback 
       updateEditorTabs();
     }
   },
+  createNewFile: async (filename: string, content: string = "") => {
+    const { getCurrentExercise, editorTabs, setEditorTabs, fetchExercises, mode } = get();
+    const exercise = getCurrentExercise();
+    
+    try {
+      if (mode === "creator") {
+        const { createFile } = await import("../utils/creator");
+        await createFile(exercise.slug, filename, content);
+      } else {
+        await FetchManager.createFile(exercise.slug, filename, content);
+      }
+
+      const newTab = {
+        id: Math.max(...editorTabs.map(t => t.id), 0) + 1,
+        content: content,
+        name: filename,
+        isActive: true,
+        modified: false,
+      };
+
+      const updatedTabs = editorTabs.map(tab => ({ ...tab, isActive: false }));
+      setEditorTabs([...updatedTabs, newTab]);
+
+      await fetchExercises();
+      
+      console.log(`✅ File ${filename} created successfully`);
+    } catch (error) {
+      console.error("Error creating file:", error);
+      throw error;
+    }
+  },
   resetExercise: ({ exerciseSlug }) => {
     const {
       updateEditorTabs,
