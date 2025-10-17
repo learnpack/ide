@@ -10,7 +10,7 @@ components:
       weight: 0.30
     description: >-
       The open text question is a type of interactive question where users can write down a text answer. The component consists in a markdown code block with the language set to `question` and has a metadata property eval in the metadata section of the code block with instructions on how to evaluate the answer. Inside the code block, you must write down 3-5 example answers with CORRECT: or INCORRECT: prefix. The actual question must be written before the code block so the user can see it.
-    goodFor: reflection, explanation, recall
+    goodFor: explanation, recall, understanding
     avoid: multiple choice, true/false, fill in the blank, this component is intended only for free form answers, never use for visual questions, only for textual easy to evaluate questions.
     props:
       - eval: string (required)
@@ -22,6 +22,11 @@ components:
       INCORRECT: It is used to solve logarithms problems.
       CORRECT: It prints things to the console.  
       ```
+    rules:
+      - MUST only require a textual answer that can be evaluated without images.
+      - MUST NOT ask the learner to draw, sketch, diagram, circle, shade, underline, point, annotate, mark on paper, or `visualize and show`
+      - MUST NOT include phrases such as `draw…`, `sketch…`, `diagram…`, `divide the shape and show…`, `mark the figure…`.
+      - If the task is visual, convert to an explanatory `image` component or a numeric/text question (`fill_in_the_blank`, `multiple_choice_question`) instead.
 
   - name: multiple_choice_question
     intentedUse: evaluation, knowledge assessment
