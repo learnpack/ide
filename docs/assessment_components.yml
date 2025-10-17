@@ -22,6 +22,11 @@ components:
       INCORRECT: It is used to solve logarithms problems.
       CORRECT: It prints things to the console.  
       ```
+    rules:
+      - MUST only require a textual answer that can be evaluated without images.
+      - MUST NOT ask the learner to draw, sketch, diagram, circle, shade, underline, point, annotate, mark on paper, or `visualize and show`
+      - MUST NOT include phrases such as `draw…`, `sketch…`, `diagram…`, `divide the shape and show…`, `mark the figure…`.
+      - If the task is visual, convert to an explanatory `image` component or a numeric/text question (`fill_in_the_blank`, `multiple_choice_question`) instead.
 
   - name: multiple_choice_question
     intentedUse: evaluation, knowledge assessment
