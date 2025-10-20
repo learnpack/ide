@@ -301,7 +301,7 @@ ${args.content}
       }
     },
     "replaceReadmeContent",
-    "Replace specific lines in the readme content. The content is provided with line numbers for reference. IMPORTANT: Line numbers are for orientation only and should NOT be included in the replacement content. Its better to perform multiple smaller changes instead of one big change. Make A SINGLE change at a time, so approach the problem the user wants to solve in a single tool call.",
+    "Replace specific lines in the readme content. The content is provided with line numbers for reference. IMPORTANT: Line numbers are for orientation only and should NOT be included in the replacement content. Make only one change at a time, so approach the problem the user wants to solve in a single tool call.",
     {
       lineStart: {
         type: "number",
