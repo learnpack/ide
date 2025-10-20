@@ -545,8 +545,8 @@ export const checkPreviewImage = async (slug: string) => {
 //     .replace(/-+/g, "-");
 // };
 
-export const slugify = (text: string) => {
-  return text
+export const slugify = (text: string, trimStartAndEnd: boolean = true) => {
+  let slug = text
     .toString()
     .normalize("NFD") // Remove paccents
     .replace(/[\u0300-\u036F]/g, "") // Remove diacritics
@@ -555,7 +555,28 @@ export const slugify = (text: string) => {
     .replace(/[^\d\s._a-z-]/g, "") // Hyphen at the end, no escape needed
     .replace(/\s+/g, "-") // Replace spaces with hyphens
     .replace(/-+/g, "-") // Remove duplicate hyphens
-    .replace(/^-+|-+$/g, "") // Trim hyphens from start/end
+    // .replace(/^-+|-+$/g, "") // Trim hyphens from start/end
+  if (trimStartAndEnd) {
+    slug = slug.replace(/^-+|-+$/g, "");
+  }
+  return slug;
+}
+
+type SlugAvailabilityResponse = {
+  available: boolean;
+};
+
+export const isSlugAvailable = async (slug: string): Promise<boolean> => {
+  try {
+    const url = `${RIGOBOT_HOST}/v1/learnpack/check-slug-availability?slug=${encodeURIComponent(
+      slug
+    )}`
+    const response = await axios.get<SlugAvailabilityResponse>(url)
+    return response.data.available
+  } catch (error) {
+    console.error("Error checking slug availability:", error)
+    throw error
+  }
 }
 
 

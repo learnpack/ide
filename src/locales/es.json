@@ -462,5 +462,12 @@
     "enter-file-name": "Ingresa el nombre del archivo (ej., script.js)",
     "file-name-required": "El nombre del archivo es requerido",
     "error-creating-file": "Error al crear archivo. Inténtalo de nuevo.",
-    "create": "Crear"
+    "create": "Crear",
+    "tutorial-slug": "Slug del tutorial",
+    "slug-available": "✓ Disponible",
+    "slug-taken": "✗ No disponible",
+    "slug-max-characters": "Máximo 47 caracteres",
+    "checking-slug": "Verificando...",
+    "slug-changed-successfully": "Slug cambiado exitosamente",
+    "error-changing-slug": "Error al cambiar el slug"
 }
