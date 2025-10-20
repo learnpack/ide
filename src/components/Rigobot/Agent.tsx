@@ -1,17 +1,29 @@
 import { useState, useEffect, useRef, memo } from "react";
 import { useTranslation } from "react-i18next";
 import SimpleButton from "../mockups/SimpleButton";
-import { debounce, getSlugFromPath, slugify, TokenExpiredError } from "../../utils/lib";
+import {
+  debounce,
+  getComponentsInfo,
+  getSlugFromPath,
+  slugify,
+  TokenExpiredError,
+} from "../../utils/lib";
 import { svgs } from "../../assets/svgs";
 import useStore from "../../utils/store";
 import { Loader } from "../composites/Loader/Loader";
 import { Markdowner } from "../composites/Markdowner/Markdowner";
 import { formatInitialMessage, slugToTitle } from "./utils";
 import toast from "react-hot-toast";
-import { validateRigobotToken, FetchManager } from "../../managers/fetchManager";
+import {
+  validateRigobotToken,
+  FetchManager,
+} from "../../managers/fetchManager";
 import { TAIInteraction } from "../../managers/telemetry";
 import { RigoAI, TAgentJob, TTool } from "./AI";
-import { ConversationManager, type Message } from "../../managers/conversationManager";
+import {
+  ConversationManager,
+  type Message,
+} from "../../managers/conversationManager";
 import { Icon } from "../Icon";
 
 export const DIFF_SEPARATOR = "---SEPARATOR---";
@@ -54,6 +66,8 @@ export const AgentTab = () => {
     setEditingContent,
     resetEditingContent,
     rigoContext,
+    mode,
+    isBuildable,
   } = useStore((state) => ({
     currentExercisePosition: state.currentExercisePosition,
     exerciseMessages: state.exerciseMessages,
@@ -77,6 +91,8 @@ export const AgentTab = () => {
     setEditingContent: state.setEditingContent,
     resetEditingContent: state.resetEditingContent,
     rigoContext: state.rigoContext,
+    mode: state.mode,
+    isBuildable: state.isBuildable,
   }));
 
   const initialMessages: Message[] = [
@@ -102,8 +118,6 @@ export const AgentTab = () => {
 
   // Initialize messages from the best available source
   useEffect(() => {
-    console.log("INITIALIZING MESSAGES", currentExercisePosition, environment);
-
     const initializeMessages = () => {
       let messagesToLoad: Message[] = [];
 
@@ -115,16 +129,12 @@ export const AgentTab = () => {
             getCurrentExercise().slug,
             "en"
           );
-          console.log("CONVERSATION KEY", conversationKey);
-          const savedConversation = ConversationManager.getConversation(conversationKey);
+          const savedConversation =
+            ConversationManager.getConversation(conversationKey);
           if (savedConversation && savedConversation.messages.length > 0) {
             messagesToLoad = savedConversation.messages;
           }
-          console.log(
-            "SAVED CONVERSATION",
-            savedConversation
-          );
-          
+          console.log("SAVED CONVERSATION", savedConversation);
         } catch (error) {
           console.log("localStorage not available, falling back to store");
         }
@@ -135,10 +145,10 @@ export const AgentTab = () => {
         const storeMessages = exerciseMessages[Number(currentExercisePosition)];
         if (storeMessages && storeMessages.length > 0) {
           console.log("STORE MESSAGES", storeMessages);
-          messagesToLoad = storeMessages.map(msg => ({
+          messagesToLoad = storeMessages.map((msg) => ({
             type: msg.type as "user" | "bot",
             text: msg.text,
-            timestamp: (msg as any).timestamp || Date.now()
+            timestamp: (msg as any).timestamp || Date.now(),
           }));
         }
       }
@@ -171,11 +181,14 @@ export const AgentTab = () => {
     if (!isInitialized || messages.length === 0) return;
 
     // Save to store
-    setExerciseMessages(messages.map(msg => ({
-      type: msg.type,
-      text: msg.text,
-      timestamp: msg.timestamp
-    })), Number(currentExercisePosition));
+    setExerciseMessages(
+      messages.map((msg) => ({
+        type: msg.type,
+        text: msg.text,
+        timestamp: msg.timestamp,
+      })),
+      Number(currentExercisePosition)
+    );
 
     // Save to localStorage (if available and not localhost)
     if (environment !== "localhost") {
@@ -225,11 +238,14 @@ export const AgentTab = () => {
     return () => {
       if (messages.length > 0) {
         // Save to store
-        setExerciseMessages(messages.map(msg => ({
-          type: msg.type,
-          text: msg.text,
-          timestamp: msg.timestamp
-        })), Number(currentExercisePosition));
+        setExerciseMessages(
+          messages.map((msg) => ({
+            type: msg.type,
+            text: msg.text,
+            timestamp: msg.timestamp,
+          })),
+          Number(currentExercisePosition)
+        );
 
         // Save to localStorage (if available)
         if (environment !== "localhost") {
@@ -248,11 +264,18 @@ export const AgentTab = () => {
     };
   }, [messages, currentExercisePosition, environment]);
 
-
   const replaceReadmeContentTool = RigoAI.convertTool(
-    async (args: { message: string; lineStart: number; lineEnd: number; content: string }) => {
+    async (args: {
+      message: string;
+      lineStart: number;
+      lineEnd: number;
+      content: string;
+    }) => {
       console.log(args, "args");
-      setMessages((prev) => [...prev, { type: "bot", text: args.message, timestamp: Date.now() }]);
+      setMessages((prev) => [
+        ...prev,
+        { type: "bot", text: args.message, timestamp: Date.now() },
+      ]);
 
       try {
         // Initialize editingContent if it's empty
@@ -261,16 +284,20 @@ export const AgentTab = () => {
         }
 
         const currentEditingContent = editingContent || currentContent;
-        const lines = currentEditingContent.split('\n');
+        const lines = currentEditingContent.split("\n");
 
         // Validate line range
-        if (args.lineStart < 1 || args.lineEnd > lines.length || args.lineStart > args.lineEnd) {
+        if (
+          args.lineStart < 1 ||
+          args.lineEnd > lines.length ||
+          args.lineStart > args.lineEnd
+        ) {
           return `Invalid line range. Content has ${lines.length} lines. Please provide valid lineStart (1-${lines.length}) and lineEnd (${args.lineStart}-${lines.length}) values.`;
         }
 
         // Get the original lines that will be replaced
         const originalLines = lines.slice(args.lineStart - 1, args.lineEnd);
-        const originalContent = originalLines.join('\n');
+        const originalContent = originalLines.join("\n");
 
         // Create the changesDiff block
         const changesDiff = `\`\`\`changesDiff
@@ -287,8 +314,8 @@ ${args.content}
         const updatedEditingContent = [
           ...beforeLines,
           changesDiff,
-          ...afterLines
-        ].join('\n');
+          ...afterLines,
+        ].join("\n");
 
         console.log("updatedEditingContent", updatedEditingContent);
 
@@ -297,27 +324,32 @@ ${args.content}
         return `Lesson content updated from line ${args.lineStart} to ${args.lineEnd}. The changes are now visible in the editing area.`;
       } catch (error) {
         console.log("error modifying readme content", error);
-        return "There was an error modifying the content. the error was: " + error;
+        return (
+          "There was an error modifying the content. the error was: " + error
+        );
       }
     },
     "replaceReadmeContent",
-    "Replace specific lines in the readme content. The content is provided with line numbers for reference. IMPORTANT: Line numbers are for orientation only and should NOT be included in the replacement content. Make only one change at a time, so approach the problem the user wants to solve in a single tool call.",
+    "Replace specific lines in the readme content. The content is provided with line numbers for reference. IMPORTANT: Line numbers are for orientation only and should NOT be included in the replacement content. NEVER make more than one change at a time, understand what to change and then call this tool a SINGLE time during your response.",
     {
       lineStart: {
         type: "number",
-        description: "Starting line number (1-based). Line numbers are for orientation only and should NOT be included in replacement content."
+        description:
+          "Starting line number (1-based). Line numbers are for orientation only and should NOT be included in replacement content.",
       },
       lineEnd: {
         type: "number",
-        description: "Ending line number (1-based). Line numbers are for orientation only and should NOT be included in replacement content."
+        description:
+          "Ending line number (1-based). Line numbers are for orientation only and should NOT be included in replacement content.",
       },
       content: {
         type: "string",
-        description: "The new content to replace the specified line range."
+        description: "The new content to replace the specified line range.",
       },
       message: {
         type: "string",
-        description: "The message to say to the user while doing the replacement"
+        description:
+          "The message to say to the user while doing the replacement",
       },
     }
   );
@@ -336,7 +368,9 @@ ${args.content}
         }
       } catch (error) {
         console.log("error saving to memory bank", error);
-        return "There was an error saving to memory bank. the error was: " + error;
+        return (
+          "There was an error saving to memory bank. the error was: " + error
+        );
       }
     },
     "saveToMemoryBank",
@@ -344,29 +378,34 @@ ${args.content}
     {
       content: {
         type: "string",
-        description: "The content to save to the memory bank"
+        description: "The content to save to the memory bank",
       },
     }
   );
 
   const startLessonGenerationTool = RigoAI.convertTool(
-    async (args: { feedback: string; mode?: "next-three" | "continue-with-all" }) => {
-      console.log("Agent is starting lesson generation");
-
+    async (args: {
+      feedback: string;
+      mode?: "next-three" | "continue-with-all";
+    }) => {
       try {
         const { continueGenerating } = await import("../../utils/creator");
 
         const currentExercise = useStore.getState().getCurrentExercise();
         const syllabus = useStore.getState().syllabus;
 
-        const lesson = syllabus?.lessons?.find(lesson => {
+        const lesson = syllabus?.lessons?.find((lesson) => {
           const slug = slugify(lesson.id + "-" + lesson.title);
           return slug === currentExercise.slug;
         });
 
-          console.log("ARGS", args);
+        console.log("ARGS", args);
 
-        if (lesson && lesson.status && !["PENDING", "ERROR"].includes(lesson.status)) {
+        if (
+          lesson &&
+          lesson.status &&
+          !["PENDING", "ERROR"].includes(lesson.status)
+        ) {
           return `Cannot start lesson generation. Current lesson status is "${lesson.status}". This tool is only available when lesson status is PENDING or ERROR.`;
         }
 
@@ -383,7 +422,10 @@ ${args.content}
         return `Successfully started lesson generation with feedback: "${args.feedback}". The lesson will be generated in the background.`;
       } catch (error) {
         console.log("error starting lesson generation", error);
-        return "There was an error starting lesson generation. The error was: " + error;
+        return (
+          "There was an error starting lesson generation. The error was: " +
+          error
+        );
       }
     },
     "startLessonGeneration",
@@ -391,37 +433,53 @@ ${args.content}
     {
       feedback: {
         type: "string",
-        description: "The feedback or instructions for generating the lesson content, this will be passed to an AI to improve the lesson generation"
+        description:
+          "The feedback or instructions for generating the lesson content, this will be passed to an AI to improve the lesson generation",
       },
       mode: {
         type: "string",
-        description: "Generation mode: 'next-three' to generate next 3 lessons, or 'continue-with-all' to generate all remaining lessons",
-        enum: ["next-three", "continue-with-all"]
+        description:
+          "Generation mode: 'next-three' to generate next 3 lessons, or 'continue-with-all' to generate all remaining lessons",
+        enum: ["next-three", "continue-with-all"],
       },
     }
   );
 
   const decideTools = () => {
-    const _tools: TTool[] = []
+    const _tools: TTool[] = [];
     // return _tools
     if (environment !== "creatorWeb") {
-      return _tools
+      return _tools;
     }
+    _tools.push(saveToMemoryBankTool);
     if (rigoContext.allowedFunctions?.includes("continueGeneration")) {
-      _tools.push(startLessonGenerationTool, saveToMemoryBankTool)
-      // setMessages((prev) => [...prev, { type: "bot", text: "Which changes you want to make to the lesson? Please provide feedback to improve the lesson generation", timestamp: Date.now() }]);
-      return _tools
+      _tools.push(startLessonGenerationTool);
     }
-    _tools.push(replaceReadmeContentTool, saveToMemoryBankTool)
-    return _tools
-  }
+    if (mode === "creator") {
+      _tools.push(replaceReadmeContentTool);
+    }
+    return _tools;
+  };
 
   const getTask = (message: string) => {
+    let components = getComponentsInfo(isBuildable);
+
     if (environment === "creatorWeb") {
-      return `You are a helpful teacher assistant. Please provide your responses always in MARKDOWN. Keep your message short and concise. This is the user message: ${message}`;
+      return `You are a helpful teacher assistant. Your task is to help the teacher craft a meaning full course, with  Please provide your responses always in MARKDOWN. Keep your message short and concise. This is the user message: ${message}
+      
+      
+      <COMPONENTS desc="List of all possible interactive components you can add to the lesson, do not mention this in any way to the user, but if the asks for example to add a quiz, you should use this information to understand how to do it, the same for the rest of components. ">
+      ${components}
+      </COMPONENTS>
+
+      <RULES>
+      Try to understand the teacher requirement and call the right tool is appropiate, do not make anything the user is not requesting. But highly adher to the user requirements.
+      </RULES>
+
+      `;
     }
-    return `You are a helpful tutor with many years of experience teaching students. Keep your messages short and concise. Help the user when needed, clarify if you don't undestand the requirements. This is the user message: ${message}`;
-  }
+    return `You are a helpful tutor with many years of experience teaching students. Keep your messages short and concise. Help the user when needed, but don't provide direct answer, try to make the user think about the problem and how to solve it. This is the user message: ${message}`;
+  };
 
   const processUserMessage = debounce(async () => {
     const message = userMessage.current;
@@ -443,7 +501,10 @@ ${args.content}
     }
     autoScrollRef.current = true;
 
-    setMessages((prev) => [...prev, { type: "user", text: message, timestamp: Date.now() }]);
+    setMessages((prev) => [
+      ...prev,
+      { type: "user", text: message, timestamp: Date.now() },
+    ]);
 
     const contextFilesContent = await getContextFilesContent();
     let context = contextFilesContent;
@@ -456,8 +517,10 @@ ${args.content}
     }
 
     // Add line-numbered content for better AI understanding
-    const lines = currentContent.split('\n');
-    const numberedContent = lines.map((line, index) => `${index + 1}: ${line}`).join('\n');
+    const lines = currentContent.split("\n");
+    const numberedContent = lines
+      .map((line, index) => `${index + 1}: ${line}`)
+      .join("\n");
     context += `\n\nCURRENT LESSON CONTENT (with line numbers for reference):\n${numberedContent}`;
 
     // Add memory bank content to context
@@ -484,15 +547,16 @@ ${args.content}
     aiInteraction.student_message = message;
     aiInteraction.source_code = context;
 
-    setMessages((prev) => [...prev, { type: "bot", text: "", timestamp: Date.now() }]);
+    setMessages((prev) => [
+      ...prev,
+      { type: "bot", text: "", timestamp: Date.now() },
+    ]);
     setIsGenerating(true);
 
-    const toolsToUse = decideTools()
+    const toolsToUse = decideTools();
 
     // ADd the message to the context
-    context += messages.map(msg => `${msg.type}: ${msg.text}`).join('\n');
-
-
+    context += messages.map((msg) => `${msg.type}: ${msg.text}`).join("\n");
 
     try {
       const agentJob = RigoAI.agentLoop({
@@ -594,8 +658,6 @@ ${args.content}
     toast.success(t("conversation-cleared"));
   };
 
-
-
   return (
     isRigoOpened && (
       <div className="chat-tab">
@@ -603,7 +665,7 @@ ${args.content}
           <section className="chat-tab-header">
             <p className="m-0 text-white">{t("Rigobot")}</p>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <button
                 onClick={clearConversation}
                 className="text-white hover:text-gray-300 transition-colors p-1"
@@ -684,4 +746,3 @@ const Message = memo(({ type, text, extraClass }: IMessage) => {
     </div>
   );
 });
-

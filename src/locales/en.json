@@ -282,7 +282,7 @@
     "visit-tutorial-here": "Visit tutorial here",
     "delete": "Delete",
     "congratulations-your-tutorial-is-published": "Congratulations! Your course is ready to start taking learners and participate in our shared revenue program.",
-    "my-tutorials": "My tutorials",
+    "my-tutorials": "Open Dashboard",
     "you-are-in-edit-mode": "You are in edit mode",
     "you-are-in-student-mode": "You are in student mode",
     "copy-tutorial-link": "Copy tutorial link",
@@ -448,5 +448,12 @@
     "error-rejecting-changes": "Error rejecting changes",
     "code-challenge-generation-completed": "Code challenge generation completed",
     "confirm-delete-file": "Are you sure you want to delete this file?",
-    "error-deleting-file": "Error deleting file"
+    "error-deleting-file": "Error deleting file",
+    "create-new-file": "Create New File",
+    "new-file": "New File",
+    "file-name": "File Name",
+    "enter-file-name": "Enter file name (e.g., script.js)",
+    "file-name-required": "File name is required",
+    "error-creating-file": "Error creating file. Please try again.",
+    "create": "Create"
 }

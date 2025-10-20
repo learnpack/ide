@@ -263,6 +263,49 @@ export const FetchManager = {
     return await methods[FetchManager.ENVIRONMENT as keyof TMethods]();
   },
 
+  createFile: async (slug: string, filename: string, content: string = "") => {
+    const methods: TMethods = {
+      localhost: async () => {
+        try {
+          const url = `${FetchManager.HOST}/exercise/${slug}/file/${filename}`;
+          await fetch(url, {
+            method: "PUT",
+            body: content,
+            headers: {
+              'Content-Type': 'text/plain',
+            },
+          });
+        } catch (e) {
+          console.log("Error creating file in CLI");
+          console.log(e);
+        }
+      },
+      localStorage: async () => {
+        console.log("CREATING FILE IN LS: NOT IMPLEMENTED");
+      },
+      scorm: async () => {
+        console.log("CREATING FILE IN SCORM: NOT ALLOWED");
+      },
+      creatorWeb: async () => {
+        const courseSlug = getSlugFromPath();
+        const url = `${FetchManager.HOST}/exercise/${slug}/file/${filename}?slug=${courseSlug}`;
+        const res = await fetch(url, {
+          method: "PUT",
+          body: content,
+          headers: {
+            'Content-Type': 'text/plain',
+          },
+        });
+        if (!res.ok) {
+          return false;
+        }
+        return true;
+      },
+    };
+
+    return await methods[FetchManager.ENVIRONMENT as keyof TMethods]();
+  },
+
   getTelemetryStep: async (stepPosition: number) => {
     return TelemetryManager.getStep(stepPosition);
   },

@@ -288,7 +288,7 @@
     "visit-tutorial-here": "Visita el tutorial aquí",
     "delete": "Eliminar",
     "congratulations-your-tutorial-is-published": "¡Felicidades! Tu curso está listo para comenzar a tomar estudiantes y participar en nuestro programa de ingresos compartidos.",
-    "my-tutorials": "Mis tutoriales",
+    "my-tutorials": "Ir al Dashboard",
     "you-are-in-edit-mode": "Estás en modo edición",
     "you-are-in-student-mode": "Estás en modo estudiante",
     "copy-tutorial-link": "Copiar enlace del tutorial",
@@ -455,5 +455,12 @@
     "error-rejecting-changes": "Error al rechazar cambios",
     "code-challenge-generation-completed": "Generación de ejercicio de código completada",
     "confirm-delete-file": "¿Estás seguro de querer eliminar este archivo?",
-    "error-deleting-file": "Error al eliminar archivo"
+    "error-deleting-file": "Error al eliminar archivo",
+    "create-new-file": "Crear Nuevo Archivo",
+    "new-file": "Nuevo Archivo",
+    "file-name": "Nombre del Archivo",
+    "enter-file-name": "Ingresa el nombre del archivo (ej., script.js)",
+    "file-name-required": "El nombre del archivo es requerido",
+    "error-creating-file": "Error al crear archivo. Inténtalo de nuevo.",
+    "create": "Crear"
 }

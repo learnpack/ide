@@ -29,7 +29,7 @@ export const PublishNavbar = () => {
           text={t("my-tutorials")}
           action={() => {
             window.open(
-              "https://www.learnpack.co/my-tutorials?token=" + bctoken,
+              "https://learn.learnpack.co?token=" + bctoken,
               "_blank"
             );
           }}
