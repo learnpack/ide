@@ -8,8 +8,8 @@ import { Modal } from "../../mockups/Modal";
 import { toast } from "react-hot-toast";
 import { FetchManager } from "../../../managers/fetchManager";
 import { Markdowner } from "../../composites/Markdowner/Markdowner";
-import { useConsumableCall } from "../../../utils/apiCalls";
-import { TConsumableSlug } from "../../../utils/storeTypes";
+// import { useConsumableCall } from "../../../utils/apiCalls";
+// import { TConsumableSlug } from "../../../utils/storeTypes";
 
 const svgsLanguageMap: Record<string, JSX.Element> = {
   es: svgs.spainFlag,
@@ -180,15 +180,17 @@ const AddLanguageModal = ({ disabled }: { disabled: boolean }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
+
   const [warningData, setWarningData] = useState<{
     language: string;
     aiGenerationsLeft: number;
     hasEnough: boolean;
   } | null>(null);
+
   const inputLanguageRef = useRef<HTMLInputElement>(null);
   const exercises = useStore((state) => state.exercises);
   const token = useStore((state) => state.token);
-  const bcToken = useStore((state) => state.bc_token);
+  // const bcToken = useStore((state) => state.bc_token);
   const getSidebar = useStore((state) => state.getSidebar);
   const language = useStore((state) => state.language);
   const userConsumables = useStore((state) => state.userConsumables);
@@ -203,12 +205,11 @@ const AddLanguageModal = ({ disabled }: { disabled: boolean }) => {
 
   const handleTranslate = async () => {
     if (!inputLanguageRef.current) return;
-    const toastId = toast.loading(t("startingTranslation"));
+
     const languages = inputLanguageRef.current.value;
 
     if (!languages) {
       toast.error(t("invalidLanguage"), {
-        id: toastId,
         duration: 5000,
       });
       return;
@@ -224,27 +225,23 @@ const AddLanguageModal = ({ disabled }: { disabled: boolean }) => {
     });
     if (aiGenerationsLeft === -1) {
       await handleWarningConfirm(languages);
-      toast.success(t("exercisesTranslationStarted"), {
-        id: toastId,
-        duration: 3000,
-      });
       setIsOpen(false);
     } else {
       setShowWarning(true);
     }
-
-    // await performTranslation(languages);
   };
 
   const performTranslation = async (languages: string) => {
     setIsLoading(true);
     try {
-      await FetchManager.translateExercises(
+      console.log("PERFORMING TRANSLATION");
+      const res = await FetchManager.translateExercises(
         exercises.map((e) => e.slug),
         languages,
         language,
         token
       );
+      console.log(res, "TRANSLATION RESPONSE");
       setIsLoading(false);
       setIsOpen(false);
       setShowWarning(false);
@@ -256,29 +253,33 @@ const AddLanguageModal = ({ disabled }: { disabled: boolean }) => {
     }
   };
 
-  const consume = async (slug: TConsumableSlug, n: number) => {
-    const results: boolean[] = [];
-    const consumablePromise = Promise.all(
-      Array.from({ length: n }, async (_) => {
-        const result = await useConsumableCall(bcToken, slug);
-        if (result) {
-          results.push(result);
-        }
-      })
-    );
+  // const consume = async (slug: TConsumableSlug, n: number) => {
+  //   const results: boolean[] = [];
+  //   const consumablePromise = Promise.all(
+  //     Array.from({ length: n }, async (_) => {
+  //       const result = await useConsumableCall(bcToken, slug);
+  //       if (result) {
+  //         results.push(result);
+  //       }
+  //     })
+  //   );
 
-    await consumablePromise;
-    console.log(results, "RESULTS FROM CONSUMPTION");
-    return results.some((result) => result);
-  };
+  //   await consumablePromise;
+  //   console.log(results, "RESULTS FROM CONSUMPTION");
+  //   return results.some((result) => result);
+  // };
 
   const handleWarningConfirm = async (languages?: string) => {
-    const anySuccess = await consume("ai-generation", exercises.length);
-    if (anySuccess) {
-      await performTranslation(languages || warningData?.language || "");
-      setIsOpen(false);
+    if (!languages) {
+      toast.error(t("invalidLanguage"), {
+        duration: 5000,
+      });
+      return;
     }
-
+    setIsLoading(true);
+    await performTranslation(languages);
+    setIsLoading(false);
+    setIsOpen(false);
     setShowWarning(false);
   };
 
@@ -366,9 +367,9 @@ const AddLanguageModal = ({ disabled }: { disabled: boolean }) => {
               {warningData.hasEnough && (
                 <SimpleButton
                   extraClass="bg-blue-rigo text-white padding-small rounded row-reverse"
-                  text={t("translate")}
+                  text={isLoading ? t("translatingExercises") : t("translate")}
                   svg={svgs.rigoSoftBlue}
-                  action={handleWarningConfirm}
+                  action={() => handleWarningConfirm(warningData?.language)}
                 />
               )}
             </div>
