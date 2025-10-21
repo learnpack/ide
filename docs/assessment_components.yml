@@ -29,7 +29,7 @@ components:
       - If the task is visual, convert to an explanatory `image` component or a numeric/text question (`fill_in_the_blank`, `multiple_choice_question`) instead.
 
   - name: multiple_choice_question
-    intentedUse: evaluation, knowledge assessment
+    intendedUse: evaluation, knowledge assessment
     measures:
       - rubric: content_mastery       
         weight: 0.55
@@ -84,7 +84,7 @@ components:
         - [ ] Incorrect option
 
   - name: fill_in_the_blank
-    intentedUse: reflection, explanation, recall, knowledge assessment
+    intendedUse: reflection, explanation, recall, knowledge assessment
     measures:
       - rubric: content_mastery        
         weight: 0.70
@@ -93,7 +93,7 @@ components:
       - rubric: application_problem_solving
         weight: 0.15
     description: >-
-      A fill in the blank is a component that allows the user to fill in the blank with the correct answer. It consists in a markdown code block with the language set to `fill_in_the_blank`. Inside the code block, you must write the question with the blank (or blanks) to be filled. Each blank consist in _1_, _2_, _3_, etc. In the metadata section, you must include the valid answers for each blank. The blanks are numbered starting from 1. Case insensitive answers are allowed. If multiple answer are alloed for a blank, you must include them separated by a comma in the proper metadata property. You can also use fill in the black for numerical questions.
+      A fill in the blank is a component that allows the user to fill in the blank with the correct answer. It consists in a markdown code block with the language set to `fill_in_the_blank`. Inside the code block, you must write the question with the blank (or blanks) to be filled. Each blank consist in _1_, _2_, _3_, etc. In the metadata section, you must include the valid answers for each blank. The blanks are numbered starting from 1. Case insensitive answers are allowed. If multiple answer are allowed for a blank, you must include them separated by a comma in the proper metadata property. You can also use fill in the blank for numerical questions.
     avoid: open text question, this component is intended only for fill in the blank answers, never use for visual questions, only for textual easy to evaluate questions.
     example: |
       ### Let's recall!
@@ -122,7 +122,7 @@ components:
       ```
 
   - name: code_challenge_proposal
-    intentedUse: hands-on learning, code experimentation, immediate feedback on code execution, this will render an acceptable component for the teacher, so the teacher can generate a coding challenge for the student. The student will see all the files from the lessons. So you need to suggest as many files as needed for the exercise.
+    intendedUse: hands-on learning, code experimentation, immediate feedback on code execution, this will render an acceptable component for the teacher, so the teacher can generate a coding challenge for the student. The student will see all the files from the lessons. So you need to suggest as many files as needed for the exercise.
     description: >-
       A code file proposal is a component the teacher will use to generate some coding files used to solve an exercise in the instructions, it consists in a markdown code block with the language set to `code_challenge_proposal`. Inside the code block, you must explain what the student needs to do in the exercise in at most 20 sentences. You need to explain the files that will be generated and the instructions for the student to complete the exercise.
     avoid: complex code that might not be inferred correctly by an AI model. 
