@@ -642,6 +642,9 @@ a {
 .text-danger {
   color: var(--color-fail);
 }
+.text-success {
+  color: var(--color-success);
+}
 
 .circle-small {
   width: 30px;

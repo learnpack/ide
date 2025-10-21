@@ -284,3 +284,24 @@ export const deleteFile = async (exerciseSlug: string, filename: string) => {
     throw error;
   }
 };
+
+export const changeSlug = async (
+  currentSlug: string,
+  newSlug: string,
+  rigoToken: string
+) => {
+  try {
+    const headers = {
+      "x-rigo-token": rigoToken,
+    };
+    const response = await axios.post(
+      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/change-slug`,
+      { currentSlug, newSlug },
+      { headers }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error changing slug:", error);
+    throw error;
+  }
+};

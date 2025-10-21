@@ -6,15 +6,16 @@ import { svgs } from "../../assets/svgs";
 import { Modal } from "../mockups/Modal";
 import ProgressBar from "../composites/ProgressBar/ProgressBar";
 import useStore from "../../utils/store";
-import { publishTutorial } from "../../utils/creator";
+import { publishTutorial, changeSlug } from "../../utils/creator";
 import { toast } from "react-hot-toast";
-import { playEffect } from "../../utils/lib";
+import { playEffect, getSlugFromPath, slugify } from "../../utils/lib";
 import { Notifier } from "../../managers/Notifier";
 import { FetchManager } from "../../managers/fetchManager";
+import { isSlugAvailable } from "../../utils/lib";
 
 const PublishConfirmationModal: FC<{
   onClose: () => void;
-  onPublish: () => Promise<void>;
+  onPublish: (slug: string) => Promise<void>;
 }> = ({ onClose, onPublish }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -22,12 +23,18 @@ const PublishConfirmationModal: FC<{
   const bcToken = useStore((state) => state.bc_token);
   const openLink = useStore((state) => state.openLink);
   const syllabus = useStore((state) => state.syllabus);
-
   const [hasEnoughConsumables, setHasEnoughConsumables] = useState(false);
   const [needToReviewAll, setNeedToReviewAll] = useState(false);
+  const [editableSlug, setEditableSlug] = useState("");
+  const [slugStatus, setSlugStatus] = useState<"checking" | "available" | "taken" | null>(null);
 
   useEffect(() => {
     checkConsumables();
+    // Initialize slug from current path
+    const currentSlug = getSlugFromPath();
+    if (currentSlug) {
+      setEditableSlug(currentSlug);
+    }
   }, []);
 
   useEffect(() => {
@@ -45,12 +52,42 @@ const PublishConfirmationModal: FC<{
     }
   }, [syllabus]);
 
+  // Debounced slug validation
+  useEffect(() => {
+    if (!editableSlug || editableSlug === getSlugFromPath()) {
+      setSlugStatus(null);
+      return;
+    }
+
+    const timeoutId = setTimeout(async () => {
+      setSlugStatus("checking");
+      
+      try {
+        const isAvailable = await isSlugAvailable(editableSlug);
+        setSlugStatus(isAvailable ? "available" : "taken");
+      } catch (error) {
+        console.error("Error checking slug availability:", error);
+        setSlugStatus("taken");
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [editableSlug]);
+
   const checkConsumables = async () => {
     const consumables = await getUserConsumables();
     console.log(consumables, "CONSUMABLES");
     if (consumables.ai_generation > 0 || consumables.ai_generation === -1) {
       setHasEnoughConsumables(true);
     }
+  };
+
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // replace spaces with hyphens
+    const valueWithHyphens = value.replace(/\s+/g, "-");
+    const slugified = slugify(valueWithHyphens, false);
+    setEditableSlug(slugified);
   };
 
   return (
@@ -90,6 +127,30 @@ const PublishConfirmationModal: FC<{
               {t("share-it-with-your-audience")}
             </p>
 
+            <div className="flex-y gap-small padding-small">
+              <label className="text-blue font-medium">{t("tutorial-slug")}</label>
+              <input 
+                className="padding-small rounded border"
+                maxLength={47}
+                value={editableSlug}
+                onClick={(e) => e.stopPropagation()}
+                onChange={handleSlugChange}
+                placeholder={t("tutorial-slug")}
+              />
+              <div className="flex-x justify-between align-center">
+                <span className="text-small text-gray-600">{editableSlug.length}/47</span>
+                {slugStatus === "checking" && (
+                  <span className="text-small text-blue">{t("checking-slug")}</span>
+                )}
+                {slugStatus === "available" && (
+                  <span className="text-small text-success">{t("slug-available")}</span>
+                )}
+                {slugStatus === "taken" && (
+                  <span className="text-small text-danger">{t("slug-taken")}</span>
+                )}
+              </div>
+            </div>
+
             <div className="flex-x gap-small justify-center align-center">
               <SimpleButton
                 extraClass="text-blue row-reverse padding-medium rounded"
@@ -97,10 +158,11 @@ const PublishConfirmationModal: FC<{
                 action={onClose}
               />
               <SimpleButton
-                extraClass=" row-reverse bg-blue-rigo text-white padding-medium rounded"
+                extraClass=" row-reverse bg-blue-rigo teFxt-white padding-medium rounded"
+                disabled={!editableSlug || (slugStatus === "taken" || slugStatus === "checking")}
                 svg={"🚀"}
                 text={t("publish")}
-                action={onPublish}
+                action={() => onPublish(editableSlug)}
               />
             </div>
           </div>
@@ -194,28 +256,50 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
   const token = useStore((state) => state.token);
   const bctoken = useStore((state) => state.bc_token);
   const openLink = useStore((state) => state.openLink);
-
+  const fetchExercises = useStore((state) => state.fetchExercises);
+  // const fetchReadme = useStore((state) => state.fetchReadme);
+  // const getSyllabus = useStore((state) => state.getSyllabus);
+  const currentSlug = useStore((state) => state.configObject.config.slug);
   const [deployedUrl, setDeployedUrl] = useState("");
 
-  const handlePublish = async () => {
+  const handlePublish = async (slug: string) => {
     try {
       setPublishing(true);
-      const res = await publishTutorial(bctoken, token);
+      
+      // Check if slug changed
+      if (slug && currentSlug && slug !== currentSlug) {
+        try {
+          // Change slug first
+          await changeSlug(currentSlug, slug, token);
+          
+          // Update URL without page reload
+          const queryString = window.location.search;
+          const newUrl = `/preview/${slug}${queryString}`;
+          window.history.pushState(null, '', newUrl);
+          
 
+          // await fetchReadme();
+          // await getSyllabus();
+        } catch (slugError) {
+          console.error("Error changing slug:", slugError);
+          toast.error(t("error-changing-slug"));
+          setPublishing(false);
+          return;
+        }
+      }
+      const res = await publishTutorial(bctoken, token);
       toast.success(t("tutorial-published-successfully"));
-      setDeployedUrl(res.url);
       Notifier.confetti();
       playEffect("success");
+      setDeployedUrl(res.url);
+      setPublishing(false);
+      await fetchExercises();
     } catch (error) {
       toast.error(t("error-publishing-tutorial"));
       console.error(error, "ERROR FROM PUBLISH BUTTON");
-    } finally {
-      console.log("finally");
-
       setPublishing(false);
     }
   };
-
   useEffect(() => {
     if (embedCodeRef.current) {
       // Adjust the height of the textarea to fit the content
@@ -644,6 +728,7 @@ const PublishButton = () => {
         containerRef.current &&
         !containerRef.current.contains(e.target as Node)
       ) {
+
         setDropdownOpen(false);
       }
     };
@@ -676,6 +761,7 @@ const PublishButton = () => {
             onClose={() => {
               setDropdownOpen(false);
             }}
+
           />
           <ExportModal onClose={() => {}} />
         </div>
