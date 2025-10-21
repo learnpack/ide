@@ -2,21 +2,30 @@ version: "1.0.0"
 components:
   - name: open_text_question
     measures:
-    - rubric: communication       
-      weight: 0.35
-    - rubric: critical_thinking      
-      weight: 0.35
-    - rubric: content_mastery        
-      weight: 0.30
+      - rubric: communication
+        weight: 0.35
+      - rubric: critical_thinking
+        weight: 0.35
+      - rubric: content_mastery
+        weight: 0.30
     description: >-
       The open text question is a type of interactive question where users can write down a text answer. The component consists in a markdown code block with the language set to `question` and has a metadata property eval in the metadata section of the code block with instructions on how to evaluate the answer. Inside the code block, you must write down 3-5 example answers with CORRECT: or INCORRECT: prefix. The actual question must be written before the code block so the user can see it.
-    goodFor: explanation, recall, understanding
-    avoid: multiple choice, true/false, fill in the blank, this component is intended only for free form answers, never use for visual questions, only for textual easy to evaluate questions.
+    goodFor:
+      - explanation
+      - recall
+      - understanding
+    avoid:
+      - multiple choice
+      - true/false
+      - fill in the blank
+      - this component is intended only for free form answers
+      - never use for visual questions
+      - only for textual easy to evaluate questions
     props:
       - eval: string (required)
     example: |
       ### What is console.log in your own words?
-  
+
       ```question eval="The user needs to write using its own words what is console.log"
       CORRECT: The console.log is a function that logs a message to the console.
       INCORRECT: It is used to solve logarithms problems.
@@ -29,11 +38,13 @@ components:
       - If the task is visual, convert to an explanatory `image` component or a numeric/text question (`fill_in_the_blank`, `multiple_choice_question`) instead.
 
   - name: multiple_choice_question
-    intendedUse: evaluation, knowledge assessment
+    intendedUse:
+      - evaluation
+      - knowledge assessment
     measures:
-      - rubric: content_mastery       
+      - rubric: content_mastery
         weight: 0.55
-      - rubric: critical_thinking      
+      - rubric: critical_thinking
         weight: 0.25
       - rubric: application_problem_solving
         weight: 0.20
@@ -48,8 +59,14 @@ components:
       4. It must be an empty line between the question title and the options. This is important for the parsing from markdown to HTML.
       5. Ignoring any rule from the above list will break the parsing from markdown to HTML and the quiz will not be rendered correctly.
 
-    goodFor: reflection, explanation, recall, knowledge assessment
-    avoid: open text question, this component is intended only for multiple choice answers with an unique correct answer per group of options
+    goodFor:
+      - reflection
+      - explanation
+      - recall
+      - knowledge assessment
+    avoid:
+      - open text question
+      - this component is intended only for multiple choice answers with an unique correct answer per group of options
     example: |
 
       ### Put your knowledge to the test!
@@ -84,20 +101,28 @@ components:
         - [ ] Incorrect option
 
   - name: fill_in_the_blank
-    intendedUse: reflection, explanation, recall, knowledge assessment
+    intendedUse:
+      - reflection
+      - explanation
+      - recall
+      - knowledge assessment
     measures:
-      - rubric: content_mastery        
+      - rubric: content_mastery
         weight: 0.70
-      - rubric: communication          
-        weight: 0.15 
+      - rubric: communication
+        weight: 0.15
       - rubric: application_problem_solving
         weight: 0.15
     description: >-
       A fill in the blank is a component that allows the user to fill in the blank with the correct answer. It consists in a markdown code block with the language set to `fill_in_the_blank`. Inside the code block, you must write the question with the blank (or blanks) to be filled. Each blank consist in _1_, _2_, _3_, etc. In the metadata section, you must include the valid answers for each blank. The blanks are numbered starting from 1. Case insensitive answers are allowed. If multiple answer are allowed for a blank, you must include them separated by a comma in the proper metadata property. You can also use fill in the blank for numerical questions.
-    avoid: open text question, this component is intended only for fill in the blank answers, never use for visual questions, only for textual easy to evaluate questions.
+    avoid:
+      - open text question
+      - this component is intended only for fill in the blank answers
+      - never use for visual questions
+      - only for textual easy to evaluate questions
     example: |
       ### Let's recall!
-      
+
       ```fill_in_the_blank 1="Paris" 2="Berlin"
       The capital of France is _1_, the capital of Germany is _2_.
       ```
@@ -122,10 +147,17 @@ components:
       ```
 
   - name: code_challenge_proposal
-    intendedUse: hands-on learning, code experimentation, immediate feedback on code execution, this will render an acceptable component for the teacher, so the teacher can generate a coding challenge for the student. The student will see all the files from the lessons. So you need to suggest as many files as needed for the exercise.
+    intendedUse:
+      - hands-on learning
+      - code experimentation
+      - immediate feedback on code execution
+      - this will render an acceptable component for the teacher, so the teacher can generate a coding challenge for the student
+      - The student will see all the files from the lessons
+      - So you need to suggest as many files as needed for the exercise
     description: >-
       A code file proposal is a component the teacher will use to generate some coding files used to solve an exercise in the instructions, it consists in a markdown code block with the language set to `code_challenge_proposal`. Inside the code block, you must explain what the student needs to do in the exercise in at most 20 sentences. You need to explain the files that will be generated and the instructions for the student to complete the exercise.
-    avoid: complex code that might not be inferred correctly by an AI model. 
+    avoid:
+      - complex code that might not be inferred correctly by an AI model
     example: |
       ```code_challenge_proposal 
       In this exercise, the student needs to complete a function "multiply" that multiplies two numbers and print the result to the console. This exercise required an app.js where the student will write the code to complete the function. The app.js will contain a skeleton of the function to be completed.
