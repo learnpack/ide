@@ -1,4 +1,10 @@
 import { useEffect, useRef, useState } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ButtonProps {
   id?: string;
@@ -47,13 +53,12 @@ export default function SimpleButton({
     setCurrentText(text);
   }, [text]);
 
-  return (
+  const buttonElement = (
     <button
       id={id}
       disabled={Boolean(disabled)}
       className={`simple-button-svg ${extraClass} ${size}`}
       onClick={handleClick}
-      title={title}
       type={type}
     >
       {svg && <span className="d-flex align-center">{svg}</span>}
@@ -62,4 +67,22 @@ export default function SimpleButton({
       )}
     </button>
   );
+
+  // Si hay title, envolver con Tooltip, sino devolver el botón directamente
+  if (title) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {buttonElement}
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{title}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
+  return buttonElement;
 }

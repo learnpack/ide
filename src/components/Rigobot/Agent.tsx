@@ -2,6 +2,12 @@ import { useState, useEffect, useRef, memo } from "react";
 import { useTranslation } from "react-i18next";
 import SimpleButton from "../mockups/SimpleButton";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   debounce,
   getComponentsInfo,
   getSlugFromPath,
@@ -666,20 +672,36 @@ ${args.content}
             <p className="m-0 text-white">{t("Rigobot")}</p>
 
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <button
-                onClick={clearConversation}
-                className="text-white hover:text-gray-300 transition-colors p-1"
-                title={t("start-new-chat")}
-              >
-                <Icon name="MessageSquarePlus" size={18} />
-              </button>
-              <button
-                onClick={() => toggleRigo()}
-                className="text-white hover:text-gray-300 transition-colors p-1"
-                title={t("start-new-chat")}
-              >
-                <Icon name="X" size={18} />
-              </button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={clearConversation}
+                      className="text-white hover:text-gray-300 transition-colors p-1"
+                    >
+                      <Icon name="MessageSquarePlus" size={18} />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t("start-new-chat")}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => toggleRigo()}
+                      className="text-white hover:text-gray-300 transition-colors p-1"
+                    >
+                      <Icon name="X" size={18} />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t("start-new-chat")}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </section>
           <section
