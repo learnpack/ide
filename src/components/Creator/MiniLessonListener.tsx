@@ -7,20 +7,17 @@ const socketClient = new CreatorSocket(DEV_MODE ? "http://localhost:3000" : "");
 
 export default function MiniLessonListener() {
   const config = useStore((state) => state.configObject);
-  // const fetchReadme = useStore((state) => state.fetchReadme);
-  // const fetchExercises = useStore((state) => state.fetchExercises);
   const getSyllabus = useStore((state) => state.getSyllabus);
-  // const currentExercisePosition = useStore(
-  //   (state) => state.currentExercisePosition
-  // );
+  const getCurrentExercise = useStore((state) => state.getCurrentExercise);
 
   useEffect(() => {
     if (!config?.config?.slug) return;
 
     const handleUpdate = async (data: any) => {
-      if (data.status === "done") {
+      const currentExercise = getCurrentExercise();
+      
+      if (data.status === "done" && data.lesson === currentExercise.slug) {
         getSyllabus();
-        // await fetchExercises();
       }
     };
 

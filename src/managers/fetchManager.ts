@@ -214,7 +214,6 @@ export const FetchManager = {
             }/courses/${exerciseSlug}/exercises/${slug}/`
           );
           const exercise = await respose.json();
-          console.log("exercise", exercise);
           return exercise;
         } catch (e) {
           console.log("Error fetching exercise info in creatorWeb");

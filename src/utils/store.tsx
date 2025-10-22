@@ -569,8 +569,10 @@ The user's set up the application in "${language}" language, give your feedback 
 
     try {
       const config = await FetchManager.getExercises(token);
-      console.log("Config fetched from FetchManager!", config);
-      if (!config) return;
+      if (!config) {
+        console.error("Config were not fetched from fetch manager");
+        
+        return};
 
       if (
         config.config.authentication &&
@@ -937,7 +939,6 @@ The user's set up the application in "${language}" language, give your feedback 
 
     const exercise = getCurrentExercise();
 
-    console.log("ENVIRONMENT updating editor tabs", environment);
 
     // @ts-ignore
     const notHidden = exercise.files.filter((f) => !f.hidden);

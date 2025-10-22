@@ -469,5 +469,6 @@
     "slug-max-characters": "Máximo 47 caracteres",
     "checking-slug": "Verificando...",
     "slug-changed-successfully": "Slug cambiado exitosamente",
-    "error-changing-slug": "Error al cambiar el slug"
+    "error-changing-slug": "Error al cambiar el slug",
+    "add-example": "Agregar ejemplo"
 }

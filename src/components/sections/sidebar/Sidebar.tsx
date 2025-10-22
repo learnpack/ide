@@ -6,6 +6,7 @@ import { svgs } from "../../../assets/svgs";
 import packageInfo from "../../../../package.json";
 import "./styles.css";
 import { useTranslation } from "react-i18next";
+import { useEffect } from "react"
 
 const version = packageInfo.version;
 let versionSections = version.split(".");
@@ -23,6 +24,7 @@ export default function Sidebar() {
     environment,
     openLink,
     fetchExercises,
+    getSyllabus,
   } = useStore((state) => ({
     theme: state.theme,
     toggleTheme: state.toggleTheme,
@@ -34,6 +36,7 @@ export default function Sidebar() {
     environment: state.environment,
     openLink: state.openLink,
     fetchExercises: state.fetchExercises,
+    getSyllabus: state.getSyllabus,
   }));
 
   const { t } = useTranslation();
@@ -52,6 +55,12 @@ export default function Sidebar() {
     openLink(docsUrl);
     await fetchExercises();
   };
+
+  useEffect(() => {
+    if (environment === "creatorWeb" && showSidebar) {
+      getSyllabus();
+    }
+  }, [showSidebar]);
 
   return (
     <>

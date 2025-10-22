@@ -19,6 +19,7 @@ import TelemetryManager, { TTesteableElement } from "../../../managers/telemetry
 import { makeQuizSubmission } from "../QuizRenderer/QuizRenderer";
 import { RigoAI } from "../../Rigobot/AI";
 import CustomDropdown from "../../CustomDropdown";
+import { Icon } from "../../Icon"
 
 const splitInLines = (code: string) => {
   return code.split("\n").filter((line) => line.trim() !== "");
@@ -320,13 +321,16 @@ const AddExampleButton = ({
 
 
 
-          <WriteSuggestion
+  
+          <div className="flex-y gap-small mt-10px">
+            <div className="flex-x gap-small justify-between">
+            <h4 className="mt-10px">{t("examples")}</h4>
+            <WriteSuggestion
             submit={(answer) => {
               setAcceptedSuggestions([...acceptedSuggestions, answer]);
             }}
           />
-          <div className="flex-y gap-small">
-            <h4 className="mt-10px">{t("examples")}</h4>
+            </div>
             {acceptedSuggestions.map((suggestion) => (
               <Suggestion
                 suggestion={suggestion}
@@ -384,9 +388,19 @@ const AddExampleButton = ({
 const WriteSuggestion = ({ submit }: { submit: (answer: string) => void }) => {
   const { t } = useTranslation();
   const [textValue, setTextValue] = useState<string>("");
+  const [isOpen, setIsOpen] = useState(false)
   return (
-    <div className="flex-y gap-small border-gray rounded padding-small mt-10px">
-      <h4>{t("writeAnExampleAnswer")}</h4>
+    <>
+    <SimpleButton
+      title={t("add-example")}
+      svg={<Icon name="Plus" />}
+      extraClass="bg-blue-rigo text-white padding-mini rounded flex-x align-center gap-small"
+      action={() => setIsOpen(true)}
+    />
+    {isOpen && (
+      <Modal outsideClickHandler={() => setIsOpen(false)}>
+      <div className="flex-y gap-small border-gray rounded padding-small mt-10px">
+      <h2>{t("writeAnExampleAnswer")}</h2>
       <AutoResizeTextarea
         defaultValue={textValue}
         onChange={(e) => {
@@ -437,6 +451,9 @@ const WriteSuggestion = ({ submit }: { submit: (answer: string) => void }) => {
         </CustomDropdown>
       </div>
     </div>
+    </Modal>
+    )}
+    </>
   );
 };
 
@@ -456,16 +473,13 @@ const Suggestion = ({
   return (
     <div
       key={suggestion}
-      className={`rounded padding-small border-gray pos-relative	`}
+      className={`rounded padding-small border-gray pos-relative	d-flex justify-between`}
     >
-      <div className="d-flex gap-small align-start">
-        <p className="w-100">{suggestion.replace("INCORRECT:", "").replace("CORRECT:", "")}</p>
-        <div className={`d-flex align-center justify-center  rounded  w-fit-content ${isIncorrect ? "pill-incorrect" : "pill-correct"}`}>
+        <p className="">{suggestion.replace("INCORRECT:", "").replace("CORRECT:", "")}</p>
+      <div className="flex-y gap-small align-end">
+        <div className={`d-flex align-center justify-center  rounded ${isIncorrect ? "pill-incorrect" : "pill-correct"}`}>
           {isIncorrect ? "✗ Incorrect" : "✓ Correct"}
         </div>
-
-      </div>
-      <div className="d-flex gap-small justify-center ">
         {onAccept &&
           <SimpleButton
             extraClass="bg-blue-rigo text-white padding-small rounded flex-x align-center gap-small"
@@ -476,12 +490,13 @@ const Suggestion = ({
         }
         <SimpleButton
           title={t("remove")}
-          text={t("remove")}
           extraClass="border-gray padding-small rounded danger-on-hover"
           svg={svgs.trash}
           action={onReject}
         />
+
       </div>
+
     </div>
   );
 };

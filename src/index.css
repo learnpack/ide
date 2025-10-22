@@ -1208,16 +1208,16 @@ a {
 
 .pill-correct {
   min-width: 70px;
-  background-color: #25ce63;
+  background-color: var(--color-success);
   color: white;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .pill-incorrect {
   min-width: 70px;
-  background-color: #ef4444;
+  background-color: var(--color-fail);
   color: white;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 

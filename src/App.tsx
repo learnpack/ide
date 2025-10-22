@@ -8,34 +8,26 @@ import { ModalsContainer } from "./components/sections/modals";
 import { NewHeader } from "./components/Header/NewHeader";
 import { Container } from "./components/Container/Container";
 import useStore from "./utils/store";
-import i18n from "./utils/i18n";
+// import i18n from "./utils/i18n";
 import mermaid from "mermaid";
 import { PublishNavbar } from "./components/Creator/PublishNavbar";
 import PreviewGenerator from "./components/composites/PreviewImageGenerator/PreviewImageGenerator";
 import { PositionHandler } from "./components/composites/PositionHandler/PositionHandler";
 
 export default function Home() {
-  const {
-    start,
-    handleEnvironmentChange,
-    theme,
-    isIframe,
-    language,
-    environment,
-  } = useStore((s) => ({
-    environment: s.environment,
-    start: s.start,
-    handleEnvironmentChange: s.handleEnvironmentChange,
-    theme: s.theme,
-    isIframe: s.isIframe,
-    language: s.language,
-  }));
+  const start = useStore((s) => s.start);
+  const handleEnvironmentChange = useStore((s) => s.handleEnvironmentChange);
+  const theme = useStore((s) => s.theme);
+  const isIframe = useStore((s) => s.isIframe);
+  const environment = useStore((s) => s.environment);
 
   useEffect(() => {
+    console.log("Starting app");
+    
     start();
     mermaid.initialize({ startOnLoad: false });
 
-    i18n.changeLanguage(language);
+    // i18n.changeLanguage(language);
     document.addEventListener("environment-change", handleEnvironmentChange);
     return () => {
       document.removeEventListener(
@@ -45,7 +37,11 @@ export default function Home() {
     };
   }, []);
 
-  console.log("Refreshing app");
+  console.log("Refreshing app", {
+    environment,
+    isIframe,
+    theme,
+  });
   
 
   return (

@@ -131,8 +131,14 @@ export const LessonRenderer = memo(() => {
   const currentContent = useStore((s) => s.currentContent);
   const editingContent = useStore((s) => s.editingContent);
   const agent = useStore((s) => s.agent);
-
   const environment = useStore((s) => s.environment);
+
+  console.log("Rendering LessonRenderer", {
+    currentContent,
+    editingContent,
+    agent,
+    environment,
+  });
 
   return (
     <div className="lesson-content">
