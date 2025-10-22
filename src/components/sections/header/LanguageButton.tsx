@@ -303,11 +303,11 @@ const AddLanguageModal = ({ disabled }: { disabled: boolean }) => {
         extraClass="w-200px"
       />
       {isOpen && (
-        <Modal extraClass="bg-2">
+        <Modal >
           <div className="flex-y gap-small">
-            <div className="flex-x align-center gap-small ">
+            <div className="flex-x align-center gap-small rigo-message">
               <h2 className="big-svg flex-x align-center">{svgs.happyRigo}</h2>
-              <p className="bg-white rounded padding-medium">
+              <p className="bg-1 rounded padding-medium">
                 {t("rigo-translate-message")}
               </p>
             </div>
