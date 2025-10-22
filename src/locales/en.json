@@ -1,6 +1,8 @@
 {
     "report": "Report 🐞",
     "toggle-sidebar": "Toggle menu",
+    "switch-to-light": "Switch to light mode",
+    "switch-to-dark": "Switch to dark mode",
     "login-message": "Log in to 4Geeks to get performance statistics, access to our AI mentor, and many other benefits.",
     "Run": "Run",
     "theme": "Theme",

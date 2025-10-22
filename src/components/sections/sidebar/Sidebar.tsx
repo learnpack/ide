@@ -88,6 +88,7 @@ export default function Sidebar() {
                 <SimpleButton
                   action={toggleTheme}
                   svg={theme === "dark" ? svgs.sun : svgs.moon}
+                  title={theme === "dark" ? t("switch-to-light") : t("switch-to-dark")}
                 />
               )}
             </div>

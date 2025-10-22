@@ -1,6 +1,8 @@
 {
     "theme": "Tema",
     "toggle-sidebar": "Abrir/Cerrar menú",
+    "switch-to-light": "Cambiar a modo claro",
+    "switch-to-dark": "Cambiar a modo oscuro",
     "report": "Reportar 🐞",
     "login": "Inicia sesión",
     "Run": "Ejecutar",
