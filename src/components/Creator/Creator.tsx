@@ -434,6 +434,7 @@ export const CreatorWrapper = ({
       <SimpleButton
         svg={svgs.plus}
         extraClass="top-centered display-on-hover above-all"
+        title={t("insert-before-tooltip")}
         action={async () => {
           if (node?.position?.start && node?.position?.end) {
             await insertBeforeOrAfter(
@@ -460,6 +461,7 @@ export const CreatorWrapper = ({
       <SimpleButton
         svg={svgs.plus}
         extraClass="bottom-centered display-on-hover above-all"
+        title={t("insert-after-tooltip")}
         action={async () => {
           if (node?.position?.start && node?.position?.end) {
             await insertBeforeOrAfter(
@@ -488,6 +490,7 @@ export const CreatorWrapper = ({
           <SimpleButton
             svg={svgs.edit}
             extraClass="creator-options-opener svg-blue active-on-hover"
+            title={t("edit-element-tooltip")}
             action={() => setIsOpen(!isOpen)}
           />
         )}
