@@ -25,6 +25,8 @@
     "change-language": "Cambiar idioma",
     "open-rigobot": "Abrir chat con Rigobot",
     "close-rigobot": "Cerrar chat",
+    "open-dashboard-tooltip": "Abrir panel de tutoriales",
+    "share-publish-tooltip": "Compartir o publicar tutorial",
     "report": "Reportar 🐞",
     "login": "Inicia sesión",
     "Run": "Ejecutar",
