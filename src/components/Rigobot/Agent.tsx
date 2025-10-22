@@ -683,7 +683,7 @@ ${args.content}
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{t("start-new-chat")}</p>
+                    <p>{t("Start new chat")}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -698,7 +698,7 @@ ${args.content}
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{t("close-chat")}</p>
+                    <p>{t("Close chat")}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
