@@ -1,14 +1,22 @@
 version: "1.0.0"
 components:
   - name: mermaid-diagram
-    intentedUse: explanation, complementary to the main content
+    intendedUse:
+      - explanation
+      - complementary to the main content
     description: >-
       Mermaid diagrams allow you to create various types of diagrams including flowcharts, sequence diagrams, class diagrams, and more. The component renders Mermaid syntax into interactive diagrams.
-    goodFor: visualization, process explanation, system architecture, data flow.
+    goodFor:
+      - visualization
+      - process explanation
+      - system architecture
+      - data flow
     whenToUse: Use it only when the diagram
-    avoid: complex diagrams that might not render well, use for simple to medium complexity diagrams
-    rules: 
-      - NEVER under ANY circumstances use write parentheses inside [] because it will break the mermaid syntax and won't render properly
+    avoid:
+      - complex diagrams that might not render well
+      - use for simple to medium complexity diagrams
+    rules:
+      - NEVER under ANY circumstances use or write parentheses inside [] because it will break the mermaid syntax and won't render properly
     example: |
       ```mermaid
       graph TD
@@ -19,11 +27,18 @@ components:
       ```
 
   - name: ask-rigo-button
-    intentedUse: explanation, complementary to the main content
+    intendedUse:
+      - explanation
+      - complementary to the main content
     description: >-
       The Ask Rigo button provides AI-powered assistance for quizzes and tests. It allows users to get hints and help from the Rigo AI assistant based on the current context. It consist in a link that starts with https://4geeks.com/ask?query= and the query is the current question to make to the Rigo AI assistant. Keep in mind that the query must be always in this syntax: this-is-a-question. The question should be in lower case and without special characters, separated by hyphens. The question should be good enough to  guide the AI to provide a meaningful answer, not just a vague question, provide specific details on what and how to explain to the student.
-    goodFor: providing hints, AI assistance, learning support
-    avoid: overuse, should be used sparingly to encourage independent thinking
+    goodFor:
+      - providing hints
+      - AI assistance
+      - learning support
+    avoid:
+      - overuse
+      - should be used sparingly to encourage independent thinking
     usage: Automatically appears in quiz and test components, no manual configuration needed
     example: |
       [Ask Rigo how to declare a variable in JavaScript](https://4geeks.com/ask?query=can-you-explain-me-in-simple-terms-how-to-declare-a-variable-in-javascript)
@@ -31,11 +46,19 @@ components:
       [Ask Rigo how to create a function in Python](https://4geeks.com/ask?query=help-me-understand-how-to-create-a-function-in-python-in-the-simplest-possible-way)
 
   - name: runnable-code
-    intentedUse: code experimentation, immediate feedback, understand code.
+    intendedUse:
+      - code experimentation
+      - immediate feedback
+      - understand code
     description: >-
       Code blocks with the runnable metadata that can be executed directly in the browser. Users can run the code and see the output, making it interactive for learning programming concepts.
-    goodFor: code experimentation, immediate feedback, understand code.
-    avoid: complex code that might not run in the browser environment easily, this is intended only for demostrative purposes.
+    goodFor:
+      - code experimentation
+      - immediate feedback
+      - understand code
+    avoid:
+      - complex code that might not run in the browser environment easily
+      - this is intended only for demonstrative purposes
     example: |
       ```javascript runnable="true"
       console.log("Hello, World!");
@@ -45,7 +68,9 @@ components:
       ```
 
   - name: image
-    intendedUse: educational explanation and diagrammatic visualization that improves content comprehension
+    intendedUse:
+      - educational explanation
+      - diagrammatic visualization that improves content comprehension
     description: >-
       Images must be educational and explanatory, designed to enhance understanding of concepts.
       They should be diagrammatic in nature, using visual elements like arrows, labels, numbered steps,
@@ -53,10 +78,24 @@ components:
       Images must provide real educational value beyond what text alone can convey. Each image is 
       generated from a descriptive alt text that acts as a detailed prompt for AI, specifying the 
       educational elements and diagrammatic features needed.
-    goodFor: process flows with labeled steps, system architecture diagrams, concept relationships with arrows and connections, data structure visualizations, comparative diagrams showing before/after or different approaches, annotated technical illustrations, step-by-step visual guides with numbered elements
+    goodFor:
+      - process flows with labeled steps
+      - system architecture diagrams
+      - concept relationships with arrows and connections
+      - data structure visualizations
+      - comparative diagrams showing before/after or different approaches
+      - annotated technical illustrations
+      - step-by-step visual guides with numbered elements
     whenToUse: Only when the visual representation significantly improves comprehension compared to text or code alone. Use when explaining relationships between components, sequential processes, spatial arrangements, hierarchical structures, or when comparing multiple concepts visually. The image must answer the question "How does this help the student understand better than text?"
-    avoid: purely decorative images, generic stock photos without educational annotations, images that merely illustrate what the text already says clearly, artistic or abstract images without clear educational purpose, screenshots without annotations or highlights, images where a mermaid diagram or code example would be clearer, overly complex visuals that confuse rather than clarify
-    rules: 
+    avoid:
+      - purely decorative images
+      - generic stock photos without educational annotations
+      - images that merely illustrate what the text already says clearly
+      - artistic or abstract images without clear educational purpose
+      - screenshots without annotations or highlights
+      - images where a mermaid diagram or code example would be clearer
+      - overly complex visuals that confuse rather than clarify
+    rules:
       - Use standard markdown image syntax: "![alt text](image-url)"
       - The alt text must contain a detailed prompt with at least 30 words describing the educational and diagrammatic elements
       - The alt text must specify visual teaching elements like "with arrows showing", "labeled with", "numbered steps", "annotated to highlight", "color-coded to differentiate"
@@ -68,4 +107,3 @@ components:
       - Include visual cues like arrows, numbers, labels, highlights, or color coding to guide understanding
     example: |
       ![A technical diagram illustrating the HTTP request-response cycle between client and server, with numbered steps from 1 to 5, arrows showing data flow direction, labels identifying DNS resolution, TCP connection, request headers, server processing, and response payload, color-coded to differentiate client-side actions in blue and server-side actions in green, with annotations explaining each component's role in the process](./.learn/assets/http-request-response-diagram.png)
-
