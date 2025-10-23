@@ -750,6 +750,7 @@ const PublishButton = () => {
         <SimpleButton
           text={t("share")}
           action={handleToggleDropdown}
+          title={t("share-publish-tooltip")}
           extraClass="svg-white text-white row-reverse padding-small rounded bg-blue-rigo"
           svg={svgs.share}
         />

@@ -76,6 +76,8 @@ export default function LanguageButton() {
     }
   }, [language, exercises]);
 
+  const { t } = useTranslation();
+
   return (
     <>
       <div id="language-component" className="language-component">
@@ -83,6 +85,7 @@ export default function LanguageButton() {
           action={toggleDrop}
           text={language}
           svg={svgsLanguageMap[language]}
+          title={t("change-language")}
         />
         {showDrop && <LanguageDropdown toggleDrop={toggleDrop} />}
       </div>

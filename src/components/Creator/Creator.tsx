@@ -21,6 +21,7 @@ import {
 type TPromp = {
   type: "button" | "select" | "input";
   text?: string;
+  title?: string;
   options?: string[];
   action: (value: string) => void;
   extraClass: string;
@@ -337,6 +338,7 @@ export const CreatorWrapper = ({
     {
       type: "button",
       text: t("simplifyLanguage"),
+      title: t("simplify-language-tooltip"),
       action: () => simplifyLanguage(),
       extraClass:
         "text-secondary  rounded padding-small active-on-hover svg-blue",
@@ -346,6 +348,7 @@ export const CreatorWrapper = ({
     {
       type: "button",
       text: t("summarize"),
+      title: t("summarize-tooltip"),
       action: () => summarize(),
       extraClass:
         "text-secondary  rounded padding-small active-on-hover svg-blue",
@@ -355,6 +358,7 @@ export const CreatorWrapper = ({
     {
       type: "button",
       text: t("explainFurther"),
+      title: t("explain-further-tooltip"),
       action: () => explainFurther(),
       extraClass:
         "text-secondary  rounded padding-small active-on-hover svg-blue",
@@ -364,6 +368,7 @@ export const CreatorWrapper = ({
     {
       type: "button",
       text: t("simplifyCode"),
+      title: t("simplify-code-tooltip"),
       action: () => simplifyCode(),
       extraClass:
         "text-secondary  rounded padding-small active-on-hover svg-blue",
@@ -374,6 +379,7 @@ export const CreatorWrapper = ({
     {
       type: "select",
       text: t("changeTone"),
+      title: t("change-tone-tooltip"),
       options: [
         "professional",
         "casual",
@@ -392,6 +398,7 @@ export const CreatorWrapper = ({
     {
       type: "button",
       text: t("removeThis"),
+      title: t("remove-element-tooltip"),
       action: () => removeThis(),
       extraClass:
         "text-secondary  rounded padding-small danger-on-hover svg-blue",
@@ -427,6 +434,7 @@ export const CreatorWrapper = ({
       <SimpleButton
         svg={svgs.plus}
         extraClass="top-centered display-on-hover above-all"
+        title={t("insert-before-tooltip")}
         action={async () => {
           if (node?.position?.start && node?.position?.end) {
             await insertBeforeOrAfter(
@@ -453,6 +461,7 @@ export const CreatorWrapper = ({
       <SimpleButton
         svg={svgs.plus}
         extraClass="bottom-centered display-on-hover above-all"
+        title={t("insert-after-tooltip")}
         action={async () => {
           if (node?.position?.start && node?.position?.end) {
             await insertBeforeOrAfter(
@@ -481,6 +490,7 @@ export const CreatorWrapper = ({
           <SimpleButton
             svg={svgs.edit}
             extraClass="creator-options-opener svg-blue active-on-hover"
+            title={t("edit-element-tooltip")}
             action={() => setIsOpen(!isOpen)}
           />
         )}
@@ -833,6 +843,7 @@ const RigoInput = ({
                 <SimpleButton
                   svg={prompt.svg}
                   key={`${prompt.text}-${index}`}
+                  title={prompt.title}
                   action={prompt.action}
                   extraClass={prompt.extraClass}
                   text={prompt.text}
@@ -845,6 +856,7 @@ const RigoInput = ({
                   <SimpleButton
                     key={`${prompt.text}-${index}`}
                     svg={prompt.svg}
+                    title={prompt.title}
                     action={() => prompt.action(toneRef.current?.value || "")}
                     extraClass={prompt.extraClass}
                     text={prompt.text}

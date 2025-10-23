@@ -27,6 +27,7 @@ export const PublishNavbar = () => {
         <SimpleButton
           svg={svgs.grid}
           text={t("my-tutorials")}
+          title={t("open-dashboard-tooltip")}
           action={() => {
             window.open(
               "https://learn.learnpack.co?token=" + bctoken,

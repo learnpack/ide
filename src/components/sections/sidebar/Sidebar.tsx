@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 import { useEffect } from "react"
 
 const version = packageInfo.version;
-let versionSections = version.split(".");
+const versionSections = version.split(".");
 versionSections[2] = String(parseInt(versionSections[2]) + 1);
 
 export default function Sidebar() {
@@ -71,6 +71,7 @@ export default function Sidebar() {
             {environment === "creatorWeb" && (
               <SimpleButton
                 svg={mode === "creator" ? svgs.run : svgs.edit}
+                title={mode === "creator" ? t("preview-as-student") : t("edit-mode")}
                 action={() => {
                   if (mode === "creator") {
                     setMode("student");
@@ -97,6 +98,7 @@ export default function Sidebar() {
                 <SimpleButton
                   action={toggleTheme}
                   svg={theme === "dark" ? svgs.sun : svgs.moon}
+                  title={theme === "dark" ? t("switch-to-light") : t("switch-to-dark")}
                 />
               )}
             </div>

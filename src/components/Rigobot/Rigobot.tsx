@@ -16,6 +16,11 @@ import { formatInitialMessage, slugToTitle } from "./utils";
 import toast from "react-hot-toast";
 import { validateRigobotToken } from "../../managers/fetchManager";
 import { TAIInteraction } from "../../managers/telemetry";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 let aiInteraction: TAIInteraction = {
   student_message: "",
@@ -452,14 +457,22 @@ export const RigoToggler = () => {
     toggleRigo: state.toggleRigo,
     isRigoOpened: state.isRigoOpened,
   }));
+  const { t } = useTranslation();
 
   return (
-    <div
-      onClick={() => toggleRigo()}
-      className={`rigo-toggle 
-         ${isRigoOpened ? "conector-blue bg-rigo" : ""}`}
-    >
-      {isRigoOpened ? svgs.rigoSvg : svgs.blueRigoSvg}
-    </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div
+          onClick={() => toggleRigo()}
+          className={`rigo-toggle 
+             ${isRigoOpened ? "conector-blue bg-rigo" : ""}`}
+        >
+          {isRigoOpened ? svgs.rigoSvg : svgs.blueRigoSvg}
+        </div>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{isRigoOpened ? t("close-rigobot") : t("open-rigobot")}</p>
+      </TooltipContent>
+    </Tooltip>
   );
 };

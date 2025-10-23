@@ -20,6 +20,7 @@ export const DeleteButton = () => {
       svg={svgs.trash}
       action={handleDelete}
       text={t("delete")}
+      title={t("delete-tutorial-tooltip")}
       confirmationMessage={t("sure?")}
       extraClass="danger-on-hover w-100 rounded padding-small text-danger"
     />

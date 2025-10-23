@@ -186,6 +186,7 @@ const AddExerciseButton = ({
         <SimpleButton
           extraClass="scale-on-hover padding-small rounded"
           svg={svgs.plus}
+          title={t("add-exercise-tooltip")}
           action={() => setIsAdding(!isAdding)}
         />
       )}
@@ -432,6 +433,7 @@ function ExerciseCard({
             extraClass="padding-small margin-left-small"
             svg={svgs.checked}
             text=""
+            title={t("deselect-exercise-tooltip")}
             action={() => handleSelect(slug)}
           />
         )}
@@ -440,6 +442,7 @@ function ExerciseCard({
             extraClass="padding-small margin-left-small"
             svg={svgs.unchecked}
             text=""
+            title={t("select-exercise-tooltip")}
             action={() => handleSelect(slug)}
           />
         )}
@@ -515,12 +518,14 @@ function ExerciseCard({
                 extraClass=""
                 svg={isEditing ? svgs.iconCheck : svgs.edit}
                 text=""
+                title={isEditing ? t("save-changes-tooltip") : t("edit-exercise-tooltip")}
                 action={handleEdit}
               />
               <SimpleButton
                 extraClass=""
                 svg={isEditing ? svgs.iconClose : svgs.trash}
                 text=""
+                title={isEditing ? t("cancel-edit-tooltip") : t("delete-exercise-tooltip")}
                 action={async () => {
                   if (isEditing) {
                     setIsEditing(false);
