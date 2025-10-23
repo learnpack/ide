@@ -19,7 +19,6 @@ import { TAIInteraction } from "../../managers/telemetry";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
@@ -461,21 +460,19 @@ export const RigoToggler = () => {
   const { t } = useTranslation();
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div
-            onClick={() => toggleRigo()}
-            className={`rigo-toggle 
-               ${isRigoOpened ? "conector-blue bg-rigo" : ""}`}
-          >
-            {isRigoOpened ? svgs.rigoSvg : svgs.blueRigoSvg}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{isRigoOpened ? t("close-rigobot") : t("open-rigobot")}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div
+          onClick={() => toggleRigo()}
+          className={`rigo-toggle 
+             ${isRigoOpened ? "conector-blue bg-rigo" : ""}`}
+        >
+          {isRigoOpened ? svgs.rigoSvg : svgs.blueRigoSvg}
+        </div>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{isRigoOpened ? t("close-rigobot") : t("open-rigobot")}</p>
+      </TooltipContent>
+    </Tooltip>
   );
 };

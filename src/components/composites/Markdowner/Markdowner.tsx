@@ -16,7 +16,6 @@ import { svgs } from "../../../assets/svgs";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import toast from "react-hot-toast";
@@ -52,38 +51,36 @@ const ClickMeToGetID = ({ id }: { id: string }) => {
   };
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            className="heading-link-button"
-            onClick={copyLinkToClipboard}
-            aria-label={t("copy-link-to-this-section")}
-            style={{
-              opacity: 0,
-              transition: 'opacity 0.2s ease',
-              position: 'absolute',
-              left: '-25px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              background: 'var(--bg-2)',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '4px',
-              borderRadius: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            <Icon name="Link" size={16} />
-          </button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{t("copy-link-to-this-section")}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          className="heading-link-button"
+          onClick={copyLinkToClipboard}
+          aria-label={t("copy-link-to-this-section")}
+          style={{
+            opacity: 0,
+            transition: 'opacity 0.2s ease',
+            position: 'absolute',
+            left: '-25px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            background: 'var(--bg-2)',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '4px',
+            borderRadius: '4px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <Icon name="Link" size={16} />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{t("copy-link-to-this-section")}</p>
+      </TooltipContent>
+    </Tooltip>
   );
 };
 

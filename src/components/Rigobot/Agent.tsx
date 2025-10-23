@@ -4,7 +4,6 @@ import SimpleButton from "../mockups/SimpleButton";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
@@ -672,36 +671,32 @@ ${args.content}
             <p className="m-0 text-white">{t("Rigobot")}</p>
 
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={clearConversation}
-                      className="text-white hover:text-gray-300 transition-colors p-1"
-                    >
-                      <Icon name="MessageSquarePlus" size={18} />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{t("Start new chat")}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => toggleRigo()}
-                      className="text-white hover:text-gray-300 transition-colors p-1"
-                    >
-                      <Icon name="X" size={18} />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{t("Close chat")}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={clearConversation}
+                    className="text-white hover:text-gray-300 transition-colors p-1"
+                  >
+                    <Icon name="MessageSquarePlus" size={18} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t("Start new chat")}</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => toggleRigo()}
+                    className="text-white hover:text-gray-300 transition-colors p-1"
+                  >
+                    <Icon name="X" size={18} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t("Close chat")}</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </section>
           <section

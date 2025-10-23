@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
@@ -71,16 +70,14 @@ export default function SimpleButton({
   // Si hay title, envolver con Tooltip, sino devolver el botón directamente
   if (title) {
     return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            {buttonElement}
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{title}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          {buttonElement}
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{title}</p>
+        </TooltipContent>
+      </Tooltip>
     );
   }
 

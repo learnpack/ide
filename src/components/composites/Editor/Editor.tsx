@@ -16,7 +16,6 @@ import { Preview } from "../Preview/Preview";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { AskForHint } from "../AskForHint/AskForHint";
@@ -218,51 +217,47 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                 : tab.name}
             </button>
             {mode === "creator" && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteFile(tab.name);
-                      }}
-                      className="delete-file-btn"
-                      style={{
-                        marginLeft: "8px",
-                        padding: "2px 6px",
-                        fontSize: "12px",
-                        cursor: "pointer",
-                        color: "#ff4444",
-                      }}
-                    >
-                      <Icon size={10} name="Trash" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{t("delete-file") || "Delete file"}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteFile(tab.name);
+                    }}
+                    className="delete-file-btn"
+                    style={{
+                      marginLeft: "8px",
+                      padding: "2px 6px",
+                      fontSize: "12px",
+                      cursor: "pointer",
+                      color: "#ff4444",
+                    }}
+                  >
+                    <Icon size={10} name="Trash" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t("delete-file") || "Delete file"}</p>
+                </TooltipContent>
+              </Tooltip>
             )}
           </div>
         ))}
         {mode === "creator" && (
           <div className="tab add-file-tab">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => setShowCreateFileModal(true)}
-                    className="bg-2 padding-small rounded text-blue"
-                  >
-                    <Icon size={14} name="Plus" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{t("new-file") || "New File"}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setShowCreateFileModal(true)}
+                  className="bg-2 padding-small rounded text-blue"
+                >
+                  <Icon size={14} name="Plus" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{t("new-file") || "New File"}</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         )}
       </div>
@@ -534,18 +529,16 @@ const Terminal = ({
         >
           <div className={`terminal ${terminalState} html browser`}>
             <div className="d-flex justify-between align-center browser-header">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className=" browser-tab">
-                      {browserTabTitle}
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{browserTabTitle}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className=" browser-tab">
+                    {browserTabTitle}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{browserTabTitle}</p>
+                </TooltipContent>
+              </Tooltip>
               <div className="d-flex ">
                 <SimpleButton
                   title={t("display-another-tab ")}

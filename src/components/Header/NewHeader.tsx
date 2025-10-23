@@ -11,7 +11,6 @@ import { Icon } from "../Icon";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 // import TelemetryManager from "../../managers/telemetry";
@@ -82,48 +81,44 @@ export const NewHeader = () => {
   return (
     <header className={styles.header}>
       <section>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                disabled={currentExercisePosition == 0}
-                onClick={() => {
-                  eventBus.emit("position_change", {
-                    position: Number(currentExercisePosition) - 1,
-                  });
-                  reportEnrichDataLayer("learnpack_previous_step", {});
-                }}
-              >
-                {svgs.prevArrowButton}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{t("previous-lesson")}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                disabled={
-                  exercises && currentExercisePosition === exercises.length - 1
-                }
-                onClick={() => {
-                  eventBus.emit("position_change", {
-                    position: Number(currentExercisePosition) + 1,
-                  });
-                  reportEnrichDataLayer("learnpack_next_step", {});
-                }}
-              >
-                {svgs.nextArrowButton}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{t("next-lesson")}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              disabled={currentExercisePosition == 0}
+              onClick={() => {
+                eventBus.emit("position_change", {
+                  position: Number(currentExercisePosition) - 1,
+                });
+                reportEnrichDataLayer("learnpack_previous_step", {});
+              }}
+            >
+              {svgs.prevArrowButton}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{t("previous-lesson")}</p>
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              disabled={
+                exercises && currentExercisePosition === exercises.length - 1
+              }
+              onClick={() => {
+                eventBus.emit("position_change", {
+                  position: Number(currentExercisePosition) + 1,
+                });
+                reportEnrichDataLayer("learnpack_next_step", {});
+              }}
+            >
+              {svgs.nextArrowButton}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{t("next-lesson")}</p>
+          </TooltipContent>
+        </Tooltip>
 
         {DEV_MODE && (
           <button onClick={test} style={{ display: "flex", alignItems: "center", gap: "6px" }}>

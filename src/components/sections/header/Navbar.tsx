@@ -6,7 +6,6 @@ import useStore from "../../../utils/store";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useTranslation } from "react-i18next";
@@ -20,20 +19,18 @@ export default function Navbar() {
   return (
     <nav className="navbar-component">
       <section className="_navbar-buttons">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <img
-                src="/logo.png"
-                alt="Learnpack"
-                style={{ width: "40px", height: "auto" }}
-              />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{t("learnpack-logo-tooltip")}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <img
+              src="/logo.png"
+              alt="Learnpack"
+              style={{ width: "40px", height: "auto" }}
+            />
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{t("learnpack-logo-tooltip")}</p>
+          </TooltipContent>
+        </Tooltip>
         <BuildButton extraClass="" />
         <FeedbackButton direction="down" />
         <ResetButton />
