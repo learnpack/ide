@@ -499,5 +499,8 @@
     "checking-slug": "Verificando...",
     "slug-changed-successfully": "Slug cambiado exitosamente",
     "error-changing-slug": "Error al cambiar el slug",
-    "add-example": "Agregar ejemplo"
+    "add-example": "Agregar ejemplo",
+    "add-exercise": "Agregar ejercicio",
+    "exerciseDescription": "Descripción del ejercicio",
+    "addExerciseHelpText": "Te ayudo a agregar un nuevo paso a tu curso, explica el resultado del paso y yo haré mi mejor esfuerzo para crearlo."
 }

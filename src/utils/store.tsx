@@ -1124,14 +1124,6 @@ The user's set up the application in "${language}" language, give your feedback 
     }
   },
 
-  // openTerminal: () => {
-  //   const { compilerSocket, getCurrentExercise } = get();
-  //   const data = {
-  //     exerciseSlug: getCurrentExercise().slug,
-  //   };
-  //   compilerSocket.emit("open_terminal", data);
-  // },
-
   getSyllabus: async () => {
     const { environment } = get();
 

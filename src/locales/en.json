@@ -492,5 +492,8 @@
     "checking-slug": "Checking...",
     "slug-changed-successfully": "Slug changed successfully",
     "error-changing-slug": "Error changing slug",
-    "add-example": "Add example"
+    "add-example": "Add example",
+    "add-exercise": "Add exercise",
+    "exerciseDescription": "Exercise description",
+    "addExerciseHelpText": "I'll help you add a new step to your yourse, explain me the outcome of the step and I'll make my best to create it."
 }

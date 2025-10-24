@@ -3,26 +3,29 @@ import { DEV_MODE, getSlugFromPath } from "./lib";
 
 export const LEARNPACK_LOCAL_URL = "http://localhost:3000";
 
-export const createExercise = async (
-  slug: string,
-  readme: string,
-  language: string
+export const createStep = async (
+  token: string,
+  description: string,
+  stepIndex: string
 ) => {
   try {
     const courseSlug = getSlugFromPath();
+    const headers = {
+      "x-rigo-token": token,
+    };
     const response = await axios.post(
       `${
         DEV_MODE ? "http://localhost:3000" : ""
-      }/exercise/${slug}/create?slug=${courseSlug}`,
+      }/course/${courseSlug}/create-step`,
       {
-        title: slug,
-        readme,
-        language,
-      }
+        description,
+        stepIndex,
+      },
+      { headers }
     );
     return response.data;
   } catch (error) {
-    console.error("Error creating exercise:", error);
+    console.error("Error creating step:", error);
     throw error;
   }
 };

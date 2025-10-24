@@ -27,7 +27,7 @@ const RigoBubble = ({ action }: { action: () => void }) => {
   );
 };
 
-const RigoMessage = ({ message }: { message: string }) => {
+export const RigoMessage = ({ message }: { message: string }) => {
   return (
     <div className="rigo-message">
       <RigoBubble action={() => { }} />

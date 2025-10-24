@@ -4,9 +4,8 @@ import useStore from "../../../utils/store";
 import SimpleButton from "../../mockups/SimpleButton";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
-import { RigoAI } from "../../Rigobot/AI";
 import {
-  createExercise,
+  createStep,
   deleteExercise,
   markLessonAsDone,
   renameExercise,
@@ -16,6 +15,9 @@ import { Syllabus, TMode } from "../../../utils/storeTypes";
 import { cleanFloatString, DEV_MODE } from "../../../utils/lib";
 import { eventBus } from "../../../managers/eventBus";
 import { Loader } from "../../composites/Loader/Loader";
+import { Modal } from "@/components/mockups/Modal";
+import { RigoMessage } from "@/components/Creator/RealtimeImage";
+import { AutoResizeTextarea } from "@/components/composites/AutoResizeTextarea/AutoResizeTextarea";
 interface IExerciseList {
   closeSidebar: () => void;
   mode: "creator" | "student";
@@ -64,24 +66,22 @@ function incrementDecimalPart(numberStr: string): string {
 }
 
 const AddExerciseButton = ({
-  exercises,
   prevExercise,
 }: {
-  exercises: any[];
   prevExercise: any;
 }) => {
-  const { config, language, fetchExercises } = useStore((state) => ({
-    config: state.configObject,
-    language: state.language,
+  const { token, fetchExercises, getSidebar, getSyllabus } = useStore((state) => ({
+    token: state.token,
     fetchExercises: state.fetchExercises,
+    getSidebar: state.getSidebar,
+    getSyllabus: state.getSyllabus,
   }));
   const [isAdding, setIsAdding] = useState(false);
   const exerciseIndexRef = useRef<HTMLDivElement>(null);
-  const [exerciseName, setExerciseName] = useState("");
-  // const exerciseIndexRef = useRef<HTMLDivElement>(null);
+  const [description, setDescription] = useState("");
   const { t } = useTranslation();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const original = e.target.value;
     const cleaned = original.replace(/[^a-zA-Z0-9ñÑ\s,!:]/g, "");
 
@@ -94,94 +94,70 @@ const AddExerciseButton = ({
       toast.error(t("symbolsNotAllowed") + `: ${removedChars.join(" ")}`);
     }
 
-    setExerciseName(cleaned);
+    setDescription(cleaned);
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     const toastId = toast.loading(t("generatingExercise"));
-    // e.preventDefault();
-    // const formData = new FormData(e.target as HTMLFormElement);
-    // const exerciseName = formData.get("exerciseName");
+    const stepIndex = exerciseIndexRef.current?.innerText as string;
 
-    const exerciseIndex = exerciseIndexRef.current?.innerText;
-
-    if (!fixTitleFormat((exerciseIndex + "-" + exerciseName) as string)) {
-      toast.error(t("invalidExerciseName"));
-      return;
+    try {
+      await createStep(
+        token,
+        description,
+        stepIndex
+      );
+      toast.success(t("exerciseGenerated"), { id: toastId });
+  
+      setIsAdding(false);
+      await fetchExercises();
+      await getSidebar();
+      await getSyllabus();
     }
-    const fixedTitle = fixTitleFormat(
-      (exerciseIndex + "-" + exerciseName) as string
-    );
-
-    RigoAI.useTemplate({
-      slug: "write-md-lesson",
-      inputs: {
-        course_title: JSON.stringify(config.config.title),
-        lesson_title: fixedTitle as string,
-        list_of_exercises: exercises
-          .map((exercise) => exercise.title)
-          .join(", "),
-        language: language,
-      },
-      target: document.createElement("div"),
-      onComplete: async (success, data) => {
-        if (success) {
-          try {
-            await createExercise(
-              fixedTitle as string,
-              data.ai_response,
-              language
-            );
-            toast.success(t("exerciseGenerated"), { id: toastId });
-            await fetchExercises();
-            setIsAdding(false);
-          } catch (error) {
-            toast.error(t("errorGeneratingExercise"), { id: toastId });
-          }
-        } else {
-          toast.error(t("errorGeneratingExercise"), { id: toastId });
-        }
-      },
-    });
+    catch (error) {
+      toast.error(t("errorGeneratingExercise"), { id: toastId });
+      console.log(error);
+    }
   };
 
   return (
     <>
       {isAdding ? (
-        <div className=" bg-soft-blue rounded padding-small w-100 flex-x gap-small">
-          <div
-            ref={exerciseIndexRef}
-            className="exercise-circle"
-            contentEditable={true}
-          >
-            {incrementDecimalPart(
-              getExerciseIndexFromTitle(prevExercise.title) as string
-            )}
-          </div>
-          <input
-            type="text"
-            className="input w-100"
-            value={exerciseName}
-            onChange={handleInputChange}
-            name="exerciseName"
-            placeholder={t("exerciseName")}
-          />
+        <Modal outsideClickHandler={() => setIsAdding(!isAdding)}>
+          <RigoMessage message={t("addExerciseHelpText")} />
+          <div className=" bg-soft-blue rounded padding-small w-100 flex-x gap-small">
+            <div
+              ref={exerciseIndexRef}
+              className="exercise-circle"
+              contentEditable={true}
+            >
+              {incrementDecimalPart(
+                getExerciseIndexFromTitle(prevExercise.title) as string
+              )}
+            </div>
+            <AutoResizeTextarea
+              className="w-100 rounded padding-small"
+              defaultValue={description}
+              onChange={handleInputChange}
+              placeholder={t("exerciseDescription")}
+            />
 
-          <div className="flex-x gap-small align-center">
+
+          </div>
+          <div className="flex-x justify-center gap-small align-center">
             <SimpleButton
-              extraClass="scale-on-hover padding-small rounded "
-              svg={svgs.iconCheck}
-              title={t("generate")}
+              extraClass="bg-blue-rigo text-white padding-small rounded"
+              svg={svgs.rigoSoftBlue}
+              text={t("generate")}
               action={handleGenerate}
             />
             <SimpleButton
-              extraClass="padding-small rounded scale-on-hover "
-              svg={svgs.iconClose}
-              title={t("cancel")}
+              extraClass="bg-gray text-black padding-small rounded"
+              text={t("cancel")}
               action={() => setIsAdding(!isAdding)}
             />
           </div>
-        </div>
+        </Modal>
       ) : (
         <SimpleButton
           extraClass="scale-on-hover padding-small rounded"
@@ -310,7 +286,7 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
           {mode === "creator" && (
             <AddExerciseButton
               prevExercise={exercises[index]}
-              exercises={exercises}
+            // exercises={exercises}
             />
           )}
         </div>
@@ -413,18 +389,17 @@ function ExerciseCard({
 
   return (
     <div
-      className={`exercise-card  ${
-        isCurrent ? "bg-2" : selected ? "bg-1" : "bg-white"
-      }`}
+      className={`exercise-card  ${isCurrent ? "bg-2" : selected ? "bg-1" : "bg-white"
+        }`}
       onClick={
         mode === "student"
           ? () => {
-              eventBus.emit("position_change", {
-                position: position,
-              });
-              closeSidebar();
-            }
-          : () => {}
+            eventBus.emit("position_change", {
+              position: position,
+            });
+            closeSidebar();
+          }
+          : () => { }
       }
     >
       <div className="z-index-1 flex-x align-center gap-small">
@@ -453,7 +428,7 @@ function ExerciseCard({
             type="text"
             defaultValue={title}
             ref={titleInputRef}
-            // onChange={(e) => setTitle(e.target.value)}
+          // onChange={(e) => setTitle(e.target.value)}
           />
         ) : (
           <div

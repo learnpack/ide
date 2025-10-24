@@ -80,6 +80,9 @@ export default function RealtimeLesson() {
     setLesson(lesson);
   }, [syllabus]);
 
+  console.log("LESSON", lesson);
+  
+
   return (
     <div className="flex-y gap-big padding-big lesson-loader">
       {/* {lesson && <h3>{lesson.title}</h3>} */}
@@ -87,7 +90,7 @@ export default function RealtimeLesson() {
       <ContinueGenerationButton
         status={lesson?.status || "PENDING"}
         title={lesson?.title || ""}
-        lessonId={lesson?.id || ""}
+        lessonId={lesson?.uid || ""}
         description={lesson?.description || ""}
         onGenerate={() => {
           getSyllabus();
