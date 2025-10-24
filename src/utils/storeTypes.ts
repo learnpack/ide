@@ -36,6 +36,7 @@ type TTelemetryUrls = {
 };
 
 interface IConfig {
+  testingEnvironment: "auto" | "cloud" | "local";
   slug: string;
   title: TTitle;
   intro: any;
@@ -299,6 +300,7 @@ export interface IStore {
   start: () => void;
   handleEnvironmentChange: (event: any) => void;
   setListeners: () => void;
+  initCompilerSocket: () => void;
   checkRigobotInvitation: (messages: {
     error: string;
   }) => Promise<boolean | string>;

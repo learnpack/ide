@@ -143,13 +143,14 @@ const useStore = create<IStore>((set, get) => ({
       },
       title: {},
       warnings: {},
+      testingEnvironment: "auto",
     },
     exercises: [],
   },
   terminalShouldShow: false,
   videoTutorial: "",
   allowedActions: [],
-  compilerSocket: EventProxy.getEmitter(ENVIRONMENT),
+  compilerSocket: null,
   showVideoTutorial: false,
   exerciseMessages: {},
   host: HOST,
@@ -210,6 +211,7 @@ const useStore = create<IStore>((set, get) => ({
       getOrCreateActiveSession,
       initRigoAI,
       getSyllabus,
+      initCompilerSocket,
     } = get();
     figureEnvironment()
       .then(() => {
@@ -225,6 +227,9 @@ const useStore = create<IStore>((set, get) => ({
         }
       })
       .then(() => {
+        initCompilerSocket();
+      })
+      .then(() => {
         return setListeners();
       })
       .then(() => {
@@ -236,6 +241,22 @@ const useStore = create<IStore>((set, get) => ({
         initRigoAI();
         getSyllabus();
       });
+  },
+
+  initCompilerSocket: () => {
+    const {configObject} = get();
+    const testEnv = configObject.config.testingEnvironment || "auto";
+    
+    console.log("Config object trying to figure out the testing environment", configObject.config);
+    
+
+    if (testEnv === "auto") {
+      set({ compilerSocket: EventProxy.getEmitter(ENVIRONMENT) });
+    } else if (testEnv === "cloud") {
+      set({ compilerSocket: EventProxy.getEmitter("localStorage") });
+    } else if (testEnv === "local") {
+      set({ compilerSocket: EventProxy.getEmitter("localhost") });
+    }
   },
   setListeners: async () => {
     const {
@@ -361,7 +382,6 @@ const useStore = create<IStore>((set, get) => ({
         setOpenedModals({ login: true });
       }
     });
-    set({ compilerSocket: EventProxy.getEmitter(env) });
     if (env === "localStorage") {
       set({ agent: "cloud" });
     }
@@ -1966,51 +1986,8 @@ The user's set up the application in "${language}" language, give your feedback 
   },
 
   test: async () => {
-    const { configObject, uploadFileToCourse } = get();
-    const courseSlug = configObject.config.slug;
-
-    if (!courseSlug) {
-      alert("Course slug not found");
-      return;
-    }
-
-    // Create file input element
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".md";
-    input.multiple = true;
-
-    input.onchange = async (event) => {
-      const files = (event.target as HTMLInputElement).files;
-      if (!files || files.length === 0) return;
-
-      try {
-        for (const file of Array.from(files)) {
-          const fileName = file.name.toLowerCase();
-          let destination = "";
-
-          if (fileName === "readme.md") {
-            destination = "README.md";
-          } else if (fileName === "readme.es.md") {
-            destination = "README.es.md";
-          } else {
-            console.warn(`Skipping file ${file.name} - only README.md and README.es.md are supported`);
-            continue;
-          }
-
-          await uploadFileToCourse(file, destination);
-          console.log(`✅ Successfully uploaded ${file.name} to ${destination}`);
-        }
-
-        alert("Files uploaded successfully!");
-      } catch (error) {
-        console.error("Error uploading files:", error);
-        alert(`Error uploading files: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      }
-    };
-
-    // Trigger file selection
-    input.click();
+    FetchManager.logout()
+    
   },
 
   addVideoTutorial: async (videoTutorial: string) => {

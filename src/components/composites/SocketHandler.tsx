@@ -53,6 +53,7 @@ export function SocketHandler() {
   );
 
   useEffect(() => {
+    if (!compilerSocket) return;
     compilerSocket.on("file_change", async (data: any) => {
       const current = getCurrentExercise();
       const fullpath = data.logs;
@@ -76,16 +77,10 @@ export function SocketHandler() {
       });
       setUser(_session);
     });
-
-    // compilerSocket.onStatus("ready", (data: any) => {
-    //   // if (data.allowed) {
-    //   //   // console.log("allowed", data.allowed);
-    //   //   setAllowedActions(data.allowed);
-    //   // }
-    // });
-  }, []);
+  }, [compilerSocket]);
 
   useEffect(() => {
+    if (!compilerSocket) return;
     compilerSocket.on("reload", (data: any) => {
       data;
       window.location.reload();
@@ -97,9 +92,10 @@ export function SocketHandler() {
         setNextAction(nextAction);
       }
     });
-  }, [currentExercisePosition, exercises]);
+  }, [currentExercisePosition, exercises, compilerSocket]);
 
   useEffect(() => {
+    if (!compilerSocket) return;
     if (inputsResponses.length === 0) return;
 
     const emitResponses = () => {
@@ -128,7 +124,7 @@ export function SocketHandler() {
       emitResponses();
       setShouldWeSend(false);
     }
-  }, [shouldWeSend]);
+  }, [shouldWeSend, compilerSocket]);
 
   const handleCancel = () => {
     setInputsResponses((prev) => [...prev, ""]);
