@@ -70,10 +70,11 @@ const AddExerciseButton = ({
   exercises: any[];
   prevExercise: any;
 }) => {
-  const { config, language, fetchExercises } = useStore((state) => ({
+  const { config, language, fetchExercises, getSyllabus } = useStore((state) => ({
     config: state.configObject,
     language: state.language,
     fetchExercises: state.fetchExercises,
+    getSyllabus: state.getSyllabus,
   }));
   const [isAdding, setIsAdding] = useState(false);
   const exerciseIndexRef = useRef<HTMLDivElement>(null);
@@ -133,7 +134,8 @@ const AddExerciseButton = ({
               language
             );
             toast.success(t("exerciseGenerated"), { id: toastId });
-            await fetchExercises();
+            await fetchExercises();  // Actualiza lista de ejercicios
+            await getSyllabus();     // Actualiza syllabus con numeración corregida
             setIsAdding(false);
           } catch (error) {
             toast.error(t("errorGeneratingExercise"), { id: toastId });
