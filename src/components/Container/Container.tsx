@@ -24,14 +24,14 @@ export const Container = () => {
   const codeSectionRef = useRef<HTMLDivElement>(null);
 
   const editorTabs = useStore((s) => s.editorTabs);
-  const environment = useStore((s) => s.environment);
+  // const environment = useStore((s) => s.environment);
   const terminalShouldShow = useStore((s) => s.terminalShouldShow);
   const isRigoOpened = useStore((s) => s.isRigoOpened);
   const showSidebar = useStore((s) => s.showSidebar);
   const currentContent = useStore((s) => s.currentContent);
   const lastState = useStore((s) => s.lastState);
   const setTerminalShouldShow = useStore((s) => s.setTerminalShouldShow);
-  const agent = useStore((s) => s.agent);
+  // const agent = useStore((s) => s.agent);
   const mode = useStore((s) => s.mode);
 
   const { t } = useTranslation();
@@ -167,7 +167,9 @@ export const Container = () => {
                 {t("instructions")}
               </div>
             )}
-            {editorTabs.length > 0 && environment !== "localhost" && (
+            {/* TODO: UNCCOMENT THIS WHEN THE EXERCISE IS TESTEABLE */}
+            {/* {editorTabs.length > 0 && environment !== "localhost" && ( */}
+            {editorTabs.length > 0 && (
               <div
                 onClick={() => onChangeTab("code")}
                 data-visible={visibleTab === "code" ? true : false}
@@ -189,9 +191,9 @@ export const Container = () => {
           >
             <LessonRenderer />
           </section>
-
-          {editorTabs.length > 0 &&
-            (agent !== "vscode" || ["localStorage", "scorm"].includes(environment)) && (
+{/* TODO: FIX THIS FOR ALL CASES */}
+          {editorTabs.length > 0 && (
+            // (agent !== "vscode" || ["localStorage", "scorm"].includes(environment)) && (
               <section
                 ref={codeSectionRef}
                 className="w-100 "
