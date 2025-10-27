@@ -20,6 +20,11 @@ import { Loader } from "../../composites/Loader/Loader";
 import { Modal } from "@/components/mockups/Modal";
 import { RigoMessage } from "@/components/Creator/RealtimeImage";
 import { AutoResizeTextarea } from "@/components/composites/AutoResizeTextarea/AutoResizeTextarea";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 interface IExerciseList {
   closeSidebar: () => void;
   mode: "creator" | "student";
@@ -158,15 +163,23 @@ const AddExerciseButton = ({
         <Modal outsideClickHandler={() => setIsAdding(!isAdding)}>
           <RigoMessage message={t("addExerciseHelpText")} />
           <div className=" bg-soft-blue rounded padding-small w-100 flex-x gap-small">
-            <div
-              ref={exerciseIndexRef}
-              className="exercise-circle"
-              contentEditable={true}
-            >
-              {incrementDecimalPart(
-                getExerciseIndexFromTitle(prevExercise.title) as string
-              )}
-            </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  ref={exerciseIndexRef}
+                  className="exercise-circle"
+                  contentEditable={false}
+                  style={{ cursor: 'not-allowed', opacity: 0.7 }}
+                >
+                  {incrementDecimalPart(
+                    getExerciseIndexFromTitle(prevExercise.title) as string
+                  )}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>La numeración se asigna automáticamente</p>
+              </TooltipContent>
+            </Tooltip>
             <AutoResizeTextarea
               className="w-100 rounded padding-small"
               defaultValue={description}
