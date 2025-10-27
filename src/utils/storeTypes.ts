@@ -181,6 +181,7 @@ type TTitleTranslations = {
 export interface Lesson {
   id: string;
   uid: string;
+  displayId?: string;  // Numeración visual (ej: "01.1")
   title: string;
   type: "READ" | "CODE" | "QUIZ";
   description: string;
@@ -209,6 +210,7 @@ export type FormState = {
 
 export type Syllabus = {
   lessons?: Lesson[];
+  orderingSystem?: "legacy" | "flexible";  // Sistema de ordenamiento
   // courseInfo: FormState;
   // sources: ParsedLink[]
 };

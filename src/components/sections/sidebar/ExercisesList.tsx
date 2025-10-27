@@ -9,10 +9,12 @@ import {
   deleteExercise,
   markLessonAsDone,
   renameExercise,
+  migrateCourseToFlexible,
 } from "../../../utils/creator";
 import { FetchManager } from "../../../managers/fetchManager";
 import { Syllabus, TMode } from "../../../utils/storeTypes";
 import { cleanFloatString, DEV_MODE } from "../../../utils/lib";
+import { slugify } from "../../../utils/lib.tsx";
 import { eventBus } from "../../../managers/eventBus";
 import { Loader } from "../../composites/Loader/Loader";
 import { Modal } from "@/components/mockups/Modal";
@@ -114,8 +116,38 @@ const AddExerciseButton = ({
       await getSidebar();
       await getSyllabus();
     }
-    catch (error) {
-      toast.error(t("errorGeneratingExercise"), { id: toastId });
+    catch (error: any) {
+      // Si requiere migración, mostrar confirmación
+      if (error.response?.data?.error === "MIGRATION_REQUIRED") {
+        toast.dismiss(toastId);
+        
+        const confirmed = window.confirm(
+          "Para insertar lecciones con renumeración automática, necesitamos actualizar tu curso al sistema flexible.\n\n¿Deseas continuar?"
+        );
+        
+        if (confirmed) {
+          try {
+            const migrateToast = toast.loading("Actualizando curso...");
+            await migrateCourseToFlexible(token);
+            toast.success("Curso actualizado correctamente", { id: migrateToast });
+            
+            // Reintentar creación
+            await createStep(token, description, stepIndex);
+            toast.success(t("exerciseGenerated"));
+            
+            setIsAdding(false);
+            await fetchExercises();
+            await getSidebar();
+            await getSyllabus();
+          } catch (migrationError) {
+            toast.error("Error al actualizar el curso");
+          }
+        } else {
+          toast.error("Operación cancelada", { id: toastId });
+        }
+      } else {
+        toast.error(t("errorGeneratingExercise"), { id: toastId });
+      }
       console.log(error);
     }
   };
@@ -175,6 +207,7 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
     exercises,
     fetchExercises,
     getSidebar,
+    getSyllabus,
     sidebar,
     token,
     language,
@@ -183,6 +216,7 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
     exercises: state.exercises,
     fetchExercises: state.fetchExercises,
     getSidebar: state.getSidebar,
+    getSyllabus: state.getSyllabus,
     sidebar: state.sidebar,
     token: state.token,
     language: state.language,
@@ -246,6 +280,21 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
     }
   };
 
+  const handleMigrate = async () => {
+    if (window.confirm('¿Deseas migrar el curso al sistema flexible?')) {
+      try {
+        const toastId = toast.loading('Migrando curso...');
+        await migrateCourseToFlexible(token);
+        toast.success('Curso migrado correctamente', { id: toastId });
+        await fetchExercises();
+        await getSidebar();
+        await getSyllabus();
+      } catch (error) {
+        toast.error('Error al migrar el curso');
+      }
+    }
+  };
+
   return (
     <div className="exercise-list">
       {selectedExercises.length > 0 && (
@@ -270,6 +319,27 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
               action={() => setSelectedExercises([])}
             />
           </div>
+        </div>
+      )}
+      {syllabus && (
+        <div className="flex items-center gap-2 px-3 py-2 mb-2 text-xs">
+          <span className={`px-2 py-1 rounded ${
+            syllabus.orderingSystem === 'flexible' 
+              ? 'bg-green-100 text-green-700' 
+              : 'bg-gray-100 text-gray-700'
+          }`}>
+            {syllabus.orderingSystem === 'flexible' 
+              ? 'Curso Flexible' 
+              : 'Curso Legacy'}
+          </span>
+          {syllabus.orderingSystem !== 'flexible' && (
+            <button 
+              onClick={handleMigrate}
+              className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Migrar a Flexible
+            </button>
+          )}
         </div>
       )}
       {exercises.map((ex, index) => (
@@ -378,9 +448,14 @@ function ExerciseCard({
 
   const index = title.split("-")[0];
 
+  // Buscar la lección por slug (construido con id + title)
   const foundInSyllabus = syllabus?.lessons?.find((lesson) => {
-    return lesson.id === index;
+    const lessonSlug = slugify(lesson.id + "-" + lesson.title);
+    return lessonSlug === slug;
   });
+
+  // Obtener el displayId para mostrar en lugar del id
+  const displayIdToShow = foundInSyllabus?.displayId || index;
 
   const current = getCurrentExercise();
   const isCurrent = current.slug === slug;
@@ -442,7 +517,7 @@ function ExerciseCard({
             }}
           >
             <button className={`exercise-circle ${done ? "done" : ""}`}>
-              <span>{cleanFloatString(title.split("-")[0])}</span>
+              <span>{cleanFloatString(displayIdToShow)}</span>
             </button>
             <span>{titlefy(sidebar?.[slug]?.[language] || title)}</span>
           </div>
@@ -509,7 +584,7 @@ function ExerciseCard({
                   const toastId = toast.loading(t("deletingExercise"));
 
                   try {
-                    await deleteExercise(slug);
+                    await deleteExercise(slug, token);
                     const currentExercise = getCurrentExercise();
                     if (currentExercise.slug === slug) {
                       handlePositionChange(0);

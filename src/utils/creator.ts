@@ -30,7 +30,27 @@ export const createStep = async (
   }
 };
 
-export const deleteExercise = async (slug: string) => {
+export const migrateCourseToFlexible = async (token: string) => {
+  try {
+    const courseSlug = getSlugFromPath();
+    const headers = {
+      "x-rigo-token": token,
+    };
+    const response = await axios.post(
+      `${
+        DEV_MODE ? "http://localhost:3000" : ""
+      }/course/${courseSlug}/migrate-to-flexible`,
+      {},
+      { headers }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error migrating course:", error);
+    throw error;
+  }
+};
+
+export const deleteExercise = async (slug: string, token?: string) => {
   try {
     const courseSlug = getSlugFromPath();
     const response = await axios.delete(
@@ -39,7 +59,20 @@ export const deleteExercise = async (slug: string) => {
       }/exercise/${slug}/delete?slug=${courseSlug}`
     );
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
+    if (error.response?.data?.error === "MIGRATION_REQUIRED" && token) {
+      const confirmed = window.confirm(
+        "Para eliminar lecciones con renumeración automática, necesitamos actualizar tu curso al sistema flexible. ¿Deseas continuar?"
+      );
+      
+      if (confirmed) {
+        await migrateCourseToFlexible(token);
+        // Reintentar eliminación
+        return deleteExercise(slug, token);
+      } else {
+        throw new Error("MIGRATION_CANCELLED");
+      }
+    }
     console.error("Error deleting exercise:", error);
     throw error;
   }
