@@ -738,12 +738,15 @@ The user's set up the application in "${language}" language, give your feedback 
     const exercise = await FetchManager.getExerciseInfo(slug);
 
 
-    let isTesteable = exercise.graded;
+    // TODO: THIS IS A TEMPORAL FIX TO CHECK IF THE EXERCISE IS TESTEABLE
+    let isTesteable = exercise.graded || exercise.files.length > 0;
     let isBuildable;
     let hasSolution = false;
 
     if (exercise.entry) isBuildable = true;
     if (!exercise.language) isBuildable = false;
+    // TODO: THIS IS A TEMPORAL FIX TO CHECK IF THE EXERCISE IS BUILDABLE
+    isBuildable = isTesteable
     // @ts-ignore
     const solutionFiles = exercise.files.filter((file) =>
       file.name.includes("solution.hide")
