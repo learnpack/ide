@@ -207,6 +207,7 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
     exercises,
     fetchExercises,
     getSidebar,
+    getSyllabus,
     sidebar,
     token,
     language,
@@ -215,6 +216,7 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
     exercises: state.exercises,
     fetchExercises: state.fetchExercises,
     getSidebar: state.getSidebar,
+    getSyllabus: state.getSyllabus,
     sidebar: state.sidebar,
     token: state.token,
     language: state.language,
@@ -314,6 +316,8 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
             handleSelect={handleSelect}
             selected={selectedExercises.includes(ex.slug)}
             syllabus={syllabus}
+            getSidebar={getSidebar}
+            getSyllabus={getSyllabus}
           />
           {mode === "creator" && (
             <AddExerciseButton
@@ -338,6 +342,8 @@ interface IExerciseProps {
   handleSelect: (slug: string) => void;
   selected: boolean;
   syllabus: Syllabus;
+  getSidebar: () => Promise<any>;
+  getSyllabus: () => Promise<void>;
 }
 
 function ExerciseCard({
@@ -351,6 +357,8 @@ function ExerciseCard({
   handleSelect,
   selected,
   syllabus,
+  getSidebar,
+  getSyllabus,
 }: IExerciseProps) {
   const { t } = useTranslation();
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -554,6 +562,16 @@ function ExerciseCard({
                     toast.success(t("exerciseDeleted"), { id: toastId });
 
                     await fetchExercises();
+                    try {
+                      await getSidebar();
+                    } catch (e) {
+                      console.error("Error fetching sidebar:", e);
+                    }
+                    try {
+                      await getSyllabus();
+                    } catch (e) {
+                      console.error("Error fetching syllabus:", e);
+                    }
                   } catch (error) {
                     toast.error(t("errorDeletingExercise"), {
                       id: toastId,
