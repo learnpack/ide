@@ -192,6 +192,7 @@ export const FetchManager = {
       localhost: async () => {
         const respose = await getExercise(slug);
         const exercise = await respose.json();
+        console.log("EXERCISE FROM LOCALHOST", exercise);
         return exercise;
       },
       localStorage: async () => {
