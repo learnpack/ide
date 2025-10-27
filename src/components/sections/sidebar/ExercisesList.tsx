@@ -207,7 +207,6 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
     exercises,
     fetchExercises,
     getSidebar,
-    getSyllabus,
     sidebar,
     token,
     language,
@@ -216,7 +215,6 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
     exercises: state.exercises,
     fetchExercises: state.fetchExercises,
     getSidebar: state.getSidebar,
-    getSyllabus: state.getSyllabus,
     sidebar: state.sidebar,
     token: state.token,
     language: state.language,
@@ -280,21 +278,6 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
     }
   };
 
-  const handleMigrate = async () => {
-    if (window.confirm('¿Deseas migrar el curso al sistema flexible?')) {
-      try {
-        const toastId = toast.loading('Migrando curso...');
-        await migrateCourseToFlexible(token);
-        toast.success('Curso migrado correctamente', { id: toastId });
-        await fetchExercises();
-        await getSidebar();
-        await getSyllabus();
-      } catch (error) {
-        toast.error('Error al migrar el curso');
-      }
-    }
-  };
-
   return (
     <div className="exercise-list">
       {selectedExercises.length > 0 && (
@@ -319,27 +302,6 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
               action={() => setSelectedExercises([])}
             />
           </div>
-        </div>
-      )}
-      {syllabus && (
-        <div className="flex items-center gap-2 px-3 py-2 mb-2 text-xs">
-          <span className={`px-2 py-1 rounded ${
-            syllabus.orderingSystem === 'flexible' 
-              ? 'bg-green-100 text-green-700' 
-              : 'bg-gray-100 text-gray-700'
-          }`}>
-            {syllabus.orderingSystem === 'flexible' 
-              ? 'Curso Flexible' 
-              : 'Curso Legacy'}
-          </span>
-          {syllabus.orderingSystem !== 'flexible' && (
-            <button 
-              onClick={handleMigrate}
-              className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              Migrar a Flexible
-            </button>
-          )}
         </div>
       )}
       {exercises.map((ex, index) => (
