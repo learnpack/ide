@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import MonacoEditor from "@monaco-editor/react";
 import useStore from "../../../utils/store";
 import { LocalStorage } from "../../../managers/localStorage";
@@ -8,7 +8,7 @@ import FeedbackButton from "../../sections/header/FeedbackButton";
 import ResetButton from "../../sections/header/ResetButton";
 
 import { useTranslation } from "react-i18next";
-import { debounce } from "../../../utils/lib";
+// import { debounce } from "../../../utils/lib";
 import { Tab } from "../../../types/editor";
 import { CompileOptions } from "../../sections/header/CompileOptions";
 import SimpleButton from "../../mockups/SimpleButton";
@@ -59,7 +59,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     updateFileContent,
     cleanTerminal,
     theme,
-    updateDBSession,
+    // updateDBSession,
     mode,
     fetchExercises,
     createNewFile,
@@ -70,7 +70,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     updateFileContent: state.updateFileContent,
     cleanTerminal: state.cleanTerminal,
     theme: state.theme,
-    updateDBSession: state.updateDBSession,
+    // updateDBSession: state.updateDBSession,
     mode: state.mode,
     fetchExercises: state.fetchExercises,
     createNewFile: state.createNewFile,
@@ -83,12 +83,12 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
   const [showCreateFileModal, setShowCreateFileModal] = useState(false);
   const [newFileName, setNewFileName] = useState("");
 
-  const debouncedStore = useCallback(
-    debounce(() => {
-      updateDBSession();
-    }, 5000),
-    []
-  );
+  // const debouncedStore = useCallback(
+  //   debounce(() => {
+  //     updateDBSession();
+  //   }, 5000),
+  //   []
+  // );
 
   const updateContent = (id: number, content: string) => {
     const newTabs = tabs.map((tab) =>
@@ -109,7 +109,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
       if (mode === "creator") {
         updateFileContent(ex.slug, tab);
       }
-      debouncedStore();
+      // debouncedStore();
     }
   };
 
