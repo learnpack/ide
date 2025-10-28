@@ -232,6 +232,7 @@ export interface IStore {
   learnpackPurposeId: number | string;
   status: string;
   environment: "localhost" | "localStorage" | "creatorWeb";
+  testingEnvironment: "auto" | "cloud" | "local";
   dialogData: TDialog;
   lessonTitle: string;
   lastStartedAt: Date | null;

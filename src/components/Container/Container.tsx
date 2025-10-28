@@ -2,7 +2,7 @@ import styles from "./Container.module.css";
 import CodeEditor from "../composites/Editor/Editor";
 import { useTranslation } from "react-i18next";
 import useStore from "../../utils/store";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import toast from "react-hot-toast";
 import Chat from "../sections/modals/Chat";
 import Sidebar from "../sections/sidebar/Sidebar";
@@ -25,6 +25,7 @@ export const Container = () => {
 
   const editorTabs = useStore((s) => s.editorTabs);
   const environment = useStore((s) => s.environment);
+  const testingEnvironment = useStore((s) => s.testingEnvironment);
   const terminalShouldShow = useStore((s) => s.terminalShouldShow);
   const isRigoOpened = useStore((s) => s.isRigoOpened);
   const showSidebar = useStore((s) => s.showSidebar);
@@ -141,6 +142,16 @@ export const Container = () => {
     }
   };
 
+  const displayCodeEditor = useCallback((): boolean => {
+
+    const isSupportedEnvironment = ["localStorage", "scorm", "creatorWeb"].includes(environment);
+    // if (editorTabs.length > 0 && ["localStorage", "scorm", "creatorWeb"].includes(environment)) {
+    if (editorTabs.length > 0 && (isSupportedEnvironment || testingEnvironment === "cloud")) {
+      return true;
+    }
+    return false;
+  }, [editorTabs, environment, testingEnvironment]);
+
   return (
     <>
       <StepsProgress />
@@ -159,21 +170,21 @@ export const Container = () => {
             }}
             className={styles.appTabs}
           >
-            {editorTabs.length > 0 && (
-              <div
-                onClick={() => onChangeTab("instructions")}
-                data-visible={visibleTab === "instructions" ? true : false}
-              >
-                {t("instructions")}
-              </div>
-            )}
-            {editorTabs.length > 0 && environment !== "localhost" && (
-              <div
-                onClick={() => onChangeTab("code")}
-                data-visible={visibleTab === "code" ? true : false}
-              >
-                {t("code")}
-              </div>
+            {displayCodeEditor() && (
+              <>
+                <div
+                  onClick={() => onChangeTab("instructions")}
+                  data-visible={visibleTab === "instructions" ? true : false}
+                >
+                  {t("instructions")}
+                </div>
+                <div
+                  onClick={() => onChangeTab("code")}
+                  data-visible={visibleTab === "code" ? true : false}
+                >
+                  {t("code")}
+                </div>
+              </>
             )}
           </div>
           <section
@@ -189,21 +200,20 @@ export const Container = () => {
           >
             <LessonRenderer />
           </section>
-          {editorTabs.length > 0 && 
-            (["localStorage", "scorm", "creatorWeb"].includes(environment)) && (
-              <section
-                ref={codeSectionRef}
-                className="w-100 "
-                style={{
-                  display:
-                    visibleTab === "code" || visibleTab === "all"
-                      ? "block"
-                      : "none",
-                }}
-              >
-                <CodeEditor terminal={isRigoOpened ? "hidden" : "normal"} />
-              </section>
-            )}
+          {displayCodeEditor() && (
+            <section
+              ref={codeSectionRef}
+              className="w-100 "
+              style={{
+                display:
+                  visibleTab === "code" || visibleTab === "all"
+                    ? "block"
+                    : "none",
+              }}
+            >
+              <CodeEditor terminal={isRigoOpened ? "hidden" : "normal"} />
+            </section>
+          )}
         </div>
 
         {isRigoOpened && window.innerWidth > 768 && <AgentTab />}

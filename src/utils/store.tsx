@@ -84,6 +84,7 @@ const useStore = create<IStore>((set, get) => ({
     message: "",
     format: "md" as "md",
   },
+  testingEnvironment: "auto",
   maxQuizRetries: 3,
   userConsumables: {
     ai_compilation: 0,
@@ -249,6 +250,7 @@ const useStore = create<IStore>((set, get) => ({
     } else if (testEnv === "local") {
       set({ compilerSocket: EventProxy.getEmitter("localhost") });
     }
+    set({ testingEnvironment: testEnv });
 
     return await setListeners();
   },
