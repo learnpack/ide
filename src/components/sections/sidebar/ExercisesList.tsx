@@ -72,10 +72,30 @@ function incrementDecimalPart(numberStr: string): string {
   return parts.join(".");
 }
 
+const getNextDisplayId = (prevExercise: any, syllabus: Syllabus): string => {
+  // Buscar la lección en el syllabus por slug
+  const foundLesson = syllabus?.lessons?.find((lesson) => {
+    const lessonSlug = slugify(lesson.id + "-" + lesson.title);
+    return lessonSlug === prevExercise.slug;
+  });
+
+  // Si encontró la lección y tiene displayId, usar el sistema flexible
+  if (foundLesson?.displayId) {
+    return incrementDecimalPart(foundLesson.displayId);
+  }
+
+  // Si no, usar el sistema legacy (extraer del título)
+  return incrementDecimalPart(
+    getExerciseIndexFromTitle(prevExercise.title) as string
+  );
+};
+
 const AddExerciseButton = ({
   prevExercise,
+  syllabus,
 }: {
   prevExercise: any;
+  syllabus: Syllabus;
 }) => {
   const { token, fetchExercises, getSidebar, getSyllabus } = useStore((state) => ({
     token: state.token,
@@ -171,9 +191,7 @@ const AddExerciseButton = ({
                   contentEditable={false}
                   style={{ cursor: 'not-allowed', opacity: 0.7 }}
                 >
-                  {incrementDecimalPart(
-                    getExerciseIndexFromTitle(prevExercise.title) as string
-                  )}
+                  {getNextDisplayId(prevExercise, syllabus)}
                 </div>
               </TooltipTrigger>
               <TooltipContent>
@@ -335,7 +353,7 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
           {mode === "creator" && (
             <AddExerciseButton
               prevExercise={exercises[index]}
-            // exercises={exercises}
+              syllabus={syllabus}
             />
           )}
         </div>
