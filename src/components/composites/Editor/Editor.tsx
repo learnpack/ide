@@ -615,7 +615,6 @@ export const Toolbar = ({
   const {
     lastState,
     getCurrentExercise,
-    // allowedActions,
     isBuildable,
     isTesteable,
     currentExercisePosition,
@@ -623,7 +622,6 @@ export const Toolbar = ({
   } = useStore((state) => ({
     lastState: state.lastState,
     getCurrentExercise: state.getCurrentExercise,
-    // allowedActions: state.allowedActions,
     isBuildable: state.isBuildable,
     isTesteable: state.isTesteable,
     handlePositionChange: state.handlePositionChange,

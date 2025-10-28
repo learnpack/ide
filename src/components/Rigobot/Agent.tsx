@@ -69,7 +69,6 @@ export const AgentTab = () => {
 
     environment,
     setEditingContent,
-    resetEditingContent,
     rigoContext,
     mode,
     isBuildable,
@@ -94,7 +93,6 @@ export const AgentTab = () => {
     registerTelemetryEvent: state.registerTelemetryEvent,
     editingContent: state.editingContent,
     setEditingContent: state.setEditingContent,
-    resetEditingContent: state.resetEditingContent,
     rigoContext: state.rigoContext,
     mode: state.mode,
     isBuildable: state.isBuildable,
@@ -285,7 +283,7 @@ export const AgentTab = () => {
       try {
         // Initialize editingContent if it's empty
         if (!editingContent) {
-          resetEditingContent();
+          setEditingContent(currentContent);
         }
 
         const currentEditingContent = editingContent || currentContent;
@@ -311,8 +309,6 @@ ${DIFF_SEPARATOR}
 ${args.content}
 \`\`\``;
 
-        console.log("changesDiff", changesDiff);
-
         // Replace the lines with the changesDiff block
         const beforeLines = lines.slice(0, args.lineStart - 1);
         const afterLines = lines.slice(args.lineEnd);
@@ -321,8 +317,6 @@ ${args.content}
           changesDiff,
           ...afterLines,
         ].join("\n");
-
-        console.log("updatedEditingContent", updatedEditingContent);
 
         setEditingContent(updatedEditingContent);
 

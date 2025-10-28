@@ -245,7 +245,6 @@ export interface IStore {
   bc_token: string;
   assessmentConfig: TAssessmentConfig;
   configObject: IConfigObject;
-  allowedActions: string[];
   videoTutorial: string;
   showVideoTutorial: boolean;
   exerciseMessages: IExerciseMessages;
@@ -295,7 +294,6 @@ export interface IStore {
   setRigoContext: (context: Partial<TRigoContext>) => void;
   toggleRigo: (opts?: ToggleRigoOpts) => void;
   setEditingContent: (content: string) => void;
-  resetEditingContent: () => void;
   setTerminalShouldShow: (shouldShow: boolean) => void;
   start: () => void;
   handleEnvironmentChange: (event: any) => void;
@@ -316,7 +314,6 @@ export interface IStore {
   refreshDataFromAnotherTab: (data: TRefreshData) => void;
   setExerciseMessages: (messages: IMessage[], position: number) => void;
   setShowVideoTutorial: (show: boolean) => void;
-  setAllowedActions: (actions: string[]) => void;
   registerTelemetryEvent: (event: TStepEvent, data: object) => void;
   getTelemetryStep: (stepPosition: number) => Promise<TStep | null>;
   setLanguage: (language: string, fetchExercise?: boolean) => void;

@@ -149,7 +149,6 @@ const useStore = create<IStore>((set, get) => ({
   },
   terminalShouldShow: false,
   videoTutorial: "",
-  allowedActions: [],
   compilerSocket: null,
   showVideoTutorial: false,
   exerciseMessages: {},
@@ -411,10 +410,6 @@ const useStore = create<IStore>((set, get) => ({
 
   setShowVideoTutorial: (show: boolean) => {
     set({ showVideoTutorial: show });
-  },
-  // TODO: This is not being used implement or delete
-  setAllowedActions: (actions) => {
-    set({ allowedActions: actions });
   },
 
   // functions
@@ -739,14 +734,15 @@ The user's set up the application in "${language}" language, give your feedback 
 
 
     // TODO: THIS IS A TEMPORAL FIX TO CHECK IF THE EXERCISE IS TESTEABLE
-    let isTesteable = exercise.graded || exercise.files.length > 0;
+    // let isTesteable = exercise.graded || exercise.files.length > 0;
+    let isTesteable = exercise.graded;
     let isBuildable;
     let hasSolution = false;
 
     if (exercise.entry) isBuildable = true;
     if (!exercise.language) isBuildable = false;
     // TODO: THIS IS A TEMPORAL FIX TO CHECK IF THE EXERCISE IS BUILDABLE
-    isBuildable = isTesteable
+    // isBuildable = isTesteable
     // @ts-ignore
     const solutionFiles = exercise.files.filter((file) =>
       file.name.includes("solution.hide")
@@ -957,7 +953,7 @@ The user's set up the application in "${language}" language, give your feedback 
     compilerSocket.openWindow(data);
   },
   updateEditorTabs: (newTab = null) => {
-    const { getCurrentExercise, editorTabs, setAllowedActions, environment } =
+    const { getCurrentExercise, editorTabs, environment } =
       get();
 
     const exercise = getCurrentExercise();
@@ -1055,7 +1051,6 @@ The user's set up the application in "${language}" language, give your feedback 
         editorTabsCopy.length > 0 &&
         (environment === "localStorage" || environment === "creatorWeb")
       ) {
-        setAllowedActions(["tutorial", "test", "build"]);
         set({ isTesteable: true, isBuildable: true });
       }
     };
@@ -2156,10 +2151,6 @@ The user's set up the application in "${language}" language, give your feedback 
   },
   setEditingContent: (content) => {
     set({ editingContent: content });
-  },
-  // TODO: I think we should delete this function
-  resetEditingContent: () => {
-    set((state) => ({ editingContent: state.currentContent }));
   },
 }));
 

@@ -24,7 +24,7 @@ export const Container = () => {
   const codeSectionRef = useRef<HTMLDivElement>(null);
 
   const editorTabs = useStore((s) => s.editorTabs);
-  // const environment = useStore((s) => s.environment);
+  const environment = useStore((s) => s.environment);
   const terminalShouldShow = useStore((s) => s.terminalShouldShow);
   const isRigoOpened = useStore((s) => s.isRigoOpened);
   const showSidebar = useStore((s) => s.showSidebar);
@@ -167,9 +167,7 @@ export const Container = () => {
                 {t("instructions")}
               </div>
             )}
-            {/* TODO: UNCCOMENT THIS WHEN THE EXERCISE IS TESTEABLE */}
-            {/* {editorTabs.length > 0 && environment !== "localhost" && ( */}
-            {editorTabs.length > 0 && (
+            {editorTabs.length > 0 && environment !== "localhost" && (
               <div
                 onClick={() => onChangeTab("code")}
                 data-visible={visibleTab === "code" ? true : false}
@@ -191,9 +189,8 @@ export const Container = () => {
           >
             <LessonRenderer />
           </section>
-{/* TODO: FIX THIS FOR ALL CASES */}
-          {editorTabs.length > 0 && (
-            // (agent !== "vscode" || ["localStorage", "scorm"].includes(environment)) && (
+          {editorTabs.length > 0 && 
+            (["localStorage", "scorm", "creatorWeb"].includes(environment)) && (
               <section
                 ref={codeSectionRef}
                 className="w-100 "
