@@ -203,8 +203,7 @@ const useStore = create<IStore>((set, get) => ({
       fetchExercises,
       fetchReadme,
       checkParams,
-      checkLoggedStatus,
-      setListeners,
+      checkLoggedStatus,  
       figureEnvironment,
       startTelemetry,
       getOrCreateActiveSession,
@@ -229,9 +228,6 @@ const useStore = create<IStore>((set, get) => ({
         initCompilerSocket();
       })
       .then(() => {
-        return setListeners();
-      })
-      .then(() => {
         RigoAI.load();
       })
       .then(() => {
@@ -242,12 +238,9 @@ const useStore = create<IStore>((set, get) => ({
       });
   },
 
-  initCompilerSocket: () => {
-    const {configObject} = get();
-    const testEnv = configObject.config.testingEnvironment || "auto";
-    
-    console.log("Config object trying to figure out the testing environment", configObject.config);
-    
+  initCompilerSocket: async ( testingEnvironment?: "auto" | "cloud" | "local" ) => {
+    const {configObject, setListeners} = get();
+    const testEnv = testingEnvironment || configObject.config.testingEnvironment || "auto";
 
     if (testEnv === "auto") {
       set({ compilerSocket: EventProxy.getEmitter(ENVIRONMENT) });
@@ -256,6 +249,8 @@ const useStore = create<IStore>((set, get) => ({
     } else if (testEnv === "local") {
       set({ compilerSocket: EventProxy.getEmitter("localhost") });
     }
+
+    return await setListeners();
   },
   setListeners: async () => {
     const {
@@ -718,7 +713,7 @@ The user's set up the application in "${language}" language, give your feedback 
   },
 
   fetchSingleExerciseInfo: async (index) => {
-    const { exercises, updateEditorTabs } = get();
+    const { exercises, updateEditorTabs, initCompilerSocket } = get();
 
     if (exercises.length <= 0) {
       return;
@@ -732,17 +727,19 @@ The user's set up the application in "${language}" language, give your feedback 
 
     const exercise = await FetchManager.getExerciseInfo(slug);
 
-
-    // TODO: THIS IS A TEMPORAL FIX TO CHECK IF THE EXERCISE IS TESTEABLE
-    // let isTesteable = exercise.graded || exercise.files.length > 0;
     let isTesteable = exercise.graded;
     let isBuildable;
     let hasSolution = false;
 
     if (exercise.entry) isBuildable = true;
     if (!exercise.language) isBuildable = false;
-    // TODO: THIS IS A TEMPORAL FIX TO CHECK IF THE EXERCISE IS BUILDABLE
-    // isBuildable = isTesteable
+
+    // Special case, we have files, but we don't ave entry or language, it means the CLI is not capable of compiling, then:
+    if (!exercise.entry && !exercise.language && exercise.files.length > 0) {
+      isBuildable = true;
+      isTesteable = true;
+      await initCompilerSocket("cloud");
+    };
     // @ts-ignore
     const solutionFiles = exercise.files.filter((file) =>
       file.name.includes("solution.hide")

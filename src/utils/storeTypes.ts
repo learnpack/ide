@@ -298,7 +298,7 @@ export interface IStore {
   start: () => void;
   handleEnvironmentChange: (event: any) => void;
   setListeners: () => void;
-  initCompilerSocket: () => void;
+  initCompilerSocket: ( testingEnvironment?: "auto" | "cloud" | "local" ) => Promise<void>;
   checkRigobotInvitation: (messages: {
     error: string;
   }) => Promise<boolean | string>;
