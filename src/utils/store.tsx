@@ -736,8 +736,10 @@ The user's set up the application in "${language}" language, give your feedback 
     if (exercise.entry) isBuildable = true;
     if (!exercise.language) isBuildable = false;
 
+    const notHiddenFiles = exercise.files.filter((file: TFile) => !file.hidden);
+
     // Special case, we have files, but we don't ave entry or language, it means the CLI is not capable of compiling, then:
-    if (!exercise.entry && !exercise.language && exercise.files.length > 0) {
+    if (!exercise.entry && !exercise.language && notHiddenFiles.length > 0) {
       isBuildable = true;
       isTesteable = true;
       await initCompilerSocket("cloud");
