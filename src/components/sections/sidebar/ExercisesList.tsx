@@ -142,38 +142,28 @@ const AddExerciseButton = ({
       await getSyllabus();
     }
     catch (error: any) {
-      // Si requiere migración, mostrar confirmación
+      // Si requiere migración, ejecutar automáticamente
       if (error.response?.data?.error === "MIGRATION_REQUIRED") {
-        toast.dismiss(toastId);
-        
-        const confirmed = window.confirm(
-          "Para insertar lecciones con renumeración automática, necesitamos actualizar tu curso al sistema flexible.\n\n¿Deseas continuar?"
-        );
-        
-        if (confirmed) {
-          try {
-            const migrateToast = toast.loading("Actualizando curso...");
-            await migrateCourseToFlexible(token);
-            toast.success("Curso actualizado correctamente", { id: migrateToast });
-            
-            // Reintentar creación
-            await createStep(token, description, stepIndex);
-            toast.success(t("exerciseGenerated"));
-            
-            setIsAdding(false);
-            await fetchExercises();
-            await getSidebar();
-            await getSyllabus();
-          } catch (migrationError) {
-            toast.error("Error al actualizar el curso");
-          }
-        } else {
-          toast.error("Operación cancelada", { id: toastId });
+        try {
+          // Migración automática sin confirmación
+          await migrateCourseToFlexible(token);
+          
+          // Reintentar creación
+          await createStep(token, description, stepIndex);
+          toast.success(t("exerciseGenerated"), { id: toastId });
+          
+          setIsAdding(false);
+          await fetchExercises();
+          await getSidebar();
+          await getSyllabus();
+        } catch (migrationError) {
+          toast.error(t("errorGeneratingExercise"), { id: toastId });
+          console.log(migrationError);
         }
       } else {
         toast.error(t("errorGeneratingExercise"), { id: toastId });
+        console.log(error);
       }
-      console.log(error);
     }
   };
 

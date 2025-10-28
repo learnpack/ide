@@ -61,17 +61,10 @@ export const deleteExercise = async (slug: string, token?: string) => {
     return response.data;
   } catch (error: any) {
     if (error.response?.data?.error === "MIGRATION_REQUIRED" && token) {
-      const confirmed = window.confirm(
-        "Para eliminar lecciones con renumeración automática, necesitamos actualizar tu curso al sistema flexible. ¿Deseas continuar?"
-      );
-      
-      if (confirmed) {
-        await migrateCourseToFlexible(token);
-        // Reintentar eliminación
-        return deleteExercise(slug, token);
-      } else {
-        throw new Error("MIGRATION_CANCELLED");
-      }
+      // Migración automática
+      await migrateCourseToFlexible(token);
+      // Reintentar eliminación
+      return deleteExercise(slug, token);
     }
     console.error("Error deleting exercise:", error);
     throw error;
