@@ -91,9 +91,9 @@ export const publishTutorial = async (
       "x-breathecode-token": breathecodeToken,
       "x-rigo-token": rigoToken,
     };
-    const DEFAULT_ACADEMY_ID = "663296363296363296363296";
+    const DEFAULT_ACADEMY_ID = "333";
     const body = {
-      categoryId: "663296363296363296363296",
+      categoryId: "333",
       academyId: academyId !== null && academyId !== undefined ? academyId.toString() : DEFAULT_ACADEMY_ID,
     };
     const response = await axios.post(
