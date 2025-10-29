@@ -1,6 +1,6 @@
 version: "1.0.0"
 components:
-  - name: mermaid-diagram
+  - name: mermaid_diagram
     intendedUse:
       - explanation
       - complementary to the main content
@@ -26,7 +26,7 @@ components:
           D --> B
       ```
 
-  - name: ask-rigo-button
+  - name: ask_rigo_button
     intendedUse:
       - explanation
       - complementary to the main content
@@ -45,26 +45,32 @@ components:
 
       [Ask Rigo how to create a function in Python](https://4geeks.com/ask?query=help-me-understand-how-to-create-a-function-in-python-in-the-simplest-possible-way)
 
-  - name: runnable-code
+  - name: runnable_code
     intendedUse:
       - code experimentation
       - immediate feedback
       - understand code
     description: >-
-      Code blocks with the runnable metadata that can be executed directly in the browser. Users can run the code and see the output, making it interactive for learning programming concepts.
+      Code blocks with the runnable metadata that can be executed directly in the application. Users can run the code and see the output, making it interactive for learning programming concepts no matter the programming language. Try to use this component to let the user experiment with the code and see the output, not just to show the code. If you show code example, use this component to let the user experiment with the code and see the output when possible.
     goodFor:
       - code experimentation
       - immediate feedback
       - understand code
     avoid:
-      - complex code that might not run in the browser environment easily
-      - this is intended only for demonstrative purposes
+      - this is intended only for demonstrative purposes. The student CANNOT edit the code, only run it.
     example: |
       ```javascript runnable="true"
       console.log("Hello, World!");
       let x = 5;
       let y = 10;
       console.log(x + y);
+      ```
+
+      ```python runnable="true"
+      print("Hello, World!")
+      x = 5
+      y = 10
+      print(x + y)
       ```
 
   - name: image

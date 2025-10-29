@@ -12,7 +12,7 @@ import {
 } from "../../../utils/creator";
 import { FetchManager } from "../../../managers/fetchManager";
 import { Syllabus, TMode } from "../../../utils/storeTypes";
-import { cleanFloatString, DEV_MODE } from "../../../utils/lib";
+import { cleanFloatString, DEV_MODE, slugify } from "../../../utils/lib";
 import { eventBus } from "../../../managers/eventBus";
 import { Loader } from "../../composites/Loader/Loader";
 import { Modal } from "@/components/mockups/Modal";
@@ -23,10 +23,16 @@ interface IExerciseList {
   mode: "creator" | "student";
 }
 
-const fixTitleFormat = (title: string): string | null => {
+type CheckTitleResult = {
+  isValid: boolean;
+  fixedTitle: string | null;
+  error: string | null;
+};
+
+const fixTitleFormat = (title: string): CheckTitleResult => {
   const match = title.match(/^(\d{1,2})(?:\.(\d{1,2}))?\s*-\s*(.+)$/);
 
-  if (!match) return null; // Invalid format, cannot be fixed
+  if (!match) return { isValid: false, fixedTitle: null, error: "invalidTitleFormatExplanation" }; // Invalid format, cannot be fixed
 
   let [_, mainIndex, decimalPart, text] = match;
 
@@ -39,10 +45,10 @@ const fixTitleFormat = (title: string): string | null => {
   // Ensure decimal part is at most two digits
   if (decimalPart) {
     decimalPart = decimalPart.substring(0, 2);
-    return `${mainIndex}.${decimalPart}-${text}`;
+    return { isValid: true, fixedTitle: `${mainIndex}.${decimalPart}-${text}`, error: null };
   }
 
-  return `${mainIndex}-${text}`;
+  return { isValid: true, fixedTitle: `${mainIndex}-${text}`, error: null };
 };
 
 const getExerciseIndexFromTitle = (title: string): string => {
@@ -340,9 +346,21 @@ function ExerciseCard({
 
   const handleEdit = async () => {
     if (isEditing) {
-      const newTitle = titleInputRef.current?.value;
       const toastId = toast.loading(t("updatingExercise"));
-      const fixedTitle = fixTitleFormat(newTitle as string);
+      let newTitle = titleInputRef.current?.value;
+       if (!newTitle) {
+        toast.error(t("titleCannotBeEmpty"), { id: toastId });
+        return;
+      }
+      newTitle = newTitle?.trim();
+      newTitle = newTitle.replace(/_/g, "-");
+      newTitle = slugify(newTitle);
+
+      const { isValid, fixedTitle, error } = fixTitleFormat(newTitle);
+      if (!isValid && error ) {
+        toast.error(t(error), { id: toastId });
+        return;
+      }
       if (!fixedTitle) {
         toast.error(t("invalidExerciseName"), { id: toastId });
         return;
@@ -414,7 +432,7 @@ function ExerciseCard({
           <input
             className="padding-small rounded bg-transparent"
             type="text"
-            defaultValue={title}
+            defaultValue={`${title.split("-")[0]} ${titlefy(title)}`}
             ref={titleInputRef}
           // onChange={(e) => setTitle(e.target.value)}
           />

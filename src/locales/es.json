@@ -503,5 +503,7 @@
     "add-exercise": "Agregar ejercicio",
     "exerciseDescription": "Descripción del ejercicio",
     "addExerciseHelpText": "Te ayudo a agregar un nuevo paso a tu curso, explica el resultado del paso y yo haré mi mejor esfuerzo para crearlo.",
-    "explainMeWhichChangesYouWantToMake": "Explícame qué cambios quieres hacer al paso"
+    "explainMeWhichChangesYouWantToMake": "Explícame qué cambios quieres hacer al paso",
+    "titleCannotBeEmpty": "El título no puede estar vacío",
+    "invalidTitleFormatExplanation": "El título no está en el formato correcto, por favor usa el formato: 1.1 Título del ejercicio. Debe siempre empezar con el índice del ejercicio."
 }

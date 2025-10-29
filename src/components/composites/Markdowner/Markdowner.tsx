@@ -610,6 +610,7 @@ const CustomCodeBlock = ({
 
   const { t } = useTranslation();
   const [executionResult, setExecutionResult] = useState<string | null>(null);
+  const [isExecuting, setIsExecuting] = useState(false);
   if (language === "stdout" || language === "stderr") {
     return (
       <div className={`${language}`}>
@@ -665,9 +666,10 @@ const CustomCodeBlock = ({
         return (
           <SimpleButton
             title={t("runCode")}
-            svg={svgs.runCustom}
+            svg={isExecuting ? <Loader extraClass="svg-blue" svg={svgs.runCustom} text={t("runningCode")} size="sm"/> : svgs.runCustom}
             action={async () => {
-              const tid = toast.loading(t("runningCode"));
+              if (isExecuting) return;
+              setIsExecuting(true);
               RigoAI.useTemplate({
                 slug: "structured-build-learnpack",
                 inputs: {
@@ -675,15 +677,14 @@ const CustomCodeBlock = ({
                   inputs: "{}",
                 },
                 onComplete: (success, rigoData) => {
-                  // console.log(success, rigoData);
-                  toast.dismiss(tid);
                   if (success) {
                     setExecutionResult(rigoData.data.parsed.stdout);
                     useConsumable("ai-compilation");
                   } else {
-                    toast.error(t("errorRunningCode"));
-                    toast.dismiss(tid);
+                    console.error("Error running code", rigoData);
+
                   }
+                  setIsExecuting(false);
                 },
               });
             }}
