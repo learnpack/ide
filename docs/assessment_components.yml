@@ -156,6 +156,9 @@ components:
       - So you need to suggest as many files as needed for the exercise
     description: >-
       A code file proposal is a component the teacher will use to generate some coding files used to solve an exercise in the instructions, it consists in a markdown code block with the language set to `code_challenge_proposal`. Inside the code block, you must explain what the student needs to do in the exercise in at most 20 sentences. You need to explain the files that will be generated and the instructions for the student to complete the exercise.
+    rules:
+      - The main file must be always be named app.extension, where extension is the extension of the file, for example, app.js, app.html, app.css, etc.
+      - Keep challenges simple and easy to understand for the student, it must be related to the lesson content and the exercise instructions.
     avoid:
       - complex code that might not be inferred correctly by an AI model
     example: |
@@ -164,5 +167,5 @@ components:
       ```
 
       ```code_challenge_proposal
-      In this exercise, the student needs to create a simple HTML page with a title and a paragraph. This page is linked to the app.css file with basic styling. The HTML files contains a heading but is missing the paragraph. The styles contain the rules for two id: #title and #paragraph, but the student needs to add the ids to the correct elements in the HTML file.
+      In this exercise, the student needs to create a simple index.html page with a title and a paragraph. This page is linked to the app.css file with basic styling. The HTML files contains a heading but is missing the paragraph. The styles contain the rules for two id: #title and #paragraph, but the student needs to add the ids to the correct elements in the HTML file.
       ```

@@ -82,19 +82,7 @@ const AddExerciseButton = ({
   const { t } = useTranslation();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const original = e.target.value;
-    const cleaned = original.replace(/[^a-zA-Z0-9ñÑ\s,!:]/g, "");
-
-    const removedChars = original
-      .split("")
-      .filter((c, i) => cleaned[i] !== c)
-      .filter((c, i, arr) => arr.indexOf(c) === i);
-
-    if (removedChars.length > 0) {
-      toast.error(t("symbolsNotAllowed") + `: ${removedChars.join(" ")}`);
-    }
-
-    setDescription(cleaned);
+    setDescription(e.target.value);
   };
 
   const handleGenerate = async () => {
@@ -108,7 +96,7 @@ const AddExerciseButton = ({
         stepIndex
       );
       toast.success(t("exerciseGenerated"), { id: toastId });
-  
+
       setIsAdding(false);
       await fetchExercises();
       await getSidebar();

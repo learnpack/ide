@@ -502,5 +502,6 @@
     "add-example": "Agregar ejemplo",
     "add-exercise": "Agregar ejercicio",
     "exerciseDescription": "Descripción del ejercicio",
-    "addExerciseHelpText": "Te ayudo a agregar un nuevo paso a tu curso, explica el resultado del paso y yo haré mi mejor esfuerzo para crearlo."
+    "addExerciseHelpText": "Te ayudo a agregar un nuevo paso a tu curso, explica el resultado del paso y yo haré mi mejor esfuerzo para crearlo.",
+    "explainMeWhichChangesYouWantToMake": "Explícame qué cambios quieres hacer al paso"
 }

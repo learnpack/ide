@@ -101,6 +101,7 @@ const useStore = create<IStore>((set, get) => ({
     context: "",
     userMessage: "",
     performTests: false,
+    aiMessage: "",
   },
   isCompiling: false,
   showSidebar: false,

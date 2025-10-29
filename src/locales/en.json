@@ -495,5 +495,6 @@
     "add-example": "Add example",
     "add-exercise": "Add exercise",
     "exerciseDescription": "Exercise description",
-    "addExerciseHelpText": "I'll help you add a new step to your yourse, explain me the outcome of the step and I'll make my best to create it."
+    "addExerciseHelpText": "I'll help you add a new step to your yourse, explain me the outcome of the step and I'll make my best to create it.",
+    "explainMeWhichChangesYouWantToMake": "Explain me which changes you want to make to the lesson"
 }

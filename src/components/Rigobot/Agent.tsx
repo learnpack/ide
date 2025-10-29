@@ -229,12 +229,31 @@ export const AgentTab = () => {
       }, 500);
     }
 
+    if (rigoContext.aiMessage && rigoContext.aiMessage.trim() !== "") {
+      setTimeout(() => {
+        setMessages((prev) => {
+          // Get the last message
+          const lastMessage = prev[prev.length - 1];
+          if (lastMessage.type === "bot" && lastMessage.text === rigoContext.aiMessage) {
+            return prev;
+          }
+
+          return [
+            ...prev,
+            { type: "bot", text: rigoContext.aiMessage, timestamp: Date.now() },
+          ]
+        });
+      }, 500);
+
+      useStore.getState().setRigoContext({ aiMessage: "" });
+    }
+
     return () => {
       if (agentJobRef.current) {
         agentJobRef.current.stop();
       }
     };
-  }, [rigoContext.userMessage]);
+  }, [rigoContext]);
 
   // Cleanup: Save conversation when component unmounts
   useEffect(() => {

@@ -188,8 +188,8 @@ const ContinueGenerationButton = ({
             action={() => {
               const { toggleRigo, setRigoContext } = useStore.getState();
               setRigoContext({
-                context: `Current lesson: ${title}\nDescription: ${description}\nStatus: ${status}`,
-                userMessage: `I want to modify the content of this lesson: "${title}". ${description}`,
+                context: `Current lesson in generation: ${title}\nDescription: ${description}\nStatus: ${status}`,
+                aiMessage: t("explainMeWhichChangesYouWantToMake"),
                 performTests: false,
                 allowedFunctions: ["continueGeneration"],
               });
@@ -223,13 +223,13 @@ const ContinueGenerationButton = ({
           action={() => {
             // Open agent with lesson modification context
             const { toggleRigo, setRigoContext } = useStore.getState();
+            toggleRigo({ ensure: "open" });
             setRigoContext({
-              context: `Current lesson: ${title}\nDescription: ${description}\nStatus: ${status}`,
-              userMessage: `I want to modify the content of this lesson: "${title}". ${description}`,
+              context: `Current lesson in generation: ${title}\nDescription: ${description}\nStatus: ${status}`,
+              aiMessage: t("explainMeWhichChangesYouWantToMake"),
               performTests: false,
               allowedFunctions: ["continueGeneration"],
             });
-            toggleRigo({ ensure: "open" });
           }}
           text={t("IHaveSomeFeedback")}
         />

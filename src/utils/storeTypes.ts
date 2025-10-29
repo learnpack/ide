@@ -164,6 +164,7 @@ type TUserConsumables = {
 type TRigoContext = {
   context: string;
   userMessage: string;
+  aiMessage: string;
   performTests: boolean;
   allowedFunctions?: string[];
 };
