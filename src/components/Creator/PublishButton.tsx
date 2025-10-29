@@ -49,6 +49,7 @@ const PublishConfirmationModal: FC<{
 
   const loadAcademies = async () => {
     if (!bcToken) return;
+    
     try {
       const academiesList = await getAcademies(bcToken);
       setAcademies(academiesList);
@@ -177,23 +178,36 @@ const PublishConfirmationModal: FC<{
 
             {academies.length >= 2 && (
               <div className="flex-y gap-small padding-small">
-                <label className="text-blue font-medium">{t("academy") || "Academy"}</label>
+                <label className="text-blue font-medium">{t("academy")}</label>
                 <select
-                  className="padding-small rounded border"
-                  value={selectedAcademyId || ""}
+                  className="padding-small rounded border bg-white"
+                  style={{ backgroundColor: "white" }}
+                  value={(() => {
+                    if (selectedAcademyId === null || selectedAcademyId === undefined) return "";
+                    // Para números muy grandes, necesitamos encontrar la academia correspondiente para obtener su ID como string exacto
+                    const selectedAcademy = academies.find(a => a.id === selectedAcademyId);
+                    return selectedAcademy ? String(selectedAcademy.id) : String(selectedAcademyId);
+                  })()}
                   onClick={(e) => e.stopPropagation()}
-                  onChange={(e) => setSelectedAcademyId(e.target.value ? parseInt(e.target.value) : null)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const newAcademyId = value === "" ? null : Number(value);
+                    setSelectedAcademyId(newAcademyId);
+                  }}
                 >
-                  <option value="">{t("none") || "None"}</option>
-                  {academies.map((academy) => (
-                    <option key={academy.id} value={academy.id}>
-                      {academy.name}
-                    </option>
-                  ))}
+                  <option value="">{t("none")}</option>
+                  {academies.map((academy) => {
+                    const academyIdStr = String(academy.id);
+                    return (
+                      <option key={academy.id} value={academyIdStr}>
+                        {academy.name}
+                      </option>
+                    );
+                  })}
                 </select>
                 <div className="flex-x justify-between align-center">
                   {selectedAcademyId === null && (
-                    <span className="text-small text-gray-600">{t("please-select-academy") || "Please select an academy"}</span>
+                    <span className="text-small text-gray-600">{t("please-select-academy")}</span>
                   )}
                 </div>
               </div>
