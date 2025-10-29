@@ -64,9 +64,26 @@ export const renameExercise = async (slug: string, newSlug: string) => {
   }
 };
 
+export const getAcademies = async (breathecodeToken: string) => {
+  try {
+    const headers = {
+      "x-breathecode-token": breathecodeToken,
+    };
+    const response = await axios.get(
+      `${DEV_MODE ? "http://localhost:3000" : ""}/academies`,
+      { headers }
+    );
+    return response.data.academies;
+  } catch (error) {
+    console.error("Error fetching academies:", error);
+    throw error;
+  }
+};
+
 export const publishTutorial = async (
   breathecodeToken: string,
-  rigoToken: string
+  rigoToken: string,
+  academyId?: number | null
 ) => {
   try {
     const slug = getSlugFromPath();
@@ -74,12 +91,14 @@ export const publishTutorial = async (
       "x-breathecode-token": breathecodeToken,
       "x-rigo-token": rigoToken,
     };
+    const DEFAULT_ACADEMY_ID = "663296363296363296363296";
+    const body = {
+      categoryId: "663296363296363296363296",
+      academyId: academyId !== null && academyId !== undefined ? academyId.toString() : DEFAULT_ACADEMY_ID,
+    };
     const response = await axios.post(
       `${DEV_MODE ? "http://localhost:3000" : ""}/actions/publish/${slug}`,
-      {
-        categoryId: "663296363296363296363296",
-        academyId: "663296363296363296363296",
-      },
+      body,
       { headers }
     );
     return response.data;

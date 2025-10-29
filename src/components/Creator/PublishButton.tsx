@@ -6,16 +6,23 @@ import { svgs } from "../../assets/svgs";
 import { Modal } from "../mockups/Modal";
 import ProgressBar from "../composites/ProgressBar/ProgressBar";
 import useStore from "../../utils/store";
-import { publishTutorial, changeSlug } from "../../utils/creator";
+import { publishTutorial, changeSlug, getAcademies } from "../../utils/creator";
 import { toast } from "react-hot-toast";
 import { playEffect, getSlugFromPath, slugify } from "../../utils/lib";
 import { Notifier } from "../../managers/Notifier";
 import { FetchManager } from "../../managers/fetchManager";
 import { isSlugAvailable } from "../../utils/lib";
 
+interface TAcademy {
+  id: number;
+  name: string;
+  slug: string;
+  timezone: string;
+}
+
 const PublishConfirmationModal: FC<{
   onClose: () => void;
-  onPublish: (slug: string) => Promise<void>;
+  onPublish: (slug: string, academyId: number | null) => Promise<void>;
 }> = ({ onClose, onPublish }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -27,15 +34,32 @@ const PublishConfirmationModal: FC<{
   const [needToReviewAll, setNeedToReviewAll] = useState(false);
   const [editableSlug, setEditableSlug] = useState("");
   const [slugStatus, setSlugStatus] = useState<"checking" | "available" | "taken" | null>(null);
+  const [academies, setAcademies] = useState<TAcademy[]>([]);
+  const [selectedAcademyId, setSelectedAcademyId] = useState<number | null>(null);
 
   useEffect(() => {
     checkConsumables();
+    loadAcademies();
     // Initialize slug from current path
     const currentSlug = getSlugFromPath();
     if (currentSlug) {
       setEditableSlug(currentSlug);
     }
   }, []);
+
+  const loadAcademies = async () => {
+    if (!bcToken) return;
+    try {
+      const academiesList = await getAcademies(bcToken);
+      setAcademies(academiesList);
+      // Auto-select if only one academy
+      if (academiesList.length === 1) {
+        setSelectedAcademyId(academiesList[0].id);
+      }
+    } catch (error) {
+      console.error("Error loading academies:", error);
+    }
+  };
 
   useEffect(() => {
     if (!syllabus || !syllabus.lessons) {
@@ -151,6 +175,30 @@ const PublishConfirmationModal: FC<{
               </div>
             </div>
 
+            {academies.length >= 2 && (
+              <div className="flex-y gap-small padding-small">
+                <label className="text-blue font-medium">{t("academy") || "Academy"}</label>
+                <select
+                  className="padding-small rounded border"
+                  value={selectedAcademyId || ""}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => setSelectedAcademyId(e.target.value ? parseInt(e.target.value) : null)}
+                >
+                  <option value="">{t("none") || "None"}</option>
+                  {academies.map((academy) => (
+                    <option key={academy.id} value={academy.id}>
+                      {academy.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="flex-x justify-between align-center">
+                  {selectedAcademyId === null && (
+                    <span className="text-small text-gray-600">{t("please-select-academy") || "Please select an academy"}</span>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="flex-x gap-small justify-center align-center">
               <SimpleButton
                 extraClass="text-blue row-reverse padding-medium rounded"
@@ -159,10 +207,12 @@ const PublishConfirmationModal: FC<{
               />
               <SimpleButton
                 extraClass=" row-reverse bg-blue-rigo teFxt-white padding-medium rounded"
-                disabled={!editableSlug || (slugStatus === "taken" || slugStatus === "checking")}
+                disabled={!editableSlug || (slugStatus === "taken" || slugStatus === "checking") || (academies.length > 1 && selectedAcademyId === null)}
                 svg={"🚀"}
                 text={t("publish")}
-                action={() => onPublish(editableSlug)}
+                action={() => {
+                  onPublish(editableSlug, selectedAcademyId);
+                }}
               />
             </div>
           </div>
@@ -262,7 +312,7 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
   const currentSlug = useStore((state) => state.configObject.config.slug);
   const [deployedUrl, setDeployedUrl] = useState("");
 
-  const handlePublish = async (slug: string) => {
+  const handlePublish = async (slug: string, academyId: number | null) => {
     try {
       setPublishing(true);
       
@@ -287,7 +337,7 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
           return;
         }
       }
-      const res = await publishTutorial(bctoken, token);
+      const res = await publishTutorial(bctoken, token, academyId);
       toast.success(t("tutorial-published-successfully"));
       Notifier.confetti();
       playEffect("success");
