@@ -150,12 +150,11 @@ components:
     intendedUse:
       - hands-on learning
       - code experimentation
-      - immediate feedback on code execution
       - this will render an acceptable component for the teacher, so the teacher can generate a coding challenge for the student
       - The student will see all the files from the lessons
       - So you need to suggest as many files as needed for the exercise
     description: >-
-      A code file proposal is a component the teacher will use to generate some coding files used to solve an exercise in the instructions, it consists in a markdown code block with the language set to `code_challenge_proposal`. Inside the code block, you must explain what the student needs to do in the exercise in at most 20 sentences. You need to explain the files that will be generated and the instructions for the student to complete the exercise.
+      A code file proposal is a component the teacher will use to generate some coding files used to solve an exercise in the instructions, it consists in a markdown code block with the language set to `code_challenge_proposal`. Inside the code block, you must explain what the student needs to do in the exercise in at most 20 sentences. You need to explain the files that will be generated and the instructions for the student to complete the exercise. Use this component ALL the TIME that the lesson is of type code or requires a code editor.
     rules:
       - The main file must be always be named app.extension, where extension is the extension of the file, for example, app.js, app.html, app.css, etc.
       - Keep challenges simple and easy to understand for the student, it must be related to the lesson content and the exercise instructions.
