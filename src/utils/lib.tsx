@@ -644,6 +644,8 @@ export function createBugReportUrl(
 
 export const getComponentsInfo = (has_coding_challenges: boolean = false): string => {
   let filteredAssessmentComponents = assessmentComponentsRaw;
+
+  console.log(assessmentComponentsRaw, "ASSESSMENT COMPONENTS RAW");
   
   if (has_coding_challenges) {
     const assessmentComponents = yaml.load(assessmentComponentsRaw) as any;
