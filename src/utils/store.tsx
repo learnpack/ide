@@ -91,7 +91,7 @@ const useStore = create<IStore>((set, get) => ({
     ai_conversation_message: 0,
     ai_generation: 0,
   },
-  // chatSocket: chatSocket,
+  chatSocket: null,
   currentExercisePosition: defaultParams.currentExercise || 0,
   chatInitialMessage:
     "Hello! I'm **Rigobot**, your friendly **AI Mentor**! \n\n I can help you if you feel stuck, ask me anything about this exercise!",

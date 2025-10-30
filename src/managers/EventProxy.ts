@@ -246,9 +246,7 @@ localStorageEventEmitter.on("build", async (data) => {
       code: content,
       inputs: JSON.stringify(inputsObject),
     };
-
-    console.log("COMPLETING WITH RIGOBOT AI");
-
+    
     RigoAI.useTemplate({
       slug: "structured-build-learnpack",
       inputs,
