@@ -255,7 +255,7 @@ export interface IStore {
   isBuildable: boolean;
   hasSolution: boolean;
   currentSolution: string;
-  chatSocket: any;
+  // chatSocket: any;
   conversationIdsCache: TNumberCache;
   openedModals: TOpenedModals;
   lastTestResult: TTestResult;

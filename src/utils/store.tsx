@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import io from "socket.io-client";
+// import io from "socket.io-client";
 
 import TagManager from "react-gtm-module";
 import { create } from "zustand";
@@ -24,7 +24,7 @@ import {
   correctLanguage,
   convertUrlToBase64,
   playEffect,
-  FASTAPI_HOST,
+  // FASTAPI_HOST,
   removeFrontMatter,
   getSlugFromPath,
   // getMainIndex,
@@ -62,14 +62,14 @@ type TFile = {
 
 const HOST = getHost();
 
-const chatSocket = io(`${FASTAPI_HOST}`);
+// const chatSocket = io(`${FASTAPI_HOST}`);
 
-chatSocket.on("connect", () => {
-  console.debug("connected to chat socket at ", FASTAPI_HOST);
-});
-chatSocket.on("disconnect", () => {
-  console.debug("disconnected from chat socket at ", FASTAPI_HOST);
-});
+  // chatSocket.on("connect", () => {
+  //   console.debug("connected to chat socket at ", FASTAPI_HOST);
+  // });
+  // chatSocket.on("disconnect", () => {
+  //   console.debug("disconnected from chat socket at ", FASTAPI_HOST);
+  // });
 
 const defaultParams = getParamsObject() as TPossibleParams;
 
@@ -91,7 +91,7 @@ const useStore = create<IStore>((set, get) => ({
     ai_conversation_message: 0,
     ai_generation: 0,
   },
-  chatSocket: chatSocket,
+  // chatSocket: chatSocket,
   currentExercisePosition: defaultParams.currentExercise || 0,
   chatInitialMessage:
     "Hello! I'm **Rigobot**, your friendly **AI Mentor**! \n\n I can help you if you feel stuck, ask me anything about this exercise!",
@@ -830,11 +830,11 @@ The user's set up the application in "${language}" language, give your feedback 
       },
     });
 
-    chatSocket.emit("start", {
-      token: token,
-      purpose: learnpackPurposeId,
-      conversationId: conversationId,
-    });
+    // chatSocket.emit("start", {
+    //   token: token,
+    //   purpose: learnpackPurposeId,
+    //   conversationId: conversationId,
+    // });
   },
   // @ts-ignore
   loginToRigo: async (loginInfo) => {
