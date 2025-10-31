@@ -26,6 +26,7 @@ import { eventBus } from "../../../managers/eventBus";
 import { Modal } from "../../mockups/Modal";
 import { deleteFile } from "../../../utils/creator";
 import { Icon } from "../../Icon";
+import toast from "react-hot-toast";
 
 const languageMap: { [key: string]: string } = {
   ".js": "javascript",
@@ -63,6 +64,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     mode,
     fetchExercises,
     createNewFile,
+    renameFileInExercise,
   } = useStore((state) => ({
     tabs: state.editorTabs,
     setTabs: state.setEditorTabs,
@@ -74,6 +76,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     mode: state.mode,
     fetchExercises: state.fetchExercises,
     createNewFile: state.createNewFile,
+    renameFileInExercise: state.renameFileInExercise,
   }));
 
   const { t } = useTranslation();
@@ -82,6 +85,11 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
   const [editorStatus, setEditorStatus] = useState<TEditorStatus>("UNMODIFIED");
   const [showCreateFileModal, setShowCreateFileModal] = useState(false);
   const [newFileName, setNewFileName] = useState("");
+  const [editingTabId, setEditingTabId] = useState<number | null>(null);
+  const [editingTabName, setEditingTabName] = useState<string>("");
+  const [editingTabOriginalName, setEditingTabOriginalName] = useState<string>("");
+  const [editingTabExtension, setEditingTabExtension] = useState<string>("");
+  const [isRenaming, setIsRenaming] = useState<boolean>(false);
 
   // const debouncedStore = useCallback(
   //   debounce(() => {
@@ -182,6 +190,230 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     }
   };
 
+  // Función para validar nombre de archivo según restricciones de GCS
+  const validateFileName = (
+    name: string,
+    originalExtension: string,
+    allFiles: Array<{ name: string }>
+  ): { isValid: boolean; error?: string } => {
+    // Extraer extensión si el usuario la incluyó
+    const lastDotIndex = name.lastIndexOf(".");
+    let nameBase = name;
+    let inputExtension = "";
+
+    if (lastDotIndex > 0 && lastDotIndex < name.length - 1) {
+      nameBase = name.slice(0, lastDotIndex);
+      inputExtension = name.slice(lastDotIndex);
+    }
+
+    // Si el usuario incluyó una extensión, debe coincidir
+    if (inputExtension && inputExtension !== originalExtension) {
+      return {
+        isValid: false,
+        error: t("extension-cannot-be-changed") || "The extension cannot be changed.",
+      };
+    }
+
+    // Validar que el nombre no esté vacío
+    const trimmedName = nameBase.trim();
+    if (!trimmedName) {
+      return {
+        isValid: false,
+        error: t("file-name-required") || "File name is required",
+      };
+    }
+
+    // Normalizar espacios: reemplazar múltiples espacios por uno solo
+    const normalizedName = trimmedName.replace(/\s+/g, " ");
+
+    // Validar longitud (255 caracteres como límite práctico)
+    if (normalizedName.length > 255) {
+      return {
+        isValid: false,
+        error: t("file-name-too-long", { max: 255 }) || `File name is too long (maximum 255 characters)`,
+      };
+    }
+
+    // Validar caracteres prohibidos según GCS: < > : " / \ | ? * [ ] # y caracteres de control
+    const invalidCharsList = ['<', '>', ':', '"', '/', '\\', '|', '?', '*', '[', ']', '#', '\r', '\n'];
+    const foundInvalidChars: string[] = [];
+    for (let i = 0; i < normalizedName.length; i++) {
+      const char = normalizedName[i];
+      if (invalidCharsList.includes(char)) {
+        // Mostrar caracteres especiales de forma legible
+        let displayChar: string;
+        if (char === '\r') {
+          displayChar = '\\r';
+        } else if (char === '\n') {
+          displayChar = '\\n';
+        } else if (char === '\\') {
+          displayChar = '\\';
+        } else {
+          displayChar = char;
+        }
+        if (!foundInvalidChars.includes(displayChar)) {
+          foundInvalidChars.push(displayChar);
+        }
+      }
+    }
+
+    if (foundInvalidChars.length > 0) {
+      return {
+        isValid: false,
+        error: t("invalid-characters-in-filename", { chars: foundInvalidChars.join(", ") }) ||
+          `The name contains invalid characters: ${foundInvalidChars.join(", ")}`,
+      };
+    }
+
+    // Validar nombres reservados
+    if (normalizedName === "." || normalizedName === ".." || normalizedName.startsWith(".well-known/acme-challenge/")) {
+      return {
+        isValid: false,
+        error: t("reserved-filename", { name: normalizedName }) || `The name '${normalizedName}' is reserved and cannot be used`,
+      };
+    }
+
+    // Construir nombre completo con extensión
+    const fullName = normalizedName + originalExtension;
+
+    // Validar bytes UTF-8 (máximo 1024 bytes según GCS)
+    const fullNameBytes = new TextEncoder().encode(fullName).length;
+    if (fullNameBytes > 1024) {
+      return {
+        isValid: false,
+        error: t("filename-too-long-bytes") || "File name exceeds size limit (maximum 1024 bytes in UTF-8)",
+      };
+    }
+
+    // Verificar duplicados
+    if (allFiles.some((f) => f.name === fullName)) {
+      return {
+        isValid: false,
+        error: t("file-name-already-exists") || "A file with this name already exists",
+      };
+    }
+
+    return { isValid: true };
+  };
+
+  const handleDoubleClick = (tab: Tab) => {
+    // Solo permitir edición en modo creator
+    if (mode !== "creator") {
+      return;
+    }
+
+    // No permitir edición de archivos solution.hide
+    if (tab.name.includes("solution.hide")) {
+      toast.error(t("solution-files-cannot-be-renamed") || "Solution files cannot be renamed");
+      return;
+    }
+
+    // Extraer extensión
+    const lastDotIndex = tab.name.lastIndexOf(".");
+    const extension = lastDotIndex > 0 ? tab.name.slice(lastDotIndex) : "";
+    const nameBase = lastDotIndex > 0 ? tab.name.slice(0, lastDotIndex) : tab.name;
+
+    // Activar modo edición
+    setEditingTabId(tab.id);
+    setEditingTabName(nameBase);
+    setEditingTabOriginalName(tab.name);
+    setEditingTabExtension(extension);
+  };
+
+  const handleRenameConfirm = async () => {
+    if (editingTabId === null) return;
+
+    // Extraer nombre base si el usuario incluyó una extensión
+    let nameBase = editingTabName;
+    const lastDotIndex = editingTabName.lastIndexOf(".");
+    
+    // Si hay un punto y está en una posición válida (no al inicio ni al final)
+    if (lastDotIndex > 0 && lastDotIndex < editingTabName.length - 1) {
+      const inputExtension = editingTabName.slice(lastDotIndex);
+      // Si la extensión coincide con la original, usar solo el nombre base
+      if (inputExtension === editingTabExtension) {
+        nameBase = editingTabName.slice(0, lastDotIndex);
+      }
+    } else if (lastDotIndex === editingTabName.length - 1) {
+      // Si el punto está al final (ej: "app."), eliminarlo
+      nameBase = editingTabName.slice(0, lastDotIndex);
+    }
+
+    // Normalizar nombre (trim y espacios múltiples -> uno solo)
+    const normalizedName = nameBase.trim().replace(/\s+/g, " ");
+    const newFileName = normalizedName + editingTabExtension;
+
+    // Si el nombre no cambió, solo cancelar edición sin validar ni mostrar error
+    if (newFileName === editingTabOriginalName) {
+      setEditingTabId(null);
+      setEditingTabName("");
+      setEditingTabOriginalName("");
+      setEditingTabExtension("");
+      return;
+    }
+
+    const exercise = getCurrentExercise();
+    const allFiles = exercise.files || [];
+
+    // Solo validar si el nombre cambió
+    const validation = validateFileName(
+      editingTabName,
+      editingTabExtension,
+      allFiles
+    );
+
+    if (!validation.isValid) {
+      toast.error(validation.error || "Invalid file name");
+      return;
+    }
+
+    setIsRenaming(true);
+    const toastId = toast.loading(t("renaming-file") || "Renaming file...");
+
+    try {
+      await renameFileInExercise(exercise.slug, editingTabOriginalName, newFileName);
+      toast.success(t("file-renamed-successfully") || "File renamed successfully", { id: toastId });
+
+      // Limpiar estado de edición
+      setEditingTabId(null);
+      setEditingTabName("");
+      setEditingTabOriginalName("");
+      setEditingTabExtension("");
+      setIsRenaming(false);
+    } catch (error) {
+      console.error("Error renaming file:", error);
+      toast.error(t("error-renaming-file") || "Error renaming file", { id: toastId });
+      setIsRenaming(false);
+    }
+  };
+
+  const handleRenameCancel = () => {
+    // No permitir cancelar si está en proceso de renombrado
+    if (isRenaming) {
+      return;
+    }
+    setEditingTabId(null);
+    setEditingTabName("");
+    setEditingTabOriginalName("");
+    setEditingTabExtension("");
+    setIsRenaming(false);
+  };
+
+  const handleRenameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // No permitir acciones si está en proceso de renombrado
+    if (isRenaming) {
+      e.preventDefault();
+      return;
+    }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleRenameConfirm();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      handleRenameCancel();
+    }
+  };
+
   useEffect(() => {
     setEditorTheme("vs-dark");
   }, [theme]);
@@ -211,12 +443,72 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
             key={tab.id + tab.name}
             className={`tab ${tab.isActive ? "active" : ""}`}
           >
-            <button onClick={() => handleTabClick(tab.id)}>
-              {tab.name.includes("solution.hide")
-                ? t("model-solution")
-                : tab.name}
-            </button>
-            {mode === "creator" && (
+            {editingTabId === tab.id ? (
+              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                <input
+                  type="text"
+                  value={editingTabName}
+                  onChange={(e) => setEditingTabName(e.target.value)}
+                  onBlur={() => {
+                    if (!isRenaming) {
+                      handleRenameConfirm();
+                    }
+                  }}
+                  onKeyDown={handleRenameKeyDown}
+                  autoFocus
+                  disabled={isRenaming}
+                  style={{
+                    border: "none",
+                    outline: "2px solid var(--color-active)",
+                    background: "var(--bg-color)",
+                    color: "var(--color-active)",
+                    padding: "2px 6px",
+                    fontSize: "inherit",
+                    borderRadius: "2px",
+                    minWidth: "80px",
+                    maxWidth: "120px",
+                    opacity: isRenaming ? 0.6 : 1,
+                    cursor: isRenaming ? "not-allowed" : "text",
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                />
+                {isRenaming && (
+                  <div
+                    style={{
+                      width: "12px",
+                      height: "12px",
+                      border: "2px solid var(--color-active)",
+                      borderTop: "2px solid transparent",
+                      borderRadius: "50%",
+                      animation: "spin 0.8s linear infinite",
+                    }}
+                  />
+                )}
+              </div>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => handleTabClick(tab.id)}
+                    onDoubleClick={() => handleDoubleClick(tab)}
+                  >
+                    {tab.name.includes("solution.hide")
+                      ? t("model-solution")
+                      : tab.name}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    {mode === "creator" && !tab.name.includes("solution.hide")
+                      ? t("double-click-to-rename") || "Double-click to edit the name"
+                      : tab.name.includes("solution.hide")
+                      ? t("solution-files-cannot-be-renamed") || "Solution files cannot be renamed"
+                      : tab.name}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {mode === "creator" && editingTabId !== tab.id && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
@@ -631,7 +923,7 @@ export const Toolbar = ({
 
   const ex = getCurrentExercise();
 
-  let letPass =
+  const letPass =
     lastState === "success" && ex.done && editorStatus === "MODIFIED";
 
   const onlyContinue = !isBuildable && !isTesteable;

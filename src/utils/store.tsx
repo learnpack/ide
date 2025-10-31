@@ -54,6 +54,7 @@ import TelemetryManager, { TStep } from "../managers/telemetry";
 import { RigoAI } from "../components/Rigobot/AI";
 import { svgs } from "../assets/svgs";
 import { Notifier } from "../managers/Notifier";
+import { LocalStorage } from "../managers/localStorage";
 
 type TFile = {
   name: string;
@@ -1545,6 +1546,76 @@ The user's set up the application in "${language}" language, give your feedback 
       console.log(`✅ File ${filename} created successfully`);
     } catch (error) {
       console.error("Error creating file:", error);
+      throw error;
+    }
+  },
+  renameFileInExercise: async (exerciseSlug: string, oldFilename: string, newFilename: string) => {
+    const { 
+      exercises, 
+      editorTabs, 
+      setEditorTabs, 
+      fetchExercises, 
+      mode 
+    } = get();
+
+    try {
+      if (mode === "creator") {
+        const { renameFile } = await import("../utils/creator");
+        await renameFile(exerciseSlug, oldFilename, newFilename);
+      }
+
+      // Actualizar editorTabs con el nuevo nombre
+      const updatedTabs = editorTabs.map((tab) => {
+        if (tab.name === oldFilename) {
+          return {
+            ...tab,
+            name: newFilename,
+          };
+        }
+        return tab;
+      });
+      setEditorTabs(updatedTabs);
+
+      // Actualizar exercises array
+      const updatedExercises = exercises.map((e) => {
+        if (e.slug === exerciseSlug) {
+          return {
+            ...e,
+            files: e.files.map((f: any) => {
+              return f.name === oldFilename
+                ? {
+                    ...f,
+                    name: newFilename,
+                  }
+                : f;
+            }),
+          };
+        }
+        return e;
+      });
+      set({ exercises: updatedExercises });
+
+      // Actualizar LocalStorage si existe contenido en cache
+      const cachedTabs = LocalStorage.getEditorTabs(exerciseSlug);
+      if (cachedTabs && cachedTabs.length > 0) {
+        const updatedCachedTabs = cachedTabs.map((tab: any) => {
+          if (tab.name === oldFilename) {
+            return {
+              ...tab,
+              name: newFilename,
+            };
+          }
+          return tab;
+        });
+        LocalStorage.setEditorTabs(exerciseSlug, updatedCachedTabs);
+      }
+
+      // Refrescar ejercicios para sincronizar con el backend
+      await fetchExercises();
+
+      console.log(`✅ File ${oldFilename} renamed to ${newFilename} successfully`);
+    } catch (error) {
+      console.error("Error renaming file:", error);
       throw error;
     }
   },
