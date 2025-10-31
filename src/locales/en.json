@@ -501,13 +501,13 @@
     "invalidTitleFormatExplanation": "The title is not in the correct format, please use the format: 1.1 Exercise title. It should always start with the index of the exercise.",
     "double-click-to-rename": "Double-click to edit the name",
     "solution-files-cannot-be-renamed": "Solution files cannot be renamed",
-    "file-name-too-long": "File name is too long (maximum {max} characters)",
+    "file-name-too-long": "File name is too long (maximum {{max}} characters)",
     "file-name-already-exists": "A file with this name already exists",
     "extension-cannot-be-changed": "The extension cannot be changed. You can only change the file name.",
     "renaming-file": "Renaming file...",
     "file-renamed-successfully": "File renamed successfully",
     "error-renaming-file": "Error renaming file",
-    "invalid-characters-in-filename": "The name contains invalid characters: {chars}",
+    "invalid-characters-in-filename": "The name contains invalid characters: {{chars}}",
     "filename-too-long-bytes": "File name exceeds size limit (maximum 1024 bytes in UTF-8)",
-    "reserved-filename": "The name '{name}' is reserved and cannot be used"
+    "reserved-filename": "The name '{{name}}' is reserved and cannot be used"
 }
