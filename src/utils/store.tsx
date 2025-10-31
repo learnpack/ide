@@ -54,6 +54,7 @@ import TelemetryManager, { TStep } from "../managers/telemetry";
 import { RigoAI } from "../components/Rigobot/AI";
 import { svgs } from "../assets/svgs";
 import { Notifier } from "../managers/Notifier";
+import { LocalStorage } from "../managers/localStorage";
 
 type TFile = {
   name: string;
@@ -1545,6 +1546,116 @@ The user's set up the application in "${language}" language, give your feedback 
       console.log(`✅ File ${filename} created successfully`);
     } catch (error) {
       console.error("Error creating file:", error);
+      throw error;
+    }
+  },
+  renameFileInExercise: async (exerciseSlug: string, oldFilename: string, newFilename: string) => {
+    const { 
+      exercises, 
+      editorTabs, 
+      setEditorTabs, 
+      fetchExercises, 
+      mode 
+    } = get();
+
+    // Función auxiliar para calcular el nombre del archivo de solución
+    const getSolutionFileName = (filename: string): string => {
+      const lastDotIndex = filename.lastIndexOf(".");
+      if (lastDotIndex > 0 && lastDotIndex < filename.length - 1) {
+        // Archivo con extensión: nombreBase.extension -> nombreBase.solution.hide.extension
+        const extension = filename.slice(lastDotIndex);
+        const baseName = filename.slice(0, lastDotIndex);
+        return `${baseName}.solution.hide${extension}`;
+      } else {
+        // Archivo sin extensión: nombre -> nombre.solution.hide
+        return `${filename}.solution.hide`;
+      }
+    };
+
+    const oldSolutionFileName = getSolutionFileName(oldFilename);
+    const newSolutionFileName = getSolutionFileName(newFilename);
+
+    try {
+      if (mode === "creator") {
+        const { renameFile } = await import("../utils/creator");
+        await renameFile(exerciseSlug, oldFilename, newFilename);
+      }
+
+      // Actualizar editorTabs con el nuevo nombre (archivo principal y solución si existe)
+      const updatedTabs = editorTabs.map((tab) => {
+        if (tab.name === oldFilename) {
+          return {
+            ...tab,
+            name: newFilename,
+          };
+        }
+        // También actualizar el archivo de solución si existe
+        if (tab.name === oldSolutionFileName) {
+          return {
+            ...tab,
+            name: newSolutionFileName,
+          };
+        }
+        return tab;
+      });
+      setEditorTabs(updatedTabs);
+
+      // Actualizar exercises array (archivo principal y solución si existe)
+      const updatedExercises = exercises.map((e) => {
+        if (e.slug === exerciseSlug) {
+          return {
+            ...e,
+            files: e.files.map((f: any) => {
+              if (f.name === oldFilename) {
+                return {
+                  ...f,
+                  name: newFilename,
+                };
+              }
+              // También actualizar el archivo de solución si existe
+              if (f.name === oldSolutionFileName) {
+                return {
+                  ...f,
+                  name: newSolutionFileName,
+                };
+              }
+              return f;
+            }),
+          };
+        }
+        return e;
+      });
+      set({ exercises: updatedExercises });
+
+      // Actualizar LocalStorage si existe contenido en cache (archivo principal y solución)
+      const cachedTabs = LocalStorage.getEditorTabs(exerciseSlug);
+      if (cachedTabs && cachedTabs.length > 0) {
+        const updatedCachedTabs = cachedTabs.map((tab: any) => {
+          if (tab.name === oldFilename) {
+            return {
+              ...tab,
+              name: newFilename,
+            };
+          }
+          // También actualizar el archivo de solución si existe
+          if (tab.name === oldSolutionFileName) {
+            return {
+              ...tab,
+              name: newSolutionFileName,
+            };
+          }
+          return tab;
+        });
+        LocalStorage.setEditorTabs(exerciseSlug, updatedCachedTabs);
+      }
+
+      // Refrescar ejercicios para sincronizar con el backend
+      await fetchExercises();
+
+      console.log(`✅ File ${oldFilename} renamed to ${newFilename} successfully`);
+      // El backend también renombró el archivo de solución si existía
+    } catch (error) {
+      console.error("Error renaming file:", error);
       throw error;
     }
   },

@@ -331,6 +331,11 @@ export interface IStore {
   build: (buildText: string, submittedInputs?: string[]) => void;
   setPosition: (position: number) => void;
   fetchReadme: () => void;
+  renameFileInExercise: (
+    exerciseSlug: string,
+    oldFilename: string,
+    newFilename: string
+  ) => Promise<void>;
   updateFileContent: (
     exerciseSlug: string,
     tab: Tab,
