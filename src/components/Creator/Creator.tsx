@@ -742,17 +742,19 @@ const ImageGenerator = ({
         svg={svgs.image}
       />
       {isOpen && (
-        <input
-          type="text"
-          placeholder={t("describeImage")}
-          className="input"
-          ref={inputRef}
-          onKeyUp={(e) => {
-            if (e.key === "Enter") {
-              buttonAction();
-            }
-          }}
-        />
+        <div className="image-input-wrapper">
+          <input
+            type="text"
+            placeholder={t("describeImage")}
+            className="input"
+            ref={inputRef}
+            onKeyUp={(e) => {
+              if (e.key === "Enter") {
+                buttonAction();
+              }
+            }}
+          />
+        </div>
       )}
     </div>
   );
