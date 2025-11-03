@@ -1044,6 +1044,10 @@ a {
   }
 }
 
+.active-on-hover:hover .code-challenge-input-wrapper textarea {
+  color: var(--font-color-secondary, #333);
+}
+
 .active-on-hover:active {
   scale: 0.99;
 }

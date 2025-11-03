@@ -18,6 +18,7 @@ import {
   slugify,
   uploadBlobToBucket,
 } from "../../utils/lib";
+import { generateCodeChallenge } from "../../utils/creator";
 
 type TPromp = {
   type: "button" | "select" | "input";
@@ -282,21 +283,6 @@ export const CreatorWrapper = ({
     setIsOpen(false);
   };
 
-  const addCodeChallengeProposal = async () => {
-    if (tagName !== "new" || !node?.position?.start || !node?.position?.end) {
-      return;
-    }
-
-    const placeholderText = "En este ejercicio, el estudiante necesita completar una tarea de programación. Se generarán los archivos necesarios para resolver el ejercicio.";
-    const codeChallengeBlock = `\`\`\`code_challenge_proposal\n${placeholderText}\n\`\`\``;
-    
-    await replaceInReadme(
-      codeChallengeBlock,
-      node.position.start,
-      node.position.end
-    );
-    setIsOpen(false);
-  };
 
   const simplifyCode = () => {
     setReplacementValue("");
@@ -421,16 +407,6 @@ export const CreatorWrapper = ({
         "text-secondary  rounded padding-small danger-on-hover svg-blue",
       svg: svgs.trash,
       allowedElements: ["all"],
-    },
-    {
-      type: "button",
-      text: t("add-code-challenge"),
-      title: t("add-code-challenge-tooltip"),
-      action: () => addCodeChallengeProposal(),
-      extraClass:
-        "text-secondary  rounded padding-small active-on-hover svg-blue",
-      svg: <Icon name="Code" />,
-      allowedElements: ["new"],
     },
   ];
 
@@ -782,6 +758,138 @@ const ImageGenerator = ({
   );
 };
 
+const CodeChallengeGenerator = ({
+  onFinish,
+  isBuildable,
+}: {
+  onFinish: (replacement: string) => void;
+  isBuildable: boolean;
+}) => {
+  const token = useStore((state) => state.token);
+  const config = useStore((state) => state.configObject);
+  const currentContent = useStore((state) => state.currentContent);
+  const currentExercisePosition = useStore((state) => state.currentExercisePosition);
+  const useConsumable = useStore((state) => state.useConsumable);
+  const reportEnrichDataLayer = useStore(
+    (state) => state.reportEnrichDataLayer
+  );
+  const { t } = useTranslation();
+  const [isOpen, setIsOpen] = useState(false);
+  const [prompt, setPrompt] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const buttonAction = async () => {
+    if (isOpen) {
+      const promptText = prompt.trim();
+      if (!promptText) {
+        toast.error(t("missing-required-content"));
+        return;
+      }
+
+      if (!token) {
+        toast.error(t("authentication-required"));
+        return;
+      }
+
+      const courseSlug = config?.config?.slug;
+      if (!courseSlug) {
+        toast.error(t("course-slug-not-found"));
+        return;
+      }
+
+      setIsGenerating(true);
+      const tid = toast.loading(t("generating-code-challenge"));
+
+      try {
+        const result = await generateCodeChallenge(
+          promptText,
+          currentContent,
+          Number(currentExercisePosition),
+          token,
+          courseSlug
+        );
+
+        if (result.status === "QUEUED") {
+          // Create the block with GENERATING status
+          const generatingContent = `\`\`\`code_challenge_proposal\nGENERATING(${result.id}) ${promptText}\n\`\`\``;
+          onFinish(generatingContent);
+          
+          toast.success(t("code-challenge-generation-started"), { id: tid });
+          reportEnrichDataLayer("creator_code_challenge_generation_started", {
+            prompt: promptText,
+            completion_id: result.id,
+          });
+          
+          try {
+            await useConsumable("ai-generation");
+          } catch (error) {
+            console.error("Error using consumable", error);
+          }
+        } else {
+          toast.error(t("failed-to-start-code-challenge-generation"), { id: tid });
+        }
+      } catch (error) {
+        console.error("Error generating code challenge:", error);
+        toast.error(t("error-generating-code-challenge-files"), { id: tid });
+        // On error, create the block with the prompt so user can edit and retry
+        const errorContent = `\`\`\`code_challenge_proposal\n${promptText}\n\`\`\``;
+        onFinish(errorContent);
+      } finally {
+        setIsGenerating(false);
+        setIsOpen(false);
+        setPrompt("");
+      }
+    } else {
+      setIsOpen(true);
+    }
+  };
+
+  const isDisabled = isBuildable === true;
+
+  return (
+    <div className="d-flex gap-small align-center w-full active-on-hover rounded padding-small svg-blue text-secondary">
+      <SimpleButton
+        extraClass="text-secondary active-on-hover"
+        text={isOpen ? "" : t("add-code-challenge")}
+        action={buttonAction}
+        svg={<Icon name="Code" />}
+        disabled={isGenerating || isDisabled}
+        title={isDisabled ? t("add-code-challenge-disabled-tooltip") : t("add-code-challenge-tooltip")}
+      />
+      {isOpen && (
+        <div className="flex-y gap-small w-full code-challenge-input-wrapper">
+          <AutoResizeTextarea
+            defaultValue={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            className="w-100 input"
+            minHeight="120px"
+            placeholder={t("code-challenge-prompt-placeholder")}
+          />
+          <div className="d-flex gap-small justify-end">
+            <SimpleButton
+              action={() => {
+                setIsOpen(false);
+                setPrompt("");
+              }}
+              extraClass="bg-gray padding-small rounded"
+              text={t("cancel")}
+              svg={<Icon name="X" />}
+              disabled={isGenerating}
+            />
+            <SimpleButton
+              action={buttonAction}
+              extraClass="bg-blue-rigo text-white padding-small rounded"
+              text={isGenerating ? t("generating-code-challenge") : t("generate")}
+              svg={isGenerating ? <Loader size="sm" svg={svgs.rigoSvg} /> : <Icon name="Check" />}
+              disabled={isGenerating || !prompt.trim()}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const RigoInput = ({
   onSubmit,
   inside,
@@ -959,6 +1067,20 @@ const RigoInput = ({
               }
             }}
           />
+          {tagName === "new" && (
+            <CodeChallengeGenerator
+              onFinish={async (replacement) => {
+                if (node?.position?.start && node?.position?.end) {
+                  await replaceInReadme(
+                    replacement,
+                    node?.position?.start,
+                    node?.position?.end
+                  );
+                }
+              }}
+              isBuildable={isBuildable}
+            />
+          )}
         </div>
       )}
     </div>

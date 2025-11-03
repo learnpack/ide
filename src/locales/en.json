@@ -473,6 +473,7 @@
     "add-code-challenge-tooltip": "Generate a code challenge proposal block",
     "add-code-challenge-disabled-tooltip": "This lesson already includes code exercises. You cannot add another.",
     "code-challenge-description-placeholder": "Describe the code exercise...",
+    "code-challenge-prompt-placeholder": "Example: Create an intermediate level exercise about functions and lists.",
     "authentication-required": "Authentication required",
     "missing-required-content": "Missing required content",
     "course-slug-not-found": "Course slug not found",
