@@ -958,7 +958,7 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
 
 
 const CodeChallengeProposalRenderer = ({ code, node, allowCreate }: { code: string, node: Element, allowCreate: boolean }) => {
-  if (!node) return null;
+  
   const {
     replaceInReadme,
     token,
@@ -992,7 +992,7 @@ const CodeChallengeProposalRenderer = ({ code, node, allowCreate }: { code: stri
     if (!isEditing && editedCode === "") {
       setEditedCode(originalCode);
     }
-  }, [originalCode]);
+  }, [editedCode, isEditing, originalCode]);
 
   // Polling hook for completion job status (as fallback)
   const { status: pollingStatus, data: pollingData } = useCompletionJobStatus({
@@ -1012,6 +1012,9 @@ const CodeChallengeProposalRenderer = ({ code, node, allowCreate }: { code: stri
       console.log("⏳ POLLING: Code challenge running...", pollingData);
     }
   }, [pollingStatus]);
+
+  
+  if (!node) return null;
 
   // Handle socket updates for code challenge completion
   const handleCodeChallengeUpdate = async (status: string) => {
