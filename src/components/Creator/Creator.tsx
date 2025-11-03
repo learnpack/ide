@@ -9,6 +9,7 @@ import { Markdowner } from "../composites/Markdowner/Markdowner";
 import { Loader } from "../composites/Loader/Loader";
 import { AutoResizeTextarea } from "../composites/AutoResizeTextarea/AutoResizeTextarea";
 import toast from "react-hot-toast";
+import { Icon } from "../Icon";
 import {
   DEV_MODE,
   DEV_URL,
@@ -281,6 +282,22 @@ export const CreatorWrapper = ({
     setIsOpen(false);
   };
 
+  const addCodeChallengeProposal = async () => {
+    if (tagName !== "new" || !node?.position?.start || !node?.position?.end) {
+      return;
+    }
+
+    const placeholderText = "En este ejercicio, el estudiante necesita completar una tarea de programación. Se generarán los archivos necesarios para resolver el ejercicio.";
+    const codeChallengeBlock = `\`\`\`code_challenge_proposal\n${placeholderText}\n\`\`\``;
+    
+    await replaceInReadme(
+      codeChallengeBlock,
+      node.position.start,
+      node.position.end
+    );
+    setIsOpen(false);
+  };
+
   const simplifyCode = () => {
     setReplacementValue("");
     setIsGenerating(true);
@@ -405,6 +422,16 @@ export const CreatorWrapper = ({
       svg: svgs.trash,
       allowedElements: ["all"],
     },
+    {
+      type: "button",
+      text: t("add-code-challenge"),
+      title: t("add-code-challenge-tooltip"),
+      action: () => addCodeChallengeProposal(),
+      extraClass:
+        "text-secondary  rounded padding-small active-on-hover svg-blue",
+      svg: <Icon name="Code" />,
+      allowedElements: ["new"],
+    },
   ];
 
   const getPortion = () => {
@@ -455,6 +482,7 @@ export const CreatorWrapper = ({
           node={node}
           promps={promps}
           onSubmit={askAIAnything}
+          isBuildable={isBuildable}
         />
       )}
 
@@ -484,6 +512,7 @@ export const CreatorWrapper = ({
             tagName={tagName}
             node={node}
             onEditAsMarkdown={handleEditAsMarkdown}
+            isBuildable={isBuildable}
           />
         )}
         {tagName !== "new" && !containsNewElement && (
@@ -761,6 +790,7 @@ const RigoInput = ({
   node,
   onEditAsMarkdown,
   onClose,
+  isBuildable,
 }: {
   onSubmit: (prompt: string) => void;
   inside: boolean;
@@ -769,6 +799,7 @@ const RigoInput = ({
   node: Element | undefined;
   onEditAsMarkdown: () => void;
   onClose: () => void;
+  isBuildable: boolean;
 }) => {
   const [prompt, setPrompt] = useState("");
   const replaceInReadme = useStore((state) => state.replaceInReadme);
@@ -838,15 +869,37 @@ const RigoInput = ({
               if (prompt.allowedElements?.includes(tagName)) return true;
               return false;
             })
-            .map((prompt, index) =>
-              prompt.type === "button" ? (
+            .map((prompt, index) => {
+              // Check if this is the code challenge button
+              // We identify it by checking multiple criteria to be sure:
+              // 1. tagName must be "new"
+              // 2. allowedElements must be exactly ["new"]
+              // 3. type must be "button"
+              // 4. text must match the translation key
+              const isCodeChallengeButton = tagName === "new" && 
+                Array.isArray(prompt.allowedElements) &&
+                prompt.allowedElements.length === 1 && 
+                prompt.allowedElements[0] === "new" &&
+                prompt.type === "button" &&
+                prompt.text === t("add-code-challenge");
+              
+              // Only disable if:
+              // 1. This is definitely the code challenge button
+              // 2. AND isBuildable is true (meaning the lesson has interactive exercises - entry file or files for cloud compilation)
+              // isBuildable comes from the store and indicates if the exercise can be built/executed
+              const isDisabled = isCodeChallengeButton && isBuildable === true;
+              
+              const tooltipTitle = isDisabled ? t("add-code-challenge-disabled-tooltip") : prompt.title;
+
+              return prompt.type === "button" ? (
                 <SimpleButton
                   svg={prompt.svg}
                   key={`${prompt.text}-${index}`}
-                  title={prompt.title}
+                  title={tooltipTitle}
                   action={prompt.action}
                   extraClass={prompt.extraClass}
                   text={prompt.text}
+                  disabled={isDisabled}
                 />
               ) : prompt.type === "select" ? (
                 <div
@@ -875,7 +928,7 @@ const RigoInput = ({
                   </select>
                 </div>
               ) : null
-            )}
+            })}
           {tagName !== "new" && (
             <SimpleButton
               extraClass=" text-secondary  rounded padding-small active-on-hover svg-blue"
