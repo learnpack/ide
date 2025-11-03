@@ -479,6 +479,7 @@
     "add-code-challenge": "Agregar ejercicio de código",
     "add-code-challenge-tooltip": "Genera un bloque de propuesta de ejercicio de código",
     "add-code-challenge-disabled-tooltip": "Esta lección ya incluye ejercicios de código. No puedes agregar otro.",
+    "code-challenge-description-placeholder": "Describe el ejercicio de código...",
     "authentication-required": "Autenticación requerida",
     "missing-required-content": "Contenido requerido faltante",
     "course-slug-not-found": "Slug del curso no encontrado",
