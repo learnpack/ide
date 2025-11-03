@@ -471,7 +471,7 @@
     "error-generating-code-challenge-files": "Error generating code challenge files",
     "add-code-challenge": "Add code challenge",
     "add-code-challenge-tooltip": "Generate a code challenge proposal block",
-    "add-code-challenge-disabled-tooltip": "This lesson already includes interactive exercises. You cannot add another code exercise.",
+    "add-code-challenge-disabled-tooltip": "This lesson already includes code exercises. You cannot add another.",
     "authentication-required": "Authentication required",
     "missing-required-content": "Missing required content",
     "course-slug-not-found": "Course slug not found",

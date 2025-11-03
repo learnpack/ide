@@ -74,8 +74,8 @@ export default function SimpleButton({
         <TooltipTrigger asChild>
           {buttonElement}
         </TooltipTrigger>
-        <TooltipContent>
-          <p>{title}</p>
+        <TooltipContent className="max-w-[200px]">
+          <p className="whitespace-normal break-words">{title}</p>
         </TooltipContent>
       </Tooltip>
     );
