@@ -880,7 +880,7 @@ const CodeChallengeGenerator = ({
             />
             <SimpleButton
               action={buttonAction}
-              extraClass="bg-blue-rigo text-white padding-small rounded"
+              extraClass="bg-blue-rigo text-white padding-small rounded code-challenge-generate-button"
               text={isGenerating ? t("generating-code-challenge") : t("generate")}
               svg={isGenerating ? <Loader size="sm" svg={svgs.rigoSvg} /> : <Icon name="Check" />}
               disabled={isGenerating || !prompt.trim()}

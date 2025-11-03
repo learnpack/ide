@@ -1048,6 +1048,10 @@ a {
   color: var(--font-color-secondary, #333);
 }
 
+.active-on-hover:hover .code-challenge-input-wrapper .code-challenge-generate-button {
+  background-color: var(--color-active) !important;
+}
+
 .active-on-hover:hover .image-input-wrapper input {
   color: var(--font-color-secondary, #333);
 }
