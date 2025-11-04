@@ -35,6 +35,7 @@ import { Icon } from "../../Icon";
 import { generateCodeChallenge } from "../../../utils/creator";
 import { Loader } from "../Loader/Loader";
 import { useCompletionJobStatus } from "../../../hooks/useCompletionJobStatus";
+import { isRunnableCodeBlock } from "../../../utils/runnableDetection";
 
 
 const ClickMeToGetID = ({ id }: { id: string }) => {
@@ -439,6 +440,16 @@ export const Markdowner = ({
               if (metadata) {
                 metadataObject = extractMetadata(metadata);
               }
+              
+              // SIEMPRE usar detección automática, ignorando cualquier atributo runnable explícito
+              const isRunnable = isRunnableCodeBlock(code, lang);
+              if (isRunnable) {
+                metadataObject.runnable = true;
+              } else {
+                // Eliminar runnable si existe pero no es detectado como runnable
+                delete metadataObject.runnable;
+              }
+              
               return {
                 lang,
                 code,

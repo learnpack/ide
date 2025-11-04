@@ -45,30 +45,6 @@ components:
 
       [Ask Rigo how to create a function in Python](https://4geeks.com/ask?query=help-me-understand-how-to-create-a-function-in-python-in-the-simplest-possible-way)
 
-  - name: runnable_code
-    description: >-
-      Code blocks with the runnable metadata that can be executed directly in the application. Users can run the code and see the output, making it interactive for learning programming concepts no matter the programming language. Try to use this component to let the user UNDERSTAND the code and see the output, not just to show the code. If you show code example. Sometimes this component can serve as part of the explanation for a code challenge proposal.
-    goodFor:
-      - code understanding
-      - immediate feedback
-      - understand code
-    avoid:
-      - this is intended only for demonstrative purposes. The student CANNOT edit the code, only run it.
-    example: |
-      ```javascript runnable="true"
-      console.log("Hello, World!");
-      let x = 5;
-      let y = 10;
-      console.log(x + y);
-      ```
-
-      ```python runnable="true"
-      print("Hello, World!")
-      x = 5
-      y = 10
-      print(x + y)
-      ```
-
   - name: image
     intendedUse:
       - educational explanation
