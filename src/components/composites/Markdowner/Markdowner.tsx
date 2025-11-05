@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/tooltip";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { DEV_MODE } from "../../../utils/lib";
 
 
@@ -36,6 +36,41 @@ import { generateCodeChallenge } from "../../../utils/creator";
 import { Loader } from "../Loader/Loader";
 import { useCompletionJobStatus } from "../../../hooks/useCompletionJobStatus";
 
+
+/**
+ * Genera un hash simple y rápido de un string (djb2 algorithm)
+ * Usado para generar keys estables basadas en contenido
+ */
+const simpleHash = (str: string): string => {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) + hash + str.charCodeAt(i);
+  }
+  return (hash >>> 0).toString(36); // Convertir a base36 para string más corto
+};
+
+/**
+ * Genera una key estable para un componente basado en su nodo
+ * Usa la posición del nodo en el markdown original como identificador estable
+ */
+const generateStableKey = (
+  node: any, 
+  prefix: string, 
+  getPortion: (start: number, end: number) => string
+): string => {
+  // Si el nodo tiene posición, usamos el contenido exacto como base para la key
+  if (node?.position?.start?.offset !== undefined && 
+      node?.position?.end?.offset !== undefined) {
+    const content = getPortion(node.position.start.offset, node.position.end.offset);
+    const contentHash = simpleHash(content);
+    return `${prefix}-${contentHash}`;
+  }
+  
+  // Fallback: si no hay posición, intentamos con children o node como string
+  const fallbackContent = JSON.stringify(node?.children || node);
+  const fallbackHash = simpleHash(fallbackContent);
+  return `${prefix}-fallback-${fallbackHash}`;
+};
 
 const ClickMeToGetID = ({ id }: { id: string }) => {
   const { t } = useTranslation();
@@ -169,26 +204,23 @@ export const Markdowner = ({
     }
   }, [markdown]);
 
-  return (
-    <>
-      <Markdown
-        skipHtml={true}
-        remarkPlugins={[remarkGfm, remarkMath, emoji]}
-        rehypePlugins={[rehypeKatex]}
-        components={{
-          a: ({ href, children }) => {
-            if (href) {
-              if (isRigoQuestion(href)) {
-                return <RigoQuestion href={href}>{children}</RigoQuestion>;
-              }
-              return (
-                <a onClick={() => openLink(href)} target="_blank" href={href}>
-                  {children}
-                </a>
-              );
-            }
-            return <span>{children}</span>;
-          },
+  // 🔧 SOLUCIÓN: Memoizar el objeto components para evitar remontajes innecesarios
+  // El objeto mantiene la misma referencia entre renders, lo que permite que React
+  // preserve el estado de los componentes personalizados (como QuizRenderer)
+  const customComponents = useMemo(() => ({
+    a: ({ href, children }) => {
+      if (href) {
+        if (isRigoQuestion(href)) {
+          return <RigoQuestion href={href}>{children}</RigoQuestion>;
+        }
+        return (
+          <a onClick={() => openLink(href)} target="_blank" href={href}>
+            {children}
+          </a>
+        );
+      }
+      return <span>{children}</span>;
+    },
           h1: ({ children, node }) => {
             if (creatorModeActivated) {
               return (
@@ -362,14 +394,17 @@ export const Markdowner = ({
             const containsTaskList = checkForQuiz(node);
 
             if (containsTaskList) {
+              // Generar key estable para el quiz basada en su contenido
+              const quizKey = generateStableKey(node, 'quiz', getPortion);
+              
               if (creatorModeActivated) {
                 return (
-                  <CreatorWrapper node={node} tagName="quiz">
-                    <QuizRenderer children={children} />
+                  <CreatorWrapper key={quizKey} node={node} tagName="quiz">
+                    <QuizRenderer key={quizKey} children={children} />
                   </CreatorWrapper>
                 );
               }
-              return <QuizRenderer children={children} />;
+              return <QuizRenderer key={quizKey} children={children} />;
             }
 
             const start = node?.properties?.start;
@@ -388,14 +423,17 @@ export const Markdowner = ({
             const containsTaskList = checkForQuiz(node);
 
             if (containsTaskList) {
+              // Generar key estable para el quiz basada en su contenido
+              const quizKey = generateStableKey(node, 'quiz', getPortion);
+              
               if (creatorModeActivated) {
                 return (
-                  <CreatorWrapper node={node} tagName="quiz">
-                    <QuizRenderer children={children} />
+                  <CreatorWrapper key={quizKey} node={node} tagName="quiz">
+                    <QuizRenderer key={quizKey} children={children} />
                   </CreatorWrapper>
                 );
               }
-              return <QuizRenderer children={children} />;
+              return <QuizRenderer key={quizKey} children={children} />;
             }
 
             if (isCreator && mode === "creator" && allowCreate) {
@@ -409,8 +447,12 @@ export const Markdowner = ({
             return <ul onClick={() => console.log(node)}>{children}</ul>;
           },
           img: ({ src, alt, node }) => {
+            // Generar key basada en src (la imagen específica)
+            const imgKey = src ? `img-${simpleHash(src)}` : generateStableKey(node, 'img', getPortion);
+            
             return (
               <CustomImage
+                key={imgKey}
                 src={src}
                 alt={alt}
                 node={node}
@@ -449,10 +491,14 @@ export const Markdowner = ({
               return <pre>{props.children}</pre>;
             }
 
+            // Generar key estable para el bloque de código
+            const codeBlockKey = generateStableKey(props.node, `code-${codeBlocks[0].lang}`, getPortion);
+
             if (creatorModeActivated) {
               return (
-                <CreatorWrapper node={props.node} tagName="pre">
+                <CreatorWrapper key={codeBlockKey} node={props.node} tagName="pre">
                   <CustomCodeBlock
+                    key={codeBlockKey}
                     node={props.node}
                     code={codeBlocks[0].code}
                     language={codeBlocks[0].lang}
@@ -465,6 +511,7 @@ export const Markdowner = ({
             }
             return (
               <CustomCodeBlock
+                key={codeBlockKey}
                 node={props.node}
                 code={codeBlocks[0].code}
                 language={codeBlocks[0].lang}
@@ -474,7 +521,21 @@ export const Markdowner = ({
               />
             );
           },
-        }}
+  }), [creatorModeActivated, isCreator, mode, allowCreate, openLink, config, getPortion]);
+  // Note: 'markdown' is intentionally omitted from dependencies to prevent remounting
+  // of all custom components when markdown content changes. It's safe because:
+  // 1. markdown is only passed as a prop (wholeMD) to child components
+  // 2. React automatically updates props without remounting components
+  // 3. Including it would cause all QuizRenderer, CustomCodeBlock, etc. to remount
+  //    and lose their internal state (selections, results, etc.) on every content change
+
+  return (
+    <>
+      <Markdown
+        skipHtml={true}
+        remarkPlugins={[remarkGfm, remarkMath, emoji]}
+        rehypePlugins={[rehypeKatex]}
+        components={customComponents}
       >
         {markdown}
       </Markdown>
@@ -625,8 +686,11 @@ const CustomCodeBlock = ({
   }
 
   if (language === "question") {
+    // Generar key única para la pregunta basada en su eval o código
+    const questionKey = `question-${simpleHash(metadata.eval as string || code)}`;
     return (
       <Question
+        key={questionKey}
         metadata={metadata}
         wholeMD={wholeMD}
         code={code}
@@ -636,19 +700,27 @@ const CustomCodeBlock = ({
     );
   }
   if (language === "mermaid") {
-    return <MermaidRenderer code={code} />;
+    // Key basada en el código del diagrama mermaid
+    const mermaidKey = `mermaid-${simpleHash(code)}`;
+    return <MermaidRenderer key={mermaidKey} code={code} />;
   }
 
   if (language === "changesDiff") {
-    return <ChangesDiffRenderer node={node} code={code} />;
+    // Key basada en el código de los cambios
+    const diffKey = `diff-${simpleHash(code)}`;
+    return <ChangesDiffRenderer key={diffKey} node={node} code={code} />;
   }
 
   if (language === "loader") {
-    return <RealtimeLesson />;
+    // Key única con timestamp ya que es un componente temporal/de carga
+    const loaderKey = `loader-${Date.now()}`;
+    return <RealtimeLesson key={loaderKey} />;
   }
 
   if (language === "code_challenge_proposal") {
-    return <CodeChallengeProposalRenderer node={node} code={code} allowCreate={allowCreate} />;
+    // Key basada en el código de la propuesta
+    const proposalKey = `code-proposal-${simpleHash(code)}`;
+    return <CodeChallengeProposalRenderer key={proposalKey} node={node} code={code} allowCreate={allowCreate} />;
   }
 
   if (language === "new") {
@@ -657,7 +729,9 @@ const CustomCodeBlock = ({
     } else return null;
   }
   if (language === "fill_in_the_blank" || language === "fill") {
-    return <FillInTheBlankRenderer node={node} code={code} metadata={metadata} />;
+    // Key basada en el código del fill-in-the-blank
+    const fillKey = `fill-blank-${simpleHash(code)}`;
+    return <FillInTheBlankRenderer key={fillKey} node={node} code={code} metadata={metadata} />;
   }
 
   const metadataComponents = {
