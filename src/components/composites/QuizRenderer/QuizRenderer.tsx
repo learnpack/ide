@@ -57,6 +57,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
   const [showResults, setShowResults] = useState<boolean>(false);
   const [readyToSubmit, setReadyToSubmit] = useState<boolean>(false);
   const [quizRendered, setQuizRendered] = useState<boolean>(false);
+  const [restoredSelections, setRestoredSelections] = useState<Record<string, string>>({});
 
   const {
     registerTelemetryEvent,
@@ -110,6 +111,65 @@ export const QuizRenderer = ({ children }: { children: any }) => {
       debouncedRegister.cancel();
     };
   }, [quizRendered]);
+
+  // Recover quiz state from telemetry when component mounts
+  useEffect(() => {
+    // Only attempt recovery after quiz is fully rendered and has a hash
+    if (!quiz.current.hash || !quizRendered) return;
+
+    const recoverState = async () => {
+      try {
+        const currentStep = await getTelemetryStep(Number(currentExercisePosition));
+        
+        if (!currentStep?.quiz_submissions) return;
+
+        // Find submissions for this specific quiz
+        const submissions = currentStep.quiz_submissions.filter(
+          (submission) => submission.quiz_hash === quiz.current.hash
+        );
+
+        if (submissions.length === 0) return;
+
+        // Get the last successful submission
+        const lastSuccessfulSubmission = submissions
+          .reverse()
+          .find((s) => s.status === "SUCCESS");
+
+        if (!lastSuccessfulSubmission) return;
+       
+        // Restore attempts history
+        quiz.current.attempts = submissions;
+
+        // Create an object with restored selections for React state
+        const restored: Record<string, string> = {};
+        
+        // Restore selections from telemetry
+        lastSuccessfulSubmission.selections?.forEach((selection) => {
+          // Store directly in state for React to render
+          restored[selection.question] = selection.answer;
+          
+          // Also update in groups if they exist (for ref consistency)
+          const groupKey = Object.keys(quiz.current.groups).find(
+            (key) => quiz.current.groups[key].title === selection.question
+          );
+          
+          if (groupKey) {
+            quiz.current.groups[groupKey].currentSelection = selection.answer;
+          }
+        });
+
+        // Update state to trigger re-render with restored selections
+        setRestoredSelections(restored);
+        setShowResults(true);
+        
+      } catch (error) {
+        console.error("Error recovering quiz state from telemetry:", error);
+        // Fail silently - doesn't affect core functionality
+      }
+    };
+
+    recoverState();
+  }, [quiz.current.hash, quizRendered, getTelemetryStep, currentExercisePosition]);
 
 
   const onGroupReady = (group: TQuizGroup) => {
@@ -213,6 +273,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
             onGroupReady={onGroupReady}
             onGroupRendered={onGroupRendered}
             showResults={showResults}
+            restoredSelections={restoredSelections}
           >
             {child.props.children}
           </QuizQuestion>
@@ -240,11 +301,13 @@ const QuizQuestion = ({
   onGroupReady,
   onGroupRendered,
   showResults,
+  restoredSelections,
 }: {
   children: any;
   onGroupReady: (group: TQuizGroup) => void;
   onGroupRendered: (title: string) => void;
   showResults: boolean;
+  restoredSelections: Record<string, string>;
 }) => {
   if (!children) {
     console.log("No children found for quiz question");
@@ -252,6 +315,7 @@ const QuizQuestion = ({
   }
 
   const [currentAnswer, setCurrentAnswer] = useState<string>("");
+  const [questionTitle, setQuestionTitle] = useState<string>("");
 
   const p = children.find((child: any) => {
     return child.key && child.key.startsWith("p-");
@@ -298,8 +362,17 @@ const QuizQuestion = ({
 
   const onTitleReady = (title: string) => {
     groupRef.current.title = title;
+    setQuestionTitle(title);
     onGroupRendered(title);
   };
+
+  // Restore selection when title is ready and there's a restored selection
+  useEffect(() => {
+    if (questionTitle && restoredSelections[questionTitle]) {
+      setCurrentAnswer(restoredSelections[questionTitle]);
+      groupRef.current.currentSelection = restoredSelections[questionTitle];
+    }
+  }, [questionTitle, restoredSelections]);
 
   return (
     <div className="flex-y gap-small">
