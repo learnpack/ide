@@ -510,5 +510,16 @@
     "addExerciseHelpText": "Te ayudo a agregar un nuevo paso a tu curso, explica el resultado del paso y yo haré mi mejor esfuerzo para crearlo.",
     "explainMeWhichChangesYouWantToMake": "Explícame qué cambios quieres hacer al paso",
     "titleCannotBeEmpty": "El título no puede estar vacío",
-    "invalidTitleFormatExplanation": "El título no está en el formato correcto, por favor usa el formato: 1.1 Título del ejercicio. Debe siempre empezar con el índice del ejercicio."
+    "invalidTitleFormatExplanation": "El título no está en el formato correcto, por favor usa el formato: 1.1 Título del ejercicio. Debe siempre empezar con el índice del ejercicio.",
+    "double-click-to-rename": "Haz doble clic para editar el nombre",
+    "solution-files-cannot-be-renamed": "Los archivos de solución no se pueden renombrar",
+    "file-name-too-long": "El nombre del archivo es demasiado largo (máximo {{max}} caracteres)",
+    "file-name-already-exists": "Ya existe un archivo con este nombre",
+    "extension-cannot-be-changed": "La extensión no puede ser modificada. Solo puede cambiar el nombre del archivo.",
+    "renaming-file": "Renombrando archivo...",
+    "file-renamed-successfully": "Archivo renombrado exitosamente",
+    "error-renaming-file": "Error al renombrar el archivo",
+    "invalid-characters-in-filename": "El nombre contiene caracteres no permitidos: {{chars}}",
+    "filename-too-long-bytes": "El nombre del archivo excede el límite de tamaño (máximo 1024 bytes en UTF-8)",
+    "reserved-filename": "El nombre '{{name}}' está reservado y no puede usarse"
 }
