@@ -72,18 +72,28 @@ export const Question = ({
   const hashRef = useRef<string>("");
   const startedAtRef = useRef<number>(0);
 
+  // Generate hash immediately when component mounts or metadata.eval changes
+  useEffect(() => {
+    if (metadata.eval && !questionHash) {
+      const generateHash = async () => {
+        const hash = await asyncHashText(metadata.eval as string);
+        hashRef.current = hash;
+        setQuestionHash(hash);
+      };
+      generateHash();
+    }
+  }, [metadata.eval, questionHash]);
+
   const register = async () => {
-    const hash = await asyncHashText(metadata.eval as string);
-    hashRef.current = hash;
-    setQuestionHash(hash);
+    if (!questionHash) return;
+    
     const elem: TTesteableElement = {
       type: "quiz",
-      hash: hash,
+      hash: questionHash,
       searchString: metadata.eval as string,
     }
     TelemetryManager.registerTesteableElement(Number(currentExercisePosition), elem);
   };
-
 
   const debouncedRegister = debounce(register, 2000);
 
@@ -96,13 +106,13 @@ export const Question = ({
   }, [feedback]);
 
   useEffect(() => {
-    if (metadata.eval) {
+    if (questionHash) {
       debouncedRegister();
     }
     return () => {
       debouncedRegister.cancel();
     };
-  }, [metadata.eval]);
+  }, [questionHash]);
 
   // Recover answer state from telemetry when component mounts
   useEffect(() => {
