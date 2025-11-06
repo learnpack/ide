@@ -89,6 +89,8 @@ export const QuizRenderer = ({ children }: { children: any }) => {
     started_at: 0,
   });
 
+  const hasRestoredData = useRef(false);
+
   const register = async () => {
     TelemetryManager.registerTesteableElement(
       Number(currentExercisePosition),
@@ -161,6 +163,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
         // Update state to trigger re-render with restored selections
         setRestoredSelections(restored);
         setShowResults(true);
+        hasRestoredData.current = true; // Mark that we restored data from telemetry
         
       } catch (error) {
         console.error("Error recovering quiz state from telemetry:", error);
@@ -174,6 +177,14 @@ export const QuizRenderer = ({ children }: { children: any }) => {
 
   const onGroupReady = (group: TQuizGroup) => {
     if (quiz.current.started_at === 0) quiz.current.started_at = Date.now();
+
+    // If user interacts after restore, clear all other questions
+    if (hasRestoredData.current && Object.keys(restoredSelections).length > 0) {
+      // Signal to clear all questions except the one being clicked
+      setRestoredSelections({});
+      setShowResults(false);
+      hasRestoredData.current = false;
+    }
 
     quiz.current.groups[group.title] = group;
     setShowResults(false);
@@ -316,6 +327,7 @@ const QuizQuestion = ({
 
   const [currentAnswer, setCurrentAnswer] = useState<string>("");
   const [questionTitle, setQuestionTitle] = useState<string>("");
+  const restoredAnswer = useRef<string>(""); // Track what was restored from telemetry
 
   const p = children.find((child: any) => {
     return child.key && child.key.startsWith("p-");
@@ -341,6 +353,9 @@ const QuizQuestion = ({
   );
 
   const onAnswerClick = (answer: string) => {
+    // Prevent clearing if user clicks the same answer they already have
+    if (currentAnswer === answer) return;
+    
     groupRef.current.currentSelection = answer;
     setCurrentAnswer(answer);
     onGroupReady(groupRef.current);
@@ -369,10 +384,20 @@ const QuizQuestion = ({
   // Restore selection when title is ready and there's a restored selection
   useEffect(() => {
     if (questionTitle && restoredSelections[questionTitle]) {
-      setCurrentAnswer(restoredSelections[questionTitle]);
-      groupRef.current.currentSelection = restoredSelections[questionTitle];
+      // Restore from telemetry
+      const restored = restoredSelections[questionTitle];
+      setCurrentAnswer(restored);
+      groupRef.current.currentSelection = restored;
+      restoredAnswer.current = restored; // Remember what we restored
+    } else if (questionTitle && Object.keys(restoredSelections).length === 0 && restoredAnswer.current) {
+      // restoredSelections was cleared (user clicked), clear this question if it still has the restored value
+      if (currentAnswer === restoredAnswer.current) {
+        setCurrentAnswer("");
+        groupRef.current.currentSelection = "";
+      }
+      restoredAnswer.current = ""; // Reset
     }
-  }, [questionTitle, restoredSelections]);
+  }, [questionTitle, restoredSelections, currentAnswer]);
 
   return (
     <div className="flex-y gap-small">
