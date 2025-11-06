@@ -288,6 +288,29 @@ export const deleteFile = async (exerciseSlug: string, filename: string) => {
   }
 };
 
+export const renameFile = async (
+  exerciseSlug: string,
+  oldFilename: string,
+  newFilename: string
+) => {
+  try {
+    const courseSlug = getSlugFromPath();
+    const response = await axios.put(
+      `${
+        DEV_MODE ? "http://localhost:3000" : ""
+      }/courses/${courseSlug}/exercises/${exerciseSlug}/file/${oldFilename}/rename`,
+      {
+        oldFilename,
+        newFilename,
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error renaming file:", error);
+    throw error;
+  }
+};
+
 export const changeSlug = async (
   currentSlug: string,
   newSlug: string,
