@@ -132,12 +132,10 @@ export const QuizRenderer = ({ children }: { children: any }) => {
 
         if (submissions.length === 0) return;
 
-        // Get the last successful submission
-        const lastSuccessfulSubmission = submissions
-          .reverse()
-          .find((s) => s.status === "SUCCESS");
+        // Get the last submission (successful or failed)
+        const lastSubmission = submissions[submissions.length - 1];
 
-        if (!lastSuccessfulSubmission) return;
+        if (!lastSubmission) return;
        
         // Restore attempts history
         quiz.current.attempts = submissions;
@@ -146,7 +144,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
         const restored: Record<string, string> = {};
         
         // Restore selections from telemetry
-        lastSuccessfulSubmission.selections?.forEach((selection) => {
+        lastSubmission.selections?.forEach((selection) => {
           // Store directly in state for React to render
           restored[selection.question] = selection.answer;
           
