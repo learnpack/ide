@@ -57,6 +57,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
   const [showResults, setShowResults] = useState<boolean>(false);
   const [readyToSubmit, setReadyToSubmit] = useState<boolean>(false);
   const [quizRendered, setQuizRendered] = useState<boolean>(false);
+  const [restoredSelections, setRestoredSelections] = useState<Record<string, string>>({});
 
   const {
     registerTelemetryEvent,
@@ -88,6 +89,8 @@ export const QuizRenderer = ({ children }: { children: any }) => {
     started_at: 0,
   });
 
+  const hasRestoredData = useRef(false);
+
   const register = async () => {
     TelemetryManager.registerTesteableElement(
       Number(currentExercisePosition),
@@ -111,9 +114,75 @@ export const QuizRenderer = ({ children }: { children: any }) => {
     };
   }, [quizRendered]);
 
+  // Recover quiz state from telemetry when component mounts
+  useEffect(() => {
+    // Only attempt recovery after quiz is fully rendered and has a hash
+    if (!quiz.current.hash || !quizRendered) return;
+
+    const recoverState = async () => {
+      try {
+        const currentStep = await getTelemetryStep(Number(currentExercisePosition));
+        
+        if (!currentStep?.quiz_submissions) return;
+
+        // Find submissions for this specific quiz
+        const submissions = currentStep.quiz_submissions.filter(
+          (submission) => submission.quiz_hash === quiz.current.hash
+        );
+
+        if (submissions.length === 0) return;
+
+        // Get the last submission (successful or failed)
+        const lastSubmission = submissions[submissions.length - 1];
+
+        if (!lastSubmission) return;
+       
+        // Restore attempts history
+        quiz.current.attempts = submissions;
+
+        // Create an object with restored selections for React state
+        const restored: Record<string, string> = {};
+        
+        // Restore selections from telemetry
+        lastSubmission.selections?.forEach((selection) => {
+          // Store directly in state for React to render
+          restored[selection.question] = selection.answer;
+          
+          // Also update in groups if they exist (for ref consistency)
+          const groupKey = Object.keys(quiz.current.groups).find(
+            (key) => quiz.current.groups[key].title === selection.question
+          );
+          
+          if (groupKey) {
+            quiz.current.groups[groupKey].currentSelection = selection.answer;
+          }
+        });
+
+        // Update state to trigger re-render with restored selections
+        setRestoredSelections(restored);
+        setShowResults(true);
+        hasRestoredData.current = true; // Mark that we restored data from telemetry
+        
+      } catch (error) {
+        console.error("Error recovering quiz state from telemetry:", error);
+        // Fail silently - doesn't affect core functionality
+      }
+    };
+
+    recoverState();
+  }, [quiz.current.hash, quizRendered, getTelemetryStep, currentExercisePosition]);
+
 
   const onGroupReady = (group: TQuizGroup) => {
     if (quiz.current.started_at === 0) quiz.current.started_at = Date.now();
+
+    // If user interacts after restore, clear all other questions
+    if (hasRestoredData.current && Object.keys(restoredSelections).length > 0) {
+      // Signal to clear all questions except the one being clicked
+      setRestoredSelections({});
+      setShowResults(false);
+      hasRestoredData.current = false;
+    }
 
     quiz.current.groups[group.title] = group;
     setShowResults(false);
@@ -213,6 +282,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
             onGroupReady={onGroupReady}
             onGroupRendered={onGroupRendered}
             showResults={showResults}
+            restoredSelections={restoredSelections}
           >
             {child.props.children}
           </QuizQuestion>
@@ -240,11 +310,13 @@ const QuizQuestion = ({
   onGroupReady,
   onGroupRendered,
   showResults,
+  restoredSelections,
 }: {
   children: any;
   onGroupReady: (group: TQuizGroup) => void;
   onGroupRendered: (title: string) => void;
   showResults: boolean;
+  restoredSelections: Record<string, string>;
 }) => {
   if (!children) {
     console.log("No children found for quiz question");
@@ -252,6 +324,8 @@ const QuizQuestion = ({
   }
 
   const [currentAnswer, setCurrentAnswer] = useState<string>("");
+  const [questionTitle, setQuestionTitle] = useState<string>("");
+  const restoredAnswer = useRef<string>(""); // Track what was restored from telemetry
 
   const p = children.find((child: any) => {
     return child.key && child.key.startsWith("p-");
@@ -277,6 +351,9 @@ const QuizQuestion = ({
   );
 
   const onAnswerClick = (answer: string) => {
+    // Prevent clearing if user clicks the same answer they already have
+    if (currentAnswer === answer) return;
+    
     groupRef.current.currentSelection = answer;
     setCurrentAnswer(answer);
     onGroupReady(groupRef.current);
@@ -298,8 +375,27 @@ const QuizQuestion = ({
 
   const onTitleReady = (title: string) => {
     groupRef.current.title = title;
+    setQuestionTitle(title);
     onGroupRendered(title);
   };
+
+  // Restore selection when title is ready and there's a restored selection
+  useEffect(() => {
+    if (questionTitle && restoredSelections[questionTitle]) {
+      // Restore from telemetry
+      const restored = restoredSelections[questionTitle];
+      setCurrentAnswer(restored);
+      groupRef.current.currentSelection = restored;
+      restoredAnswer.current = restored; // Remember what we restored
+    } else if (questionTitle && Object.keys(restoredSelections).length === 0 && restoredAnswer.current) {
+      // restoredSelections was cleared (user clicked), clear this question if it still has the restored value
+      if (currentAnswer === restoredAnswer.current) {
+        setCurrentAnswer("");
+        groupRef.current.currentSelection = "";
+      }
+      restoredAnswer.current = ""; // Reset
+    }
+  }, [questionTitle, restoredSelections, currentAnswer]);
 
   return (
     <div className="flex-y gap-small">
