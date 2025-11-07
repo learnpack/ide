@@ -51,6 +51,7 @@ export const Question = ({
     useConsumable,
     registerTelemetryEvent,
     reportEnrichDataLayer,
+    getTelemetryStep,
   } = useStore((state) => ({
     replaceInReadme: state.replaceInReadme,
     mode: state.mode,
@@ -58,27 +59,41 @@ export const Question = ({
     useConsumable: state.useConsumable,
     registerTelemetryEvent: state.registerTelemetryEvent,
     reportEnrichDataLayer: state.reportEnrichDataLayer,
+    getTelemetryStep: state.getTelemetryStep,
   }));
 
   const [feedback, setFeedback] = useState<TFeedback | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [examples, setExamples] = useState<string[]>(splitInLines(code));
   const [answer, setAnswer] = useState("");
+  const [hasRestoredData, setHasRestoredData] = useState(false);
+  const [questionHash, setQuestionHash] = useState<string>("");
   const feedbackRef = useRef<HTMLDivElement>(null);
   const hashRef = useRef<string>("");
   const startedAtRef = useRef<number>(0);
 
+  // Generate hash immediately when component mounts or metadata.eval changes
+  useEffect(() => {
+    if (metadata.eval && !questionHash) {
+      const generateHash = async () => {
+        const hash = await asyncHashText(metadata.eval as string);
+        hashRef.current = hash;
+        setQuestionHash(hash);
+      };
+      generateHash();
+    }
+  }, [metadata.eval, questionHash]);
+
   const register = async () => {
-    const hash = await asyncHashText(metadata.eval as string);
-    hashRef.current = hash;
+    if (!questionHash) return;
+    
     const elem: TTesteableElement = {
       type: "quiz",
-      hash: hash,
+      hash: questionHash,
       searchString: metadata.eval as string,
     }
     TelemetryManager.registerTesteableElement(Number(currentExercisePosition), elem);
   };
-
 
   const debouncedRegister = debounce(register, 2000);
 
@@ -91,13 +106,58 @@ export const Question = ({
   }, [feedback]);
 
   useEffect(() => {
-    if (metadata.eval) {
+    if (questionHash) {
       debouncedRegister();
     }
     return () => {
       debouncedRegister.cancel();
     };
-  }, [metadata.eval]);
+  }, [questionHash]);
+
+  // Recover answer state from telemetry when component mounts
+  useEffect(() => {
+    if (!questionHash || !metadata.eval) return;
+
+    const recoverState = async () => {
+      try {
+        const currentStep = await getTelemetryStep(Number(currentExercisePosition));
+        
+        if (!currentStep?.quiz_submissions) return;
+
+        // Find submissions for this specific question
+        const submissions = currentStep.quiz_submissions.filter(
+          (submission) => submission.quiz_hash === questionHash
+        );
+
+        if (submissions.length === 0) return;
+
+        // Get the last submission (successful or failed)
+        const lastSubmission = submissions[submissions.length - 1];
+
+        if (!lastSubmission || !lastSubmission.selections || lastSubmission.selections.length === 0) return;
+
+        // Restore answer from the last submission
+        const restoredAnswer = lastSubmission.selections[0].answer;
+        const wasCorrect = lastSubmission.selections[0].isCorrect;
+
+        setAnswer(restoredAnswer);
+        setHasRestoredData(true);
+        
+        // Show visual feedback based on result
+        setFeedback({
+          exit_code: wasCorrect ? 0 : 1,
+          feedback: wasCorrect 
+            ? t("Excellent work!") 
+            : t("yourAnswerNeedsImprovement"),
+        });
+        
+      } catch (error) {
+        console.error("Error recovering open question state from telemetry:", error);
+      }
+    };
+
+    recoverState();
+  }, [questionHash, metadata.eval, getTelemetryStep, currentExercisePosition, t]);
 
 
 
@@ -143,7 +203,6 @@ export const Question = ({
             startedAtRef.current
           );
 
-
           if (result.exit_code === 0) {
             Notifier.confetti();
             reportEnrichDataLayer("quiz_success", {});
@@ -172,6 +231,11 @@ export const Question = ({
   };
 
   const handleTranscription = (text: string) => {
+    // Clear restored feedback when user adds transcription
+    if (hasRestoredData) {
+      setFeedback(null);
+      setHasRestoredData(false);
+    }
     setAnswer(answer + " " + text);
   };
 
@@ -190,10 +254,13 @@ ${newExamples.join("\n")}
     }
   };
 
+  const textareaKey = hasRestoredData ? `restored-${answer}` : 'empty';
+
   return (
     <div>
       <section className="d-flex gap-small align-center pos-relative">
         <AutoResizeTextarea
+          key={textareaKey}
           className="w-100"
           minHeight={"90px"}
           defaultValue={answer}
@@ -201,6 +268,11 @@ ${newExamples.join("\n")}
           onChange={(e) => {
             if (!answer) {
               startedAtRef.current = Date.now();
+            }
+            // Clear restored feedback when user starts editing
+            if (hasRestoredData) {
+              setFeedback(null);
+              setHasRestoredData(false);
             }
             setAnswer(e.target.value);
           }}
