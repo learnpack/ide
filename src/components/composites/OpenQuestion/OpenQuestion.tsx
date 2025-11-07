@@ -176,7 +176,6 @@ export const Question = ({
         examples: examples.join("\n"),
       },
       onComplete: (success, rigoData) => {
-        console.log(success, rigoData);
         if (success) {
           const result = rigoData.data.parsed;
           setFeedback({

@@ -147,3 +147,22 @@ export const isPackageAuthor = async (
     return { isAuthor: false, status };
   }
 };
+
+export const getCompletionJob = async (token: string, completionId: string, host: string = RIGOBOT_HOST) => {
+
+  const response = await axios.get(
+    `${host}/v1/prompting/completion/${completionId}/`,
+    {
+      headers: {
+        Authorization: `Token ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  console.log("RigoBot completion response:", response.data);
+
+  const responseData = response.data;
+
+  return responseData;
+};
