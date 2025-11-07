@@ -9,6 +9,7 @@ import { Markdowner } from "../composites/Markdowner/Markdowner";
 import { Loader } from "../composites/Loader/Loader";
 import { AutoResizeTextarea } from "../composites/AutoResizeTextarea/AutoResizeTextarea";
 import toast from "react-hot-toast";
+import { Icon } from "../Icon";
 import {
   DEV_MODE,
   DEV_URL,
@@ -17,6 +18,7 @@ import {
   slugify,
   uploadBlobToBucket,
 } from "../../utils/lib";
+import { generateCodeChallenge } from "../../utils/creator";
 
 type TPromp = {
   type: "button" | "select" | "input";
@@ -281,6 +283,7 @@ export const CreatorWrapper = ({
     setIsOpen(false);
   };
 
+
   const simplifyCode = () => {
     setReplacementValue("");
     setIsGenerating(true);
@@ -455,6 +458,7 @@ export const CreatorWrapper = ({
           node={node}
           promps={promps}
           onSubmit={askAIAnything}
+          isBuildable={isBuildable}
         />
       )}
 
@@ -484,6 +488,7 @@ export const CreatorWrapper = ({
             tagName={tagName}
             node={node}
             onEditAsMarkdown={handleEditAsMarkdown}
+            isBuildable={isBuildable}
           />
         )}
         {tagName !== "new" && !containsNewElement && (
@@ -737,17 +742,151 @@ const ImageGenerator = ({
         svg={svgs.image}
       />
       {isOpen && (
-        <input
-          type="text"
-          placeholder={t("describeImage")}
-          className="input"
-          ref={inputRef}
-          onKeyUp={(e) => {
-            if (e.key === "Enter") {
-              buttonAction();
-            }
-          }}
-        />
+        <div className="image-input-wrapper">
+          <input
+            type="text"
+            placeholder={t("describeImage")}
+            className="input"
+            ref={inputRef}
+            onKeyUp={(e) => {
+              if (e.key === "Enter") {
+                buttonAction();
+              }
+            }}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
+const CodeChallengeGenerator = ({
+  onFinish,
+  isBuildable,
+}: {
+  onFinish: (replacement: string) => void;
+  isBuildable: boolean;
+}) => {
+  const token = useStore((state) => state.token);
+  const config = useStore((state) => state.configObject);
+  const currentContent = useStore((state) => state.currentContent);
+  const currentExercisePosition = useStore((state) => state.currentExercisePosition);
+  const useConsumable = useStore((state) => state.useConsumable);
+  const reportEnrichDataLayer = useStore(
+    (state) => state.reportEnrichDataLayer
+  );
+  const { t } = useTranslation();
+  const [isOpen, setIsOpen] = useState(false);
+  const [prompt, setPrompt] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const buttonAction = async () => {
+    if (isOpen) {
+      const promptText = prompt.trim();
+      if (!promptText) {
+        toast.error(t("missing-required-content"));
+        return;
+      }
+
+      if (!token) {
+        toast.error(t("authentication-required"));
+        return;
+      }
+
+      const courseSlug = config?.config?.slug;
+      if (!courseSlug) {
+        toast.error(t("course-slug-not-found"));
+        return;
+      }
+
+      setIsGenerating(true);
+      const tid = toast.loading(t("generating-code-challenge"));
+
+      try {
+        const result = await generateCodeChallenge(
+          promptText,
+          currentContent,
+          Number(currentExercisePosition),
+          token,
+          courseSlug
+        );
+
+        if (result.status === "QUEUED") {
+          // Create the block with GENERATING status
+          const generatingContent = `\`\`\`code_challenge_proposal\nGENERATING(${result.id}) ${promptText}\n\`\`\``;
+          onFinish(generatingContent);
+          
+          toast.success(t("code-challenge-generation-started"), { id: tid });
+          reportEnrichDataLayer("creator_code_challenge_generation_started", {
+            prompt: promptText,
+            completion_id: result.id,
+          });
+          
+          try {
+            await useConsumable("ai-generation");
+          } catch (error) {
+            console.error("Error using consumable", error);
+          }
+        } else {
+          toast.error(t("failed-to-start-code-challenge-generation"), { id: tid });
+        }
+      } catch (error) {
+        console.error("Error generating code challenge:", error);
+        toast.error(t("error-generating-code-challenge-files"), { id: tid });
+        // On error, create the block with the prompt so user can edit and retry
+        const errorContent = `\`\`\`code_challenge_proposal\n${promptText}\n\`\`\``;
+        onFinish(errorContent);
+      } finally {
+        setIsGenerating(false);
+        setIsOpen(false);
+        setPrompt("");
+      }
+    } else {
+      setIsOpen(true);
+    }
+  };
+
+  const isDisabled = isBuildable === true;
+
+  return (
+    <div className="d-flex gap-small align-center w-full active-on-hover rounded padding-small svg-blue text-secondary">
+      <SimpleButton
+        extraClass="text-secondary active-on-hover"
+        text={isOpen ? "" : t("add-code-challenge")}
+        action={buttonAction}
+        svg={<Icon name="Code" />}
+        disabled={isGenerating || isDisabled}
+        title={isDisabled ? t("add-code-challenge-disabled-tooltip") : t("add-code-challenge-tooltip")}
+      />
+      {isOpen && (
+        <div className="flex-y gap-small w-full code-challenge-input-wrapper">
+          <AutoResizeTextarea
+            defaultValue={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            className="w-100 input"
+            minHeight="120px"
+            placeholder={t("code-challenge-prompt-placeholder")}
+          />
+          <div className="d-flex gap-small justify-end">
+            <SimpleButton
+              action={() => {
+                setIsOpen(false);
+                setPrompt("");
+              }}
+              extraClass="bg-gray padding-small rounded"
+              text={t("cancel")}
+              svg={<Icon name="X" />}
+              disabled={isGenerating}
+            />
+            <SimpleButton
+              action={buttonAction}
+              extraClass="bg-blue-rigo text-white padding-small rounded code-challenge-generate-button"
+              text={isGenerating ? t("generating-code-challenge") : t("generate")}
+              svg={isGenerating ? <Loader size="sm" svg={svgs.rigoSvg} /> : <Icon name="Check" />}
+              disabled={isGenerating || !prompt.trim()}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
@@ -761,6 +900,7 @@ const RigoInput = ({
   node,
   onEditAsMarkdown,
   onClose,
+  isBuildable,
 }: {
   onSubmit: (prompt: string) => void;
   inside: boolean;
@@ -769,6 +909,7 @@ const RigoInput = ({
   node: Element | undefined;
   onEditAsMarkdown: () => void;
   onClose: () => void;
+  isBuildable: boolean;
 }) => {
   const [prompt, setPrompt] = useState("");
   const replaceInReadme = useStore((state) => state.replaceInReadme);
@@ -838,15 +979,37 @@ const RigoInput = ({
               if (prompt.allowedElements?.includes(tagName)) return true;
               return false;
             })
-            .map((prompt, index) =>
-              prompt.type === "button" ? (
+            .map((prompt, index) => {
+              // Check if this is the code challenge button
+              // We identify it by checking multiple criteria to be sure:
+              // 1. tagName must be "new"
+              // 2. allowedElements must be exactly ["new"]
+              // 3. type must be "button"
+              // 4. text must match the translation key
+              const isCodeChallengeButton = tagName === "new" && 
+                Array.isArray(prompt.allowedElements) &&
+                prompt.allowedElements.length === 1 && 
+                prompt.allowedElements[0] === "new" &&
+                prompt.type === "button" &&
+                prompt.text === t("add-code-challenge");
+              
+              // Only disable if:
+              // 1. This is definitely the code challenge button
+              // 2. AND isBuildable is true (meaning the lesson has interactive exercises - entry file or files for cloud compilation)
+              // isBuildable comes from the store and indicates if the exercise can be built/executed
+              const isDisabled = isCodeChallengeButton && isBuildable === true;
+              
+              const tooltipTitle = isDisabled ? t("add-code-challenge-disabled-tooltip") : prompt.title;
+
+              return prompt.type === "button" ? (
                 <SimpleButton
                   svg={prompt.svg}
                   key={`${prompt.text}-${index}`}
-                  title={prompt.title}
+                  title={tooltipTitle}
                   action={prompt.action}
                   extraClass={prompt.extraClass}
                   text={prompt.text}
+                  disabled={isDisabled}
                 />
               ) : prompt.type === "select" ? (
                 <div
@@ -875,7 +1038,7 @@ const RigoInput = ({
                   </select>
                 </div>
               ) : null
-            )}
+            })}
           {tagName !== "new" && (
             <SimpleButton
               extraClass=" text-secondary  rounded padding-small active-on-hover svg-blue"
@@ -906,6 +1069,20 @@ const RigoInput = ({
               }
             }}
           />
+          {tagName === "new" && (
+            <CodeChallengeGenerator
+              onFinish={async (replacement) => {
+                if (node?.position?.start && node?.position?.end) {
+                  await replaceInReadme(
+                    replacement,
+                    node?.position?.start,
+                    node?.position?.end
+                  );
+                }
+              }}
+              isBuildable={isBuildable}
+            />
+          )}
         </div>
       )}
     </div>

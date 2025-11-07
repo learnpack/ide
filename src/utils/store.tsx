@@ -740,8 +740,31 @@ The user's set up the application in "${language}" language, give your feedback 
 
     const notHiddenFiles = exercise.files.filter((file: TFile) => !file.hidden);
 
-    // Special case, we have files, but we don't ave entry or language, it means the CLI is not capable of compiling, then:
-    if (!exercise.entry && !exercise.language && notHiddenFiles.length > 0) {
+    // Filtrar archivos que NO son interactivos (documentación/config/recursos)
+    const interactiveFiles = notHiddenFiles.filter(
+      (file: TFile) => {
+        const fileName = file.name.toLowerCase();
+        // Excluir README y otros archivos de documentación
+        if (fileName.includes("readme")) return false;
+        if (fileName.includes("pycache")) return false;
+        // Excluir archivos markdown
+        if (fileName.endsWith(".md")) return false;
+        // Excluir imágenes (no son código ejecutable)
+        if (
+          fileName.endsWith(".png") ||
+          fileName.endsWith(".jpg") ||
+          fileName.endsWith(".jpeg") ||
+          fileName.endsWith(".gif") ||
+          fileName.endsWith(".svg") ||
+          fileName.endsWith(".webp")
+        ) return false;
+        return true;
+      }
+    );
+
+    // Special case, we have interactive files, but we don't have entry or language, 
+    // it means the CLI is not capable of compiling, then:
+    if (!exercise.entry && !exercise.language && interactiveFiles.length > 0) {
       isBuildable = true;
       isTesteable = true;
       await initCompilerSocket("cloud");

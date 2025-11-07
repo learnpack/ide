@@ -35,6 +35,7 @@ import { Icon } from "../../Icon";
 import { generateCodeChallenge } from "../../../utils/creator";
 import { Loader } from "../Loader/Loader";
 import { useCompletionJobStatus } from "../../../hooks/useCompletionJobStatus";
+import { AutoResizeTextarea } from "../AutoResizeTextarea/AutoResizeTextarea";
 import { isRunnableCodeBlock } from "../../../utils/runnableDetection";
 
 
@@ -968,7 +969,7 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
 
 
 const CodeChallengeProposalRenderer = ({ code, node, allowCreate }: { code: string, node: Element, allowCreate: boolean }) => {
-  if (!node) return null;
+  
   const {
     replaceInReadme,
     token,
@@ -988,10 +989,21 @@ const CodeChallengeProposalRenderer = ({ code, node, allowCreate }: { code: stri
   }));
   const { t } = useTranslation();
 
+  // State for editing
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedCode, setEditedCode] = useState("");
+
   // Check if this is a generating status
   const isGenerating = code.startsWith("GENERATING(");
   const generatingId = isGenerating ? code.match(/GENERATING\((\d+)\)/)?.[1] : null;
   const originalCode = isGenerating ? code.replace(/GENERATING\(\d+\)\s*/, '') : code;
+
+  // Initialize editedCode when component mounts or originalCode changes
+  useEffect(() => {
+    if (!isEditing && editedCode === "") {
+      setEditedCode(originalCode);
+    }
+  }, [editedCode, isEditing, originalCode]);
 
   // Polling hook for completion job status (as fallback)
   const { status: pollingStatus, data: pollingData } = useCompletionJobStatus({
@@ -1011,6 +1023,9 @@ const CodeChallengeProposalRenderer = ({ code, node, allowCreate }: { code: stri
       console.log("⏳ POLLING: Code challenge running...", pollingData);
     }
   }, [pollingStatus]);
+
+  
+  if (!node) return null;
 
   // Handle socket updates for code challenge completion
   const handleCodeChallengeUpdate = async (status: string) => {
@@ -1055,7 +1070,10 @@ const CodeChallengeProposalRenderer = ({ code, node, allowCreate }: { code: stri
       return;
     }
 
-    if (!code || !currentContent) {
+    // Use editedCode if it exists, otherwise fall back to originalCode
+    const codeToUse = editedCode || originalCode;
+
+    if (!codeToUse || !currentContent) {
       toast.error(t("missing-required-content"));
       return;
     }
@@ -1070,7 +1088,7 @@ const CodeChallengeProposalRenderer = ({ code, node, allowCreate }: { code: stri
     try {
 
       const result = await generateCodeChallenge(
-        code,
+        codeToUse,
         currentContent,
         Number(currentExercisePosition),
         token,
@@ -1079,7 +1097,7 @@ const CodeChallengeProposalRenderer = ({ code, node, allowCreate }: { code: stri
 
       if (result.status === "QUEUED") {
         // Update the markdown to show GENERATING status
-        const generatingContent = `\`\`\`code_challenge_proposal\nGENERATING(${result.id}) ${code}\n\`\`\``;
+        const generatingContent = `\`\`\`code_challenge_proposal\nGENERATING(${result.id}) ${codeToUse}\n\`\`\``;
         if (node?.position?.start && node?.position?.end) {
           await replaceInReadme(generatingContent, node.position.start, node.position.end);
         }
@@ -1116,11 +1134,68 @@ const CodeChallengeProposalRenderer = ({ code, node, allowCreate }: { code: stri
   return (
     <div className="bg-2 padding-medium rounded border-blue">
       <h4 className="gap-small text-center flex-x align-center justify-center"><Icon name="Code" /> {t("code-challenge-proposal")}</h4>
-      <p>{originalCode}</p>
-      {allowCreate && <div className="d-flex gap-small justify-center" >
-        <SimpleButton action={handleAccept} extraClass="bg-blue-rigo text-white padding-small rounded" text={t("accept")} svg={<Icon name="Check" />} />
-        <SimpleButton action={handleReject} extraClass="bg-gray padding-small rounded" text={t("reject")} svg={<Icon name="X" />} />
-      </div>}
+      
+      {allowCreate && isEditing ? (
+        <div className="flex-y gap-small">
+          <AutoResizeTextarea
+            defaultValue={editedCode || originalCode}
+            onChange={(e) => setEditedCode(e.target.value)}
+            className="w-100"
+            minHeight="100px"
+            placeholder={t("code-challenge-description-placeholder") || "Describe el ejercicio de código..."}
+          />
+          <div className="d-flex gap-small justify-center">
+            <SimpleButton 
+              action={() => {
+                setIsEditing(false);
+                // Update the markdown with edited content
+                const updatedContent = `\`\`\`code_challenge_proposal\n${editedCode || originalCode}\n\`\`\``;
+                if (node?.position?.start && node?.position?.end) {
+                  replaceInReadme(updatedContent, node.position.start, node.position.end);
+                }
+              }} 
+              extraClass="bg-blue-rigo text-white padding-small rounded" 
+              text={t("save")} 
+              svg={<Icon name="Check" />} 
+            />
+            <SimpleButton 
+              action={() => {
+                setIsEditing(false);
+                setEditedCode(originalCode);
+              }} 
+              extraClass="bg-gray padding-small rounded" 
+              text={t("cancel")} 
+              svg={<Icon name="X" />} 
+            />
+          </div>
+        </div>
+      ) : (
+        <>
+          <p>{editedCode || originalCode}</p>
+          {allowCreate && (
+            <div className="d-flex gap-small justify-center">
+              <SimpleButton 
+                action={() => setIsEditing(true)} 
+                extraClass="bg-gray padding-small rounded" 
+                text={t("edit")} 
+                svg={svgs.edit} 
+              />
+              <SimpleButton 
+                action={handleAccept} 
+                extraClass="bg-blue-rigo text-white padding-small rounded" 
+                text={t("accept")} 
+                svg={<Icon name="Check" />} 
+              />
+              <SimpleButton 
+                action={handleReject} 
+                extraClass="bg-gray padding-small rounded" 
+                text={t("reject")} 
+                svg={<Icon name="X" />} 
+              />
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };
