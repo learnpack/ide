@@ -46,8 +46,8 @@ type TRigoTemplateParams = {
 
 const rigoTemplateDefaults = {
   apiHost: "https://rigobot.herokuapp.com",
-  pusherKey: "609743b48b8ed073d67f",
-  pusherCluster: "us2",
+  pusherKey: "085fabde5864ef790a61",
+  pusherCluster: "mt1",
 };
 
 const rigoTemplateState = {
