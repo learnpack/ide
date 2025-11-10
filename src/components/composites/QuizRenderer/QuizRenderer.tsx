@@ -14,6 +14,7 @@ type TQuizGroup = {
   checkboxes: {
     text: string;
     isCorrect: boolean;
+    feedback?: string;
   }[];
   correctAnswer: string;
   currentSelection: string;
@@ -38,17 +39,28 @@ export const makeQuizSubmission = (
     (group) => group.correctAnswer === group.currentSelection
   );
   const percentage = (correctAnswers.length / groups.length) * 100;
+  
+  const selections = groups.map((group) => {
+    // Find the checkbox that matches the current selection to get its feedback
+    const selectedCheckbox = group.checkboxes.find(
+      (cb) => cb.text === group.currentSelection
+    );
+    
+    return {
+      question: group.title,
+      answer: group.currentSelection,
+      isCorrect: group.correctAnswer === group.currentSelection,
+      feedback: selectedCheckbox?.feedback,
+    };
+  });
+  
   return {
     started_at,
     ended_at: Date.now(),
     status: percentage === 100 ? "SUCCESS" : "ERROR",
     percentage,
     quiz_hash: quizHash,
-    selections: groups.map((group) => ({
-      question: group.title,
-      answer: group.currentSelection,
-      isCorrect: group.correctAnswer === group.currentSelection,
-    })),
+    selections,
   };
 };
 
