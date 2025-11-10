@@ -178,6 +178,7 @@ export type TQuizSelection = {
   question: string;
   answer: string;
   isCorrect: boolean;
+  feedback?: string;
 };
 
 export type TQuizSubmission = {
@@ -589,7 +590,6 @@ const TelemetryManager: ITelemetryManager = {
         if (!step.quiz_submissions) {
           step.quiz_submissions = [];
         }
-        console.log("quiz_submission", data);
 
         step.quiz_submissions.push(data);
 

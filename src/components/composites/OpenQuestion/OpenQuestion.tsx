@@ -139,6 +139,7 @@ export const Question = ({
         // Restore answer from the last submission
         const restoredAnswer = lastSubmission.selections[0].answer;
         const wasCorrect = lastSubmission.selections[0].isCorrect;
+        const restoredFeedback = lastSubmission.selections[0].feedback;
 
         setAnswer(restoredAnswer);
         setHasRestoredData(true);
@@ -146,9 +147,10 @@ export const Question = ({
         // Show visual feedback based on result
         setFeedback({
           exit_code: wasCorrect ? 0 : 1,
-          feedback: wasCorrect 
-            ? t("Excellent work!") 
-            : t("yourAnswerNeedsImprovement"),
+          feedback: restoredFeedback || 
+            (wasCorrect 
+              ? t("Excellent work!") 
+              : t("yourAnswerNeedsImprovement")),
         });
         
       } catch (error) {
@@ -194,6 +196,7 @@ export const Question = ({
                   {
                     text: answer,
                     isCorrect: result.exit_code === 0,
+                    feedback: result.feedback,
                   },
                 ],
               },
