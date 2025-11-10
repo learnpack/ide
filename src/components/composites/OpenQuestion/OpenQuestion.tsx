@@ -70,6 +70,7 @@ export const Question = ({
   const feedbackRef = useRef<HTMLDivElement>(null);
   const hashRef = useRef<string>("");
   const startedAtRef = useRef<number>(0);
+  const isRestoredFeedbackRef = useRef(false);
 
   // Generate hash immediately when component mounts or metadata.eval changes
   useEffect(() => {
@@ -97,12 +98,16 @@ export const Question = ({
   const debouncedRegister = debounce(register, 2000);
 
   useEffect(() => {
-    if (feedbackRef.current && mode !== "creator" && feedback) {
+    if (feedbackRef.current && mode !== "creator" && feedback && !isRestoredFeedbackRef.current) {
       feedbackRef.current.scrollIntoView({
         behavior: "smooth",
       });
     }
-  }, [feedback]);
+    // Reset the flag after checking
+    if (isRestoredFeedbackRef.current) {
+      isRestoredFeedbackRef.current = false;
+    }
+  }, [feedback, mode]);
 
   useEffect(() => {
     if (questionHash) {
@@ -141,6 +146,9 @@ export const Question = ({
         const restoredFeedback = lastSubmission.selections[0].feedback;
 
         setAnswer(restoredAnswer);
+        
+        // Mark that feedback is being restored to prevent auto-scroll
+        isRestoredFeedbackRef.current = true;
         
         // Show visual feedback based on result
         setFeedback({
