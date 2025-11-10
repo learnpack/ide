@@ -327,6 +327,16 @@
   align-items: center;
 }
 
+.language-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--font-size-medium);
+  border: 1px solid transparent;
+  background-color: transparent;
+  cursor: default;
+}
+
 .z-index-2 {
   z-index: 2;
 }
