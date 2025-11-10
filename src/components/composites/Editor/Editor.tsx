@@ -560,7 +560,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
             (tab) =>
               tab.isActive && (
                 <div className="h-100" key={tab.id}>
-                  {tab.name.includes("solution.hide") && (
+                  {tab.name.includes("solution.hide") && mode !== "creator" && (
                     <div className=" padding-small margin-children-none text-small bg-warning text-black">
                       <Markdowner
                         allowCreate={false}
@@ -604,7 +604,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                       lineNumbersMinChars: 3,
                       readOnly:
                         tab.name === "terminal" ||
-                        tab.name.includes("solution.hide"),
+                        (tab.name.includes("solution.hide") && mode !== "creator"),
                     }}
                   />
                 </div>
