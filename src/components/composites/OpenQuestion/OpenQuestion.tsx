@@ -66,7 +66,6 @@ export const Question = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [examples, setExamples] = useState<string[]>(splitInLines(code));
   const [answer, setAnswer] = useState("");
-  const [hasRestoredData, setHasRestoredData] = useState(false);
   const [questionHash, setQuestionHash] = useState<string>("");
   const feedbackRef = useRef<HTMLDivElement>(null);
   const hashRef = useRef<string>("");
@@ -142,7 +141,6 @@ export const Question = ({
         const restoredFeedback = lastSubmission.selections[0].feedback;
 
         setAnswer(restoredAnswer);
-        setHasRestoredData(true);
         
         // Show visual feedback based on result
         setFeedback({
@@ -233,10 +231,9 @@ export const Question = ({
   };
 
   const handleTranscription = (text: string) => {
-    // Clear restored feedback when user adds transcription
-    if (hasRestoredData) {
+    // Clear feedback when user adds transcription
+    if (feedback) {
       setFeedback(null);
-      setHasRestoredData(false);
     }
     setAnswer(answer + " " + text);
   };
@@ -256,13 +253,10 @@ ${newExamples.join("\n")}
     }
   };
 
-  const textareaKey = hasRestoredData ? `restored-${answer}` : 'empty';
-
   return (
     <div>
       <section className="d-flex gap-small align-center pos-relative">
         <AutoResizeTextarea
-          key={textareaKey}
           className="w-100"
           minHeight={"90px"}
           defaultValue={answer}
@@ -271,10 +265,9 @@ ${newExamples.join("\n")}
             if (!answer) {
               startedAtRef.current = Date.now();
             }
-            // Clear restored feedback when user starts editing
-            if (hasRestoredData) {
+            // Clear feedback when user starts editing
+            if (feedback) {
               setFeedback(null);
-              setHasRestoredData(false);
             }
             setAnswer(e.target.value);
           }}
