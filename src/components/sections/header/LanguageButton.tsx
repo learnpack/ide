@@ -341,26 +341,33 @@ const AddLanguageModal = ({ disabled }: { disabled: boolean }) => {
       )}
 
       {showWarning && warningData && (
-        <Modal extraClass="bg-2">
-          <div className="gap-small">
+        <Modal>
+          <div className="flex-y align-center justify-center gap-medium">
             <div className="flex-y align-center gap-small">
-              <h2 className="flex-x align-center gap-medium">
-                <span>⚠️</span>
-                {t("ai-generations-warning-title")}
+              <div className="big-svg">
+                {warningData.hasEnough ? svgs.rigoSoftBlue : svgs.sadRigo}
+              </div>
+              <h2 className="text-center text-bold">
+                {warningData.hasEnough
+                  ? t("ai-generations-warning-title")
+                  : t("ai-generations-insufficient")}
               </h2>
-              <div className="bg-white rounded padding-medium">
-                <div className="rounded padding-small">
-                  <Markdowner
-                    markdown={t("ai-generations-warning", {
-                      language: warningData.language,
-                      totalGenerations: exercises.length,
-                      aiGenerationsLeft: warningData.aiGenerationsLeft,
-                    })}
-                  />
-                </div>
+            </div>
+            <div className="bg-white rounded padding-medium w-100">
+              <div className="rounded padding-small">
+                <Markdowner
+                  markdown={
+                    warningData.hasEnough
+                      ? t("ai-generations-warning", {
+                          language: warningData.language,
+                          totalGenerations: exercises.length,
+                          aiGenerationsLeft: warningData.aiGenerationsLeft,
+                        })
+                      : t("ai-generations-insufficient-description")
+                  }
+                />
               </div>
             </div>
-
             <div className="flex-x justify-center gap-medium">
               <SimpleButton
                 extraClass="bg-gray text-black padding-small rounded"
