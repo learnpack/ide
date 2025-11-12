@@ -343,17 +343,25 @@ const AddLanguageModal = ({ disabled }: { disabled: boolean }) => {
       {showWarning && warningData && (
         <Modal>
           <div className="flex-y align-center justify-center gap-medium">
-            <div className="flex-y align-center gap-small">
-              <div className="big-svg">
-                {warningData.hasEnough ? svgs.rigoSoftBlue : svgs.sadRigo}
-              </div>
-              <h2 className="text-center text-bold">
-                {warningData.hasEnough
-                  ? t("ai-generations-warning-title")
-                  : t("ai-generations-insufficient")}
-              </h2>
+            <div>
+              <h1 className="d-flex align-center gap-small justify-center big-svg text-bold">
+                {warningData.hasEnough ? (
+                  <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ transform: 'scale(0.9)' }}>
+                      {svgs.rigoSoftBlue}
+                    </div>
+                  </div>
+                ) : (
+                  svgs.sadRigo
+                )}
+                <span>
+                  {warningData.hasEnough
+                    ? t("ai-generations-warning-title")
+                    : t("ai-generations-insufficient")}
+                </span>
+              </h1>
             </div>
-            <div className="bg-white rounded padding-medium w-100">
+            <div className="rounded padding-medium w-100">
               <div className="rounded padding-small">
                 <Markdowner
                   markdown={
