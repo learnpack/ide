@@ -390,6 +390,8 @@
     "report-bug": "Report incident",
     "make-sure-you-are-the-author-of-the-course": "Make sure you are the author of the course",
     "errorRunningCode": "Error running code",
+    "errorExecutingCode": "Error executing code",
+    "errorConnectingAPI": "Error connecting to API",
     "runningCode": "Running code...",
     "symbolsNotAllowed": "Symbols not allowed",
     "continueWorking": "Continue working",

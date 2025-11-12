@@ -622,6 +622,7 @@ const CustomCodeBlock = ({
 
   const { t } = useTranslation();
   const [executionResult, setExecutionResult] = useState<string | null>(null);
+  const [isError, setIsError] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
   if (language === "stdout" || language === "stderr") {
     return (
@@ -682,6 +683,8 @@ const CustomCodeBlock = ({
             action={async () => {
               if (isExecuting) return;
               setIsExecuting(true);
+              setExecutionResult(null);
+              setIsError(false);
               RigoAI.useTemplate({
                 slug: "structured-build-learnpack",
                 inputs: {
@@ -689,12 +692,26 @@ const CustomCodeBlock = ({
                   inputs: "{}",
                 },
                 onComplete: (success, rigoData) => {
-                  if (success) {
-                    setExecutionResult(rigoData.data.parsed.stdout);
-                    useConsumable("ai-compilation");
+                  if (success && rigoData?.data?.parsed) {
+                    const parsed = rigoData.data.parsed;
+                    
+                    // exit_code > 0 indica error de ejecución
+                    if (parsed.exit_code && parsed.exit_code > 0) {
+                      const errorMessage = parsed.stderr || parsed.stdout || t("errorExecutingCode");
+                      setExecutionResult(errorMessage);
+                      setIsError(true);
+                      useConsumable("ai-compilation");
+                    } else {
+                      setExecutionResult(parsed.stdout || "");
+                      setIsError(false);
+                      useConsumable("ai-compilation");
+                    }
                   } else {
+                    // Error en la llamada a la API
+                    const errorMessage = rigoData?.error || t("errorConnectingAPI");
+                    setExecutionResult(errorMessage);
+                    setIsError(true);
                     console.error("Error running code", rigoData);
-
                   }
                   setIsExecuting(false);
                 },
@@ -739,7 +756,7 @@ const CustomCodeBlock = ({
         {code}
       </SyntaxHighlighter>
       {executionResult && (
-        <div className="stdout">
+        <div className={isError ? "stderr" : "stdout"}>
           <p className="stdout-prefix">
             ~/learnpack/{getCurrentExercise().slug}
           </p>
