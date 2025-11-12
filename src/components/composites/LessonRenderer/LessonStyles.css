@@ -14,15 +14,26 @@
 
 .lesson-content h1 {
   font-size: 32px;
+  font-weight: 800;
 }
 
 
 .lesson-content h2 {
-  font-size: 25px;
+  font-size: 27px;
+  font-weight: 600;
 }
 
 .lesson-content h3 {
+  font-size: 23px;
+  font-weight: 600;
+}
+
+.lesson-content h4, 
+.lesson-content h5,
+.lesson-content h6 {
   font-size: 20px;
+  font-weight: 600;
+  color: var(--font-color-secondary);
 }
 
 .lesson-content {

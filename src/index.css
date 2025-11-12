@@ -89,13 +89,12 @@
   --soft-green: #a4ffbd;
   --soft-red: #ffbebe;
   --modals-bg-color: var(--bg-color);
-  --font-color-secondary: #9c9c9c;
+  --font-color-secondary: #1d3156;
   --font-size-small: 16px;
   --font-size-mini: 12px;
   --font-size-medium: 18px;
   --app-width: min(100%, 1111px);
   --read-font-color: black;
-  --font-color-secondary: #4c648f;
   --gray-blue-color: #9fbdf0;
   --dropdown-bg-color: white;
   --standard-border-radius: 8px;
@@ -132,7 +131,7 @@
   --font-size-medium: 18px;
   --dropdown-bg-color: var(--bg-color);
   --read-font-color: white;
-  --font-color-secondary: #6e90d1;
+  --font-color-secondary: #7697d4;
   --gray-blue-color: #9fbdf0;
   --white: #000000;
   --bg-1: #111f39;

@@ -74,8 +74,8 @@ components:
       - images where a mermaid diagram or code example would be clearer
       - overly complex visuals that confuse rather than clarify
     rules:
-      - Use standard markdown image syntax: "![alt text](image-url)"
-      - The alt text must contain a detailed prompt with at least 30 words describing the educational and diagrammatic elements
+      - Should use standard markdown image syntax => ![alt text](image-url)
+      - The alt text must contain a detailed prompt with at least 30 words describing the educational and diagrammatic elements of the image
       - The alt text must specify visual teaching elements like "with arrows showing", "labeled with", "numbered steps", "annotated to highlight", "color-coded to differentiate"
       - The alt text should describe what the student will learn from the image, not just what it looks like
       - The image URL must always start with "./.learn/assets/" and contain a meaningful descriptive filename

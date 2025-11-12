@@ -435,15 +435,15 @@ const QuizTitle = ({
   children: any;
   onTitleReady: (title: string) => void;
 }) => {
-  const h3Ref = useRef<HTMLHRElement>(null);
+  const h4Ref = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
-    if (h3Ref.current) {
-      onTitleReady(h3Ref.current.textContent?.trim() || "");
+    if (h4Ref.current) {
+      onTitleReady(h4Ref.current.textContent?.trim() || "");
     }
-  }, [h3Ref.current]);
+  }, [h4Ref.current]);
 
-  return <h3 ref={h3Ref}>{children}</h3>;
+  return <h4 ref={h4Ref}>{children}</h4>;
 };
 
 const QuizAnswer = ({

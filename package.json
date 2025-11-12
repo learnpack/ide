@@ -1,7 +1,7 @@
 {
   "name": "learnpack-ai",
   "private": true,
-  "version": "5.0.337",
+  "version": "5.0.338",
   "scripts": {
     "dev": "node src/utils/development.js --turn on && vite",
     "build": "node src/utils/development.js --turn off && tsc && vite build && node src/utils/uploadLearnpack.js && node bin/publish.js && node src/utils/createVersionsFile.js ",

@@ -1,26 +1,14 @@
 version: "1.0.0"
 components:
   - name: open_text_question
-    measures:
-      - rubric: communication
-        weight: 0.35
-      - rubric: critical_thinking
-        weight: 0.35
-      - rubric: content_mastery
-        weight: 0.30
     description: >-
       The open text question is a type of interactive question where users can write down a text answer. The component consists in a markdown code block with the language set to `question` and has a metadata property eval in the metadata section of the code block with instructions on how to evaluate the answer. Inside the code block, you must write down 3-5 example answers with CORRECT: or INCORRECT: prefix. The actual question must be written before the code block so the user can see it.
-    goodFor:
-      - explanation
-      - recall
-      - understanding
     avoid:
       - multiple choice
       - true/false
       - fill in the blank
       - this component is intended only for free form answers
       - never use for visual questions
-      - only for textual easy to evaluate questions
     props:
       - eval: string (required)
     example: |
@@ -36,6 +24,8 @@ components:
       - MUST NOT ask the learner to draw, sketch, diagram, circle, shade, underline, point, annotate, mark on paper, or `visualize and show`
       - MUST NOT include phrases such as `draw…`, `sketch…`, `diagram…`, `divide the shape and show…`, `mark the figure…`.
       - If the task is visual, convert to an explanatory `image` component or a numeric/text question (`fill_in_the_blank`, `multiple_choice_question`) instead.
+      - Answers can be as short as 1 word or as long as a full paragraph.
+      - Only use for textual easy to evaluate questions
 
   - name: multiple_choice_question
     intendedUse:
@@ -56,34 +46,37 @@ components:
       1. Each group of options should have a question that is a list item, numbered or not, separated by an empty line from the options.
       2. Each group of options must have an unique correct answer marked with [x]
       3. Each option should be a checkbox (task list item) indented by 3 to 6 spaces, this is important for the parsing from markdown to HTML.
-      4. It must be an empty line between the question title and the options. This is important for the parsing from markdown to HTML.
+      4. It must be an empty line between the question and the answers options. This is important for the parsing from markdown to HTML.
       5. Ignoring any rule from the above list will break the parsing from markdown to HTML and the quiz will not be rendered correctly.
 
+    rules:
+      - Avoid questions with multiple correct answers. Each question must have an unique correct answer.
+      - Avoid questions with too many options. Each question should have between 3 and 5 options.
     goodFor:
       - reflection
       - explanation
       - recall
       - knowledge assessment
-    avoid:
-      - open text question
-      - this component is intended only for multiple choice answers with an unique correct answer per group of options
+    
     example: |
 
       ### Put your knowledge to the test!
+
       Select the correct answer for each question.
 
 
-      1. Question number 1 (This is the title for the group of questions) -> this is the question title (can be numbered or not)
-        <!-- Each group of options should have an empty line between the question title and the options -->
-        - [ ] Incorrect option -> this is the incorrect option (can be marked with [ ])
-        - [ ] Incorrect option -> Each task list item has between 3 and 6 spaces of indentation
-        - [x] Correct option (This is the correct answer) -> this is the correct answer (is the only one that can be marked with [x])
+      1. Question number 1 -> this is the question (can be numbered or not), it is a list item that starts at the beginning of the line
+        <!-- Each group of options should have an empty line between the question and the options -->
+        - [ ] Incorrect answer -> this is one of the incorrect answers
+        - [ ] Incorrect answer -> this is one of the incorrect answers
+        - [x] Correct answer -> this is the correct answer (is the only one that can be marked with [x])
+        <!-- Note that each answer should be a task list item indented by 3 to 6 spaces. -->
 
       2. Question number 2
-        <!-- Each group of options should have an empty line between the question title and the options -->
-        - [ ] Incorrect option
-        - [x] Correct option
-        - [ ] Incorrect option
+        <!-- Each group of options should have an empty line between the question and the options. Each option should be a task list item indented by 3 to 6 spaces. -->
+        - [ ] Incorrect answer
+        - [x] Correct answer
+        - [ ] Incorrect answer
 
 
       --- Second Example ---
@@ -101,11 +94,6 @@ components:
         - [ ] Incorrect option
 
   - name: fill_in_the_blank
-    intendedUse:
-      - reflection
-      - explanation
-      - recall
-      - knowledge assessment
     measures:
       - rubric: content_mastery
         weight: 0.70
@@ -152,7 +140,7 @@ components:
       - code experimentation
       - this will render an acceptable component for the teacher, so the teacher can generate a coding challenge for the student
       - The student will see all the files from the lessons
-      - So you need to suggest as many files as needed for the exercise
+      - So you need to suggest as many files as needed for the exercise inside the code challenge proposal code block.
     description: >-
       A code file proposal is a component the teacher will use to generate some coding files used to solve an exercise in the instructions, it consists in a markdown code block with the language set to `code_challenge_proposal`. Inside the code block, you must explain what the student needs to do in the exercise in at most 20 sentences. You need to explain the files that will be generated and the instructions for the student to complete the exercise. Use this component ALL the TIME that the lesson is of type code or requires a code editor.
     rules:
