@@ -526,11 +526,28 @@ export const CreatorWrapper = ({
         )}
         {replacementValue && !isGenerating && (
           <div className="flex-x gap-small target-buttons justify-center">
-            <ChangesRequester
-              sendPrompt={askAIAnything}
-              acceptChanges={acceptChanges}
-              rejectChanges={rejectChanges}
-            />
+            {isEditingAsMarkdown ? (
+              <>
+                <SimpleButton
+                  action={acceptChanges}
+                  extraClass="padding-small border-gray rounded scale-on-hover"
+                  svg={svgs.iconCheck}
+                  text={t("save")}
+                />
+                <SimpleButton
+                  action={rejectChanges}
+                  extraClass="padding-small border-gray rounded scale-on-hover"
+                  svg={svgs.iconClose}
+                  text={t("cancel")}
+                />
+              </>
+            ) : (
+              <ChangesRequester
+                sendPrompt={askAIAnything}
+                acceptChanges={acceptChanges}
+                rejectChanges={rejectChanges}
+              />
+            )}
           </div>
         )}
       </div>
