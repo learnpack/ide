@@ -8,6 +8,11 @@ import { Modal } from "../../mockups/Modal";
 import { toast } from "react-hot-toast";
 import { FetchManager } from "../../../managers/fetchManager";
 import { Markdowner } from "../../composites/Markdowner/Markdowner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 // import { useConsumableCall } from "../../../utils/apiCalls";
 // import { TConsumableSlug } from "../../../utils/storeTypes";
 
@@ -43,20 +48,41 @@ const shouldChangeLanguage = (language: string, languages: string[]) => {
   return !languages.includes(language);
 };
 
+const getLanguageName = (langCode: string, currentLanguage: string = 'en'): string => {
+  try {
+    const displayNames = new Intl.DisplayNames([currentLanguage], { type: 'language' });
+    // Normalizar códigos especiales
+    const normalizedCode = langCode === 'us' ? 'en' : langCode;
+    return displayNames.of(normalizedCode) || langCode;
+  } catch {
+    return langCode;
+  }
+};
+
 export default function LanguageButton() {
-  const { language, getCurrentExercise, setLanguage, exercises } = useStore(
+  const { language, getCurrentExercise, setLanguage, exercises, environment } = useStore(
     (state) => ({
       language: state.language,
       getCurrentExercise: state.getCurrentExercise,
       setLanguage: state.setLanguage,
       exercises: state.exercises,
+      environment: state.environment,
     })
   );
 
   const [showDrop, setShowDropdown] = useState(false);
 
   const toggleDrop = () => {
-    setShowDropdown(!showDrop);
+    const ex = getCurrentExercise();
+    if (ex && ex.translations) {
+      const languages = Object.keys(ex.translations);
+      const canAddLanguage = environment !== "localStorage";
+      
+      // Solo abrir dropdown si hay contenido que mostrar
+      if (languages.length > 1 || canAddLanguage) {
+        setShowDropdown(!showDrop);
+      }
+    }
   };
 
   useEffect(() => {
@@ -74,20 +100,42 @@ export default function LanguageButton() {
       const firstLanguage = languages[0];
       setLanguage(firstLanguage);
     }
-  }, [language, exercises]);
+  }, [language, exercises, getCurrentExercise, setLanguage]);
 
   const { t } = useTranslation();
+
+  // Verificar si hay contenido para mostrar en el dropdown
+  const ex = getCurrentExercise();
+  const hasDropdownContent = ex && ex.translations 
+    ? Object.keys(ex.translations).length > 1 || environment !== "localStorage"
+    : false;
 
   return (
     <>
       <div id="language-component" className="language-component">
-        <SimpleButton
-          action={toggleDrop}
-          text={language}
-          svg={svgsLanguageMap[language]}
-          title={t("change-language")}
-        />
-        {showDrop && <LanguageDropdown toggleDrop={toggleDrop} />}
+        {hasDropdownContent ? (
+          <SimpleButton
+            action={toggleDrop}
+            text={language}
+            svg={svgsLanguageMap[language]}
+            title={t("change-language")}
+          />
+        ) : (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="language-indicator simple-button-svg">
+                <span className="d-flex align-center">{svgsLanguageMap[language]}</span>
+                <span className="d-flex align-center">{language}</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-[200px]">
+              <p className="whitespace-normal break-words">
+                {getLanguageName(language, i18n.language)}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        )}
+        {showDrop && hasDropdownContent && <LanguageDropdown toggleDrop={toggleDrop} />}
       </div>
     </>
   );
@@ -124,6 +172,24 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
   const currentExercise = getCurrentExercise();
   const [allowAddLanguage, setAllowAddLanguage] = useState(false);
 
+  useEffect(() => {
+    if (
+      environment === "creatorWeb" &&
+      syllabus?.lessons &&
+      syllabus.lessons.length > 0
+    ) {
+      // Check is there is any not generated lesson
+      const anyNotGenerated = syllabus.lessons?.some(
+        (lesson) => !lesson.generated
+      );
+      if (anyNotGenerated) {
+        setAllowAddLanguage(false);
+      } else {
+        setAllowAddLanguage(true);
+      }
+    }
+  }, [syllabus, environment]);
+
   if (!currentExercise) return null;
 
   const languages = Object.keys(currentExercise.translations);
@@ -142,24 +208,6 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
       language: fixedLang,
     });
   };
-
-  useEffect(() => {
-    if (
-      environment === "creatorWeb" &&
-      syllabus?.lessons &&
-      syllabus.lessons.length > 0
-    ) {
-      // Check is there is any not generated lesson
-      const anyNotGenerated = syllabus.lessons?.some(
-        (lesson) => !lesson.generated
-      );
-      if (anyNotGenerated) {
-        setAllowAddLanguage(false);
-      } else {
-        setAllowAddLanguage(true);
-      }
-    }
-  }, [syllabus]);
 
   return (
     <div className="language-dropdown">
