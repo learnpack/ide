@@ -6,25 +6,30 @@ import SimpleButton from "../../mockups/SimpleButton";
 import { svgs } from "../../../assets/svgs";
 export default function BugButton() {
   const { t } = useTranslation();
-  const { lessonTitle, openLink, getCurrentExercise } = useStore((state) => ({
+  const { lessonTitle, openLink, getCurrentExercise, configObject } = useStore((state) => ({
     getCurrentExercise: state.getCurrentExercise,
     lessonTitle: state.lessonTitle,
     openLink: state.openLink,
+    configObject: state.configObject,
   }));
-  let defaultTitle = "Bug";
 
-  if (getCurrentExercise()) {
-    defaultTitle = `Bug in ${getCurrentExercise().slug}`;
+  const defaultTitle = lessonTitle ? `Bug in ${lessonTitle}` : "Bug";
+
+  const currentExercise = getCurrentExercise();
+  const exerciseSlug = currentExercise?.slug || "";
+
+  let body = exerciseSlug 
+    ? `**Lesson**: ${exerciseSlug}\n\nExplain the problem\n\nProvide an image or example of the problem`
+    : `**Course**: ${lessonTitle}\n\nExplain the problem\n\nProvide an image or example of the problem`;
+
+  const repository = configObject?.config?.repository || null;
+  if (repository) {
+    body += `\n\n---\n\n**Repository:** ${repository}`;
   }
+  
+  const url = `https://github.com/learnpack/learnpack/issues/new?assignees=&labels=&projects=&template=bug_report.md&title=${encodeURIComponent(defaultTitle)}&body=${encodeURIComponent(body)}`;
 
-  const body = `Lesson: ${lessonTitle} %0D%0A
-    %0D%0AExplain the problem %0D%0A
-    %0D%0AProvide an image or example of the problem %0D%0A
-
-    `;
-  const url = `https://github.com/learnpack/learnpack/issues/new?assignees=&labels=&projects=&template=bug_report.md&title=${defaultTitle}&body=${body}`;
-
-  const handleRedirect = (e: any) => {
+  const handleRedirect = (e: React.SyntheticEvent) => {
     e.preventDefault();
     openLink(url);
   };

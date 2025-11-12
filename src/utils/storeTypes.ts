@@ -44,6 +44,7 @@ interface IConfig {
   grading: string;
   warnings: TWarnings;
   telemetry?: TTelemetryUrls;
+  repository?: string;
 }
 
 type TWarnings = {
