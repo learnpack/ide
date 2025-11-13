@@ -108,7 +108,7 @@ export const CreatorWrapper = ({
 
         onComplete: (success: boolean, data: any) => {
           if (success) {
-            setReplacementValue(data.ai_response);
+            setReplacementValue(data.data.answer);
             setIsGenerating(false);
             useConsumable("ai-generation");
           }
@@ -143,7 +143,7 @@ export const CreatorWrapper = ({
         target: targetRef.current,
         onComplete: (success: boolean, data: any) => {
           if (success) {
-            setReplacementValue(data.ai_response);
+            setReplacementValue(data.data.answer);
             useConsumable("ai-generation");
             setIsGenerating(false);
           }
@@ -177,9 +177,11 @@ export const CreatorWrapper = ({
         },
         target: targetRef.current,
         onComplete: (success: boolean, data: any) => {
+          console.log(data, "DATA FROM SUMMARIZE TEXT");
           if (success) {
+            
             setIsGenerating(false);
-            setReplacementValue(data.ai_response);
+            setReplacementValue(data.data.answer);
             useConsumable("ai-generation");
           }
           reportEnrichDataLayer("creator_template_used", {
@@ -193,6 +195,8 @@ export const CreatorWrapper = ({
   };
 
   const changeTone = (tone: string) => {
+
+    setIsGenerating(true);
     let text = elemRef.current?.innerHTML;
 
     if (node?.position?.start?.offset && node?.position?.end?.offset) {
@@ -214,7 +218,8 @@ export const CreatorWrapper = ({
         target: targetRef.current,
         onComplete: (success: boolean, data: any) => {
           if (success) {
-            setReplacementValue(data.ai_response);
+            setIsGenerating(false);
+            setReplacementValue(data.data.answer);
             useConsumable("ai-generation");
           }
           reportEnrichDataLayer("creator_template_used", {
@@ -241,7 +246,7 @@ export const CreatorWrapper = ({
     }
     
     if (elementText && targetRef.current && question) {
-      console.log(getComponentsInfo(isBuildable), "COMPONENTS INFO");
+      console.log(getComponentsInfo());
       RigoAI.useTemplate({
         slug: "request-changes-in-lesson-v2",
         inputs: {
@@ -249,7 +254,7 @@ export const CreatorWrapper = ({
           whole_lesson: currentContent,
           text_selected: tagName === "new" ? "empty" : elementText,
           prev_interactions: JSON.stringify(interactions),
-          components_info: getComponentsInfo(isBuildable),
+          components_info: getComponentsInfo(),
         },
         target: targetRef.current,
         onComplete: (success: boolean, data: any) => {
@@ -261,7 +266,7 @@ export const CreatorWrapper = ({
             const interaction: TInteraction = {
               initial: elementText,
               prompt: question,
-              final: data.ai_response,
+              final: data.data.answer,
             };
             setInteractions((prev) => [...prev, interaction]);
             useConsumable("ai-generation");
@@ -304,7 +309,7 @@ export const CreatorWrapper = ({
         target: targetRef.current,
         onComplete: (success: boolean, data: any) => {
           if (success) {
-            setReplacementValue(data.ai_response);
+            setReplacementValue(data.data.answer);
             setIsGenerating(false);
             useConsumable("ai-generation");
           }

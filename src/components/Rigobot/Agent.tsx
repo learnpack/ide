@@ -71,7 +71,7 @@ export const AgentTab = () => {
     setEditingContent,
     rigoContext,
     mode,
-    isBuildable,
+    // isBuildable,
   } = useStore((state) => ({
     currentExercisePosition: state.currentExercisePosition,
     exerciseMessages: state.exerciseMessages,
@@ -95,7 +95,7 @@ export const AgentTab = () => {
     setEditingContent: state.setEditingContent,
     rigoContext: state.rigoContext,
     mode: state.mode,
-    isBuildable: state.isBuildable,
+    // isBuildable: state.isBuildable,
   }));
 
   const initialMessages: Message[] = [
@@ -480,7 +480,7 @@ ${args.content}
   };
 
   const getTask = (message: string) => {
-    let components = getComponentsInfo(isBuildable);
+    let components = getComponentsInfo();
 
     if (environment === "creatorWeb") {
       return `You are a helpful teacher assistant. Your task is to help the teacher craft a meaning full course, with  Please provide your responses always in MARKDOWN. Keep your message short and concise. This is the user message: ${message}

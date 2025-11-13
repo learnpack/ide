@@ -126,17 +126,15 @@ export const RigoTemplate = {
               }),
             }
           );
-          console.log("response from rigobot api", response);
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            console.log("errorData", errorData);
+            console.log("Error using template errorData", errorData);
             onComplete?.(false, {
               error: errorData.detail || `HTTP error! status: ${response.status}`,
-            });
+          });
             return;
           }
           const data = await response.json();
-          console.log("data from rigobot api", data);
           const jobId = data.id;
           if (!jobId) {
             onComplete?.(false, { error: "No job ID returned from API" });
@@ -170,9 +168,13 @@ export const RigoTemplate = {
               onComplete?.(success, {
                 data: completionJob
               });
-              channel.unbind_all();
+              try {
+                channel.unbind_all();
               channel.unsubscribe();
               pusherClient.disconnect();
+              } catch (error: any) {
+                console.debug("Error unbinding pusher client", error);
+              }
             }
           });
           pusherClient.connection.bind("error", (err: any) => {
