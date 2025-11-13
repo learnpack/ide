@@ -709,9 +709,11 @@ const Terminal = ({
   editorStatus: TEditorStatus;
 }) => {
   const { t } = useTranslation();
-  const { getCurrentExercise, lastState } = useStore((state) => ({
+  const { getCurrentExercise, lastState, isTesteable, runExerciseTests } = useStore((state) => ({
     getCurrentExercise: state.getCurrentExercise,
     lastState: state.lastState,
+    isTesteable: state.isTesteable,
+    runExerciseTests: state.runExerciseTests,
     // editorStatus: state.editorStatus,
   }));
 
@@ -803,10 +805,24 @@ const Terminal = ({
               )}
               <SimpleButton
                 text={t("continueWorking")}
-                // svg={svgs.closeX}
                 extraClass="bg-blue-rigo text-white rounded padding-small"
                 action={() => removeTab(terminalTab.id, terminalTab.name)}
               />
+              {isTesteable && lastState === "success" && terminalTab.from === "build" && (
+                <SimpleButton
+                  text={t("test-and-send")}
+                  extraClass="rounded padding-small border-blue color-blue"
+                  action={() => {
+                    removeTab(terminalTab.id, terminalTab.name);
+                    runExerciseTests({
+                      toast: true,
+                      setFeedbackButton: true,
+                      feedbackButtonText: t("Running..."),
+                      targetButton: "feedback",
+                    });
+                  }}
+                />
+              )}
             </div>
           </div>
         </Modal>

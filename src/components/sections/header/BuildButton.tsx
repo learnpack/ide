@@ -47,7 +47,7 @@ export default function BuildButton({
       id="build-button"
       text={t(buildbuttonText.text)}
       svg={svgs.buildIcon}
-      extraClass={`pill bg-blue ${buildbuttonText.className} ${extraClass}`}
+      extraClass={`pill ${buildbuttonText.className || "bg-blue"} ${extraClass}`}
       action={() => {
         changeToTest ? runTests() : build(t("Running..."));
       }}

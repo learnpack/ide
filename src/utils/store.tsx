@@ -115,7 +115,7 @@ const useStore = create<IStore>((set, get) => ({
   token: "",
   bc_token: "",
   buildbuttonText: {
-    text: "execute-my-code",
+    text: "see-terminal-output",
     className: "",
   },
   isCreator: false,
@@ -128,7 +128,7 @@ const useStore = create<IStore>((set, get) => ({
   editingContent: "",
   editorTabs: [],
   feedbackbuttonProps: {
-    text: "execute-my-code",
+    text: "test-and-send",
     className: "",
   },
   assessmentConfig: {
@@ -286,9 +286,9 @@ const useStore = create<IStore>((set, get) => ({
       }
 
       if (get().targetButtonForFeedback === "feedback") {
-        setFeedbackButtonProps("test-my-code", "bg-success text-white");
+        setFeedbackButtonProps("test-and-send", "bg-success text-white");
       } else {
-        setBuildButtonPrompt("execute-my-code", "bg-success text-white");
+        setBuildButtonPrompt("see-terminal-output", "bg-gray-dark text-black");
       }
       playEffect("success");
       Notifier.confetti();
@@ -323,7 +323,7 @@ const useStore = create<IStore>((set, get) => ({
       set({ isCompiling: false });
 
       setBuildButtonPrompt("try-again", "bg-fail");
-      setFeedbackButtonProps("test-my-code", "bg-white ");
+      setFeedbackButtonProps("test-and-send", "bg-white ");
       toastFromStatus("compiler-error");
       if (environment === "localStorage") {
         registerTelemetryEvent("compile", data);
@@ -341,7 +341,7 @@ const useStore = create<IStore>((set, get) => ({
 
       toastFromStatus("compiler-success");
 
-      setBuildButtonPrompt("execute-my-code", "bg-success");
+      setBuildButtonPrompt("see-terminal-output", "bg-gray-dark text-black");
       if (environment === "localStorage") {
         registerTelemetryEvent("compile", data);
       }
@@ -813,8 +813,8 @@ The user's set up the application in "${language}" language, give your feedback 
     if (token) {
       startConversation(newPosition);
     }
-    setBuildButtonPrompt("execute-my-code", "");
-    setFeedbackButtonProps("test-my-code", "");
+    setBuildButtonPrompt("see-terminal-output", "");
+    setFeedbackButtonProps("test-and-send", "");
     set({ lastState: "" });
 
     registerTelemetryEvent("open_step", {

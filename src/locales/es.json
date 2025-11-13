@@ -146,6 +146,8 @@
     "you-must-login-message": "Para compilar código en la web y usar nuestro mentor AI Rigobot, ¡por favor inicia sesión primero!",
     "execute-my-code": "Ejecutar mi código",
     "test-my-code": "Testear mi código",
+    "test-and-send": "Testear & Enviar",
+    "see-terminal-output": "Ver salida en terminal",
     "display-another-tab": "Mostrar en otra pestaña",
     "close-tab": "Cerrar pestaña",
     "redirecting-to-github": "Redirigiendo a GitHub...",
