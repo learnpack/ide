@@ -322,7 +322,7 @@ const useStore = create<IStore>((set, get) => ({
       set({ lastState: "error", terminalShouldShow: true });
       set({ isCompiling: false });
 
-      setBuildButtonPrompt("try-again", "bg-fail");
+      setBuildButtonPrompt("try-again", "bg-fail text-white");
       setFeedbackButtonProps("test-and-send", "bg-white ");
       toastFromStatus("compiler-error");
       if (environment === "localStorage") {
