@@ -323,7 +323,7 @@ const useStore = create<IStore>((set, get) => ({
       set({ isCompiling: false });
 
       setBuildButtonPrompt("try-again", "bg-fail text-white");
-      setFeedbackButtonProps("test-and-send", "bg-white ");
+      
       toastFromStatus("compiler-error");
       if (environment === "localStorage") {
         registerTelemetryEvent("compile", data);
@@ -1255,7 +1255,13 @@ The user's set up the application in "${language}" language, give your feedback 
 
     copy[Number(currentExercisePosition)].done = status === "successful";
 
-    set({ exercises: copy });
+    set({ 
+      exercises: copy,
+      lastTestResult: {
+        status: status,
+        logs: logs,
+      }
+    });
 
     updateDBSession();
   },

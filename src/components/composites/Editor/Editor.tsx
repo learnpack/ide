@@ -929,6 +929,7 @@ export const Toolbar = ({
     isTesteable,
     currentExercisePosition,
     exercises,
+    lastTestResult,
   } = useStore((state) => ({
     lastState: state.lastState,
     getCurrentExercise: state.getCurrentExercise,
@@ -937,6 +938,7 @@ export const Toolbar = ({
     handlePositionChange: state.handlePositionChange,
     currentExercisePosition: state.currentExercisePosition,
     exercises: state.exercises,
+    lastTestResult: state.lastTestResult,
   }));
 
   const ex = getCurrentExercise();
@@ -947,10 +949,21 @@ export const Toolbar = ({
   const onlyContinue = !isBuildable && !isTesteable;
   const isLastExercise = currentExercisePosition === exercises.length - 1;
 
+  // Only apply success class when tests pass, not when only compilation succeeds
+  // Keep error state if tests failed, even if compilation succeeds later
+  const toolbarStateClass = 
+    lastTestResult?.status === "failed"
+      ? "error"  // Tests failed - keep toolbar red even if compilation succeeds
+      : lastTestResult?.status === "successful" && lastState === "success"
+      ? "success"  // Tests passed - toolbar green
+      : lastState === "error"
+      ? "error"  // Compilation error (no test result yet)
+      : "";  // Normal state
+
   return (
     <div
       style={{ position: position }}
-      className={`editor-footer ${position} ${editorStatus} ${lastState}`}
+      className={`editor-footer ${position} ${editorStatus} ${toolbarStateClass}`}
     >
       {letPass && (
         <div className="footer-actions">
