@@ -815,7 +815,13 @@ The user's set up the application in "${language}" language, give your feedback 
     }
     setBuildButtonPrompt("see-terminal-output", "");
     setFeedbackButtonProps("test-and-send", "");
-    set({ lastState: "" });
+    set({ 
+      lastState: "",
+      lastTestResult: {
+        status: "",
+        logs: "",
+      }
+    });
 
     registerTelemetryEvent("open_step", {
       step_position: newPosition,
