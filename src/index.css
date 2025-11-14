@@ -767,6 +767,10 @@ a {
   background-color: var(--color-hovered);
 }
 
+.bg-gray-dark {
+  background-color: var(--bg-color-dark-gray) !important;
+}
+
 .conector-blue {
   position: relative;
 }

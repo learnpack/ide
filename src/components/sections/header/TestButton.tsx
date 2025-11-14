@@ -25,6 +25,8 @@ export const TestButton = () => {
       extraClass={`rounded big w-100 border-blue color-blue ${feedbackbuttonProps.className}`}
       svg={svgs.testIcon}
       text={isTesteable ? t(feedbackbuttonProps.text) : t("No tests available")}
+      title={isTesteable ? t("test-and-send-tooltip") : undefined}
+      tooltipSide="right"
       action={runTests}
       disabled={
         !isTesteable
