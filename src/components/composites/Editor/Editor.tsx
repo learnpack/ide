@@ -812,6 +812,8 @@ const Terminal = ({
                 <SimpleButton
                   text={t("test-and-send")}
                   extraClass="rounded padding-small border-blue color-blue"
+                  title={t("test-and-send-tooltip")}
+                  tooltipSide="right"
                   action={() => {
                     removeTab(terminalTab.id, terminalTab.name);
                     runExerciseTests({

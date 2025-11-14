@@ -142,6 +142,8 @@
     "test-my-code": "Test my code",
     "test-and-send": "Test & Send",
     "see-terminal-output": "See terminal output",
+    "see-terminal-output-tooltip": "Runs your code and shows the output in the terminal",
+    "test-and-send-tooltip": "Verifies your code meets all requirements using automated tests",
     "display-another-tab": "Display in another tab",
     "close-tab": "Close tab",
     "redirecting-to-github": "Redirecting to GitHub...",

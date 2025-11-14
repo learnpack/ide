@@ -48,6 +48,8 @@ export default function BuildButton({
       text={t(buildbuttonText.text)}
       svg={svgs.buildIcon}
       extraClass={`pill ${buildbuttonText.className || "bg-blue"} ${extraClass}`}
+      title={t("see-terminal-output-tooltip")}
+      tooltipSide="right"
       action={() => {
         changeToTest ? runTests() : build(t("Running..."));
       }}

@@ -14,6 +14,7 @@ interface ButtonProps {
   disabled?: boolean;
   size?: "small" | "big" | "mini";
   title?: string;
+  tooltipSide?: "top" | "right" | "bottom" | "left";
   type?: "button" | "submit";
   confirmationMessage?: string;
 }
@@ -27,6 +28,7 @@ export default function SimpleButton({
   id,
   size,
   title,
+  tooltipSide = "top",
   confirmationMessage,
   type = "button",
 }: ButtonProps) {
@@ -74,7 +76,7 @@ export default function SimpleButton({
         <TooltipTrigger asChild>
           {buttonElement}
         </TooltipTrigger>
-        <TooltipContent className="max-w-[200px]">
+        <TooltipContent className="max-w-[200px]" side={tooltipSide}>
           <p className="whitespace-normal break-words">{title}</p>
         </TooltipContent>
       </Tooltip>
