@@ -429,7 +429,7 @@ ${args.content}
 
         await continueGenerating(
           configObject.config.slug,
-          lesson?.id || "",
+          lesson?.uid || "",
           args.feedback,
           args.mode || "next-three",
           token
