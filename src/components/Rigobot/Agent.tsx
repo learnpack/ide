@@ -317,6 +317,11 @@ export const AgentTab = () => {
           return `Invalid line range. Content has ${lines.length} lines. Please provide valid lineStart (1-${lines.length}) and lineEnd (${args.lineStart}-${lines.length}) values.`;
         }
 
+        // Validate content parameter
+        if (!args.content || args.content.trim() === "" || args.content === "undefined") {
+          return `Invalid content parameter. Please provide valid replacement content. Do not pass undefined, null, or empty strings.`;
+        }
+
         // Get the original lines that will be replaced
         const originalLines = lines.slice(args.lineStart - 1, args.lineEnd);
         const originalContent = originalLines.join("\n");
@@ -470,12 +475,19 @@ ${args.content}
       return _tools;
     }
     _tools.push(saveToMemoryBankTool);
+    
+    // If we're in feedback pre-generation mode, only allow startLessonGenerationTool
     if (rigoContext.allowedFunctions?.includes("continueGeneration")) {
       _tools.push(startLessonGenerationTool);
+      // Don't add replaceReadmeContentTool when in feedback pre-generation mode
+      return _tools;
     }
+    
+    // In normal creator mode, allow replaceReadmeContentTool
     if (mode === "creator") {
       _tools.push(replaceReadmeContentTool);
     }
+    
     return _tools;
   };
 

@@ -774,6 +774,15 @@ const ChangesDiffRenderer = ({ code, node }: { code: string, node: any }) => {
   const { t } = useTranslation();
 
   const acceptChanges = async () => {
+    // Validate newContent before accepting
+    if (!newContent || newContent.trim() === "" || newContent === "undefined") {
+      toast.error(
+        t("changes-incomplete") || 
+        "The proposed changes are incomplete. Please reject them and try again with Rigobot."
+      );
+      return;
+    }
+    
     console.log("acceptChanges", newContent, node.position.start, node.position.end);
     await replaceInReadme(newContent, node.position.start, node.position.end);
     toast.success(t("changes-accepted"));

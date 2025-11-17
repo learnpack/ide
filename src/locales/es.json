@@ -488,6 +488,7 @@
     "course-slug-not-found": "Slug del curso no encontrado",
     "changes-accepted": "Cambios aceptados",
     "changes-rejected": "Cambios rechazados",
+    "changes-incomplete": "Los cambios propuestos están incompletos. Por favor recházalos e intenta nuevamente con Rigobot.",
     "error-rejecting-changes": "Error al rechazar cambios",
     "code-challenge-generation-completed": "Generación de ejercicio de código completada",
     "confirm-delete-file": "¿Estás seguro de querer eliminar este archivo?",
