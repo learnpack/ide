@@ -16,6 +16,7 @@ export default function BuildButton({
     build,
     isTesteable,
     runExerciseTests,
+    isCompiling,
   } = useStore((state) => ({
     currentExercisePosition: state.currentExercisePosition,
     exercises: state.exercises,
@@ -27,6 +28,7 @@ export default function BuildButton({
     isTesteable: state.isTesteable,
     feedbackButtonProps: state.feedbackbuttonProps,
     runExerciseTests: state.runExerciseTests,
+    isCompiling: state.isCompiling,
   }));
 
   const runTests = () => {
@@ -51,7 +53,7 @@ export default function BuildButton({
       action={() => {
         changeToTest ? runTests() : build(t("Running..."));
       }}
-      disabled={!isBuildable && !isTesteable}
+      disabled={(!isBuildable && !isTesteable) || isCompiling}
     />
   );
 }
