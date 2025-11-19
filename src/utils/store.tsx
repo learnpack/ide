@@ -115,7 +115,7 @@ const useStore = create<IStore>((set, get) => ({
   token: "",
   bc_token: "",
   buildbuttonText: {
-    text: "execute-my-code",
+    text: "see-terminal-output",
     className: "",
   },
   isCreator: false,
@@ -128,7 +128,7 @@ const useStore = create<IStore>((set, get) => ({
   editingContent: "",
   editorTabs: [],
   feedbackbuttonProps: {
-    text: "execute-my-code",
+    text: "test-and-send",
     className: "",
   },
   assessmentConfig: {
@@ -286,9 +286,9 @@ const useStore = create<IStore>((set, get) => ({
       }
 
       if (get().targetButtonForFeedback === "feedback") {
-        setFeedbackButtonProps("test-my-code", "bg-success text-white");
+        setFeedbackButtonProps("test-and-send", "bg-success text-white");
       } else {
-        setBuildButtonPrompt("execute-my-code", "bg-success text-white");
+        setBuildButtonPrompt("see-terminal-output", "bg-gray-dark text-black");
       }
       playEffect("success");
       Notifier.confetti();
@@ -322,8 +322,8 @@ const useStore = create<IStore>((set, get) => ({
       set({ lastState: "error", terminalShouldShow: true });
       set({ isCompiling: false });
 
-      setBuildButtonPrompt("try-again", "bg-fail");
-      setFeedbackButtonProps("test-my-code", "bg-white ");
+      setBuildButtonPrompt("try-again", "bg-fail text-white");
+      
       toastFromStatus("compiler-error");
       if (environment === "localStorage") {
         registerTelemetryEvent("compile", data);
@@ -341,7 +341,7 @@ const useStore = create<IStore>((set, get) => ({
 
       toastFromStatus("compiler-success");
 
-      setBuildButtonPrompt("execute-my-code", "bg-success");
+      setBuildButtonPrompt("see-terminal-output", "bg-gray-dark text-black");
       if (environment === "localStorage") {
         registerTelemetryEvent("compile", data);
       }
@@ -813,9 +813,15 @@ The user's set up the application in "${language}" language, give your feedback 
     if (token) {
       startConversation(newPosition);
     }
-    setBuildButtonPrompt("execute-my-code", "");
-    setFeedbackButtonProps("test-my-code", "");
-    set({ lastState: "" });
+    setBuildButtonPrompt("see-terminal-output", "");
+    setFeedbackButtonProps("test-and-send", "");
+    set({ 
+      lastState: "",
+      lastTestResult: {
+        status: "",
+        logs: "",
+      }
+    });
 
     registerTelemetryEvent("open_step", {
       step_position: newPosition,
@@ -1255,7 +1261,13 @@ The user's set up the application in "${language}" language, give your feedback 
 
     copy[Number(currentExercisePosition)].done = status === "successful";
 
-    set({ exercises: copy });
+    set({ 
+      exercises: copy,
+      lastTestResult: {
+        status: status,
+        logs: logs,
+      }
+    });
 
     updateDBSession();
   },

@@ -709,9 +709,11 @@ const Terminal = ({
   editorStatus: TEditorStatus;
 }) => {
   const { t } = useTranslation();
-  const { getCurrentExercise, lastState } = useStore((state) => ({
+  const { getCurrentExercise, lastState, isTesteable, runExerciseTests } = useStore((state) => ({
     getCurrentExercise: state.getCurrentExercise,
     lastState: state.lastState,
+    isTesteable: state.isTesteable,
+    runExerciseTests: state.runExerciseTests,
     // editorStatus: state.editorStatus,
   }));
 
@@ -803,10 +805,26 @@ const Terminal = ({
               )}
               <SimpleButton
                 text={t("continueWorking")}
-                // svg={svgs.closeX}
                 extraClass="bg-blue-rigo text-white rounded padding-small"
                 action={() => removeTab(terminalTab.id, terminalTab.name)}
               />
+              {isTesteable && lastState === "success" && terminalTab.from === "build" && (
+                <SimpleButton
+                  text={t("test-and-send")}
+                  extraClass="rounded padding-small border-blue color-blue"
+                  title={t("test-and-send-tooltip")}
+                  tooltipSide="right"
+                  action={() => {
+                    removeTab(terminalTab.id, terminalTab.name);
+                    runExerciseTests({
+                      toast: true,
+                      setFeedbackButton: true,
+                      feedbackButtonText: t("Running..."),
+                      targetButton: "feedback",
+                    });
+                  }}
+                />
+              )}
             </div>
           </div>
         </Modal>
@@ -911,6 +929,7 @@ export const Toolbar = ({
     isTesteable,
     currentExercisePosition,
     exercises,
+    lastTestResult,
   } = useStore((state) => ({
     lastState: state.lastState,
     getCurrentExercise: state.getCurrentExercise,
@@ -919,6 +938,7 @@ export const Toolbar = ({
     handlePositionChange: state.handlePositionChange,
     currentExercisePosition: state.currentExercisePosition,
     exercises: state.exercises,
+    lastTestResult: state.lastTestResult,
   }));
 
   const ex = getCurrentExercise();
@@ -929,10 +949,21 @@ export const Toolbar = ({
   const onlyContinue = !isBuildable && !isTesteable;
   const isLastExercise = currentExercisePosition === exercises.length - 1;
 
+  // Only apply success class when tests pass, not when only compilation succeeds
+  // Keep error state if tests failed, even if compilation succeeds later
+  const toolbarStateClass = 
+    lastTestResult?.status === "failed"
+      ? "error"  // Tests failed - keep toolbar red even if compilation succeeds
+      : lastTestResult?.status === "successful" && lastState === "success"
+      ? "success"  // Tests passed - toolbar green
+      : lastState === "error"
+      ? "error"  // Compilation error (no test result yet)
+      : "";  // Normal state
+
   return (
     <div
       style={{ position: position }}
-      className={`editor-footer ${position} ${editorStatus} ${lastState}`}
+      className={`editor-footer ${position} ${editorStatus} ${toolbarStateClass}`}
     >
       {letPass && (
         <div className="footer-actions">
