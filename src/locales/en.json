@@ -485,6 +485,7 @@
     "course-slug-not-found": "Course slug not found",
     "changes-accepted": "Changes accepted",
     "changes-rejected": "Changes rejected",
+    "changes-incomplete": "The proposed changes are incomplete. Please reject them and try again with Rigobot.",
     "error-rejecting-changes": "Error rejecting changes",
     "code-challenge-generation-completed": "Code challenge generation completed",
     "confirm-delete-file": "Are you sure you want to delete this file?",
