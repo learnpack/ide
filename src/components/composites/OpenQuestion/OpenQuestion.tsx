@@ -20,7 +20,6 @@ import { makeQuizSubmission } from "../QuizRenderer/QuizRenderer";
 import { RigoAI } from "../../Rigobot/AI";
 import CustomDropdown from "../../CustomDropdown";
 import { Icon } from "../../Icon"
-
 const splitInLines = (code: string) => {
   return code.split("\n").filter((line) => line.trim() !== "");
 };
@@ -52,14 +51,18 @@ export const Question = ({
     registerTelemetryEvent,
     reportEnrichDataLayer,
     getTelemetryStep,
+    token,
+    setOpenedModals,
   } = useStore((state) => ({
     replaceInReadme: state.replaceInReadme,
     mode: state.mode,
+    token: state.token,
     currentExercisePosition: state.currentExercisePosition,
     useConsumable: state.useConsumable,
     registerTelemetryEvent: state.registerTelemetryEvent,
     reportEnrichDataLayer: state.reportEnrichDataLayer,
     getTelemetryStep: state.getTelemetryStep,
+    setOpenedModals: state.setOpenedModals,
   }));
 
   const [feedback, setFeedback] = useState<TFeedback | null>(null);
@@ -172,6 +175,11 @@ export const Question = ({
   const evaluateAnswer = async () => {
     if (!answer) {
       toast.error(t("pleaseEnterAnAnswer"));
+      return;
+    }
+    if (!token) {
+      toast.error(t("youMustLoginFirst"));
+      setOpenedModals({ mustLogin: true });
       return;
     }
     setIsLoading(true);

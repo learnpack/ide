@@ -26,6 +26,7 @@ components:
       - If the task is visual, convert to an explanatory `image` component or a numeric/text question (`fill_in_the_blank`, `multiple_choice_question`) instead.
       - Answers can be as short as 1 word or as long as a full paragraph.
       - Only use for textual easy to evaluate questions
+      - Never use this component for reflection questions, only for knowledge assessment questions.
 
   - name: multiple_choice_question
     intendedUse:
