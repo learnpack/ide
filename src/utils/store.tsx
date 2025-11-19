@@ -74,6 +74,29 @@ const HOST = getHost();
 
 const defaultParams = getParamsObject() as TPossibleParams;
 
+/**
+ * Merges exercises from config with exercises from session.
+ * Preserves current metadata (files, translations, etc.) but restores 'done' status from session.
+ * 
+ * @param currentExercises - Exercises from config.json (fresh metadata)
+ * @param sessionExercises - Exercises from session.config_json (with done status)
+ * @returns Merged exercises with fresh metadata and preserved done status
+ */
+const mergeExercisesWithSession = (
+  currentExercises: TExercise[],
+  sessionExercises: TExercise[]
+): TExercise[] => {
+  return currentExercises.map(currentEx => {
+    const sessionEx = sessionExercises.find(
+      (ex: TExercise) => ex.slug === currentEx.slug
+    );
+    return {
+      ...currentEx,
+      done: sessionEx?.done ?? currentEx.done ?? false
+    };
+  });
+};
+
 const useStore = create<IStore>((set, get) => ({
   language: defaultParams.language || "en",
   mustLoginMessageKey: "you-must-login-message",
@@ -628,8 +651,29 @@ The user's set up the application in "${language}" language, give your feedback 
           user_id: user_id,
         },
       });
+      
       if (config.exercises && config.exercises.length > 0) {
-        set({ exercises: config.exercises });
+        // Try to merge with session if available to preserve 'done' status
+        const { sessionKey } = get();
+        let exercisesToSet = config.exercises;
+        
+        // If we have a session key, try to get session and merge exercises
+        if (sessionKey && token) {
+          try {
+            const session = await getSession(token, slug);
+            if (session?.config_json?.exercises && session.config_json.exercises.length > 0) {
+              exercisesToSet = mergeExercisesWithSession(
+                config.exercises,
+                session.config_json.exercises
+              );
+            }
+          } catch (error) {
+            // If session fetch fails, continue with config exercises
+            console.log("Could not fetch session for merge in fetchExercises:", error);
+          }
+        }
+        
+        set({ exercises: exercisesToSet });
       }
 
       if (config.currentExercise) {
@@ -1447,11 +1491,22 @@ The user's set up the application in "${language}" language, give your feedback 
 
 
       if (!session.tab_hash) {
+        // Ensure exercises have 'done' property before saving
+        const exercisesWithDone = (configObject.exercises || []).map((ex: TExercise) => ({
+          ...ex,
+          done: ex.done ?? false
+        }));
+        
+        const configToSave = {
+          ...configObject,
+          exercises: exercisesWithDone
+        };
+        
         await updateSession(
           token,
           storedTabHash,
           configObject.config.slug,
-          configObject,
+          configToSave,
           session.key
         );
         set({ sessionKey: session.key });
@@ -1470,7 +1525,13 @@ The user's set up the application in "${language}" language, give your feedback 
           session.config_json.exercises &&
           session.config_json.exercises.length > 0
         ) {
-          // set({ exercises: session.config_json.exercises });
+          // Merge exercises: preserve current metadata but restore 'done' status from session
+          const currentExercises = get().exercises;
+          const mergedExercises = mergeExercisesWithSession(
+            currentExercises,
+            session.config_json.exercises
+          );
+          set({ exercises: mergedExercises });
 
           if (session.config_json.currentExercise) {
             const exIndex = session.config_json.exercises.findIndex(
@@ -1504,12 +1565,18 @@ The user's set up the application in "${language}" language, give your feedback 
 
     const exercise = getCurrentExercise();
 
+    // Ensure all exercises have 'done' property initialized before saving
+    const exercisesWithDone = exercises.map(ex => ({
+      ...ex,
+      done: ex.done ?? false
+    }));
+
     const configCopy = {
       ...configObject,
-      exercises,
+      exercises: exercisesWithDone,
       currentExercise: exercise.slug,
     };
-
+    
     let cachedSessionKey = "";
     if (!sessionKey) {
       cachedSessionKey = await FetchManager.getSessionKey();
@@ -1748,11 +1815,22 @@ The user's set up the application in "${language}" language, give your feedback 
       storedTabHash = await FetchManager.getTabHash();
     }
     if (action === "new") {
+      // Ensure exercises have 'done' property before creating session
+      const exercisesWithDone = (configObject.exercises || []).map((ex: TExercise) => ({
+        ...ex,
+        done: ex.done ?? false
+      }));
+      
+      const configToSave = {
+        ...configObject,
+        exercises: exercisesWithDone
+      };
+      
       const session = await createSession(
         token,
         tabHash,
         configObject.config.slug,
-        configObject
+        configToSave
       );
       await FetchManager.setSessionKey(session.key);
       set({
@@ -1778,7 +1856,13 @@ The user's set up the application in "${language}" language, give your feedback 
         session.config_json.exercises &&
         session.config_json.exercises.length > 0
       ) {
-        // set({ exercises: session.config_json.exercises });
+        // Merge exercises: preserve current metadata but restore 'done' status from session
+        const currentExercises = get().exercises;
+        const mergedExercises = mergeExercisesWithSession(
+          currentExercises,
+          session.config_json.exercises
+        );
+        set({ exercises: mergedExercises });
 
         if (session.config_json.currentExercise) {
           const exIndex = session.config_json.exercises.findIndex(
