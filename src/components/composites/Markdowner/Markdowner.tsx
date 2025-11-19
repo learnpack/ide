@@ -683,7 +683,9 @@ const CustomCodeBlock = ({
   }
 
   if (language === "code_challenge_proposal") {
-    return <CodeChallengeProposalRenderer node={node} code={code} allowCreate={allowCreate} />;
+    if (isCreator && mode === "creator") {
+      return <CodeChallengeProposalRenderer node={node} code={code} allowCreate={allowCreate} />;
+    } else return null;
   }
 
   if (language === "new") {
