@@ -5,10 +5,11 @@ import { useTranslation } from "react-i18next";
 
 export const TestButton = () => {
   const { t } = useTranslation();
-  const { isTesteable, runExerciseTests, feedbackbuttonProps } = useStore((state) => ({
+  const { isTesteable, runExerciseTests, feedbackbuttonProps, isCompiling } = useStore((state) => ({
     isTesteable: state.isTesteable,
     runExerciseTests: state.runExerciseTests,
     feedbackbuttonProps: state.feedbackbuttonProps,
+    isCompiling: state.isCompiling,
   }));
 
   const runTests = () => {
@@ -28,9 +29,7 @@ export const TestButton = () => {
       title={isTesteable ? t("test-and-send-tooltip") : undefined}
       tooltipSide="right"
       action={runTests}
-      disabled={
-        !isTesteable
-      }
+      disabled={!isTesteable || isCompiling}
     />
   );
 };
