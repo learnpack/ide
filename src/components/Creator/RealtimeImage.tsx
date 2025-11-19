@@ -11,6 +11,7 @@ import { Markdowner } from "../composites/Markdowner/Markdowner";
 import { Loader } from "../composites/Loader/Loader";
 import { RigoAI } from "../Rigobot/AI";
 import { makeReplacement } from "./Creator";
+import { ImageErrorDisplay } from "./ImageErrorDisplay";
 
 const socketClient = new CreatorSocket(DEV_MODE ? "http://localhost:3000" : "");
 type TImageData = {
@@ -96,13 +97,11 @@ export const UserTextarea = ({
 
 export default function RealtimeImage({
   imageId,
-  onError,
   alt,
   allowCreate,
   node,
 }: {
   imageId: string;
-  onError: () => void;
   alt: string;
   allowCreate: boolean;
   node: any;
@@ -133,8 +132,10 @@ export default function RealtimeImage({
 
   const handleUpdate = (data: TImageData) => {
     if (data.status === "ERROR") {
+      setStatus("ERROR");
       toast.error(t("imageGenerationFailed"));
-      onError();
+      // Keep the component visible with the error
+      // Only in creator mode does it make sense to show the generation error
       return;
     }
     fetchReadme();
@@ -161,15 +162,25 @@ export default function RealtimeImage({
   useEffect(() => {
     console.log("status", status);
     if (status === "GENERATING") {
-      const timer = setTimeout(() => {
+      // Show long wait message after 20 seconds
+      const longWaitTimer = setTimeout(() => {
         setShowLongWaitMessage(true);
       }, 20000);
 
-      return () => clearTimeout(timer);
+      // Safety timeout: if no response after 5 minutes, mark as error
+      const timeoutTimer = setTimeout(() => {
+        setStatus("ERROR");
+        toast.error(t("imageGenerationTimeout"));
+      }, 5 * 60 * 1000); // 5 minutes
+
+      return () => {
+        clearTimeout(longWaitTimer);
+        clearTimeout(timeoutTimer);
+      };
     } else {
       setShowLongWaitMessage(false);
     }
-  }, [status]);
+  }, [status, t]);
 
   useEffect(() => {
     const isGenerating = alt.startsWith("GENERATING");
@@ -180,7 +191,11 @@ export default function RealtimeImage({
 
   const handleGeneration = async () => {
     const randomID = Math.random().toString(36).substring(2, 15);
-    await generateImage(rigoToken, {
+    
+    // Set generation status before the API call
+    setStatus("GENERATING");
+    
+    const result = await generateImage(rigoToken, {
       prompt: innerAlt,
       context: `The image to generate is part of a lesson in a tutorial, this is the content of the lesson: ${currentContent}`,
       callbackUrl: `${
@@ -189,6 +204,16 @@ export default function RealtimeImage({
           : window.location.origin
       }/webhooks/${config.config?.slug}/images/${randomID}`,
     });
+
+    // Check if the API call was successful
+    if (!result) {
+      setStatus("ERROR");
+      toast.error(t("imageGenerationAPIError"));
+      // The component will remain visible to show the error and allow retry
+      return;
+    }
+
+    // If the call was successful, update the markdown with GENERATING status
     const replacement = makeReplacement(randomID, innerAlt);
     if (node?.position?.start && node?.position?.end) {
       await replaceInReadme(
@@ -197,7 +222,6 @@ export default function RealtimeImage({
         node?.position?.end
       );
     }
-    setStatus("GENERATING");
   };
 
   const handleMakeChanges = () => {
@@ -237,7 +261,25 @@ export default function RealtimeImage({
 
   return (
     <div className="flex-y padding-medium bg-2 gap-small rounded">
-      {(status === "GENERATING") && (
+      {status === "ERROR" && (
+        <>
+          <ImageErrorDisplay errorType="generation" isCreator={true} />
+          {allowCreate && (
+            <div className="flex-x gap-small justify-center">
+              <SimpleButton
+                svg={svgs.checkIcon}
+                text={t("retry") || "Reintentar"}
+                action={handleGeneration}
+                extraClass={
+                  "bg-blue-rigo text-white button w-100 justify-center"
+                }
+              />
+            </div>
+          )}
+        </>
+      )}
+
+      {status === "GENERATING" && (
         <Loader
           size="lg"
           text={showLongWaitMessage ? "Rigo is generating your image, this may take some minutes..." : t("imageGenerationInProcess")}
@@ -245,79 +287,78 @@ export default function RealtimeImage({
         />
       )}
 
-      {status === "ERROR" ||
-        (status === "PENDING" && (
-          <>
-            <h3 className="text-center text-blue m-0">
-              <div className="text-center">{svgs.imagePlaceholder}</div>
-              {t("pendingImageGeneration")}
-            </h3>
-            <RigoMessage
-              message={`
+      {status === "PENDING" && (
+        <>
+          <h3 className="text-center text-blue m-0">
+            <div className="text-center">{svgs.imagePlaceholder}</div>
+            {t("pendingImageGeneration")}
+          </h3>
+          <RigoMessage
+            message={`
   ${t("rigoIsPropossingTheFollowingPromptDescription")}
   **${innerAlt}**
           `}
-            />
+          />
 
-            {allowCreate && !showFeedbackInput && (
-              <>
-                <div className="flex-x gap-small justify-center">
-                  <SimpleButton
-                    svg={svgs.checkIcon}
-                    text={t("accept")}
-                    action={handleGeneration}
-                    extraClass={
-                      "bg-blue-rigo text-white button w-100 justify-center"
-                    }
-                  />
-                  <SimpleButton
-                    svg={"✏️"}
-                    text={t("makeChanges")}
-                    action={handleMakeChanges}
-                    extraClass={
-                      "button border-2 border-blue text-blue w-100 justify-center"
-                    }
-                  />
-                </div>
-              </>
-            )}
-            {allowCreate && showFeedbackInput && (
-              <div className="flex-y gap-medium">
-                {messages.map((message) => (
-                  <MessageRenderer
-                    message={message.message}
-                    role={message.role}
-                  />
-                ))}
-                <UserTextarea
-                  defaultValue={feedbackMessage}
-                  onSubmit={handleFeedbackSubmit}
-                  onChange={setFeedbackMessage}
-                  placeholder={t("whatchangesWouldYouLikeForTheImage")}
+          {allowCreate && !showFeedbackInput && (
+            <>
+              <div className="flex-x gap-small justify-center">
+                <SimpleButton
+                  svg={svgs.checkIcon}
+                  text={t("accept")}
+                  action={handleGeneration}
+                  extraClass={
+                    "bg-blue-rigo text-white button w-100 justify-center"
+                  }
                 />
-                <div className="flex-x gap-small justify-center">
-                  <SimpleButton
-                    svg={svgs.checkIcon}
-                    text={t("generateImage")}
-                    action={handleGeneration}
-                    extraClass={
-                      "bg-blue-rigo text-white button w-100 justify-center"
-                    }
-                    disabled={messages.length < 1}
-                  />
-                  <SimpleButton
-                    svg={svgs.redClose}
-                    text={t("cancel") || "Cancel"}
-                    action={handleCancelFeedback}
-                    extraClass={
-                      "button border-2 border-blue border-gray text-gray w-100 justify-center"
-                    }
-                  />
-                </div>
+                <SimpleButton
+                  svg={"✏️"}
+                  text={t("makeChanges")}
+                  action={handleMakeChanges}
+                  extraClass={
+                    "button border-2 border-blue text-blue w-100 justify-center"
+                  }
+                />
               </div>
-            )}
-          </>
-        ))}
+            </>
+          )}
+          {allowCreate && showFeedbackInput && (
+            <div className="flex-y gap-medium">
+              {messages.map((message) => (
+                <MessageRenderer
+                  message={message.message}
+                  role={message.role}
+                />
+              ))}
+              <UserTextarea
+                defaultValue={feedbackMessage}
+                onSubmit={handleFeedbackSubmit}
+                onChange={setFeedbackMessage}
+                placeholder={t("whatchangesWouldYouLikeForTheImage")}
+              />
+              <div className="flex-x gap-small justify-center">
+                <SimpleButton
+                  svg={svgs.checkIcon}
+                  text={t("generateImage")}
+                  action={handleGeneration}
+                  extraClass={
+                    "bg-blue-rigo text-white button w-100 justify-center"
+                  }
+                  disabled={messages.length < 1}
+                />
+                <SimpleButton
+                  svg={svgs.redClose}
+                  text={t("cancel") || "Cancel"}
+                  action={handleCancelFeedback}
+                  extraClass={
+                    "button border-2 border-blue border-gray text-gray w-100 justify-center"
+                  }
+                />
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
