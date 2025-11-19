@@ -534,6 +534,28 @@ const CustomImage = ({
   if (src) {
     // Creator mode: show RealtimeImage which handles generation errors internally
     if (isCreator && mode === "creator" && allowCreate) {
+      const isGenerating = alt?.startsWith("GENERATING");
+      // Check if alt is a path (user-uploaded image) vs a description (AI proposal)
+      const isUserUploadedImage = alt?.startsWith("/.learn/assets/") || alt?.startsWith(".learn/assets/");
+      const isAIImageInAssets = src.includes("/.learn/assets/") || src.startsWith(".learn/assets/");
+      
+      // If it's an AI image proposal (in .learn/assets, no "GENERATING" prefix, and alt is not a path), 
+      // show RealtimeImage directly. Proposals don't have images yet, so we shouldn't wait for hasError
+      if (isAIImageInAssets && !isGenerating && !isUserUploadedImage) {
+        return (
+          <CreatorWrapper node={node} tagName="img">
+            <RealtimeImage
+              allowCreate={allowCreate}
+              imageId={src.split("/").pop() || ""}
+              alt={alt || ""}
+              node={node}
+            />
+          </CreatorWrapper>
+        );
+      }
+      
+      // For images with "GENERATING" prefix, user-uploaded images, or external images, try to load first
+      // If it fails and has "GENERATING", show RealtimeImage (handles both generating and completed images with bug)
       return (
         <CreatorWrapper node={node} tagName="img">
           {/* TODO: Edge case - AI-generated images that completed successfully still have "GENERATING" 
@@ -541,7 +563,7 @@ const CustomImage = ({
           it shows "Image generation in process" instead of a load error 
           because RealtimeImage is rendered (due to "GENERATING" prefix).
           Fix: Backend webhook should remove "GENERATING:" prefix from alt after successful generation. */}
-          {hasError && environment === "creatorWeb" && alt?.startsWith("GENERATING") ? (
+          {hasError && environment === "creatorWeb" && isGenerating ? (
             <RealtimeImage
               allowCreate={allowCreate}
               imageId={src.split("/").pop() || ""}
