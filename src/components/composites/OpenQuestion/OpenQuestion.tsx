@@ -273,7 +273,7 @@ ${newExamples.join("\n")}
     <div>
       <section className="d-flex gap-small align-center pos-relative">
         <AutoResizeTextarea
-          className="w-100"
+          className="w-100 border-gray"
           minHeight={"90px"}
           defaultValue={answer}
           placeholder={t("yourAnswerHere")}
@@ -376,7 +376,7 @@ const AddExampleButton = ({
   return (
     <>
       <SimpleButton
-        extraClass={`rounded padding-small ${examples.length < 3 ? "bg-warning" : "border-gray"
+        extraClass={`rounded padding-small ${examples.length < 3 ? "bg-warning" : ""
           }`}
         text={examples.length < 3 ? t("missingExamples") : t("editExamples")}
         svg={examples.length < 3 ? svgs.warning : svgs.edit}
