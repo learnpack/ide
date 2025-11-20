@@ -13,6 +13,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { TTranslationStatus, TLanguageTranslation } from "../../../utils/storeTypes";
 // import { useConsumableCall } from "../../../utils/apiCalls";
 // import { TConsumableSlug } from "../../../utils/storeTypes";
 
@@ -160,6 +161,7 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
     environment,
     getCurrentExercise,
     syllabus,
+    pendingTranslations,
   } = useStore((state) => ({
     language: state.language,
     setLanguage: state.setLanguage,
@@ -167,10 +169,12 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
     reportEnrichDataLayer: state.reportEnrichDataLayer,
     environment: state.environment,
     syllabus: state.syllabus,
+    pendingTranslations: state.pendingTranslations,
   }));
 
   const currentExercise = getCurrentExercise();
   const [allowAddLanguage, setAllowAddLanguage] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (
@@ -194,12 +198,31 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
 
   const languages = Object.keys(currentExercise.translations);
 
+  // Combine existing languages with pending translations
+  const allLanguages = [
+    ...languages,
+    ...pendingTranslations.map(t => t.code).filter(code => !languages.includes(code))
+  ];
+
+  // Get translation status for a language
+  const getLanguageStatus = (lang: string): TTranslationStatus | null => {
+    const pending = pendingTranslations.find(t => t.code === lang);
+    return pending ? pending.status : null;
+  };
+
   const changeLanguage = (lang: string) => {
     if (lang === "us") lang = "en";
     i18n.changeLanguage(lang);
   };
 
   const setLang = (lang: string) => {
+    const status = getLanguageStatus(lang);
+    
+    // Don't allow changing if translation is in progress
+    if (status === "pending" || status === "translating") {
+      return;
+    }
+    
     const fixedLang = fixLang(lang, environment);
     setLanguage(fixedLang);
     changeLanguage(fixedLang);
@@ -209,16 +232,68 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
     });
   };
 
+  const getStatusIcon = (status: TTranslationStatus | null) => {
+    if (!status) return null;
+    switch (status) {
+      case "pending":
+        return "⏳";
+      case "translating":
+        return "🔄";
+      case "completed":
+        return "✅";
+      case "error":
+        return "❌";
+      default:
+        return null;
+    }
+  };
+
+  const getStatusTooltip = (status: TTranslationStatus | null, lang: string) => {
+    if (!status) return getLanguageName(lang, i18n.language);
+    switch (status) {
+      case "pending":
+        return t("translationPending");
+      case "translating":
+        return t("translationInProgress");
+      case "completed":
+        return t("translationCompleted", { language: lang });
+      case "error":
+        return t("translationError", { language: lang });
+      default:
+        return getLanguageName(lang, i18n.language);
+    }
+  };
+
   return (
     <div className="language-dropdown">
-      {languages.map((l, index) =>
-        l !== language ? (
-          <button key={index} onClick={() => setLang(l)}>
-            {svgsLanguageMap[l]}
-            {l}
-          </button>
-        ) : null
-      )}
+      {allLanguages.map((l, index) => {
+        if (l === language) return null;
+        
+        const status = getLanguageStatus(l);
+        const isDisabled = status === "pending" || status === "translating";
+        
+        return (
+          <Tooltip key={index}>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => setLang(l)}
+                disabled={isDisabled}
+                className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
+                style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%" }}
+              >
+                {svgsLanguageMap[l]}
+                <span>{l}</span>
+                {status && (
+                  <span style={{ marginLeft: "auto" }}>{getStatusIcon(status)}</span>
+                )}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{getStatusTooltip(status, l)}</p>
+            </TooltipContent>
+          </Tooltip>
+        );
+      })}
       {environment !== "localStorage" && (
         <AddLanguageModal disabled={!allowAddLanguage} />
       )}
@@ -283,25 +358,47 @@ const AddLanguageModal = ({ disabled }: { disabled: boolean }) => {
   };
 
   const performTranslation = async (languages: string) => {
-    setIsLoading(true);
-    try {
-      console.log("PERFORMING TRANSLATION");
-      const res = await FetchManager.translateExercises(
-        exercises.map((e) => e.slug),
-        languages,
-        language,
-        token
-      );
-      console.log(res, "TRANSLATION RESPONSE");
-      setIsLoading(false);
-      setIsOpen(false);
-      setShowWarning(false);
-      await getSidebar();
-    } catch (error) {
-      toast.error(t("errorTranslatingExercises"));
-      console.log(error, "Error");
-      setIsLoading(false);
-    }
+      setIsLoading(true);
+      const toastId = toast.loading(t("translatingExercises"));
+      
+      try {
+        console.log("PERFORMING TRANSLATION");
+        // Make the HTTP request FIRST to get the correct language codes
+        const res = await FetchManager.translateExercises(
+          exercises.map((e) => e.slug),
+          languages,
+          language,
+          token
+        );
+        console.log(res, "TRANSLATION RESPONSE");
+        
+        // NOW initialize pending translations with the CORRECT language codes from backend
+        if (res && res.languageCodes && res.languageCodes.length > 0) {
+          const { setPendingTranslations } = useStore.getState();
+          
+          const newTranslations: TLanguageTranslation[] = res.languageCodes.map((code: string) => ({
+            code, // Use the code from backend (e.g., "de"), not the input (e.g., "alemán")
+            status: "translating" as TTranslationStatus,
+            startedAt: Date.now(),
+            totalExercises: exercises.length,
+            completedExercises: 0,
+          }));
+          
+          setPendingTranslations(newTranslations);
+          toast.success(t("translationStarted"), { id: toastId });
+        } else {
+          toast.success(t("translationRequestSent"), { id: toastId });
+        }
+        
+        setIsLoading(false);
+        setIsOpen(false);
+        setShowWarning(false);
+        await getSidebar();
+      } catch (error) {
+        toast.error(t("errorTranslatingExercises"), { id: toastId });
+        console.log(error, "Error");
+        setIsLoading(false);
+      }
   };
 
   // const consume = async (slug: TConsumableSlug, n: number) => {

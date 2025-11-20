@@ -9,6 +9,7 @@ import {
   getSlugFromPath,
   DEV_MODE,
   getReadmeExtension,
+  ENVIRONMENT,
 } from "../utils/lib";
 import { TEnvironment } from "./EventProxy";
 import frontMatter from "front-matter";
@@ -810,11 +811,24 @@ export const FetchManager = {
         }
       },
     };
-    console.log(
-      "TRANSLATING EXERCISES in ENVIRONMENT",
-      FetchManager.ENVIRONMENT
-    );
-    return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
+    
+    // Use FetchManager.ENVIRONMENT, or fallback to ENVIRONMENT from lib.tsx
+    const env = FetchManager.ENVIRONMENT || ENVIRONMENT;
+
+    console.log("TRANSLATING EXERCISES in ENVIRONMENT: ", env);
+    
+    if (!env) {
+      console.error("Environment not detected. Cannot translate exercises.");
+      return null;
+    }
+    
+    const method = methods[env as keyof TMethods];
+    if (!method) {
+      console.error(`No method found for environment: ${env}`);
+      return null;
+    }
+    
+    return method();
   },
 
   getMemoryBank: async (rigoToken: string) => {
