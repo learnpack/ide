@@ -14,6 +14,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { TTranslationStatus, TLanguageTranslation } from "../../../utils/storeTypes";
+import { Loader } from "../../composites/Loader/Loader";
 // import { useConsumableCall } from "../../../utils/apiCalls";
 // import { TConsumableSlug } from "../../../utils/storeTypes";
 
@@ -238,7 +239,7 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
       case "pending":
         return "⏳";
       case "translating":
-        return "🔄";
+        return <Loader size="sm" color="var(--color-blue-rigo)" />;
       case "completed":
         return "✅";
       case "error":
@@ -273,25 +274,41 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
         const isDisabled = status === "pending" || status === "translating";
         
         return (
-          <Tooltip key={index}>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => setLang(l)}
-                disabled={isDisabled}
-                className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
-                style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%" }}
-              >
-                {svgsLanguageMap[l]}
-                <span>{l}</span>
-                {status && (
-                  <span style={{ marginLeft: "auto" }}>{getStatusIcon(status)}</span>
-                )}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{getStatusTooltip(status, l)}</p>
-            </TooltipContent>
-          </Tooltip>
+          <div 
+            key={index}
+            style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%" }}
+          >
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setLang(l)}
+                  disabled={isDisabled}
+                  className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
+                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                >
+                  <span style={{ display: "inline-flex", alignItems: "center", width: "20px", height: "20px", flexShrink: 0, overflow: "hidden" }}>
+                    {svgsLanguageMap[l]}
+                  </span>
+                  <span>{l}</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{getLanguageName(l, i18n.language)}</p>
+              </TooltipContent>
+            </Tooltip>
+            {status && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span style={{ display: "inline-flex", alignItems: "center" }}>
+                    {getStatusIcon(status)}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{getStatusTooltip(status, l)}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
         );
       })}
       {environment !== "localStorage" && (
