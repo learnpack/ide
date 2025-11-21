@@ -352,6 +352,8 @@
     "translationTimeout": "Translation timeout for {{language}}",
     "translationStarted": "Translation started for {{languages}}. You'll be notified when it's ready.",
     "translationRequestSent": "Translation request sent successfully",
+    "translationAlreadyExists": "Translation for {{languages}} already exists.",
+    "translationPartiallyStarted": "Translation started for {{translating}}. {{existing}} already exist.",
     "ai-generations-warning": "Adding the `{{language}}` language will consume **{{totalGenerations}}** AI Generations and you have **{{aiGenerationsLeft}}** left in your plan. [Click here](https://www.learnpack.co/settings) to read more about AI Generations.",
     "ai-generations-warning-title": "AI Generations Required",
     "ai-generations-warning-description": "This action will consume {{totalGenerations}} AI Generations from your plan.",

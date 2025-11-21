@@ -389,12 +389,27 @@ const AddLanguageModal = ({ disabled }: { disabled: boolean }) => {
         );
         console.log(res, "TRANSLATION RESPONSE");
         
-        // NOW initialize pending translations with the CORRECT language codes from backend
-        if (res && res.languageCodes && res.languageCodes.length > 0) {
+        // Handle response with existing and translating languages
+        const translatingLanguages = res?.translatingLanguages || []
+        const existingLanguages = res?.existingLanguages || []
+        
+        // Case 1: All languages already exist
+        if (translatingLanguages.length === 0 && existingLanguages.length > 0) {
+          const existingNames = existingLanguages
+            .map((code: string) => getLanguageName(code, i18n.language))
+            .join(", ");
+          
+          toast.success(t("translationAlreadyExists", { languages: existingNames }), { 
+            id: toastId, 
+            duration: 6000 
+          });
+        }
+        // Case 2: Some languages exist, some are being translated
+        else if (translatingLanguages.length > 0 && existingLanguages.length > 0) {
           const { setPendingTranslations } = useStore.getState();
           
-          const newTranslations: TLanguageTranslation[] = res.languageCodes.map((code: string) => ({
-            code, // Use the code from backend (e.g., "de"), not the input (e.g., "alemán")
+          const newTranslations: TLanguageTranslation[] = translatingLanguages.map((code: string) => ({
+            code,
             status: "translating" as TTranslationStatus,
             startedAt: Date.now(),
             totalExercises: exercises.length,
@@ -403,7 +418,61 @@ const AddLanguageModal = ({ disabled }: { disabled: boolean }) => {
           
           setPendingTranslations(newTranslations);
           
-          // Get language names for the toast
+          const translatingNames = translatingLanguages
+            .map((code: string) => getLanguageName(code, i18n.language))
+            .join(", ");
+          const existingNames = existingLanguages
+            .map((code: string) => getLanguageName(code, i18n.language))
+            .join(", ");
+          
+          toast.success(
+            t("translationPartiallyStarted", { 
+              translating: translatingNames,
+              existing: existingNames 
+            }), 
+            { 
+              id: toastId, 
+              duration: 6000 
+            }
+          );
+        }
+        // Case 3: All languages are being translated (normal case)
+        else if (translatingLanguages.length > 0) {
+          const { setPendingTranslations } = useStore.getState();
+          
+          const newTranslations: TLanguageTranslation[] = translatingLanguages.map((code: string) => ({
+            code,
+            status: "translating" as TTranslationStatus,
+            startedAt: Date.now(),
+            totalExercises: exercises.length,
+            completedExercises: 0,
+          }));
+          
+          setPendingTranslations(newTranslations);
+          
+          const translatingNames = translatingLanguages
+            .map((code: string) => getLanguageName(code, i18n.language))
+            .join(", ");
+          
+          toast.success(t("translationStarted", { languages: translatingNames }), { 
+            id: toastId, 
+            duration: 6000 
+          });
+        }
+        // Case 4: Fallback (backward compatibility)
+        else if (res && res.languageCodes && res.languageCodes.length > 0) {
+          const { setPendingTranslations } = useStore.getState();
+          
+          const newTranslations: TLanguageTranslation[] = res.languageCodes.map((code: string) => ({
+            code,
+            status: "translating" as TTranslationStatus,
+            startedAt: Date.now(),
+            totalExercises: exercises.length,
+            completedExercises: 0,
+          }));
+          
+          setPendingTranslations(newTranslations);
+          
           const languageNames = res.languageCodes
             .map((code: string) => getLanguageName(code, i18n.language))
             .join(", ");

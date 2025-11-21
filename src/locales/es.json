@@ -358,6 +358,8 @@
     "translationTimeout": "Tiempo de espera agotado para la traducción de {{language}}",
     "translationStarted": "Traducción iniciada para {{languages}}. Te notificaremos cuando esté lista.",
     "translationRequestSent": "Solicitud de traducción enviada exitosamente",
+    "translationAlreadyExists": "La traducción para {{languages}} ya existe.",
+    "translationPartiallyStarted": "Traducción iniciada para {{translating}}. {{existing}} ya existen.",
     "ai-generations-warning": "Agregar el idioma {{language}} consumirá {{totalGenerations}} Generaciones de IA y tienes {{aiGenerationsLeft}} restantes en tu plan. [Haz clic aquí](https://www.learnpack.co/settings) para leer más sobre las Generaciones de IA.",
     "ai-generations-warning-title": "Generaciones de IA Requeridas",
     "ai-generations-warning-description": "Esta acción consumirá Generaciones de IA {{totalGenerations}} de tu plan. Asegúrate de tener suficientes antes de continuar.",
