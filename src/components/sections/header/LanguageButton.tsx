@@ -237,7 +237,7 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
     if (!status) return null;
     switch (status) {
       case "pending":
-        return "⏳";
+        return <Loader size="sm" color="var(--color-blue-rigo)" />;
       case "translating":
         return <Loader size="sm" color="var(--color-blue-rigo)" />;
       case "completed":
