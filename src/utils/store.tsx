@@ -36,6 +36,8 @@ import {
   TMode,
   TParamsActions,
   TPossibleParams,
+  TLanguageTranslation,
+  TTranslationStatus,
 } from "./storeTypes";
 import toast from "react-hot-toast";
 import { getStatus } from "../managers/socket";
@@ -150,6 +152,7 @@ const useStore = create<IStore>((set, get) => ({
   isRigoOpened: false,
   editingContent: "",
   editorTabs: [],
+  pendingTranslations: [] as TLanguageTranslation[],
   feedbackbuttonProps: {
     text: "test-and-send",
     className: "",
@@ -1231,6 +1234,82 @@ The user's set up the application in "${language}" language, give your feedback 
     }
     set({ syllabus });
 
+    // Recover pending translations from syllabus, but ONLY if files don't exist yet
+    if (syllabus?.lessons) {
+      const { exercises } = get();
+      const pendingTranslations: TLanguageTranslation[] = [];
+      
+      // Collect all languages that were started according to syllabus
+      const languagesInProgress = new Set<string>();
+      
+      syllabus.lessons.forEach((lesson: any) => {
+        if (lesson.translations) {
+          Object.entries(lesson.translations).forEach(([lang, trans]: [string, any]) => {
+            // If translation was started (has startedAt), track it
+            if (trans.startedAt) {
+              languagesInProgress.add(lang);
+            }
+          });
+        }
+      });
+      
+      // ALSO collect all languages that already exist in exercises (to check if they're complete)
+      // This is important for languages like English that might be complete but not in syllabus
+      exercises.forEach((ex: TExercise) => {
+        if (ex.translations) {
+          Object.keys(ex.translations).forEach(lang => {
+            languagesInProgress.add(lang);
+          });
+        }
+      });
+      
+      // For each language that was started, check if files actually exist
+      // Strategy: Files are the source of truth (primary), completedAt is backup (secondary)
+      // This ensures resilience: if syllabus update fails but file exists, we still detect completion
+      // The ex.translations object comes from backend and is based on actual README files,
+      // so checking ex.translations[lang] is equivalent to checking file existence
+      languagesInProgress.forEach(lang => {
+        const allHaveTranslation = exercises.every((ex: TExercise) => {
+          // PRIORITY 1: Check if translation file exists (source of truth)
+          // The translations object comes from backend endpoint that detects README files
+          const hasFile = ex.translations && ex.translations[lang];
+          
+          // Special case for English: README.md (without language code) is the English translation
+          if (lang === "en" && !hasFile) {
+            // Fallback: check if README.md exists in files array
+            const hasReadmeMd = ex.files && ex.files.some((f: TFile) => 
+              f.name === "README.md" || f.name.endsWith("/README.md")
+            );
+            if (hasReadmeMd) return true;
+          }
+          
+          // File existence is the source of truth
+          // If file doesn't exist, translation is not complete (even if completedAt exists in syllabus)
+          // This ensures consistency: if file was deleted or upload failed, we detect it correctly
+          return hasFile;
+        });
+        
+        if (!allHaveTranslation) {
+          // Files don't exist yet, so it's truly pending
+          const firstTransWithLang = syllabus.lessons.find((l: any) => 
+            l.translations && l.translations[lang]
+          );
+          
+          pendingTranslations.push({
+            code: lang,
+            status: "translating",
+            startedAt: firstTransWithLang?.translations[lang]?.startedAt || Date.now(),
+          });
+        } else {
+          console.log(`Translation for ${lang} is complete (all files exist), not adding to pending`);
+        }
+      });
+      
+      if (pendingTranslations.length > 0) {
+        set({ pendingTranslations });
+      }
+    }
+
     return syllabus;
   },
 
@@ -2185,6 +2264,26 @@ The user's set up the application in "${language}" language, give your feedback 
     const sidebar = await FetchManager.getSidebar(token);
     set({ sidebar });
     return sidebar;
+  },
+
+  setPendingTranslations: (translations: TLanguageTranslation[] | ((prev: TLanguageTranslation[]) => TLanguageTranslation[])) => {
+    if (typeof translations === 'function') {
+      const { pendingTranslations } = get();
+      set({ pendingTranslations: translations(pendingTranslations) });
+    } else {
+      set({ pendingTranslations: translations });
+    }
+  },
+
+  updateTranslationStatus: (languageCode: string, status: TTranslationStatus, error?: string) => {
+    const { pendingTranslations } = get();
+    set({
+      pendingTranslations: pendingTranslations.map(t =>
+        t.code === languageCode 
+          ? { ...t, status, completedAt: status === "completed" ? Date.now() : t.completedAt, error }
+          : t
+      ),
+    });
   },
   uploadFileToCourse: async (file: File, destination: string) => {
     const { configObject } = get();
