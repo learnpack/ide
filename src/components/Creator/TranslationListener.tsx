@@ -4,6 +4,8 @@ import CreatorSocket from "../../managers/creatorSocket";
 import { DEV_MODE } from "../../utils/lib";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import { getLanguageName } from "../sections/header/LanguageButton";
+import i18n from "../../utils/i18n";
 
 const socketClient = new CreatorSocket(DEV_MODE ? "http://localhost:3000" : "");
 
@@ -52,7 +54,10 @@ export default function TranslationListener() {
             finalPending.filter(t => t.code !== langCode)
           );
           
-          toast.success(t("translationCompleted", { language: langCode }));
+          toast.success(
+            t("translationCompleted", { language: getLanguageName(langCode, i18n.language) }), 
+            { duration: 6000 }
+          );
         }, 1000);
       }
       

@@ -49,7 +49,7 @@ const shouldChangeLanguage = (language: string, languages: string[]) => {
   return !languages.includes(language);
 };
 
-const getLanguageName = (langCode: string, currentLanguage: string = 'en'): string => {
+export const getLanguageName = (langCode: string, currentLanguage: string = 'en'): string => {
   try {
     const displayNames = new Intl.DisplayNames([currentLanguage], { type: 'language' });
     // Normalizar códigos especiales
@@ -385,7 +385,16 @@ const AddLanguageModal = ({ disabled }: { disabled: boolean }) => {
           }));
           
           setPendingTranslations(newTranslations);
-          toast.success(t("translationStarted"), { id: toastId });
+          
+          // Get language names for the toast
+          const languageNames = res.languageCodes
+            .map((code: string) => getLanguageName(code, i18n.language))
+            .join(", ");
+          
+          toast.success(t("translationStarted", { languages: languageNames }), { 
+            id: toastId, 
+            duration: 6000 
+          });
         } else {
           toast.success(t("translationRequestSent"), { id: toastId });
         }
