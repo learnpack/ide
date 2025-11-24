@@ -510,8 +510,6 @@ const TelemetryManager: ITelemetryManager = {
       return;
     }
 
-    console.log("Finishing workout session", this.current);
-
     const lastSession =
       this.current?.workout_session[this.current.workout_session.length - 1];
     if (

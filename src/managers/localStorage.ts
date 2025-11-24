@@ -1,3 +1,5 @@
+import { sanitizeForLocalStorage } from "../utils/piiSanitizer";
+
 export const LocalStorage = {
   get: (key: string, asJson = true) => {
     if (!localStorage) {
@@ -13,7 +15,11 @@ export const LocalStorage = {
   },
   set: (key: string, value: any) => {
     if (localStorage) {
-      localStorage.setItem(key, JSON.stringify(value));
+      // Sanitize PII before storing
+      const sanitized = typeof value === 'object' && value !== null
+        ? sanitizeForLocalStorage(key, value)
+        : value;
+      localStorage.setItem(key, JSON.stringify(sanitized));
     }
   },
   remove: (key: string) => {
