@@ -17,6 +17,7 @@
     "axios": "^1.7.7",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dompurify": "^3.3.0",
     "front-matter": "^4.0.2",
     "highlight.js": "^11.11.1",
     "html2canvas": "^1.4.1",
@@ -52,6 +53,7 @@
   "devDependencies": {
     "@aws-sdk/client-cloudfront": "^3.840.0",
     "@aws-sdk/client-s3": "^3.709.0",
+    "@types/dompurify": "^3.0.5",
     "@types/js-yaml": "^4.0.9",
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^24.9.1",
