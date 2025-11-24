@@ -632,6 +632,8 @@ const CustomCodeBlock = ({
     isCreator,
     mode,
     useConsumable,
+    token,
+    setOpenedModals,
   } = useStore((state) => ({
     getCurrentExercise: state.getCurrentExercise,
     isIframe: state.isIframe,
@@ -640,6 +642,7 @@ const CustomCodeBlock = ({
     isCreator: state.isCreator,
     mode: state.mode,
     useConsumable: state.useConsumable,
+    setOpenedModals: state.setOpenedModals,
   }));
 
   const { t } = useTranslation();
@@ -706,6 +709,11 @@ const CustomCodeBlock = ({
             svg={isExecuting ? <Loader extraClass="svg-blue" svg={svgs.runCustom} text={t("runningCode")} size="sm"/> : svgs.runCustom}
             action={async () => {
               if (isExecuting) return;
+              if (!token) {
+                toast.error(t("youMustLoginFirst"));
+                setOpenedModals({ mustLogin: true });
+                return;
+              }
               setIsExecuting(true);
               setExecutionResult(null);
               setIsError(false);
