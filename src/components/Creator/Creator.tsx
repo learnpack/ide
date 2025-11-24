@@ -682,7 +682,7 @@ const ImageUploader = ({
     <>
       <input
         type="file"
-        accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+        accept=".jpg,.jpeg,.png,.svg,image/jpeg,image/png,image/svg+xml"
         className="d-none"
         onChange={(e) => {
           if (e.target.files?.[0]) {
