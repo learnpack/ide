@@ -632,6 +632,8 @@ const CustomCodeBlock = ({
     isCreator,
     mode,
     useConsumable,
+    token,
+    setOpenedModals,
   } = useStore((state) => ({
     getCurrentExercise: state.getCurrentExercise,
     isIframe: state.isIframe,
@@ -640,6 +642,7 @@ const CustomCodeBlock = ({
     isCreator: state.isCreator,
     mode: state.mode,
     useConsumable: state.useConsumable,
+    setOpenedModals: state.setOpenedModals,
   }));
 
   const { t } = useTranslation();
@@ -706,6 +709,11 @@ const CustomCodeBlock = ({
             svg={isExecuting ? <Loader extraClass="svg-blue" svg={svgs.runCustom} text={t("runningCode")} size="sm"/> : svgs.runCustom}
             action={async () => {
               if (isExecuting) return;
+              if (!token) {
+                toast.error(t("youMustLoginFirst"));
+                setOpenedModals({ mustLogin: true });
+                return;
+              }
               setIsExecuting(true);
               setExecutionResult(null);
               setIsError(false);
@@ -861,6 +869,10 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
   const [submitted, setSubmitted] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const { t } = useTranslation();
+  const { token, setOpenedModals } = useStore((state) => ({
+    token: state.token,
+    setOpenedModals: state.setOpenedModals,
+  }));
 
   // Extract correct answers from metadata
   const correctAnswers: Record<string, string[]> = {};
@@ -940,6 +952,11 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
   const totalCount = uniqueBlanks.length;
 
   const handleSubmit = () => {
+    if (!token) {
+      toast.error(t("youMustLoginFirst"));
+      setOpenedModals({ mustLogin: true });
+      return;
+    }
     setSubmitted(true);
     setShowResults(true);
 

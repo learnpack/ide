@@ -79,6 +79,8 @@ export const QuizRenderer = ({ children }: { children: any }) => {
     currentExercisePosition,
     useConsumable,
     reportEnrichDataLayer,
+    token,
+    setOpenedModals,
   } = useStore((state) => ({
     registerTelemetryEvent: state.registerTelemetryEvent,
     maxQuizRetries: state.maxQuizRetries,
@@ -87,6 +89,8 @@ export const QuizRenderer = ({ children }: { children: any }) => {
     currentExercisePosition: state.currentExercisePosition,
     useConsumable: state.useConsumable,
     reportEnrichDataLayer: state.reportEnrichDataLayer,
+    token: state.token,
+    setOpenedModals: state.setOpenedModals,
   }));
 
 
@@ -215,6 +219,11 @@ export const QuizRenderer = ({ children }: { children: any }) => {
   };
 
   const onSubmitQuiz = async () => {
+    if (!token) {
+      toast.error(t("youMustLoginFirst"));
+      setOpenedModals({ mustLogin: true });
+      return;
+    }
     if (Object.keys(quiz.current.groups).length === liChildren.length) {
       const hash = await asyncHashText(
         Object.values(quiz.current.groups)
