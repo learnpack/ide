@@ -861,6 +861,10 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
   const [submitted, setSubmitted] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const { t } = useTranslation();
+  const { token, setOpenedModals } = useStore((state) => ({
+    token: state.token,
+    setOpenedModals: state.setOpenedModals,
+  }));
 
   // Extract correct answers from metadata
   const correctAnswers: Record<string, string[]> = {};
@@ -940,6 +944,11 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
   const totalCount = uniqueBlanks.length;
 
   const handleSubmit = () => {
+    if (!token) {
+      toast.error(t("youMustLoginFirst"));
+      setOpenedModals({ mustLogin: true });
+      return;
+    }
     setSubmitted(true);
     setShowResults(true);
 
