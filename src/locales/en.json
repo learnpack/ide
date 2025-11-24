@@ -528,5 +528,6 @@
     "invalid-characters-in-filename": "The name contains invalid characters: {{chars}}",
     "filename-too-long-bytes": "File name exceeds size limit (maximum 1024 bytes in UTF-8)",
     "reserved-filename": "The name '{{name}}' is reserved and cannot be used",
-    "youMustLoginFirst": "You must login first to evaluate the answer"
+    "youMustLoginFirst": "You must login first to evaluate the answer",
+    "translationStartedExercisesWillAppearSoon": "Translation started, exercises will appear soon"
 }

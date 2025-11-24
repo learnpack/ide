@@ -533,7 +533,8 @@
     "file-renamed-successfully": "Archivo renombrado exitosamente",
     "error-renaming-file": "Error al renombrar el archivo",
     "invalid-characters-in-filename": "El nombre contiene caracteres no permitidos: {{chars}}",
-    "filename-too-long-bytes": "El nombre del archivo excede el límite de tamaño (máximo 1024 bytes en UTF-8)",
+"filename-too-long-bytes": "El nombre del archivo excede el límite de tamaño (máximo 1024 bytes en UTF-8)",
     "reserved-filename": "El nombre '{{name}}' está reservado y no puede usarse",
-    "youMustLoginFirst": "Debes iniciar sesión primero para evaluar la respuesta"
+    "youMustLoginFirst": "Debes iniciar sesión primero para evaluar la respuesta",
+    "translationStartedExercisesWillAppearSoon": "La traducción ha comenzado, los ejercicios aparecerán pronto"
 }

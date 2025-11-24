@@ -167,7 +167,7 @@ const AddExerciseButton = ({
 export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
   const {
     exercises,
-    fetchExercises,
+    // fetchExercises,
     getSidebar,
     sidebar,
     token,
@@ -175,7 +175,7 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
     syllabus,
   } = useStore((state) => ({
     exercises: state.exercises,
-    fetchExercises: state.fetchExercises,
+    // fetchExercises: state.fetchExercises,
     getSidebar: state.getSidebar,
     sidebar: state.sidebar,
     token: state.token,
@@ -230,9 +230,7 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
         language,
         token
       );
-      toast.success(t("exercisesTranslated"), { id: toastId });
-      await fetchExercises();
-      await getSidebar();
+      toast.success(t("translationStartedExercisesWillAppearSoon"), { id: toastId });
       setSelectedExercises([]);
     } catch (error) {
       toast.error(t("errorTranslatingExercises"), { id: toastId });
