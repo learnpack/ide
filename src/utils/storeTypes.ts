@@ -313,11 +313,14 @@ export interface IStore {
   sidebar: TSidebar;
   syllabus: Syllabus;
   syncNotifications: TSyncNotification[];
+  pendingTranslations: TLanguageTranslation[];
   getSidebar: () => Promise<TSidebar>;
   getSyllabus: () => Promise<void>;
   getSyncNotifications: () => Promise<void>;
   dismissSyncNotification: (notificationId: string, lessonSlug: string) => Promise<void>;
   acceptSyncNotification: (notification: TSyncNotification) => Promise<void>;
+  setPendingTranslations: (translations: TLanguageTranslation[] | ((prev: TLanguageTranslation[]) => TLanguageTranslation[])) => void;
+  updateTranslationStatus: (languageCode: string, status: TTranslationStatus, error?: string) => void;
   setMode: (mode: TMode) => void;
   addVideoTutorial: (videoTutorial: string) => Promise<void>;
   removeVideoTutorial: () => Promise<void>;
@@ -430,4 +433,16 @@ type TRunExerciseTestsOptions = {
   setFeedbackButton: boolean;
   feedbackButtonText: string;
   targetButton: "build" | "feedback";
+};
+
+export type TTranslationStatus = "pending" | "translating" | "completed" | "error";
+
+export type TLanguageTranslation = {
+  code: string;
+  status: TTranslationStatus;
+  startedAt?: number;
+  completedAt?: number;
+  error?: string;
+  totalExercises?: number; // Total exercises being translated for this language
+  completedExercises?: number; // Number of exercises completed for this language
 };
