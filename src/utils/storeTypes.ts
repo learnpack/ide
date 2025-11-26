@@ -223,6 +223,33 @@ export type TConsumableSlug =
   | "ai-conversation-message"
   | "ai-compilation"
   | "ai-generation";
+
+export type TSyncNotificationStatus = "pending" | "processing" | "completed" | "error";
+
+export type TSyncNotification = {
+  id: string;
+  lessonSlug: string;
+  lessonTitle: string;
+  sourceLanguage: string;
+  targetLanguages: string[];    // Calculated dynamically
+  createdAt: number;
+  updatedAt: number;
+  status: TSyncNotificationStatus;
+  syncProgress?: {
+    totalLanguages: number;
+    completedLanguages: number;
+    currentLanguage?: string;
+    failedLanguages?: Array<{
+      code: string;
+      error: string;
+    }>;
+  };
+  error?: {
+    message: string;
+    code: string;
+  };
+};
+
 export interface IStore {
   exercises: TExercise[];
   teacherOnboardingClosed: boolean;
@@ -285,8 +312,12 @@ export interface IStore {
   isCreator: boolean;
   sidebar: TSidebar;
   syllabus: Syllabus;
+  syncNotifications: TSyncNotification[];
   getSidebar: () => Promise<TSidebar>;
   getSyllabus: () => Promise<void>;
+  getSyncNotifications: () => Promise<void>;
+  dismissSyncNotification: (notificationId: string, lessonSlug: string) => Promise<void>;
+  acceptSyncNotification: (notification: TSyncNotification) => Promise<void>;
   setMode: (mode: TMode) => void;
   addVideoTutorial: (videoTutorial: string) => Promise<void>;
   removeVideoTutorial: () => Promise<void>;
