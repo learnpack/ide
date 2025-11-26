@@ -4,7 +4,7 @@ import CreatorSocket from "../../managers/creatorSocket";
 import { DEV_MODE } from "../../utils/lib";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { getLanguageName } from "../sections/header/LanguageButton";
+import { getLanguageName } from "../../utils/lib";
 import i18n from "../../utils/i18n";
 
 const socketClient = new CreatorSocket(DEV_MODE ? "http://localhost:3000" : "");
