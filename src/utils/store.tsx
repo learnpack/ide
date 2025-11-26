@@ -36,6 +36,8 @@ import {
   TMode,
   TParamsActions,
   TPossibleParams,
+  TSyncNotification,
+  TSyncNotificationStatus,
 } from "./storeTypes";
 import toast from "react-hot-toast";
 import { getStatus } from "../managers/socket";
@@ -55,6 +57,12 @@ import { RigoAI } from "../components/Rigobot/AI";
 import { svgs } from "../assets/svgs";
 import { Notifier } from "../managers/Notifier";
 import { LocalStorage } from "../managers/localStorage";
+import {
+  fetchSyncNotifications,
+  dismissSyncNotification as dismissSyncNotificationAPI,
+  acceptSyncNotification as acceptSyncNotificationAPI,
+} from "./syncNotifications";
+import i18n from "./i18n";
 
 type TFile = {
   name: string;
@@ -206,6 +214,7 @@ const useStore = create<IStore>((set, get) => ({
   syllabus: {
     lessons: [],
   },
+  syncNotifications: [] as TSyncNotification[],
 
   // setters
   start: () => {
@@ -1232,6 +1241,99 @@ The user's set up the application in "${language}" language, give your feedback 
     set({ syllabus });
 
     return syllabus;
+  },
+
+  getSyncNotifications: async () => {
+    const { environment, exercises } = get();
+
+    if (environment !== "creatorWeb") {
+      return;
+    }
+
+    try {
+      const data = await fetchSyncNotifications();
+
+      // Transform backend data to frontend format
+      const notifications: TSyncNotification[] = data.notifications.map((notif: any) => {
+        const exercise = exercises.find(ex => ex.slug === notif.lessonSlug);
+        const availableLanguages = Object.keys(exercise?.translations || {});
+        const targetLanguages = availableLanguages.filter(
+          lang => lang !== notif.sourceLanguage
+        );
+
+        return {
+          id: notif.id,
+          lessonSlug: notif.lessonSlug,
+          lessonTitle: exercise?.title || notif.lessonSlug,
+          sourceLanguage: notif.sourceLanguage,
+          targetLanguages,
+          createdAt: notif.createdAt,
+          updatedAt: notif.updatedAt,
+          status: notif.status,
+          syncProgress: notif.syncProgress,
+          error: notif.error,
+        };
+      });
+
+      set({ syncNotifications: notifications });
+    } catch (error) {
+      console.error("Error fetching sync notifications:", error);
+    }
+  },
+
+  dismissSyncNotification: async (notificationId: string, lessonSlug: string) => {
+    try {
+      await dismissSyncNotificationAPI(notificationId, lessonSlug);
+
+      // Update local state
+      const { syncNotifications } = get();
+      set({
+        syncNotifications: syncNotifications.filter(n => n.id !== notificationId),
+      });
+
+      toast.success(i18n.t("sync-notification-dismissed"));
+    } catch (error) {
+      console.error("Error dismissing notification:", error);
+      toast.error(i18n.t("error-dismissing-notification"));
+    }
+  },
+
+  acceptSyncNotification: async (notification: TSyncNotification) => {
+    const { token } = get();
+
+    if (!token) {
+      toast.error(i18n.t("authentication-required"));
+      return;
+    }
+
+    try {
+      // Mark as processing locally
+      const { syncNotifications } = get();
+      set({
+        syncNotifications: syncNotifications.map(n =>
+          n.id === notification.id
+            ? { ...n, status: "processing" as TSyncNotificationStatus }
+            : n
+        ),
+      });
+
+      await acceptSyncNotificationAPI(notification.id, notification.lessonSlug, token);
+
+      toast.success(i18n.t("sync-started"));
+    } catch (error) {
+      console.error("Error accepting sync notification:", error);
+      toast.error(i18n.t("error-starting-sync"));
+
+      // Revert status on error
+      const { syncNotifications } = get();
+      set({
+        syncNotifications: syncNotifications.map(n =>
+          n.id === notification.id
+            ? { ...n, status: "pending" as TSyncNotificationStatus }
+            : n
+        ),
+      });
+    }
   },
 
   handlePositionChange: async (desiredPosition) => {
