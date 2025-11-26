@@ -415,6 +415,17 @@ export const getReadmeExtension = (language: string) => {
   return language === "en" || language === "us" ? ".md" : `.${language}.md`;
 };
 
+export const getLanguageName = (langCode: string, currentLanguage: string = 'en'): string => {
+  try {
+    const displayNames = new Intl.DisplayNames([currentLanguage], { type: 'language' });
+    // Normalizar códigos especiales
+    const normalizedCode = langCode === 'us' ? 'en' : langCode;
+    return displayNames.of(normalizedCode) || langCode;
+  } catch {
+    return langCode;
+  }
+};
+
 export const convertUrlToBase64 = (url: string, extraParams: string = "") => {
   if (url.includes("?") || url.includes("#")) {
     return btoa(url + extraParams);

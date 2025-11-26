@@ -248,6 +248,8 @@ const useStore = create<IStore>((set, get) => ({
       initRigoAI,
       getSyllabus,
       initCompilerSocket,
+      getSyncNotifications,
+      environment,
     } = get();
     figureEnvironment()
       .then(() => {
@@ -273,6 +275,10 @@ const useStore = create<IStore>((set, get) => ({
         startTelemetry();
         initRigoAI();
         getSyllabus();
+        // Load sync notifications if in creatorWeb environment
+        if (environment === "creatorWeb") {
+          getSyncNotifications();
+        }
       });
   },
 
