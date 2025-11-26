@@ -8,6 +8,7 @@ import { Modal } from "../../mockups/Modal";
 import { toast } from "react-hot-toast";
 import { FetchManager } from "../../../managers/fetchManager";
 import { Markdowner } from "../../composites/Markdowner/Markdowner";
+import { getLanguageName } from "../../../utils/lib";
 import {
   Tooltip,
   TooltipContent,
@@ -46,17 +47,6 @@ const shouldChangeLanguage = (language: string, languages: string[]) => {
     return !anyEnglish;
   }
   return !languages.includes(language);
-};
-
-const getLanguageName = (langCode: string, currentLanguage: string = 'en'): string => {
-  try {
-    const displayNames = new Intl.DisplayNames([currentLanguage], { type: 'language' });
-    // Normalizar códigos especiales
-    const normalizedCode = langCode === 'us' ? 'en' : langCode;
-    return displayNames.of(normalizedCode) || langCode;
-  } catch {
-    return langCode;
-  }
 };
 
 export default function LanguageButton() {
