@@ -18,6 +18,7 @@ import toast from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
 import { TSidebar } from "../utils/storeTypes";
 import { fixLang } from "../components/sections/header/LanguageButton";
+import useStore from "../utils/store";
 // import axios from "axios";
 
 // Correct the type definition for TMethods
@@ -718,7 +719,34 @@ export const FetchManager = {
         if (!res.ok) {
           return false;
         }
-        // await res.json();
+        
+        // Create sync notification if there are other languages available
+        try {
+          const { exercises } = useStore.getState();
+          const currentExercise = exercises.find(ex => ex.slug === slug);
+          const availableLanguages = Object.keys(currentExercise?.translations || {});
+          
+          // Only create notification if there are multiple languages
+          if (availableLanguages.length > 1) {
+            const { createSyncNotification } = await import("../utils/syncNotifications");
+            await createSyncNotification({
+              exerciseSlug: slug,
+              sourceLanguage: language
+            });
+            
+            // Refresh notifications in the background
+            const { getSyncNotifications } = useStore.getState();
+            getSyncNotifications().catch(err => {
+              // Silently fail - non-critical operation
+              console.error("Error refreshing sync notifications:", err);
+            });
+          }
+        } catch (notifError) {
+          // Non-critical error - README was saved successfully
+          // Don't show error to user - notification creation is optional
+          console.error("Error creating sync notification:", notifError);
+        }
+        
         return true;
       },
     };
