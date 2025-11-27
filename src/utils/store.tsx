@@ -1383,10 +1383,10 @@ The user's set up the application in "${language}" language, give your feedback 
         syncNotifications: syncNotifications.filter(n => n.id !== notificationId),
       });
 
-      toast.success(i18n.t("sync-notification-dismissed"));
+      toast.success(i18n.t("sync-dismissed"));
     } catch (error) {
-      console.error("Error dismissing notification:", error);
-      toast.error(i18n.t("error-dismissing-notification"));
+      console.error("Error dismissing syncronization:", error);
+      toast.error(i18n.t("error-dismissing-sync"));
     }
   },
 

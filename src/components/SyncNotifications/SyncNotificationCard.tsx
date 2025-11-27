@@ -5,6 +5,7 @@ import { getLanguageName } from "../../utils/lib";
 import i18n from "../../utils/i18n";
 import { Icon } from "../Icon";
 import { Loader } from "../composites/Loader/Loader";
+import SimpleButton from "../mockups/SimpleButton";
 
 interface Props {
   notification: TSyncNotification;
@@ -35,59 +36,54 @@ export const SyncNotificationCard = ({ notification, onSyncClick }: Props) => {
   
   return (
     <div 
-      className={`
-        bg-[var(--bg-2)] border rounded-lg p-4 transition-all duration-200
-        ${isProcessing 
-          ? 'border-[var(--color-blue-rigo)] bg-[var(--color-blue-opaque)]' 
-          : 'border-[var(--color-inactive)] hover:border-[var(--color-active)] hover:shadow-md'
-        }
-      `}
+      className={`rounded padding-medium bg-1 border ${isProcessing ? 'border-gray' : 'border-gray'}`}
+      style={isProcessing ? { borderColor: "var(--color-blue-rigo)" } : {}}
     >
-      <div className="flex justify-between items-start mb-3">
-        <h3 className="text-base font-medium text-[var(--color-active)] m-0">
+      <div className="flex-x justify-between align-start gap-small">
+        <h3 className="text-bold m-0" style={{ color: "var(--color-active)" }}>
           {notification.lessonTitle}
         </h3>
         {!isProcessing && (
-          <button 
-            onClick={handleDismiss}
-            className="p-1 hover:bg-[var(--bg-color)] rounded transition-colors text-[var(--color-inactive)] hover:text-[var(--color-active)]"
+          <SimpleButton 
+            action={handleDismiss}
+            extraClass="padding-small rounded scale-on-hover"
             title={t("dismiss")}
-          >
-            <Icon name="X" size={16} />
-          </button>
+            text={<Icon name="X" size={16} />}
+          />
         )}
       </div>
       
-      <p className="text-sm text-[var(--color-inactive)] mb-2">
+      <p className="m-0" style={{ marginTop: "8px", marginBottom: "8px", color: "var(--color-inactive)" }}>
         {getTimeAgo(notification.updatedAt)}
       </p>
       
-      <div className="flex items-center gap-2 text-sm mb-3">
-        <span className="font-semibold text-[var(--color-active)]">
+      <div className="flex-x align-center gap-small">
+        <span className="text-bold" style={{ color: "var(--color-active)" }}>
           {getLanguageName(notification.sourceLanguage, i18n.language)}
         </span>
         <Icon name="ArrowRight" size={16} />
-        <span className="text-[var(--color-inactive)]">
+        <span style={{ color: "var(--color-inactive)" }}>
           {notification.targetLanguages.length} {t("languages")}
         </span>
       </div>
       
       {isProcessing && notification.syncProgress && (
-        <div className="mt-3">
-          <div className="flex items-center gap-2 mb-2">
-            <Loader size="sm" />
-            <span className="text-sm text-[var(--color-active)]">
+        <div className="flex-y gap-small" style={{ marginTop: "12px" }}>
+          <div className="flex-x align-center gap-small">
+            <Loader size="sm" color="var(--color-blue-rigo)" />
+            <span style={{ color: "var(--color-active)" }}>
               {t("languages-completed", {
                 completed: notification.syncProgress.completedLanguages,
                 total: notification.syncProgress.totalLanguages
               })}
             </span>
           </div>
-          <div className="w-full h-1.5 bg-[var(--bg-color)] rounded-full overflow-hidden">
+          <div className="w-100 rounded" style={{ height: "6px", backgroundColor: "var(--bg-color)", overflow: "hidden" }}>
             <div 
-              className="h-full bg-[var(--color-blue-rigo)] transition-all duration-300"
+              className="h-100 bg-blue-rigo"
               style={{
-                width: `${(notification.syncProgress.completedLanguages / notification.syncProgress.totalLanguages) * 100}%`
+                width: `${(notification.syncProgress.completedLanguages / notification.syncProgress.totalLanguages) * 100}%`,
+                transition: "width 0.3s"
               }}
             />
           </div>
@@ -95,13 +91,19 @@ export const SyncNotificationCard = ({ notification, onSyncClick }: Props) => {
       )}
       
       {!isProcessing && (
-        <div className="flex justify-end mt-3">
-          <button 
-            onClick={onSyncClick}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors text-sm font-medium"
-          >
-            {t("synchronize")}
-          </button>
+        <div className="flex-x justify-end gap-small" style={{ marginTop: "12px" }}>
+          <SimpleButton
+            extraClass="bg-gray text-black padding-small rounded"
+            size="small"
+            text={t("dismiss")}
+            action={handleDismiss}
+          />
+          <SimpleButton
+            extraClass="bg-blue-rigo text-white padding-small rounded"
+            size="small"
+            text={t("synchronize")}
+            action={onSyncClick}
+          />
         </div>
       )}
     </div>

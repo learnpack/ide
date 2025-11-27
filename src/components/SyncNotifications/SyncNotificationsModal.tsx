@@ -5,6 +5,8 @@ import { TSyncNotification } from "../../utils/storeTypes";
 import { SyncNotificationCard } from "./SyncNotificationCard";
 import { SyncConfirmationModal } from "./SyncConfirmationModal";
 import { Modal } from "../mockups/Modal";
+import SimpleButton from "../mockups/SimpleButton";
+import { svgs } from "@/assets/svgs";
 
 interface Props {
   onClose: () => void;
@@ -23,18 +25,21 @@ export const SyncNotificationsModal = ({ onClose }: Props) => {
   return (
     <>
       <Modal outsideClickHandler={onClose} minWidth="500px">
-        <div className="min-w-[500px] max-w-[600px]">
-          <h2 className="text-xl font-semibold mb-2">{t("sync-notification-title")}</h2>
-          <p className="text-sm text-[var(--color-inactive)] mb-5">
+        <div className="flex-y gap-small">
+          <div className="flex-x align-center gap-small">
+            <div className="medium-svg flex-x align-center">{svgs.rigoSoftBlue}</div>
+            <h2 className="text-bold">{t("sync-notification-title")}</h2>
+          </div>
+          <p style={{ color: "var(--color-inactive)" }}>
             {t("sync-notification-description")}
           </p>
           
           {activeNotifications.length === 0 ? (
-            <div className="py-10 text-center text-[var(--color-inactive)]">
-              <p>{t("no-sync-notifications")}</p>
+            <div className="flex-y align-center justify-center padding-medium">
+              <p style={{ color: "var(--color-inactive)" }}>{t("no-sync-notifications")}</p>
             </div>
           ) : (
-            <div className="flex flex-col gap-3 max-h-[400px] overflow-y-auto mb-5">
+            <div className="flex-y gap-small" style={{ maxHeight: "400px", overflowY: "auto" }}>
               {activeNotifications.map(notification => (
                 <SyncNotificationCard
                   key={notification.id}
@@ -45,13 +50,12 @@ export const SyncNotificationsModal = ({ onClose }: Props) => {
             </div>
           )}
           
-          <div className="flex justify-end gap-2.5 pt-4 border-t border-[var(--color-inactive)]">
-            <button 
-              onClick={onClose} 
-              className="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
-            >
-              {t("cancel")}
-            </button>
+          <div className="flex-x justify-end gap-medium" style={{ paddingTop: "16px", borderTop: "1px solid var(--color-inactive)" }}>
+            <SimpleButton
+              extraClass="bg-gray text-black padding-small rounded"
+              text={t("close")}
+              action={onClose}
+            />
           </div>
         </div>
       </Modal>
