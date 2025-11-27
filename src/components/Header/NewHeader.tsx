@@ -36,7 +36,7 @@ export const NewHeader = () => {
     // isCreator,
     setShowVideoTutorial,
     reportEnrichDataLayer,
-    // mode,
+    mode,
     // setMode,
     // setOpenedModals,
     environment,
@@ -54,7 +54,7 @@ export const NewHeader = () => {
     videoTutorial: state.videoTutorial,
     setShowVideoTutorial: state.setShowVideoTutorial,
     reportEnrichDataLayer: state.reportEnrichDataLayer,
-    // mode: state.mode,
+    mode: state.mode,
     // isCreator: state.isCreator,
     // setOpenedModals: state.setOpenedModals,
     // setMode: state.setMode,
@@ -132,7 +132,7 @@ export const NewHeader = () => {
         <p className="m-0">{configObject?.config?.title[language] || ""}</p>
       </section>
       <section className="flex-x align-center">
-        {environment === "creatorWeb" && <SyncNotificationBadge />}
+        {environment === "creatorWeb" && mode === "creator" && <SyncNotificationBadge />}
         {!isIframe && language && <LanguageButton />}
         {/* {hasSolution && (
           <SimpleButton
