@@ -82,6 +82,16 @@ export const SyncNotificationCard = ({ notification, onSyncClick }: Props) => {
         </span>
       </div>
       
+      {/* Error message if sync failed */}
+      {notification.status === "error" && (
+        <div className="flex-x align-center gap-small padding-small rounded bg-warning text-black" style={{ marginTop: "8px" }}>
+          <Icon name="AlertCircle" size={16} />
+          <p className="m-0">
+            {t("sync-timeout-message")}
+          </p>
+        </div>
+      )}
+      
       {isProcessing && notification.syncProgress && (
         <div className="flex-y gap-small" style={{ marginTop: "12px" }}>
           <div className="flex-x align-center gap-small">
@@ -116,7 +126,7 @@ export const SyncNotificationCard = ({ notification, onSyncClick }: Props) => {
           <SimpleButton
             extraClass="bg-blue-rigo text-white padding-small rounded"
             size="small"
-            text={t("synchronize")}
+            text={notification.status === "error" ? t("retry") : t("synchronize")}
             action={onSyncClick}
           />
         </div>

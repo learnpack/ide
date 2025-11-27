@@ -19,7 +19,7 @@ export const SyncNotificationsModal = ({ onClose }: Props) => {
   
   // Show pending and processing notifications
   const activeNotifications = syncNotifications.filter(
-    n => n.status === "pending" || n.status === "processing"
+    n => n.status === "pending" || n.status === "processing" || n.status === "error"
   );
   
   return (

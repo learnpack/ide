@@ -280,9 +280,28 @@ export default function SyncNotificationListener() {
       eventBuffer.length = 0;
       processedBufferRef.current = false;
     };
-    // eslint-disable-next-line
-  }, [config?.config?.slug, processSyncEvent]);
+      // eslint-disable-next-line
+    }, [config?.config?.slug, processSyncEvent]);
 
-  return null; // Component without UI, only logic
-}
+  // Poll for updates if there are processing notifications
+  // This ensures we detect timeout errors that are set by the backend
+  useEffect(() => {
+    const hasProcessingNotifications = syncNotifications.some(
+      n => n.status === "processing"
+    );
+
+    if (!hasProcessingNotifications) {
+      return; // No need to poll if nothing is processing
+    }
+
+    // Poll every 15 seconds to check for timeout errors
+    const intervalId = setInterval(() => {
+      getSyncNotifications();
+    }, 15000); // 15 seconds
+
+    return () => clearInterval(intervalId);
+  }, [syncNotifications, getSyncNotifications]);
+  
+    return null; // Component without UI, only logic
+  }
 

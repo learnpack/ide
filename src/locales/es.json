@@ -557,6 +557,7 @@
     "sync-to": "a",
     "dismiss": "Rechazar",
     "synchronize": "Sincronizar",
+    "sync-timeout-message": "La sincronización tardó demasiado tiempo. Por favor, inténtalo de nuevo.",
     "sync-confirm-title": "Confirmar Sincronización",
     "sync-confirm-warning": "Esto creará nuevas versiones de esta lección en todos los demás idiomas disponibles.",
     "sync-confirm-source": "Origen",

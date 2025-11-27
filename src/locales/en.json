@@ -550,6 +550,7 @@
     "sync-to": "to",
     "dismiss": "Dismiss",
     "synchronize": "Synchronize",
+    "sync-timeout-message": "The synchronization took too long. Please try again.",
     "sync-confirm-title": "Confirm Synchronization",
     "sync-confirm-warning": "This will create new versions of this lesson in all other available languages.",
     "sync-confirm-source": "Source",
