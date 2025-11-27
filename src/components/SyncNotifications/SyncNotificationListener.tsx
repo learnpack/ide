@@ -53,38 +53,34 @@ export default function SyncNotificationListener() {
           getSyncNotifications();
           break;
 
-        case "sync-notification-completed":
-          // Finalize and refresh
+        case "sync-notification-completed": {
+          // Show toast immediately using event data
+          const eventData = data as { notificationId?: string; completed?: number; failed?: number };
+          const completed = eventData.completed || 0;
+          const failed = eventData.failed || 0;
+
+          if (failed === 0) {
+            toast.success(t("sync-completed"));
+          } else if (completed > 0) {
+            toast.error(t("sync-partial-error"));
+          } else {
+            toast.error(t("sync-error"));
+          }
+
+          // Then refresh notifications and exercises
           getSyncNotifications().then(() => {
-            const { syncNotifications: currentNotifications } = useStore.getState();
-            const eventData = data as { notificationId?: string; completed?: number; failed?: number };
-            const notification = currentNotifications.find((n) => n.id === eventData.notificationId);
-
-            if (notification) {
-              const completed = eventData.completed || 0;
-              const failed = eventData.failed || 0;
-
-              if (failed === 0) {
-                toast.success(t("sync-completed"), { duration: 6000 });
-              } else if (completed > 0) {
-                toast.error(t("sync-partial-error"), { duration: 6000 });
-              } else {
-                toast.error(t("sync-error"), { duration: 6000 });
-              }
-
-              // Refresh exercises to show updated content
-              setTimeout(async () => {
-                await fetchExercises();
-                await getSidebar();
-              }, 1000);
-            }
+            setTimeout(async () => {
+              await fetchExercises();
+              await getSidebar();
+            }, 1000);
           });
           break;
+        }
 
         case "sync-notification-error":
           // Show error and refresh
           getSyncNotifications();
-          toast.error(t("sync-error"), { duration: 6000 });
+          toast.error(t("sync-error"));
           break;
 
         case "sync-notification-language-failed":
