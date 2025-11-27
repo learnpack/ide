@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import useStore from "../../utils/store";
 import { TSyncNotification } from "../../utils/storeTypes";
-import { getLanguageName } from "../../utils/lib";
+import { getLanguageName, getLessonDisplayInfo } from "../../utils/lib";
 import i18n from "../../utils/i18n";
 import { Modal } from "../mockups/Modal";
 import { Icon } from "../Icon";
@@ -16,6 +16,16 @@ interface Props {
 export const SyncConfirmationModal = ({ notification, onClose }: Props) => {
   const { t } = useTranslation();
   const acceptSyncNotification = useStore(s => s.acceptSyncNotification);
+  const sidebar = useStore(s => s.sidebar);
+  const language = useStore(s => s.language);
+  
+  // Get lesson display info (ID and translated/formatted title)
+  const { id, formattedTitle } = getLessonDisplayInfo(
+    notification.lessonSlug,
+    sidebar,
+    language,
+    notification.lessonTitle
+  );
   
   const handleConfirm = async () => {
     await acceptSyncNotification(notification);
@@ -39,9 +49,14 @@ export const SyncConfirmationModal = ({ notification, onClose }: Props) => {
         </div>
         
         <div className="flex-y gap-small">
-          <h3 className="text-bold m-0">
-            {notification.lessonTitle}
-          </h3>
+          <div className="flex-x align-center gap-small">
+            <span className="text-bold">
+              {id}
+            </span>
+            <h3 className="text-bold m-0">
+              {formattedTitle}
+            </h3>
+          </div>
           
           <div className="flex-y gap-small">
             <strong style={{ color: "var(--color-active)" }}>

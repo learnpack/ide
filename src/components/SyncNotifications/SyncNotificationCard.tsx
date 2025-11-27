@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import useStore from "../../utils/store";
 import { TSyncNotification } from "../../utils/storeTypes";
-import { getLanguageName } from "../../utils/lib";
+import { getLanguageName, getLessonDisplayInfo } from "../../utils/lib";
 import i18n from "../../utils/i18n";
 import { Icon } from "../Icon";
 import { Loader } from "../composites/Loader/Loader";
@@ -15,6 +15,16 @@ interface Props {
 export const SyncNotificationCard = ({ notification, onSyncClick }: Props) => {
   const { t } = useTranslation();
   const dismissSyncNotification = useStore(s => s.dismissSyncNotification);
+  const sidebar = useStore(s => s.sidebar);
+  const language = useStore(s => s.language);
+  
+  // Get lesson display info (ID and translated/formatted title)
+  const { id, formattedTitle } = getLessonDisplayInfo(
+    notification.lessonSlug,
+    sidebar,
+    language,
+    notification.lessonTitle
+  );
   
   const handleDismiss = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -40,9 +50,14 @@ export const SyncNotificationCard = ({ notification, onSyncClick }: Props) => {
       style={isProcessing ? { borderColor: "var(--color-blue-rigo)" } : {}}
     >
       <div className="flex-x justify-between align-start gap-small">
-        <h3 className="text-bold m-0" style={{ color: "var(--color-active)" }}>
-          {notification.lessonTitle}
-        </h3>
+        <div className="flex-x align-center gap-small">
+          <span className="text-bold" style={{ color: "var(--color-active)" }}>
+            {id}
+          </span>
+          <h3 className="text-bold m-0" style={{ color: "var(--color-active)" }}>
+            {formattedTitle}
+          </h3>
+        </div>
         {!isProcessing && (
           <SimpleButton 
             action={handleDismiss}
