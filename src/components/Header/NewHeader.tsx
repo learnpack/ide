@@ -64,6 +64,11 @@ export const NewHeader = () => {
 
   const { t } = useTranslation();
 
+  const showSyncNotifications = () => {
+    const titleLanguages = configObject?.config?.title ? Object.keys(configObject.config.title) : [];
+    return titleLanguages.length > 1 && environment === "creatorWeb" && mode === "creator";
+  };
+
   // const openSolutionFile = () => {
   //   const solutionFile = getCurrentExercise().files.filter((file: any) =>
   //     file.name.includes("solution.hide")
@@ -132,7 +137,7 @@ export const NewHeader = () => {
         <p className="m-0">{configObject?.config?.title[language] || ""}</p>
       </section>
       <section className="flex-x align-center">
-        {environment === "creatorWeb" && mode === "creator" && <SyncNotificationBadge />}
+        {showSyncNotifications() && <SyncNotificationBadge />}
         {!isIframe && language && <LanguageButton />}
         {/* {hasSolution && (
           <SimpleButton
