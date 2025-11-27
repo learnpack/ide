@@ -1354,7 +1354,7 @@ The user's set up the application in "${language}" language, give your feedback 
         return {
           id: notif.id,
           lessonSlug: notif.lessonSlug,
-          lessonTitle: exercise?.title || notif.lessonSlug,
+          lessonTitle: notif.lessonTitle,
           sourceLanguage: notif.sourceLanguage,
           targetLanguages,
           createdAt: notif.createdAt,
