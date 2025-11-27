@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import useStore from "../../utils/store";
 import { Icon } from "../Icon";
@@ -19,6 +19,13 @@ export const SyncNotificationBadge = () => {
   );
 
   console.log("🔔 SyncNotificationBadge - Active notifications:", activeNotifications);
+
+  // Close modal when there are no active notifications
+  useEffect(() => {
+    if (activeNotifications.length === 0) {
+      setShowModal(false);
+    }
+  }, [activeNotifications.length]);
   
   if (activeNotifications.length === 0) return null;
   
