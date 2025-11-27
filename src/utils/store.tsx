@@ -1337,6 +1337,11 @@ The user's set up the application in "${language}" language, give your feedback 
 
     try {
       const data = await fetchSyncNotifications();
+    
+      if (!data || !data.notifications) {
+        set({ syncNotifications: [] });
+        return;
+      }
 
       // Transform backend data to frontend format
       const notifications: TSyncNotification[] = data.notifications.map((notif: any) => {
@@ -1363,6 +1368,8 @@ The user's set up the application in "${language}" language, give your feedback 
       set({ syncNotifications: notifications });
     } catch (error) {
       console.error("Error fetching sync notifications:", error);
+      // Set empty array on error to avoid stale state
+      set({ syncNotifications: [] });
     }
   },
 

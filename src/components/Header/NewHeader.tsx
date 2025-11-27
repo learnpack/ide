@@ -5,6 +5,7 @@ import useStore from "../../utils/store";
 import SimpleButton from "../mockups/SimpleButton";
 import { RigoToggler } from "../Rigobot/Rigobot";
 import LanguageButton from "../sections/header/LanguageButton";
+import { SyncNotificationBadge } from "../SyncNotifications/SyncNotificationBadge";
 import styles from "./NewHeader.module.css";
 import { ToggleSidebar } from "../sections/sidebar/ToggleSidebar";
 import { Icon } from "../Icon";
@@ -38,7 +39,7 @@ export const NewHeader = () => {
     // mode,
     // setMode,
     // setOpenedModals,
-    // environment,
+    environment,
     configObject,
   } = useStore((state) => ({
     currentExercisePosition: state.currentExercisePosition,
@@ -57,7 +58,7 @@ export const NewHeader = () => {
     // isCreator: state.isCreator,
     // setOpenedModals: state.setOpenedModals,
     // setMode: state.setMode,
-    // environment: state.environment,
+    environment: state.environment,
     configObject: state.configObject,
   }));
 
@@ -131,6 +132,7 @@ export const NewHeader = () => {
         <p className="m-0">{configObject?.config?.title[language] || ""}</p>
       </section>
       <section className="flex-x align-center">
+        {environment === "creatorWeb" && <SyncNotificationBadge />}
         {!isIframe && language && <LanguageButton />}
         {/* {hasSolution && (
           <SimpleButton
