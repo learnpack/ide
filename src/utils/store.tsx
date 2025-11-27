@@ -276,7 +276,9 @@ const useStore = create<IStore>((set, get) => ({
         initRigoAI();
         getSyllabus();
         // Load sync notifications if in creatorWeb environment
-        if (environment === "creatorWeb") {
+        // Get updated environment after figureEnvironment() has run
+        const { environment: currentEnvironment } = get();
+        if (currentEnvironment === "creatorWeb") {
           getSyncNotifications();
         }
       });
