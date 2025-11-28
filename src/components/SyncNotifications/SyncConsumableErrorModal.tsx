@@ -12,7 +12,7 @@ export const SyncConsumableErrorModal = ({ onClose }: Props) => {
   const { t } = useTranslation();
 
   return (
-    <Modal outsideClickHandler={onClose} minWidth="450px" showCloseButton={false}>
+    <Modal outsideClickHandler={onClose} showCloseButton={false}>
       <div className="flex-y align-center justify-center gap-medium">
         <div>
           <h1 className="d-flex align-center gap-small justify-center big-svg text-bold">

@@ -8,6 +8,11 @@ import { Icon } from "../Icon";
 import { Loader } from "../composites/Loader/Loader";
 import SimpleButton from "../mockups/SimpleButton";
 import { SyncConsumableErrorModal } from "./SyncConsumableErrorModal";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Props {
   notification: TSyncNotification;
@@ -35,15 +40,15 @@ export const SyncNotificationCard = ({ notification, onSyncClick }: Props) => {
     dismissSyncNotification(notification.id, notification.lessonSlug);
   };
   
-  const getTimeAgo = (timestamp: number) => {
+  const getTimeOnly = (timestamp: number) => {
     const seconds = Math.floor((Date.now() - timestamp) / 1000);
-    if (seconds < 60) return t("modified-time-ago", { time: `${seconds}s` });
+    if (seconds < 60) return `${seconds}s`;
     const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return t("modified-time-ago", { time: `${minutes}m` });
+    if (minutes < 60) return `${minutes}m`;
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return t("modified-time-ago", { time: `${hours}h` });
+    if (hours < 24) return `${hours}h`;
     const days = Math.floor(hours / 24);
-    return t("modified-time-ago", { time: `${days}d` });
+    return `${days}d`;
   };
   
   const handleSyncClick = async () => {
@@ -70,30 +75,46 @@ export const SyncNotificationCard = ({ notification, onSyncClick }: Props) => {
       className={`rounded padding-medium bg-1 border ${isProcessing ? 'border-gray' : 'border-gray'}`}
       style={isProcessing ? { borderColor: "var(--color-blue-rigo)" } : {}}
     >
-      <div className="flex-x justify-between align-start gap-small">
-        <div className="flex-x align-center gap-small">
-          <span className="text-bold" style={{ color: "var(--color-active)" }}>
-            {id}
-          </span>
-          <h3 className="text-bold m-0" style={{ color: "var(--color-active)" }}>
-            {formattedTitle}
-          </h3>
-        </div>
-        {!isProcessing && (
-          <SimpleButton 
-            action={handleDismiss}
-            extraClass="padding-small rounded scale-on-hover"
-            title={t("dismiss")}
-            text={<Icon name="X" size={16} />}
-          />
-        )}
+      <div className="flex-x align-center gap-small" style={{ minWidth: 0 }}>
+        <span className="text-bold" style={{ color: "var(--color-active)", flexShrink: 0 }}>
+          {id}
+        </span>
+        <h3 
+          className="text-bold m-0" 
+          style={{ 
+            color: "var(--color-active)",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            minWidth: 0,
+            flex: 1
+          }}
+        >
+          {formattedTitle}
+        </h3>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div 
+              className="flex-x align-center gap-small" 
+              style={{ 
+                color: "var(--color-inactive)", 
+                opacity: 0.7, 
+                cursor: "help",
+                flexShrink: 0,
+                marginLeft: "8px"
+              }}
+            >
+              <Icon name="Clock" size={16} />
+              <span>{getTimeOnly(notification.updatedAt)}</span>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{t("time-since-modification-tooltip", { time: getTimeOnly(notification.updatedAt) })}</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
       
-      <p className="m-0" style={{ marginTop: "8px", marginBottom: "8px", color: "var(--color-inactive)" }}>
-        {getTimeAgo(notification.updatedAt)}
-      </p>
-      
-      <div className="flex-x align-center gap-small">
+      <div className="flex-x align-center gap-small" style={{ marginTop: "8px", marginBottom: "8px" }}>
         <span className="text-bold" style={{ color: "var(--color-active)" }}>
           {getLanguageName(notification.sourceLanguage, i18n.language)}
         </span>

@@ -579,5 +579,6 @@
     "sync-progress": "Progreso",
     "languages-completed": "{{completed}} de {{total}} idiomas",
     "modified-time-ago": "Modificada hace {{time}}",
+    "time-since-modification-tooltip": "Modificada hace {{time}}",
     "languages": "idiomas"
 }

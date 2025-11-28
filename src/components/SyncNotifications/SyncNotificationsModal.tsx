@@ -24,15 +24,14 @@ export const SyncNotificationsModal = ({ onClose }: Props) => {
   
   return (
     <>
-      <Modal outsideClickHandler={onClose} minWidth="500px">
+      <Modal outsideClickHandler={onClose} showCloseButton={false}>
         <div className="flex-y gap-small">
-          <div className="flex-x align-center gap-small">
-            <div className="medium-svg flex-x align-center">{svgs.rigoSoftBlue}</div>
-            <h2 className="text-bold">{t("sync-notification-title")}</h2>
+          <div className="flex-x align-center gap-small rigo-message">
+            <h2 className="medium-svg flex-x align-center">{svgs.rigoSoftBlue}</h2>
+            <p className="bg-1 rounded padding-medium">
+              {t("sync-notification-description")}
+            </p>
           </div>
-          <p style={{ color: "var(--color-inactive)" }}>
-            {t("sync-notification-description")}
-          </p>
           
           {activeNotifications.length === 0 ? (
             <div className="flex-y align-center justify-center padding-medium">

@@ -7,6 +7,7 @@ import { Modal } from "../mockups/Modal";
 import { Icon } from "../Icon";
 import SimpleButton from "../mockups/SimpleButton";
 import { svgs } from "../../assets/svgs";
+import { Markdowner } from "../composites/Markdowner/Markdowner";
 
 interface Props {
   notification: TSyncNotification;
@@ -36,11 +37,11 @@ export const SyncConfirmationModal = ({ notification, onClose }: Props) => {
   const sourceLanguageName = getLanguageName(notification.sourceLanguage, i18n.language);
   
   return (
-    <Modal outsideClickHandler={onClose} minWidth="450px">
+    <Modal outsideClickHandler={onClose}>
       <div className="flex-y gap-medium">
-        <div className="flex-x align-center gap-small">
+        <div className="flex-x align-center justify-center gap-small">
           <div className="big-svg flex-x align-center">{svgs.rigoWait}</div>
-          <h2 className="text-bold m-0">{t("sync-confirm-title")}</h2>
+          <h1 className="text-bold m-0">{t("sync-confirm-title")}</h1>
         </div>
         
         <div className="bg-1 rounded padding-medium">
@@ -54,46 +55,33 @@ export const SyncConfirmationModal = ({ notification, onClose }: Props) => {
             <span className="text-bold">
               {id}
             </span>
-            <h3 className="text-bold m-0">
+            <h3 className="m-0 text-bold">
               {formattedTitle}
             </h3>
           </div>
           
-          <div className="flex-y gap-small">
-            <strong style={{ color: "var(--color-active)" }}>
+          <div className="flex-x align-center gap-small">
+            <span style={{ color: "var(--color-active)" }}>
               {t("sync-confirm-source")}:
-            </strong>
-            <div className="inline-block padding-small rounded bg-1 border" style={{ borderColor: "var(--color-blue-rigo)", color: "var(--color-blue-rigo)" }}>
-              {sourceLanguageName}
-            </div>
+            </span>
+            <span>{sourceLanguageName}</span>
           </div>
           
-          <div className="flex-x justify-center">
-            <Icon name="ArrowDown" size={20} color="var(--color-inactive)" />
-          </div>
-          
-          <div className="flex-y gap-small">
-            <strong style={{ color: "var(--color-active)" }}>
+          <div className="flex-x align-center gap-small flex-wrap">
+            <span style={{ color: "var(--color-active)" }}>
               {t("sync-confirm-will-overwrite")}:
-            </strong>
-            <div className="flex-x flex-wrap gap-small">
-              {notification.targetLanguages.map(lang => (
-                <div 
-                  key={lang} 
-                  className="padding-small rounded border text-bold"
-                  style={{ 
-                    backgroundColor: "var(--bg-2)",
-                    borderColor: "var(--color-inactive)",
-                    color: "var(--color-active)"
-                  }}
-                >
+            </span>
+            <span>
+              {notification.targetLanguages.map((lang, index) => (
+                <span key={lang}>
                   {getLanguageName(lang, i18n.language)}
-                </div>
+                  {index < notification.targetLanguages.length - 1 && ", "}
+                </span>
               ))}
-            </div>
+            </span>
           </div>
           
-          <div className="flex-x align-center gap-small padding-small rounded bg-warning text-black">
+          <div className="flex-x align-center gap-small padding-small rounded bg-warning text-black mt-3">
             <Icon name="AlertCircle" size={16} />
             <p className="m-0">
               {t("sync-confirm-cannot-undo")}
@@ -102,12 +90,11 @@ export const SyncConfirmationModal = ({ notification, onClose }: Props) => {
           
           {/* Show consumable info only if not unlimited */}
           {userConsumables.ai_generation !== -1 && (
-            <div className="flex-x align-center gap-small padding-small rounded bg-1 border" 
-                 style={{ borderColor: "var(--color-blue-rigo)" }}>
-              <Icon name="Info" size={16} color="var(--color-blue-rigo)" />
-              <p className="m-0" style={{ color: "var(--color-blue-rigo)" }}>
-                {t("sync-will-consume")}
-              </p>
+            <div className="flex-x align-center gap-small padding-small rounded bg-1">
+              <Icon name="Info" size={16} />
+              <div>
+                <Markdowner markdown={t("sync-will-consume")} />
+              </div>
             </div>
           )}
         </div>
