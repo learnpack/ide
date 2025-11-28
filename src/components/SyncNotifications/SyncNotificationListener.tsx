@@ -153,6 +153,27 @@ export default function SyncNotificationListener() {
     };
   }, [syncNotifications, processSyncEvent]);
 
+  // Conditional polling: check every 30 seconds if there are notifications in processing
+  // This detects backend timeouts that mark notifications as "error"
+  useEffect(() => {
+    const processingNotifications = syncNotifications.filter(
+      n => n.status === "processing"
+    );
+
+    if (processingNotifications.length === 0) {
+      return; // No polling if no processing notifications
+    }
+
+    // Poll every 30 seconds to detect timeout changes
+    const pollingInterval = setInterval(() => {
+      getSyncNotifications();
+    }, 30000); // 30 seconds
+
+    return () => {
+      clearInterval(pollingInterval);
+    };
+  }, [syncNotifications, getSyncNotifications]);
+
   useEffect(() => {
     if (!config?.config?.slug) {
       return;

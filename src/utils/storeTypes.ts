@@ -234,6 +234,7 @@ export type TSyncNotification = {
   targetLanguages: string[];    // Calculated dynamically
   createdAt: number;
   updatedAt: number;
+  processingLastUpdate?: number; // Last update timestamp during processing
   status: TSyncNotificationStatus;
   syncProgress?: {
     totalLanguages: number;
