@@ -684,7 +684,7 @@ export const FetchManager = {
     return loggedFormat;
   },
 
-  replaceReadme: async (slug: string, language: string, newReadme: string) => {
+  replaceReadme: async (slug: string, language: string, newReadme: string, skipSyncNotification?: boolean) => {
     const methods: TMethods = {
       localhost: async () => {
         const url = `${FetchManager.HOST
@@ -722,30 +722,33 @@ export const FetchManager = {
         }
         
         // Create sync notification if there are other languages available
-        try {
-          const { exercises } = useStore.getState();
-          const currentExercise = exercises.find(ex => ex.slug === slug);
-          const availableLanguages = Object.keys(currentExercise?.translations || {});
-          
-          // Only create notification if there are multiple languages
-          if (availableLanguages.length > 1) {
-            const { createSyncNotification } = await import("../utils/syncNotifications");
-            await createSyncNotification({
-              exerciseSlug: slug,
-              sourceLanguage: language
-            });
+        // Skip notification if explicitly requested (e.g., when inserting/removing placeholder)
+        if (!skipSyncNotification) {
+          try {
+            const { exercises } = useStore.getState();
+            const currentExercise = exercises.find(ex => ex.slug === slug);
+            const availableLanguages = Object.keys(currentExercise?.translations || {});
             
-            // Refresh notifications in the background
-            const { getSyncNotifications } = useStore.getState();
-            getSyncNotifications().catch(err => {
-              // Silently fail - non-critical operation
-              console.error("Error refreshing sync notifications:", err);
-            });
+            // Only create notification if there are multiple languages
+            if (availableLanguages.length > 1) {
+              const { createSyncNotification } = await import("../utils/syncNotifications");
+              await createSyncNotification({
+                exerciseSlug: slug,
+                sourceLanguage: language
+              });
+              
+              // Refresh notifications in the background
+              const { getSyncNotifications } = useStore.getState();
+              getSyncNotifications().catch(err => {
+                // Silently fail - non-critical operation
+                console.error("Error refreshing sync notifications:", err);
+              });
+            }
+          } catch (notifError) {
+            // Non-critical error - README was saved successfully
+            // Don't show error to user - notification creation is optional
+            console.error("Error creating sync notification:", notifError);
           }
-        } catch (notifError) {
-          // Non-critical error - README was saved successfully
-          // Don't show error to user - notification creation is optional
-          console.error("Error creating sync notification:", notifError);
         }
         
         return true;

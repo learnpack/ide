@@ -2511,6 +2511,9 @@ The user's set up the application in "${language}" language, give your feedback 
     );
 
     let body: string = readme.body;
+    
+    // Get the content being replaced to detect placeholder removal
+    const originalContent = body.slice(startPosition.offset, endPosition.offset);
 
     body =
       body.slice(0, startPosition.offset) +
@@ -2522,10 +2525,17 @@ The user's set up the application in "${language}" language, give your feedback 
     set({
       currentContent: removeFrontMatter(newReadme),
     });
+    
+    // Detect if we're removing only the placeholder (empty replacement of placeholder content)
+    const isRemovingPlaceholder = 
+      newText === "" && 
+      (originalContent.includes("```new") || originalContent.trim() === "");
+    
     await FetchManager.replaceReadme(
       getCurrentExercise().slug,
       language,
-      newReadme
+      newReadme,
+      isRemovingPlaceholder // Skip notification when removing placeholder
     );
 
     const editedReadme = await FetchManager.getReadme(
@@ -2576,10 +2586,15 @@ The user's set up the application in "${language}" language, give your feedback 
     set({
       currentContent: removeFrontMatter(newReadme),
     });
+    
+    // Detect if we're inserting the placeholder (contains "```new")
+    const isInsertingPlaceholder = newMarkdown.includes("```new");
+    
     await FetchManager.replaceReadme(
       getCurrentExercise().slug,
       language,
-      newReadme
+      newReadme,
+      isInsertingPlaceholder // Skip notification when inserting placeholder
     );
 
     const editedReadme = await FetchManager.getReadme(
