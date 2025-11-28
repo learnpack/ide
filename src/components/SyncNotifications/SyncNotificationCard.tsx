@@ -92,13 +92,14 @@ export const SyncNotificationCard = ({ notification, onSyncClick }: Props) => {
         </div>
       )}
       
+      {/* Progress indicator for processing */}
       {isProcessing && notification.syncProgress && (
         <div className="flex-y gap-small" style={{ marginTop: "12px" }}>
           <div className="flex-x align-center gap-small">
             <Loader size="sm" color="var(--color-blue-rigo)" />
             <span style={{ color: "var(--color-active)" }}>
               {t("languages-completed", {
-                completed: notification.syncProgress.completedLanguages,
+                completed: notification.syncProgress.completedLanguages.length,
                 total: notification.syncProgress.totalLanguages
               })}
             </span>
@@ -107,7 +108,7 @@ export const SyncNotificationCard = ({ notification, onSyncClick }: Props) => {
             <div 
               className="h-100 bg-blue-rigo"
               style={{
-                width: `${(notification.syncProgress.completedLanguages / notification.syncProgress.totalLanguages) * 100}%`,
+                width: `${(notification.syncProgress.completedLanguages.length / notification.syncProgress.totalLanguages) * 100}%`,
                 transition: "width 0.3s"
               }}
             />

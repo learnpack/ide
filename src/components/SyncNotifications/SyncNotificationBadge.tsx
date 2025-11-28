@@ -10,15 +10,10 @@ export const SyncNotificationBadge = () => {
   const [showModal, setShowModal] = useState(false);
   const syncNotifications = useStore(s => s.syncNotifications);
 
-  // Debug logging
-  console.log("🔔 SyncNotificationBadge - All notifications:", syncNotifications);
-  
-  // Show pending and processing notifications
+  // Show pending, processing and error notifications
   const activeNotifications = syncNotifications.filter(
-    n => n.status === "pending" || n.status === "processing"
+    n => n.status === "pending" || n.status === "processing" || n.status === "error"
   );
-
-  console.log("🔔 SyncNotificationBadge - Active notifications:", activeNotifications);
 
   // Close modal when there are no active notifications
   useEffect(() => {

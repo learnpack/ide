@@ -237,7 +237,7 @@ export type TSyncNotification = {
   status: TSyncNotificationStatus;
   syncProgress?: {
     totalLanguages: number;
-    completedLanguages: number;
+    completedLanguages: string[]; // Array of completed language codes (no race conditions)
     currentLanguage?: string;
     failedLanguages?: Array<{
       code: string;

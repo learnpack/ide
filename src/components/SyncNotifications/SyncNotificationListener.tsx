@@ -49,16 +49,17 @@ export default function SyncNotificationListener() {
           break;
 
         case "sync-notification-progress":
-          // Update progress in real-time
+          // Update progress in real-time for sequential processing
           getSyncNotifications();
           break;
 
         case "sync-notification-completed": {
-          // Show toast immediately using event data
-          const eventData = data as { notificationId?: string; completed?: number; failed?: number };
+          // Show toast with completion status
+          const eventData = data as { completed?: number; failed?: number };
           const completed = eventData.completed || 0;
           const failed = eventData.failed || 0;
 
+          // Show appropriate toast message
           if (failed === 0) {
             toast.success(t("sync-completed"));
           } else if (completed > 0) {
@@ -67,7 +68,7 @@ export default function SyncNotificationListener() {
             toast.error(t("sync-error"));
           }
 
-          // Then refresh notifications and exercises
+          // Refresh notifications and exercises
           getSyncNotifications().then(() => {
             setTimeout(async () => {
               await fetchExercises();
@@ -283,24 +284,6 @@ export default function SyncNotificationListener() {
       // eslint-disable-next-line
     }, [config?.config?.slug, processSyncEvent]);
 
-  // Poll for updates if there are processing notifications
-  // This ensures we detect timeout errors that are set by the backend
-  useEffect(() => {
-    const hasProcessingNotifications = syncNotifications.some(
-      n => n.status === "processing"
-    );
-
-    if (!hasProcessingNotifications) {
-      return; // No need to poll if nothing is processing
-    }
-
-    // Poll every 15 seconds to check for timeout errors
-    const intervalId = setInterval(() => {
-      getSyncNotifications();
-    }, 15000); // 15 seconds
-
-    return () => clearInterval(intervalId);
-  }, [syncNotifications, getSyncNotifications]);
   
     return null; // Component without UI, only logic
   }
