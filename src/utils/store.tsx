@@ -1393,11 +1393,29 @@ The user's set up the application in "${language}" language, give your feedback 
   },
 
   acceptSyncNotification: async (notification: TSyncNotification) => {
-    const { token } = get();
+    const { token, userConsumables } = get();
 
     if (!token) {
       toast.error(i18n.t("authentication-required"));
       return;
+    }
+
+    // Verify and consume consumable if not unlimited
+    if (userConsumables.ai_generation !== -1) {
+      const hasEnough = userConsumables.ai_generation >= 1;
+      
+      if (!hasEnough) {
+        toast.error(i18n.t("sync-consumable-insufficient"));
+        return;
+      }
+
+      // Consume the consumable
+      const consumed = await get().useConsumable("ai-generation");
+      
+      if (!consumed) {
+        toast.error(i18n.t("error-consuming-consumable"));
+        return;
+      }
     }
 
     try {
@@ -1427,6 +1445,9 @@ The user's set up the application in "${language}" language, give your feedback 
             : n
         ),
       });
+      
+      // Note: If error occurred after consuming, we cannot revert the consumable
+      // but we show the error to the user
     }
   },
 
@@ -2309,7 +2330,7 @@ The user's set up the application in "${language}" language, give your feedback 
     );
     const ai_generation = countConsumables(consumables, "ai-generation");
 
-    // const ai_generation = 1;
+    //const ai_generation = 0;
 
     set({
       userConsumables: {

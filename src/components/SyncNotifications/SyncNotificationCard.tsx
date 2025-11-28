@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import useStore from "../../utils/store";
 import { TSyncNotification } from "../../utils/storeTypes";
@@ -6,6 +7,7 @@ import i18n from "../../utils/i18n";
 import { Icon } from "../Icon";
 import { Loader } from "../composites/Loader/Loader";
 import SimpleButton from "../mockups/SimpleButton";
+import { SyncConsumableErrorModal } from "./SyncConsumableErrorModal";
 
 interface Props {
   notification: TSyncNotification;
@@ -17,6 +19,8 @@ export const SyncNotificationCard = ({ notification, onSyncClick }: Props) => {
   const dismissSyncNotification = useStore(s => s.dismissSyncNotification);
   const sidebar = useStore(s => s.sidebar);
   const language = useStore(s => s.language);
+  const getUserConsumables = useStore(s => s.getUserConsumables);
+  const [showConsumableError, setShowConsumableError] = useState(false);
   
   // Get lesson display info (ID and translated/formatted title)
   const { id, formattedTitle } = getLessonDisplayInfo(
@@ -40,6 +44,23 @@ export const SyncNotificationCard = ({ notification, onSyncClick }: Props) => {
     if (hours < 24) return t("modified-time-ago", { time: `${hours}h` });
     const days = Math.floor(hours / 24);
     return t("modified-time-ago", { time: `${days}d` });
+  };
+  
+  const handleSyncClick = async () => {
+    // Refresh consumables before checking
+    await getUserConsumables();
+    
+    const aiGenerationsLeft = useStore.getState().userConsumables.ai_generation;
+    const requiredConsumables = 1; // 1 per lesson
+    
+    // Check if user has enough consumables (skip check if unlimited)
+    if (aiGenerationsLeft !== -1 && aiGenerationsLeft < requiredConsumables) {
+      setShowConsumableError(true);
+      return;
+    }
+    
+    // If enough consumables, proceed normally
+    onSyncClick();
   };
   
   const isProcessing = notification.status === "processing";
@@ -128,9 +149,13 @@ export const SyncNotificationCard = ({ notification, onSyncClick }: Props) => {
             extraClass="bg-blue-rigo text-white padding-small rounded"
             size="small"
             text={notification.status === "error" ? t("retry") : t("synchronize")}
-            action={onSyncClick}
+            action={handleSyncClick}
           />
         </div>
+      )}
+      
+      {showConsumableError && (
+        <SyncConsumableErrorModal onClose={() => setShowConsumableError(false)} />
       )}
     </div>
   );

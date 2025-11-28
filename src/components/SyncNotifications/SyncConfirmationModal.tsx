@@ -18,6 +18,7 @@ export const SyncConfirmationModal = ({ notification, onClose }: Props) => {
   const acceptSyncNotification = useStore(s => s.acceptSyncNotification);
   const sidebar = useStore(s => s.sidebar);
   const language = useStore(s => s.language);
+  const userConsumables = useStore(s => s.userConsumables);
   
   // Get lesson display info (ID and translated/formatted title)
   const { id, formattedTitle } = getLessonDisplayInfo(
@@ -98,6 +99,17 @@ export const SyncConfirmationModal = ({ notification, onClose }: Props) => {
               {t("sync-confirm-cannot-undo")}
             </p>
           </div>
+          
+          {/* Show consumable info only if not unlimited */}
+          {userConsumables.ai_generation !== -1 && (
+            <div className="flex-x align-center gap-small padding-small rounded bg-1 border" 
+                 style={{ borderColor: "var(--color-blue-rigo)" }}>
+              <Icon name="Info" size={16} color="var(--color-blue-rigo)" />
+              <p className="m-0" style={{ color: "var(--color-blue-rigo)" }}>
+                {t("sync-will-consume")}
+              </p>
+            </div>
+          )}
         </div>
         
         <div className="flex-x justify-center gap-medium" style={{ paddingTop: "16px", borderTop: "1px solid var(--color-inactive)" }}>
