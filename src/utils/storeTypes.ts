@@ -223,6 +223,34 @@ export type TConsumableSlug =
   | "ai-conversation-message"
   | "ai-compilation"
   | "ai-generation";
+
+export type TSyncNotificationStatus = "pending" | "processing" | "completed" | "error";
+
+export type TSyncNotification = {
+  id: string;
+  lessonSlug: string;
+  lessonTitle: string;
+  sourceLanguage: string;
+  targetLanguages: string[];    // Calculated dynamically
+  createdAt: number;
+  updatedAt: number;
+  processingLastUpdate?: number; // Last update timestamp during processing
+  status: TSyncNotificationStatus;
+  syncProgress?: {
+    totalLanguages: number;
+    completedLanguages: string[]; // Array of completed language codes (no race conditions)
+    currentLanguage?: string;
+    failedLanguages?: Array<{
+      code: string;
+      error: string;
+    }>;
+  };
+  error?: {
+    message: string;
+    code: string;
+  };
+};
+
 export interface IStore {
   exercises: TExercise[];
   teacherOnboardingClosed: boolean;
@@ -285,8 +313,15 @@ export interface IStore {
   isCreator: boolean;
   sidebar: TSidebar;
   syllabus: Syllabus;
+  syncNotifications: TSyncNotification[];
+  pendingTranslations: TLanguageTranslation[];
   getSidebar: () => Promise<TSidebar>;
   getSyllabus: () => Promise<void>;
+  getSyncNotifications: () => Promise<void>;
+  dismissSyncNotification: (notificationId: string, lessonSlug: string) => Promise<void>;
+  acceptSyncNotification: (notification: TSyncNotification) => Promise<void>;
+  setPendingTranslations: (translations: TLanguageTranslation[] | ((prev: TLanguageTranslation[]) => TLanguageTranslation[])) => void;
+  updateTranslationStatus: (languageCode: string, status: TTranslationStatus, error?: string) => void;
   setMode: (mode: TMode) => void;
   addVideoTutorial: (videoTutorial: string) => Promise<void>;
   removeVideoTutorial: () => Promise<void>;
@@ -399,4 +434,16 @@ type TRunExerciseTestsOptions = {
   setFeedbackButton: boolean;
   feedbackButtonText: string;
   targetButton: "build" | "feedback";
+};
+
+export type TTranslationStatus = "pending" | "translating" | "completed" | "error";
+
+export type TLanguageTranslation = {
+  code: string;
+  status: TTranslationStatus;
+  startedAt?: number;
+  completedAt?: number;
+  error?: string;
+  totalExercises?: number; // Total exercises being translated for this language
+  completedExercises?: number; // Number of exercises completed for this language
 };

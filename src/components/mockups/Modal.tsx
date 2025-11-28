@@ -2,6 +2,12 @@ import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import "./styles.css";
 import { svgs } from "../../assets/svgs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useTranslation } from "react-i18next";
 
 interface IModal {
   children: React.ReactNode;
@@ -26,6 +32,7 @@ export const Modal = ({
   addPadding = true,
   zIndex = 1000,
 }: IModal) => {
+  const { t } = useTranslation();
   const modalRef = useRef<HTMLDivElement>(null);
 
   const handleClickOutside = (event: any) => {
@@ -76,9 +83,16 @@ export const Modal = ({
     >
       <div className={`modal-content ${extraClass ? extraClass : ""}`}>
         {outsideClickHandler && showCloseButton && (
-          <div onClick={outsideClickHandler} className="modal-closer">
-            {svgs.closeX}
-          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div onClick={outsideClickHandler} className="modal-closer">
+                {svgs.closeX}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{t("close-modal")}</p>
+            </TooltipContent>
+          </Tooltip>
         )}
         {children}
       </div>

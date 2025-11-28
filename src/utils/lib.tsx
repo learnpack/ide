@@ -1,5 +1,5 @@
 import { TEnvironment } from "../managers/EventProxy";
-import { TPossibleParams } from "./storeTypes";
+import { TPossibleParams, TSidebar } from "./storeTypes";
 // @ts-ignore
 import TaskLists from "markdown-it-task-lists";
 import TagManager from "react-gtm-module";
@@ -415,6 +415,17 @@ export const getReadmeExtension = (language: string) => {
   return language === "en" || language === "us" ? ".md" : `.${language}.md`;
 };
 
+export const getLanguageName = (langCode: string, currentLanguage: string = 'en'): string => {
+  try {
+    const displayNames = new Intl.DisplayNames([currentLanguage], { type: 'language' });
+    // Normalizar códigos especiales
+    const normalizedCode = langCode === 'us' ? 'en' : langCode;
+    return displayNames.of(normalizedCode) || langCode;
+  } catch {
+    return langCode;
+  }
+};
+
 export const convertUrlToBase64 = (url: string, extraParams: string = "") => {
   if (url.includes("?") || url.includes("#")) {
     return btoa(url + extraParams);
@@ -465,6 +476,39 @@ export function cleanFloatString(input: string): string {
   parts[0] = parts[0].replace(/^0+(?=\d)/, "");
 
   return parts.join(".");
+}
+
+/**
+ * Formats a lesson title by removing the numeric prefix and capitalizing
+ * @param str - The title string (e.g., "00.0-bienvenido-al-ciclo-de-vida-de-react")
+ * @returns Formatted title (e.g., "Bienvenido al ciclo de vida de react")
+ */
+export function titlefy(str: string): string {
+  let arr = str.split("-");
+  arr.shift(); // Remove the numeric prefix
+  let result = arr.join(" ");
+  result = result.charAt(0).toUpperCase() + result.slice(1);
+  return result;
+}
+
+/**
+ * Gets the display information for a lesson (ID and translated/formatted title)
+ * @param slug - The lesson slug
+ * @param sidebar - The sidebar object containing translated titles
+ * @param language - The current language code
+ * @param fallbackTitle - The fallback title if translation is not available
+ * @returns Object with id and formattedTitle
+ */
+export function getLessonDisplayInfo(
+  slug: string,
+  sidebar: TSidebar | undefined,
+  language: string,
+  fallbackTitle: string
+): { id: string; formattedTitle: string } {
+  const id = cleanFloatString(slug.split("-")[0]);
+  const translatedTitle = sidebar?.[slug]?.[language] || fallbackTitle;
+  const formattedTitle = titlefy(translatedTitle);
+  return { id, formattedTitle };
 }
 
 export function hasDecimalPart(input: string): boolean {

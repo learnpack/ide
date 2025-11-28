@@ -12,7 +12,7 @@ import {
 } from "../../../utils/creator";
 import { FetchManager } from "../../../managers/fetchManager";
 import { Syllabus, TMode } from "../../../utils/storeTypes";
-import { cleanFloatString, DEV_MODE, slugify } from "../../../utils/lib";
+import { DEV_MODE, slugify, getLessonDisplayInfo } from "../../../utils/lib";
 import { eventBus } from "../../../managers/eventBus";
 import { Loader } from "../../composites/Loader/Loader";
 import { Modal } from "@/components/mockups/Modal";
@@ -334,13 +334,8 @@ function ExerciseCard({
 
   const [isEditing, setIsEditing] = useState(false);
 
-  const titlefy = (str: string) => {
-    let arr = str.split("-");
-    arr.shift();
-    let result = arr.join(" ");
-    result = result.charAt(0).toUpperCase() + result.slice(1);
-    return result;
-  };
+  // Get lesson display info (ID and translated/formatted title)
+  const { id, formattedTitle } = getLessonDisplayInfo(slug, sidebar, language, title);
 
   const handleEdit = async () => {
     if (isEditing) {
@@ -430,7 +425,7 @@ function ExerciseCard({
           <input
             className="padding-small rounded bg-transparent"
             type="text"
-            defaultValue={`${title.split("-")[0]} ${titlefy(title)}`}
+            defaultValue={`${id} ${formattedTitle}`}
             ref={titleInputRef}
           // onChange={(e) => setTitle(e.target.value)}
           />
@@ -446,9 +441,9 @@ function ExerciseCard({
             }}
           >
             <button className={`exercise-circle ${done ? "done" : ""}`}>
-              <span>{cleanFloatString(title.split("-")[0])}</span>
+              <span>{id}</span>
             </button>
-            <span>{titlefy(sidebar?.[slug]?.[language] || title)}</span>
+            <span>{formattedTitle}</span>
           </div>
         )}
       </div>
