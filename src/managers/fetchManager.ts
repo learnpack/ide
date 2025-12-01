@@ -994,19 +994,8 @@ const loginLocalStorage = async (loginInfo: any) => {
   const user = await validateUser(json.token);
   const returns = { ...json, rigobot: { ...rigoJson }, user };
 
-  // Store session without email for security
-  const sessionData = {
-    ...returns,
-    user: {
-      ...returns.user,
-      email: undefined // Remove email from stored session
-    }
-  };
-  delete sessionData.user.email;
-
-  console.log("SESSION DATA", sessionData);
-
-  LocalStorage.set("session", sessionData);
+  // PII will be automatically removed by LocalStorage.set()
+  LocalStorage.set("session", returns);
 
   return returns;
 };

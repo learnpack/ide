@@ -1998,11 +1998,6 @@ The user's set up the application in "${language}" language, give your feedback 
 
       TelemetryManager.urls = configObject.config.telemetry;
 
-      console.log(
-        "User to init telemetry",
-        user.first_name + " " + user.last_name
-      );
-
       const params = checkParams({ justReturn: true });
 
       TelemetryManager.start(agent, steps, tutorialSlug, STORAGE_KEY, {
