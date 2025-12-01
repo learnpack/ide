@@ -10,6 +10,7 @@ import { Loader } from "../composites/Loader/Loader";
 import { AutoResizeTextarea } from "../composites/AutoResizeTextarea/AutoResizeTextarea";
 import toast from "react-hot-toast";
 import { Icon } from "../Icon";
+import DOMPurify from "dompurify";
 import {
   DEV_MODE,
   DEV_URL,
@@ -657,18 +658,66 @@ const ImageUploader = ({
   const { t } = useTranslation();
   const config = useStore((state) => state.configObject);
 
+  const sanitizeSVG = (svgContent: string): string => {
+    // Specific configuration for sanitizing SVG
+    const purifyConfig = {
+      USE_PROFILES: { svg: true, svgFilters: true },
+      FORBID_TAGS: ['script', 'iframe', 'embed', 'object', 'foreignObject'],
+      FORBID_ATTR: [
+        'onerror',
+        'onload',
+        'onclick',
+        'onmouseover',
+        'onmouseout',
+        'onanimationend',
+        'onanimationstart',
+        'ontransitionend',
+        'onfocus',
+        'onblur',
+      ],
+      ALLOW_DATA_ATTR: false, // Block data-* attributes that might contain code
+    };
+
+    return DOMPurify.sanitize(svgContent, purifyConfig);
+  };
+
   const uploadImage = async (file: File) => {
-    const blob = new Blob([file]);
+    let fileToUpload = file;
+
+    // Sanitize if it's SVG
+    if (file.type === 'image/svg+xml' || file.name.toLowerCase().endsWith('.svg')) {
+      try {
+        const svgContent = await file.text();
+        const sanitizedSVG = sanitizeSVG(svgContent);
+
+        // Verify that the sanitization has not removed all the content
+        if (!sanitizedSVG || sanitizedSVG.trim().length === 0) {
+          toast.error(t("errorSanitizingSVG") || "SVG file is invalid or empty after sanitization");
+          return;
+        }
+
+        // Create a new file with sanitized content
+        fileToUpload = new File([sanitizedSVG], file.name, {
+          type: 'image/svg+xml',
+        });
+      } catch (error) {
+        console.error('Error sanitizing SVG:', error);
+        toast.error(t("errorSanitizingSVG") || "Error processing SVG file");
+        return;
+      }
+    }
 
     if (!config.config?.slug) {
       toast.error(t("theCourseIsNotSaved"));
       return;
     }
 
-    const imgSlug = slugify(file.name);
+    const imgSlug = slugify(fileToUpload.name);
     const imgPath = `courses/${config.config?.slug}/.learn/assets/${imgSlug}`;
     const relativePath = `/.learn/assets/${imgSlug}`;
+    
     try {
+      const blob = new Blob([fileToUpload]);
       await uploadBlobToBucket(blob, imgPath);
       toast.success(t("imageUploadedSuccessfully"));
       onFinish(relativePath);
@@ -682,7 +731,7 @@ const ImageUploader = ({
     <>
       <input
         type="file"
-        accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+        accept=".jpg,.jpeg,.png,.svg,image/jpeg,image/png,image/svg+xml"
         className="d-none"
         onChange={(e) => {
           if (e.target.files?.[0]) {
