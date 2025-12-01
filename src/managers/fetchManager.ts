@@ -9,6 +9,7 @@ import {
   getSlugFromPath,
   DEV_MODE,
   getReadmeExtension,
+  ENVIRONMENT,
 } from "../utils/lib";
 import { TEnvironment } from "./EventProxy";
 import frontMatter from "front-matter";
@@ -18,6 +19,7 @@ import toast from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
 import { TSidebar } from "../utils/storeTypes";
 import { fixLang } from "../components/sections/header/LanguageButton";
+import useStore from "../utils/store";
 // import axios from "axios";
 
 // Correct the type definition for TMethods
@@ -682,7 +684,7 @@ export const FetchManager = {
     return loggedFormat;
   },
 
-  replaceReadme: async (slug: string, language: string, newReadme: string) => {
+  replaceReadme: async (slug: string, language: string, newReadme: string, skipSyncNotification?: boolean) => {
     const methods: TMethods = {
       localhost: async () => {
         const url = `${FetchManager.HOST
@@ -718,7 +720,37 @@ export const FetchManager = {
         if (!res.ok) {
           return false;
         }
-        // await res.json();
+        
+        // Create sync notification if there are other languages available
+        // Skip notification if explicitly requested (e.g., when inserting/removing placeholder)
+        if (!skipSyncNotification) {
+          try {
+            const { exercises } = useStore.getState();
+            const currentExercise = exercises.find(ex => ex.slug === slug);
+            const availableLanguages = Object.keys(currentExercise?.translations || {});
+            
+            // Only create notification if there are multiple languages
+            if (availableLanguages.length > 1) {
+              const { createSyncNotification } = await import("../utils/syncNotifications");
+              await createSyncNotification({
+                exerciseSlug: slug,
+                sourceLanguage: language
+              });
+              
+              // Refresh notifications in the background
+              const { getSyncNotifications } = useStore.getState();
+              getSyncNotifications().catch(err => {
+                // Silently fail - non-critical operation
+                console.error("Error refreshing sync notifications:", err);
+              });
+            }
+          } catch (notifError) {
+            // Non-critical error - README was saved successfully
+            // Don't show error to user - notification creation is optional
+            console.error("Error creating sync notification:", notifError);
+          }
+        }
+        
         return true;
       },
     };
@@ -810,11 +842,24 @@ export const FetchManager = {
         }
       },
     };
-    console.log(
-      "TRANSLATING EXERCISES in ENVIRONMENT",
-      FetchManager.ENVIRONMENT
-    );
-    return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
+    
+    // Use FetchManager.ENVIRONMENT, or fallback to ENVIRONMENT from lib.tsx
+    const env = FetchManager.ENVIRONMENT || ENVIRONMENT;
+
+    console.log("TRANSLATING EXERCISES in ENVIRONMENT: ", env);
+    
+    if (!env) {
+      console.error("Environment not detected. Cannot translate exercises.");
+      return null;
+    }
+    
+    const method = methods[env as keyof TMethods];
+    if (!method) {
+      console.error(`No method found for environment: ${env}`);
+      return null;
+    }
+    
+    return method();
   },
 
   getMemoryBank: async (rigoToken: string) => {

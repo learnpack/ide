@@ -5,6 +5,7 @@ import useStore from "../../utils/store";
 import SimpleButton from "../mockups/SimpleButton";
 import { RigoToggler } from "../Rigobot/Rigobot";
 import LanguageButton from "../sections/header/LanguageButton";
+import { SyncNotificationBadge } from "../SyncNotifications/SyncNotificationBadge";
 import styles from "./NewHeader.module.css";
 import { ToggleSidebar } from "../sections/sidebar/ToggleSidebar";
 import { Icon } from "../Icon";
@@ -35,10 +36,10 @@ export const NewHeader = () => {
     // isCreator,
     setShowVideoTutorial,
     reportEnrichDataLayer,
-    // mode,
+    mode,
     // setMode,
     // setOpenedModals,
-    // environment,
+    environment,
     configObject,
   } = useStore((state) => ({
     currentExercisePosition: state.currentExercisePosition,
@@ -53,15 +54,20 @@ export const NewHeader = () => {
     videoTutorial: state.videoTutorial,
     setShowVideoTutorial: state.setShowVideoTutorial,
     reportEnrichDataLayer: state.reportEnrichDataLayer,
-    // mode: state.mode,
+    mode: state.mode,
     // isCreator: state.isCreator,
     // setOpenedModals: state.setOpenedModals,
     // setMode: state.setMode,
-    // environment: state.environment,
+    environment: state.environment,
     configObject: state.configObject,
   }));
 
   const { t } = useTranslation();
+
+  const showSyncNotifications = () => {
+    const titleLanguages = configObject?.config?.title ? Object.keys(configObject.config.title) : [];
+    return titleLanguages.length > 1 && environment === "creatorWeb" && mode === "creator";
+  };
 
   // const openSolutionFile = () => {
   //   const solutionFile = getCurrentExercise().files.filter((file: any) =>
@@ -131,6 +137,7 @@ export const NewHeader = () => {
         <p className="m-0">{configObject?.config?.title[language] || ""}</p>
       </section>
       <section className="flex-x align-center">
+        {showSyncNotifications() && <SyncNotificationBadge />}
         {!isIframe && language && <LanguageButton />}
         {/* {hasSolution && (
           <SimpleButton

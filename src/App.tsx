@@ -13,6 +13,8 @@ import mermaid from "mermaid";
 import { PublishNavbar } from "./components/Creator/PublishNavbar";
 import PreviewGenerator from "./components/composites/PreviewImageGenerator/PreviewImageGenerator";
 import { PositionHandler } from "./components/composites/PositionHandler/PositionHandler";
+import TranslationListener from "./components/Creator/TranslationListener";
+import SyncNotificationListener from "./components/SyncNotifications/SyncNotificationListener";
 
 export default function Home() {
   const start = useStore((s) => s.start);
@@ -53,6 +55,8 @@ export default function Home() {
       <PublishNavbar />
       <PositionHandler />
       {environment === "creatorWeb" && <PreviewGenerator />}
+      {environment === "creatorWeb" && <TranslationListener />}
+      {environment === "creatorWeb" && <SyncNotificationListener />}
       <SocketHandler />
       <NewHeader />
       <Container />

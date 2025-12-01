@@ -36,6 +36,10 @@ import {
   TMode,
   TParamsActions,
   TPossibleParams,
+  TSyncNotification,
+  TSyncNotificationStatus,
+  TLanguageTranslation,
+  TTranslationStatus,
 } from "./storeTypes";
 import toast from "react-hot-toast";
 import { getStatus } from "../managers/socket";
@@ -55,6 +59,12 @@ import { RigoAI } from "../components/Rigobot/AI";
 import { svgs } from "../assets/svgs";
 import { Notifier } from "../managers/Notifier";
 import { LocalStorage } from "../managers/localStorage";
+import {
+  fetchSyncNotifications,
+  dismissSyncNotification as dismissSyncNotificationAPI,
+  acceptSyncNotification as acceptSyncNotificationAPI,
+} from "./syncNotifications";
+import i18n from "./i18n";
 
 type TFile = {
   name: string;
@@ -150,6 +160,7 @@ const useStore = create<IStore>((set, get) => ({
   isRigoOpened: false,
   editingContent: "",
   editorTabs: [],
+  pendingTranslations: [] as TLanguageTranslation[],
   feedbackbuttonProps: {
     text: "test-and-send",
     className: "",
@@ -206,6 +217,7 @@ const useStore = create<IStore>((set, get) => ({
   syllabus: {
     lessons: [],
   },
+  syncNotifications: [] as TSyncNotification[],
 
   // setters
   start: () => {
@@ -236,6 +248,8 @@ const useStore = create<IStore>((set, get) => ({
       initRigoAI,
       getSyllabus,
       initCompilerSocket,
+      getSyncNotifications,
+      environment,
     } = get();
     figureEnvironment()
       .then(() => {
@@ -261,6 +275,12 @@ const useStore = create<IStore>((set, get) => ({
         startTelemetry();
         initRigoAI();
         getSyllabus();
+        // Load sync notifications if in creatorWeb environment
+        // Get updated environment after figureEnvironment() has run
+        const { environment: currentEnvironment } = get();
+        if (currentEnvironment === "creatorWeb") {
+          getSyncNotifications();
+        }
       });
   },
 
@@ -1231,7 +1251,204 @@ The user's set up the application in "${language}" language, give your feedback 
     }
     set({ syllabus });
 
+    // Recover pending translations from syllabus, but ONLY if files don't exist yet
+    if (syllabus?.lessons) {
+      const { exercises } = get();
+      const pendingTranslations: TLanguageTranslation[] = [];
+      
+      // Collect all languages that were started according to syllabus
+      const languagesInProgress = new Set<string>();
+      
+      syllabus.lessons.forEach((lesson: any) => {
+        if (lesson.translations) {
+          Object.entries(lesson.translations).forEach(([lang, trans]: [string, any]) => {
+            // If translation was started (has startedAt), track it
+            if (trans.startedAt) {
+              languagesInProgress.add(lang);
+            }
+          });
+        }
+      });
+      
+      // ALSO collect all languages that already exist in exercises (to check if they're complete)
+      // This is important for languages like English that might be complete but not in syllabus
+      exercises.forEach((ex: TExercise) => {
+        if (ex.translations) {
+          Object.keys(ex.translations).forEach(lang => {
+            languagesInProgress.add(lang);
+          });
+        }
+      });
+      
+      // For each language that was started, check if files actually exist
+      // Strategy: Files are the source of truth (primary), completedAt is backup (secondary)
+      // This ensures resilience: if syllabus update fails but file exists, we still detect completion
+      // The ex.translations object comes from backend and is based on actual README files,
+      // so checking ex.translations[lang] is equivalent to checking file existence
+      languagesInProgress.forEach(lang => {
+        const allHaveTranslation = exercises.every((ex: TExercise) => {
+          // PRIORITY 1: Check if translation file exists (source of truth)
+          // The translations object comes from backend endpoint that detects README files
+          const hasFile = ex.translations && ex.translations[lang];
+          
+          // Special case for English: README.md (without language code) is the English translation
+          if (lang === "en" && !hasFile) {
+            // Fallback: check if README.md exists in files array
+            const hasReadmeMd = ex.files && ex.files.some((f: TFile) => 
+              f.name === "README.md" || f.name.endsWith("/README.md")
+            );
+            if (hasReadmeMd) return true;
+          }
+          
+          // File existence is the source of truth
+          // If file doesn't exist, translation is not complete (even if completedAt exists in syllabus)
+          // This ensures consistency: if file was deleted or upload failed, we detect it correctly
+          return hasFile;
+        });
+        
+        if (!allHaveTranslation) {
+          // Files don't exist yet, so it's truly pending
+          const firstTransWithLang = syllabus.lessons.find((l: any) => 
+            l.translations && l.translations[lang]
+          );
+          
+          pendingTranslations.push({
+            code: lang,
+            status: "translating",
+            startedAt: firstTransWithLang?.translations[lang]?.startedAt || Date.now(),
+          });
+        } else {
+          console.log(`Translation for ${lang} is complete (all files exist), not adding to pending`);
+        }
+      });
+      
+      if (pendingTranslations.length > 0) {
+        set({ pendingTranslations });
+      }
+    }
+
     return syllabus;
+  },
+
+  getSyncNotifications: async () => {
+    const { environment, exercises } = get();
+
+    if (environment !== "creatorWeb") {
+      return;
+    }
+
+    try {
+      const data = await fetchSyncNotifications();
+    
+      if (!data || !data.notifications) {
+        set({ syncNotifications: [] });
+        return;
+      }
+
+      // Transform backend data to frontend format
+      const notifications: TSyncNotification[] = data.notifications.map((notif: any) => {
+        const exercise = exercises.find(ex => ex.slug === notif.lessonSlug);
+        const availableLanguages = Object.keys(exercise?.translations || {});
+        const targetLanguages = availableLanguages.filter(
+          lang => lang !== notif.sourceLanguage
+        );
+
+        return {
+          id: notif.id,
+          lessonSlug: notif.lessonSlug,
+          lessonTitle: notif.lessonTitle,
+          sourceLanguage: notif.sourceLanguage,
+          targetLanguages,
+          createdAt: notif.createdAt,
+          updatedAt: notif.updatedAt,
+          status: notif.status,
+          syncProgress: notif.syncProgress,
+          error: notif.error,
+        };
+      });
+
+      set({ syncNotifications: notifications });
+    } catch (error) {
+      console.error("Error fetching sync notifications:", error);
+      // Set empty array on error to avoid stale state
+      set({ syncNotifications: [] });
+    }
+  },
+
+  dismissSyncNotification: async (notificationId: string, lessonSlug: string) => {
+    try {
+      await dismissSyncNotificationAPI(notificationId, lessonSlug);
+
+      // Update local state
+      const { syncNotifications } = get();
+      set({
+        syncNotifications: syncNotifications.filter(n => n.id !== notificationId),
+      });
+
+      toast.success(i18n.t("sync-dismissed"));
+    } catch (error) {
+      console.error("Error dismissing syncronization:", error);
+      toast.error(i18n.t("error-dismissing-sync"));
+    }
+  },
+
+  acceptSyncNotification: async (notification: TSyncNotification) => {
+    const { token, userConsumables } = get();
+
+    if (!token) {
+      toast.error(i18n.t("authentication-required"));
+      return;
+    }
+
+    // Verify and consume consumable if not unlimited
+    if (userConsumables.ai_generation !== -1) {
+      const hasEnough = userConsumables.ai_generation >= 1;
+      
+      if (!hasEnough) {
+        toast.error(i18n.t("sync-consumable-insufficient"));
+        return;
+      }
+
+      // Consume the consumable
+      const consumed = await get().useConsumable("ai-generation");
+      
+      if (!consumed) {
+        toast.error(i18n.t("error-consuming-consumable"));
+        return;
+      }
+    }
+
+    try {
+      // Mark as processing locally
+      const { syncNotifications } = get();
+      set({
+        syncNotifications: syncNotifications.map(n =>
+          n.id === notification.id
+            ? { ...n, status: "processing" as TSyncNotificationStatus }
+            : n
+        ),
+      });
+
+      await acceptSyncNotificationAPI(notification.id, notification.lessonSlug, token);
+
+      toast.success(i18n.t("sync-started"));
+    } catch (error) {
+      console.error("Error accepting sync notification:", error);
+      toast.error(i18n.t("error-starting-sync"));
+
+      // Revert status on error
+      const { syncNotifications } = get();
+      set({
+        syncNotifications: syncNotifications.map(n =>
+          n.id === notification.id
+            ? { ...n, status: "pending" as TSyncNotificationStatus }
+            : n
+        ),
+      });
+      
+      // Note: If error occurred after consuming, we cannot revert the consumable
+      // but we show the error to the user
+    }
   },
 
   handlePositionChange: async (desiredPosition) => {
@@ -2108,7 +2325,7 @@ The user's set up the application in "${language}" language, give your feedback 
     );
     const ai_generation = countConsumables(consumables, "ai-generation");
 
-    // const ai_generation = 1;
+    //const ai_generation = 0;
 
     set({
       userConsumables: {
@@ -2180,6 +2397,26 @@ The user's set up the application in "${language}" language, give your feedback 
     const sidebar = await FetchManager.getSidebar(token);
     set({ sidebar });
     return sidebar;
+  },
+
+  setPendingTranslations: (translations: TLanguageTranslation[] | ((prev: TLanguageTranslation[]) => TLanguageTranslation[])) => {
+    if (typeof translations === 'function') {
+      const { pendingTranslations } = get();
+      set({ pendingTranslations: translations(pendingTranslations) });
+    } else {
+      set({ pendingTranslations: translations });
+    }
+  },
+
+  updateTranslationStatus: (languageCode: string, status: TTranslationStatus, error?: string) => {
+    const { pendingTranslations } = get();
+    set({
+      pendingTranslations: pendingTranslations.map(t =>
+        t.code === languageCode 
+          ? { ...t, status, completedAt: status === "completed" ? Date.now() : t.completedAt, error }
+          : t
+      ),
+    });
   },
   uploadFileToCourse: async (file: File, destination: string) => {
     const { configObject } = get();
@@ -2269,6 +2506,9 @@ The user's set up the application in "${language}" language, give your feedback 
     );
 
     let body: string = readme.body;
+    
+    // Get the content being replaced to detect placeholder removal
+    const originalContent = body.slice(startPosition.offset, endPosition.offset);
 
     body =
       body.slice(0, startPosition.offset) +
@@ -2280,10 +2520,17 @@ The user's set up the application in "${language}" language, give your feedback 
     set({
       currentContent: removeFrontMatter(newReadme),
     });
+    
+    // Detect if we're removing only the placeholder (empty replacement of placeholder content)
+    const isRemovingPlaceholder = 
+      newText === "" && 
+      (originalContent.includes("```new") || originalContent.trim() === "");
+    
     await FetchManager.replaceReadme(
       getCurrentExercise().slug,
       language,
-      newReadme
+      newReadme,
+      isRemovingPlaceholder // Skip notification when removing placeholder
     );
 
     const editedReadme = await FetchManager.getReadme(
@@ -2334,10 +2581,15 @@ The user's set up the application in "${language}" language, give your feedback 
     set({
       currentContent: removeFrontMatter(newReadme),
     });
+    
+    // Detect if we're inserting the placeholder (contains "```new")
+    const isInsertingPlaceholder = newMarkdown.includes("```new");
+    
     await FetchManager.replaceReadme(
       getCurrentExercise().slug,
       language,
-      newReadme
+      newReadme,
+      isInsertingPlaceholder // Skip notification when inserting placeholder
     );
 
     const editedReadme = await FetchManager.getReadme(
