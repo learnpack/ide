@@ -2551,11 +2551,6 @@ The user's set up the application in "${language}" language, give your feedback 
         newText === "" &&
         (originalContent.includes("```new") || originalContent.trim() === "");
 
-      if (skipHistory) {
-        console.log("⏮️  HISTORY: Skipping history for temporary element");
-      } else {
-        console.log("⏮️  HISTORY: Saving state BEFORE change to history");
-      }
 
       // Save with version - send CURRENT content to save in history (unless skipping)
       const result = await FetchManager.replaceReadme(
@@ -2662,8 +2657,6 @@ The user's set up the application in "${language}" language, give your feedback 
     // Detect if we're inserting the placeholder (contains "```new")
     const isInsertingPlaceholder = newMarkdown.includes("```new");
     
-    console.log(`⏮️  HISTORY: Inserting ${isInsertingPlaceholder ? 'placeholder (skip history)' : 'content'}`);
-    
     await FetchManager.replaceReadme(
       getCurrentExercise().slug,
       language,
@@ -2733,13 +2726,10 @@ The user's set up the application in "${language}" language, give your feedback 
       );
 
       if (!response.ok) {
-        console.warn("⏮️  HISTORY: Failed to get history status");
         return;
       }
 
       const status = await response.json();
-
-      console.log(`⏮️  HISTORY: Status updated - canUndo: ${status.canUndo}, canRedo: ${status.canRedo}, version: ${status.version}`);
 
       if (status.available) {
         set({
@@ -2763,17 +2753,13 @@ The user's set up the application in "${language}" language, give your feedback 
     } = get();
 
     if (isUndoRedoInProgress) {
-      console.log("⏮️  HISTORY: Undo/Redo already in progress");
       return;
     }
 
     const courseSlug = configObject?.config?.slug;
     if (!courseSlug) {
-      console.warn("⏮️  HISTORY: No course slug available");
       return;
     }
-
-    console.log(`⏮️  HISTORY: Performing undo for ${getCurrentExercise().slug}, version: ${historyVersion}`);
 
     set({ isUndoRedoInProgress: true });
 
@@ -2816,7 +2802,6 @@ The user's set up the application in "${language}" language, give your feedback 
 
       const { content, version } = await response.json();
 
-      console.log(`⏮️  HISTORY: Undo successful, new version: ${version}`);
 
       set({
         currentContent: removeFrontMatter(content),
@@ -2844,17 +2829,13 @@ The user's set up the application in "${language}" language, give your feedback 
     } = get();
 
     if (isUndoRedoInProgress) {
-      console.log("⏮️  HISTORY: Undo/Redo already in progress");
       return;
     }
 
     const courseSlug = configObject?.config?.slug;
     if (!courseSlug) {
-      console.warn("⏮️  HISTORY: No course slug available");
       return;
     }
-
-    console.log(`⏮️  HISTORY: Performing redo for ${getCurrentExercise().slug}, version: ${historyVersion}`);
 
     set({ isUndoRedoInProgress: true });
 
@@ -2897,7 +2878,6 @@ The user's set up the application in "${language}" language, give your feedback 
 
       const { content, version } = await response.json();
 
-      console.log(`⏮️  HISTORY: Redo successful, new version: ${version}`);
 
       set({
         currentContent: removeFrontMatter(content),
