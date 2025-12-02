@@ -31,6 +31,11 @@ export const HistoryControls = () => {
 
   // Keyboard shortcuts handler
   useEffect(() => {
+    // Only register shortcuts in creator mode
+    if (mode !== "creator") {
+      return;
+    }
+
     const handleKeyDown = (event: KeyboardEvent) => {
       const cmdOrCtrl = isMac ? event.metaKey : event.ctrlKey;
 
@@ -67,7 +72,7 @@ export const HistoryControls = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [canUndo, canRedo, isUndoRedoInProgress, performUndo, performRedo, isMac]);
+  }, [canUndo, canRedo, isUndoRedoInProgress, performUndo, performRedo, isMac, mode]);
 
     // Only show in creator mode
     if (mode !== "creator") {
