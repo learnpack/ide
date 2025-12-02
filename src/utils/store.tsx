@@ -2515,12 +2515,15 @@ The user's set up the application in "${language}" language, give your feedback 
     } = get();
 
     try {
-      const readme = await FetchManager.getReadme(
+      // Get the CURRENT state (before the change) - this will be saved in history
+      const currentReadme = await FetchManager.getReadme(
         getCurrentExercise().slug,
         language
       );
 
-      let body: string = readme.body;
+      const currentFullContent = remakeMarkdown(currentReadme.attributes, currentReadme.body);
+
+      let body: string = currentReadme.body;
 
       // Get the content being replaced to detect placeholder removal
       const originalContent = body.slice(
@@ -2533,7 +2536,7 @@ The user's set up the application in "${language}" language, give your feedback 
         newText +
         body.slice(endPosition.offset);
 
-      const newReadme = remakeMarkdown(readme.attributes, body);
+      const newReadme = remakeMarkdown(currentReadme.attributes, body);
 
       // Save previous content for rollback
       const previousContent = get().currentContent;
@@ -2548,13 +2551,16 @@ The user's set up the application in "${language}" language, give your feedback 
         newText === "" &&
         (originalContent.includes("```new") || originalContent.trim() === "");
 
-      // Save with version
+      console.log("⏮️  HISTORY: Saving state BEFORE change to history");
+
+      // Save with version - now we send the CURRENT content (before change) to save in history
       const result = await FetchManager.replaceReadme(
         getCurrentExercise().slug,
         language,
         newReadme,
         isRemovingPlaceholder, // Skip notification when removing placeholder
-        historyVersion
+        historyVersion,
+        currentFullContent // Send current content to save in history before applying new changes
       );
 
       // Verify result
@@ -2590,7 +2596,7 @@ The user's set up the application in "${language}" language, give your feedback 
       return { success: true };
     } catch (error: any) {
       toast.error("An error occurred while saving. Please try again.");
-      console.error("Error in replaceInReadme:", error);
+      console.error("⏮️  HISTORY: Error in replaceInReadme:", error);
 
       // Reload from server
       try {
@@ -2719,11 +2725,13 @@ The user's set up the application in "${language}" language, give your feedback 
       );
 
       if (!response.ok) {
-        console.warn("Failed to get history status");
+        console.warn("⏮️  HISTORY: Failed to get history status");
         return;
       }
 
       const status = await response.json();
+
+      console.log(`⏮️  HISTORY: Status updated - canUndo: ${status.canUndo}, canRedo: ${status.canRedo}, version: ${status.version}`);
 
       if (status.available) {
         set({
@@ -2733,7 +2741,7 @@ The user's set up the application in "${language}" language, give your feedback 
         });
       }
     } catch (error) {
-      console.error("Error updating history status:", error);
+      console.error("⏮️  HISTORY: Error updating history status:", error);
     }
   },
 
@@ -2747,19 +2755,22 @@ The user's set up the application in "${language}" language, give your feedback 
     } = get();
 
     if (isUndoRedoInProgress) {
-      console.log("Undo/Redo already in progress");
+      console.log("⏮️  HISTORY: Undo/Redo already in progress");
       return;
     }
 
     const courseSlug = configObject?.config?.slug;
     if (!courseSlug) {
+      console.warn("⏮️  HISTORY: No course slug available");
       return;
     }
+
+    console.log(`⏮️  HISTORY: Performing undo for ${getCurrentExercise().slug}, version: ${historyVersion}`);
 
     set({ isUndoRedoInProgress: true });
 
     try {
-      // Get full README content (with front-matter) for undo
+      // Get current README content to send to backend
       const readme = await FetchManager.getReadme(
         getCurrentExercise().slug,
         language
@@ -2783,6 +2794,8 @@ The user's set up the application in "${language}" language, give your feedback 
       if (!response.ok) {
         const error = await response.json();
 
+        console.error("⏮️  HISTORY: Undo request failed:", error);
+
         if (response.status === 409) {
           toast.error("Version conflict. Refreshing content...");
           await get().fetchReadme();
@@ -2795,6 +2808,8 @@ The user's set up the application in "${language}" language, give your feedback 
 
       const { content, version } = await response.json();
 
+      console.log(`⏮️  HISTORY: Undo successful, new version: ${version}`);
+
       set({
         currentContent: removeFrontMatter(content),
         historyVersion: version,
@@ -2804,7 +2819,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
       toast.success("Change undone");
     } catch (error: any) {
-      console.error("Undo failed:", error);
+      console.error("⏮️  HISTORY: Undo failed:", error);
       toast.error(error.message || "Failed to undo changes");
     } finally {
       set({ isUndoRedoInProgress: false });
@@ -2821,19 +2836,22 @@ The user's set up the application in "${language}" language, give your feedback 
     } = get();
 
     if (isUndoRedoInProgress) {
-      console.log("Undo/Redo already in progress");
+      console.log("⏮️  HISTORY: Undo/Redo already in progress");
       return;
     }
 
     const courseSlug = configObject?.config?.slug;
     if (!courseSlug) {
+      console.warn("⏮️  HISTORY: No course slug available");
       return;
     }
+
+    console.log(`⏮️  HISTORY: Performing redo for ${getCurrentExercise().slug}, version: ${historyVersion}`);
 
     set({ isUndoRedoInProgress: true });
 
     try {
-      // Get full README content (with front-matter) for redo
+      // Get current README content to send to backend
       const readme = await FetchManager.getReadme(
         getCurrentExercise().slug,
         language
@@ -2857,6 +2875,8 @@ The user's set up the application in "${language}" language, give your feedback 
       if (!response.ok) {
         const error = await response.json();
 
+        console.error("⏮️  HISTORY: Redo request failed:", error);
+
         if (response.status === 409) {
           toast.error("Version conflict. Refreshing content...");
           await get().fetchReadme();
@@ -2869,6 +2889,8 @@ The user's set up the application in "${language}" language, give your feedback 
 
       const { content, version } = await response.json();
 
+      console.log(`⏮️  HISTORY: Redo successful, new version: ${version}`);
+
       set({
         currentContent: removeFrontMatter(content),
         historyVersion: version,
@@ -2878,7 +2900,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
       toast.success("Change redone");
     } catch (error: any) {
-      console.error("Redo failed:", error);
+      console.error("⏮️  HISTORY: Redo failed:", error);
       toast.error(error.message || "Failed to redo changes");
     } finally {
       set({ isUndoRedoInProgress: false });

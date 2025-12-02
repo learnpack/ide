@@ -689,23 +689,32 @@ export const FetchManager = {
     language: string,
     newReadme: string,
     skipSyncNotification?: boolean,
-    versionId?: string
+    versionId?: string,
+    contentToSaveInHistory?: string
   ): Promise<{ success: boolean; status?: number; version?: string } | false> => {
     const methods: TMethods = {
       localhost: async () => {
         const url = `${FetchManager.HOST
           }/exercise/${slug}/file/README${getReadmeExtension(language)}`;
 
-        const headers: Record<string, string> = {};
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
 
         if (versionId) {
           headers["x-history-version"] = versionId;
         }
 
+        // Send both the new content and the content to save in history
+        const body = JSON.stringify({
+          content: newReadme,
+          historyContent: contentToSaveInHistory,
+        });
+
         const res = await fetch(url, {
           method: "PUT",
           headers,
-          body: newReadme,
+          body,
         });
 
         if (!res.ok) {
@@ -733,16 +742,24 @@ export const FetchManager = {
             language
           )}?slug=${exerciseSlug}&lang=${language}`;
 
-        const headers: Record<string, string> = {};
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
 
         if (versionId) {
           headers["x-history-version"] = versionId;
         }
 
+        // Send both the new content and the content to save in history
+        const body = JSON.stringify({
+          content: newReadme,
+          historyContent: contentToSaveInHistory,
+        });
+
         const res = await fetch(url, {
           method: "PUT",
           headers,
-          body: newReadme,
+          body,
         });
 
         if (!res.ok) {
