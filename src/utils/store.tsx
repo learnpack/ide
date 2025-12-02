@@ -165,6 +165,11 @@ const useStore = create<IStore>((set, get) => ({
     text: "test-and-send",
     className: "",
   },
+  // History management state
+  historyVersion: "0",
+  canUndo: false,
+  canRedo: false,
+  isUndoRedoInProgress: false,
   assessmentConfig: {
     maxRetries: 3,
   },
@@ -1219,6 +1224,10 @@ The user's set up the application in "${language}" language, give your feedback 
     // @ts-ignore
     fetchSingleExerciseInfo(currentExercisePosition);
     // updateEditorTabs();
+    
+    // Update history status when loading README
+    await get().updateHistoryStatus();
+    
     return true;
   },
 
@@ -2499,48 +2508,106 @@ The user's set up the application in "${language}" language, give your feedback 
   },
 
   replaceInReadme: async (newText: string, startPosition, endPosition) => {
-    const { getCurrentExercise, language } = get();
-    const readme = await FetchManager.getReadme(
-      getCurrentExercise().slug,
-      language
-    );
-
-    let body: string = readme.body;
-    
-    // Get the content being replaced to detect placeholder removal
-    const originalContent = body.slice(startPosition.offset, endPosition.offset);
-
-    body =
-      body.slice(0, startPosition.offset) +
-      newText +
-      body.slice(endPosition.offset);
-
-    const newReadme = remakeMarkdown(readme.attributes, body);
-
-    set({
-      currentContent: removeFrontMatter(newReadme),
-    });
-    
-    // Detect if we're removing only the placeholder (empty replacement of placeholder content)
-    const isRemovingPlaceholder = 
-      newText === "" && 
-      (originalContent.includes("```new") || originalContent.trim() === "");
-    
-    await FetchManager.replaceReadme(
-      getCurrentExercise().slug,
+    const {
+      getCurrentExercise,
       language,
-      newReadme,
-      isRemovingPlaceholder // Skip notification when removing placeholder
-    );
+      historyVersion,
+    } = get();
 
-    const editedReadme = await FetchManager.getReadme(
-      getCurrentExercise().slug,
-      language
-    );
+    try {
+      const readme = await FetchManager.getReadme(
+        getCurrentExercise().slug,
+        language
+      );
 
-    set({
-      currentContent: editedReadme.body,
-    });
+      let body: string = readme.body;
+
+      // Get the content being replaced to detect placeholder removal
+      const originalContent = body.slice(
+        startPosition.offset,
+        endPosition.offset
+      );
+
+      body =
+        body.slice(0, startPosition.offset) +
+        newText +
+        body.slice(endPosition.offset);
+
+      const newReadme = remakeMarkdown(readme.attributes, body);
+
+      // Save previous content for rollback
+      const previousContent = get().currentContent;
+
+      // Optimistic update
+      set({
+        currentContent: removeFrontMatter(newReadme),
+      });
+
+      // Detect if we're removing only the placeholder (empty replacement of placeholder content)
+      const isRemovingPlaceholder =
+        newText === "" &&
+        (originalContent.includes("```new") || originalContent.trim() === "");
+
+      // Save with version
+      const result = await FetchManager.replaceReadme(
+        getCurrentExercise().slug,
+        language,
+        newReadme,
+        isRemovingPlaceholder, // Skip notification when removing placeholder
+        historyVersion
+      );
+
+      // Verify result
+      if (!result || result.success === false) {
+        toast.error("Failed to save changes. Please try again.");
+
+        // Rollback
+        set({
+          currentContent: previousContent,
+        });
+
+        return { success: false };
+      }
+
+      // Update version if response includes it
+      if (result.version) {
+        set({ historyVersion: result.version });
+      }
+
+      // Update history status
+      await get().updateHistoryStatus();
+
+      // Confirm with server
+      const editedReadme = await FetchManager.getReadme(
+        getCurrentExercise().slug,
+        language
+      );
+
+      set({
+        currentContent: editedReadme.body,
+      });
+
+      return { success: true };
+    } catch (error: any) {
+      toast.error("An error occurred while saving. Please try again.");
+      console.error("Error in replaceInReadme:", error);
+
+      // Reload from server
+      try {
+        const freshReadme = await FetchManager.getReadme(
+          getCurrentExercise().slug,
+          language
+        );
+        set({
+          currentContent: freshReadme.body,
+        });
+        await get().updateHistoryStatus();
+      } catch (reloadError) {
+        toast.error("Failed to reload content. Please refresh the page.");
+      }
+
+      return { success: false, error };
+    }
   },
 
   getPortion: (startPoint: number, endPoint: number) => {
@@ -2630,6 +2697,192 @@ The user's set up the application in "${language}" language, give your feedback 
   },
   setEditingContent: (content) => {
     set({ editingContent: content });
+  },
+
+  // History management actions
+  setHistoryVersion: (version: string) => {
+    set({ historyVersion: version });
+  },
+
+  updateHistoryStatus: async () => {
+    const { getCurrentExercise, language, configObject } = get();
+    const exerciseSlug = getCurrentExercise().slug;
+    const courseSlug = configObject?.config?.slug;
+
+    if (!courseSlug || !exerciseSlug) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${FetchManager.HOST}/exercise/${exerciseSlug}/history/status?slug=${courseSlug}&lang=${language}`
+      );
+
+      if (!response.ok) {
+        console.warn("Failed to get history status");
+        return;
+      }
+
+      const status = await response.json();
+
+      if (status.available) {
+        set({
+          canUndo: status.canUndo,
+          canRedo: status.canRedo,
+          historyVersion: status.version,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating history status:", error);
+    }
+  },
+
+  performUndo: async () => {
+    const {
+      getCurrentExercise,
+      language,
+      historyVersion,
+      isUndoRedoInProgress,
+      configObject,
+    } = get();
+
+    if (isUndoRedoInProgress) {
+      console.log("Undo/Redo already in progress");
+      return;
+    }
+
+    const courseSlug = configObject?.config?.slug;
+    if (!courseSlug) {
+      return;
+    }
+
+    set({ isUndoRedoInProgress: true });
+
+    try {
+      // Get full README content (with front-matter) for undo
+      const readme = await FetchManager.getReadme(
+        getCurrentExercise().slug,
+        language
+      );
+      const fullContent = remakeMarkdown(readme.attributes, readme.body);
+
+      const response = await fetch(
+        `${FetchManager.HOST}/exercise/${getCurrentExercise().slug}/history/undo`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            courseSlug,
+            currentContent: fullContent,
+            versionId: historyVersion,
+            lang: language,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+
+        if (response.status === 409) {
+          toast.error("Version conflict. Refreshing content...");
+          await get().fetchReadme();
+          await get().updateHistoryStatus();
+          return;
+        }
+
+        throw new Error(error.message || "Undo failed");
+      }
+
+      const { content, version } = await response.json();
+
+      set({
+        currentContent: removeFrontMatter(content),
+        historyVersion: version,
+      });
+
+      await get().updateHistoryStatus();
+
+      toast.success("Change undone");
+    } catch (error: any) {
+      console.error("Undo failed:", error);
+      toast.error(error.message || "Failed to undo changes");
+    } finally {
+      set({ isUndoRedoInProgress: false });
+    }
+  },
+
+  performRedo: async () => {
+    const {
+      getCurrentExercise,
+      language,
+      historyVersion,
+      isUndoRedoInProgress,
+      configObject,
+    } = get();
+
+    if (isUndoRedoInProgress) {
+      console.log("Undo/Redo already in progress");
+      return;
+    }
+
+    const courseSlug = configObject?.config?.slug;
+    if (!courseSlug) {
+      return;
+    }
+
+    set({ isUndoRedoInProgress: true });
+
+    try {
+      // Get full README content (with front-matter) for redo
+      const readme = await FetchManager.getReadme(
+        getCurrentExercise().slug,
+        language
+      );
+      const fullContent = remakeMarkdown(readme.attributes, readme.body);
+
+      const response = await fetch(
+        `${FetchManager.HOST}/exercise/${getCurrentExercise().slug}/history/redo`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            courseSlug,
+            currentContent: fullContent,
+            versionId: historyVersion,
+            lang: language,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+
+        if (response.status === 409) {
+          toast.error("Version conflict. Refreshing content...");
+          await get().fetchReadme();
+          await get().updateHistoryStatus();
+          return;
+        }
+
+        throw new Error(error.message || "Redo failed");
+      }
+
+      const { content, version } = await response.json();
+
+      set({
+        currentContent: removeFrontMatter(content),
+        historyVersion: version,
+      });
+
+      await get().updateHistoryStatus();
+
+      toast.success("Change redone");
+    } catch (error: any) {
+      console.error("Redo failed:", error);
+      toast.error(error.message || "Failed to redo changes");
+    } finally {
+      set({ isUndoRedoInProgress: false });
+    }
   },
 }));
 
