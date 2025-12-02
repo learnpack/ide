@@ -42,11 +42,22 @@ export const HistoryControls = () => {
         }
       }
 
-      // Ctrl/Cmd + Shift + Z = Redo
-      if (cmdOrCtrl && event.key === "z" && event.shiftKey) {
-        event.preventDefault();
-        if (canRedo && !isUndoRedoInProgress) {
-          performRedo();
+      // Redo shortcuts: Ctrl+Y (Windows) or Cmd+Shift+Z (Mac)
+      if (isMac) {
+        // Mac: Cmd + Shift + Z = Redo
+        if (cmdOrCtrl && event.key === "z" && event.shiftKey) {
+          event.preventDefault();
+          if (canRedo && !isUndoRedoInProgress) {
+            performRedo();
+          }
+        }
+      } else {
+        // Windows: Ctrl + Y = Redo
+        if (cmdOrCtrl && event.key === "y" && !event.shiftKey) {
+          event.preventDefault();
+          if (canRedo && !isUndoRedoInProgress) {
+            performRedo();
+          }
         }
       }
     };

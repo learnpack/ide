@@ -579,7 +579,7 @@
     "time-since-modification-tooltip": "Modified {{time}} ago",
     "languages": "languages",
     "undo-tooltip": "Undo (Ctrl+Z)",
-    "redo-tooltip": "Redo (Ctrl+Shift+Z)",
+    "redo-tooltip": "Redo (Ctrl+Y)",
     "undo-tooltip-mac": "Undo (⌘Z)",
     "redo-tooltip-mac": "Redo (⌘⇧Z)",
     "no-undo-available": "No changes to undo",

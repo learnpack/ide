@@ -586,7 +586,7 @@
     "time-since-modification-tooltip": "Modificada hace {{time}}",
     "languages": "idiomas",
     "undo-tooltip": "Deshacer (Ctrl+Z)",
-    "redo-tooltip": "Rehacer (Ctrl+Shift+Z)",
+    "redo-tooltip": "Rehacer (Ctrl+Y)",
     "undo-tooltip-mac": "Deshacer (⌘Z)",
     "redo-tooltip-mac": "Rehacer (⌘⇧Z)",
     "no-undo-available": "No hay cambios para deshacer",
