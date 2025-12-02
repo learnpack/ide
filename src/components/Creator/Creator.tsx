@@ -284,7 +284,9 @@ export const CreatorWrapper = ({
 
   const removeThis = async () => {
     if (node?.position?.start && node?.position?.end) {
-      await replaceInReadme("", node?.position?.start, node?.position?.end);
+      // Skip history if removing a temporary element (placeholder)
+      const isTemporary = tagName === "new" || containsNewElement;
+      await replaceInReadme("", node?.position?.start, node?.position?.end, isTemporary);
     }
     setIsOpen(false);
   };

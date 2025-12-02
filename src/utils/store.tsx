@@ -2507,7 +2507,7 @@ The user's set up the application in "${language}" language, give your feedback 
     });
   },
 
-  replaceInReadme: async (newText: string, startPosition, endPosition) => {
+  replaceInReadme: async (newText: string, startPosition, endPosition, skipHistory: boolean = false) => {
     const {
       getCurrentExercise,
       language,
@@ -2551,16 +2551,20 @@ The user's set up the application in "${language}" language, give your feedback 
         newText === "" &&
         (originalContent.includes("```new") || originalContent.trim() === "");
 
-      console.log("⏮️  HISTORY: Saving state BEFORE change to history");
+      if (skipHistory) {
+        console.log("⏮️  HISTORY: Skipping history for temporary element");
+      } else {
+        console.log("⏮️  HISTORY: Saving state BEFORE change to history");
+      }
 
-      // Save with version - now we send the CURRENT content (before change) to save in history
+      // Save with version - send CURRENT content to save in history (unless skipping)
       const result = await FetchManager.replaceReadme(
         getCurrentExercise().slug,
         language,
         newReadme,
-        isRemovingPlaceholder, // Skip notification when removing placeholder
-        historyVersion,
-        currentFullContent // Send current content to save in history before applying new changes
+        isRemovingPlaceholder || skipHistory, // Skip notification when removing placeholder or skipping history
+        skipHistory ? undefined : historyVersion, // Only send version if saving to history
+        skipHistory ? undefined : currentFullContent // Only send content to save in history if not skipping
       );
 
       // Verify result
@@ -2575,13 +2579,13 @@ The user's set up the application in "${language}" language, give your feedback 
         return { success: false };
       }
 
-      // Update version if response includes it
-      if (result.version) {
-        set({ historyVersion: result.version });
+      // Update version and history status only if not skipping history
+      if (!skipHistory) {
+        if (result.version) {
+          set({ historyVersion: result.version });
+        }
+        await get().updateHistoryStatus();
       }
-
-      // Update history status
-      await get().updateHistoryStatus();
 
       // Confirm with server
       const editedReadme = await FetchManager.getReadme(
@@ -2658,11 +2662,15 @@ The user's set up the application in "${language}" language, give your feedback 
     // Detect if we're inserting the placeholder (contains "```new")
     const isInsertingPlaceholder = newMarkdown.includes("```new");
     
+    console.log(`⏮️  HISTORY: Inserting ${isInsertingPlaceholder ? 'placeholder (skip history)' : 'content'}`);
+    
     await FetchManager.replaceReadme(
       getCurrentExercise().slug,
       language,
       newReadme,
-      isInsertingPlaceholder // Skip notification when inserting placeholder
+      isInsertingPlaceholder, // Skip notification when inserting placeholder
+      undefined, // Don't send versionId (skip history for placeholders)
+      undefined  // Don't send contentToSaveInHistory (skip history for placeholders)
     );
 
     const editedReadme = await FetchManager.getReadme(
