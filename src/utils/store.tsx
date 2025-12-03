@@ -249,7 +249,7 @@ const useStore = create<IStore>((set, get) => ({
       getSyllabus,
       initCompilerSocket,
       getSyncNotifications,
-      environment,
+      // environment,
     } = get();
     figureEnvironment()
       .then(() => {

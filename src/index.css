@@ -1323,3 +1323,7 @@ a {
 .align-content-start {
   align-content: flex-start;
 }
+
+.text-normal {
+  color: var(--read-font-color);
+}

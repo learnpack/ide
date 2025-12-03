@@ -38,6 +38,7 @@ import { Loader } from "../Loader/Loader";
 import { useCompletionJobStatus } from "../../../hooks/useCompletionJobStatus";
 import { AutoResizeTextarea } from "../AutoResizeTextarea/AutoResizeTextarea";
 import { isRunnableCodeBlock } from "../../../utils/runnableDetection";
+import MonacoEditor from "@monaco-editor/react";
 
 
 const ClickMeToGetID = ({ id }: { id: string }) => {
@@ -443,13 +444,9 @@ export const Markdowner = ({
                 metadataObject = extractMetadata(metadata);
               }
               
-              // SIEMPRE usar detección automática, ignorando cualquier atributo runnable explícito
               const isRunnable = isRunnableCodeBlock(code, lang);
               if (isRunnable) {
                 metadataObject.runnable = true;
-              } else {
-                // Eliminar runnable si existe pero no es detectado como runnable
-                delete metadataObject.runnable;
               }
               
               return {
@@ -609,6 +606,40 @@ const objectToArray = (
   return Object.entries(obj).map(([key, value]) => ({ key, value }));
 };
 
+const getMonacoLanguage = (language: string): string => {
+  const langMap: { [key: string]: string } = {
+    javascript: "javascript",
+    js: "javascript",
+    typescript: "typescript",
+    ts: "typescript",
+    python: "python",
+    py: "python",
+    html: "html",
+    css: "css",
+    json: "json",
+    markdown: "markdown",
+    md: "markdown",
+    java: "java",
+    c: "c",
+    cpp: "cpp",
+    csharp: "csharp",
+    php: "php",
+    ruby: "ruby",
+    go: "go",
+    rust: "rust",
+    swift: "swift",
+    kotlin: "kotlin",
+    sql: "sql",
+    shell: "shell",
+    bash: "shell",
+    sh: "shell",
+    yaml: "yaml",
+    yml: "yaml",
+    xml: "xml",
+  };
+  return langMap[language.toLowerCase()] || "plaintext";
+};
+
 const CustomCodeBlock = ({
   code,
   language,
@@ -649,6 +680,13 @@ const CustomCodeBlock = ({
   const [executionResult, setExecutionResult] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
+  const [showHtmlPreview, setShowHtmlPreview] = useState(false);
+  const [editedCode, setEditedCode] = useState(code);
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    setEditedCode(code);
+  }, [code]);
   if (language === "stdout" || language === "stderr") {
     return (
       <div className={`${language}`}>
@@ -703,10 +741,25 @@ const CustomCodeBlock = ({
   const metadataComponents = {
     runnable: (value: boolean | string) => {
       if (value) {
+        const isHtml = language.toLowerCase() === "html";
+        
+        if (isHtml) {
+          return (
+            <SimpleButton
+              title={showHtmlPreview ? "Show Code" : t("runCode")}
+              svg={showHtmlPreview ? <Icon name="Code" /> : <Icon name="Play" />}
+              action={() => {
+                setShowHtmlPreview(!showHtmlPreview);
+              }}
+              extraClass=""
+            />
+          );
+        }
+        
         return (
           <SimpleButton
             title={t("runCode")}
-            svg={isExecuting ? <Loader extraClass="svg-blue" svg={svgs.runCustom} text={t("runningCode")} size="sm"/> : svgs.runCustom}
+            svg={isExecuting ? <Loader extraClass="svg-blue" svg={<Icon name="Play" />} text={t("runningCode")} size="sm"/> : <Icon name="Play" />}
             action={async () => {
               if (isExecuting) return;
               if (!token) {
@@ -720,14 +773,13 @@ const CustomCodeBlock = ({
               RigoAI.useTemplate({
                 slug: "structured-build-learnpack",
                 inputs: {
-                  code: code,
+                  code: editedCode,
                   inputs: "{}",
                 },
                 onComplete: (success, rigoData) => {
                   if (success && rigoData?.data?.parsed) {
                     const parsed = rigoData.data.parsed;
                     
-                    // exit_code > 0 indica error de ejecución
                     if (parsed.exit_code && parsed.exit_code > 0) {
                       const errorMessage = parsed.stderr || parsed.stdout || t("errorExecutingCode");
                       setExecutionResult(errorMessage);
@@ -739,7 +791,6 @@ const CustomCodeBlock = ({
                       useConsumable("ai-compilation");
                     }
                   } else {
-                    // Error en la llamada a la API
                     const errorMessage = rigoData?.error || t("errorConnectingAPI");
                     setExecutionResult(errorMessage);
                     setIsError(true);
@@ -757,22 +808,43 @@ const CustomCodeBlock = ({
   };
 
   const metadataComponentsArray = objectToArray(metadata);
+  const isHtml = language.toLowerCase() === "html";
+  const hasRunnableMetadata = metadataComponentsArray.some(({ key, value }) => key === "runnable" && value);
 
   return (
     <div className="flex-y my-small custom-code-block">
       <div className="d-flex justify-between align-center code-buttons">
         <span className="language">{language}</span>
-        <div className="d-flex gap-small">
+        <div className="d-flex gap-small text-normal">
           {!isIframe && agent !== "vscode" && (
-            <SimpleButton
-              title={t("copyCodeToClipboard")}
-              svg={svgs.copy}
-              action={() => {
-                navigator.clipboard.writeText(code);
-                toast.success(t("copied"));
-              }}
-              extraClass="color-blue"
-            />
+            <>
+              <SimpleButton
+                title={isEditing ? "Stop editing" : "Edit code"}
+                svg={isEditing ? <Icon name="Check" /> : <Icon name="Pencil" />}
+                action={() => {
+                  setIsEditing(!isEditing);
+                }}
+              />
+              <SimpleButton
+                title={t("copyCodeToClipboard")}
+                svg={<Icon name="Copy" />}
+                action={() => {
+                  navigator.clipboard.writeText(editedCode);
+                  toast.success(t("copied"));
+                }}
+              />
+              {editedCode !== code && (
+                <SimpleButton
+                  title="Restore original code"
+                  svg={<Icon name="RotateCcw" />}
+                  action={() => {
+                    setEditedCode(code);
+                    toast.success("Code restored");
+                  }}
+                  extraClass=""
+                />
+              )}
+            </>
           )}
           {metadataComponentsArray.map(({ key, value }) => {
             if (Object.keys(metadataComponents).includes(key)) {
@@ -784,16 +856,65 @@ const CustomCodeBlock = ({
         </div>
       </div>
 
-      <SyntaxHighlighter language={language} style={prismStyle}>
-        {code}
-      </SyntaxHighlighter>
-      {executionResult && (
-        <div className={isError ? "stderr" : "stdout"}>
-          <p className="stdout-prefix">
-            ~/learnpack/{getCurrentExercise().slug}
-          </p>
-          {executionResult}
-        </div>
+      {isHtml && hasRunnableMetadata && showHtmlPreview ? (
+        <iframe
+          srcDoc={editedCode}
+          title="HTML Preview"
+          style={{
+            width: "100%",
+            minHeight: "400px",
+            border: "1px solid #ccc",
+            borderRadius: "4px",
+            marginTop: "8px",
+          }}
+        />
+      ) : isEditing ? (
+        <>
+          <MonacoEditor
+            height="300px"
+            language={getMonacoLanguage(language)}
+            theme="vs-dark"
+            value={editedCode}
+            onChange={(value) => setEditedCode(value || "")}
+            options={{
+              minimap: { enabled: false },
+              fontSize: 14,
+              bracketPairColorization: { enabled: true },
+              cursorBlinking: "smooth",
+              wordWrap: "off",
+              padding: { top: 10, bottom: 10 },
+              scrollbar: {
+                vertical: "auto",
+                horizontal: "auto",
+              },
+              lineNumbersMinChars: 3,
+              readOnly: false,
+              automaticLayout: true,
+            }}
+          />
+          {executionResult && (
+            <div className={isError ? "stderr" : "stdout"}>
+              <p className="stdout-prefix">
+                ~/learnpack/{getCurrentExercise().slug}
+              </p>
+              {executionResult}
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          <SyntaxHighlighter language={language} style={prismStyle}>
+            {editedCode}
+          </SyntaxHighlighter>
+          {executionResult && (
+            <div className={isError ? "stderr" : "stdout"}>
+              <p className="stdout-prefix">
+                ~/learnpack/{getCurrentExercise().slug}
+              </p>
+              {executionResult}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
