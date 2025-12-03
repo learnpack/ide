@@ -2548,6 +2548,65 @@ The user's set up the application in "${language}" language, give your feedback 
     return currentContent.slice(startPoint, endPoint);
   },
 
+  moveBlock: async (
+    sourceStart: number,
+    sourceEnd: number,
+    targetStart: number
+  ) => {
+    const { getCurrentExercise, language } = get();
+    const readme = await FetchManager.getReadme(
+      getCurrentExercise().slug,
+      language
+    );
+    let body: string = readme.body;
+
+    if (sourceStart === targetStart || sourceStart >= sourceEnd) {
+      return;
+    }
+
+    const sourceContent = body.slice(sourceStart, sourceEnd);
+
+    if (targetStart < sourceStart) {
+      body =
+        body.slice(0, targetStart) +
+        " \n\n" +
+        sourceContent +
+        " \n\n" +
+        body.slice(targetStart, sourceStart) +
+        body.slice(sourceEnd);
+    } else {
+      body =
+        body.slice(0, sourceStart) +
+        body.slice(sourceEnd, targetStart) +
+        " \n\n" +
+        sourceContent +
+        " \n\n" +
+        body.slice(targetStart);
+    }
+
+    const newReadme = remakeMarkdown(readme.attributes, body);
+
+    set({
+      currentContent: removeFrontMatter(newReadme),
+    });
+
+    await FetchManager.replaceReadme(
+      getCurrentExercise().slug,
+      language,
+      newReadme,
+      false
+    );
+
+    const editedReadme = await FetchManager.getReadme(
+      getCurrentExercise().slug,
+      language
+    );
+
+    set({
+      currentContent: editedReadme.body,
+    });
+  },
+
   insertBeforeOrAfter: async (
     newMarkdown: string,
     position: string,

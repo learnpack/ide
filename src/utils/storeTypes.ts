@@ -410,6 +410,11 @@ export interface IStore {
     endPosition: Point
   ) => Promise<void>;
   getPortion: (startPoint: number, endPoint: number) => string;
+  moveBlock: (
+    sourceStart: number,
+    sourceEnd: number,
+    targetStart: number
+  ) => Promise<void>;
   initRigoAI: () => void;
 }
 

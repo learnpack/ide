@@ -59,6 +59,7 @@ export const CreatorWrapper = ({
     useConsumable,
     reportEnrichDataLayer,
     isBuildable,
+    moveBlock,
   } = useStore((state) => ({
     replaceInReadme: state.replaceInReadme,
     insertBeforeOrAfter: state.insertBeforeOrAfter,
@@ -66,6 +67,7 @@ export const CreatorWrapper = ({
     useConsumable: state.useConsumable,
     reportEnrichDataLayer: state.reportEnrichDataLayer,
     isBuildable: state.isBuildable,
+    moveBlock: state.moveBlock,
   }));
 
   const [isOpen, setIsOpen] = useState(false);
@@ -74,9 +76,12 @@ export const CreatorWrapper = ({
   const [interactions, setInteractions] = useState<TInteraction[]>([]);
   const [isEditingAsMarkdown, setIsEditingAsMarkdown] = useState(false);
   const [containsNewElement, setContainsNewElement] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const elemRef = useRef<HTMLDivElement>(null);
   const targetRef = useRef<HTMLDivElement>(null);
+  const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const { t } = useTranslation();
 
@@ -438,8 +443,161 @@ export const CreatorWrapper = ({
     });
   };
 
+  const findScrollableContainer = (element: HTMLElement | null): HTMLElement | null => {
+    if (!element) return null;
+    
+    let current: HTMLElement | null = element;
+    while (current) {
+      const style = window.getComputedStyle(current);
+      const overflowY = style.overflowY || style.overflow;
+      const hasScrollableContent = current.scrollHeight > current.clientHeight;
+      
+      if ((overflowY === 'auto' || overflowY === 'scroll') && hasScrollableContent) {
+        return current;
+      }
+      
+      current = current.parentElement;
+    }
+    
+    return document.documentElement;
+  };
+
+  const handleAutoScroll = (clientY: number) => {
+    const scrollableContainer = findScrollableContainer(elemRef.current);
+    if (!scrollableContainer) return;
+
+    const containerRect = scrollableContainer.getBoundingClientRect();
+    const scrollThreshold = 100;
+    const scrollSpeed = 15;
+
+    const distanceFromTop = clientY - containerRect.top;
+    const distanceFromBottom = containerRect.bottom - clientY;
+
+    if (distanceFromTop < scrollThreshold && scrollableContainer.scrollTop > 0) {
+      const scrollAmount = Math.max(1, scrollSpeed * (1 - distanceFromTop / scrollThreshold));
+      scrollableContainer.scrollTop -= scrollAmount;
+    } else if (distanceFromBottom < scrollThreshold && 
+               scrollableContainer.scrollTop < scrollableContainer.scrollHeight - scrollableContainer.clientHeight) {
+      const scrollAmount = Math.max(1, scrollSpeed * (1 - distanceFromBottom / scrollThreshold));
+      scrollableContainer.scrollTop += scrollAmount;
+    }
+  };
+
+  const handleDragStart = (e: React.DragEvent) => {
+    if (node?.position?.start?.offset && node?.position?.end?.offset) {
+      const markdownContent = getPortion();
+      if (markdownContent) {
+        e.dataTransfer.setData('text/plain', markdownContent);
+        e.dataTransfer.setData('source-start', node.position.start.offset.toString());
+        e.dataTransfer.setData('source-end', node.position.end.offset.toString());
+        e.dataTransfer.effectAllowed = 'move';
+        setIsDragging(true);
+
+        scrollIntervalRef.current = setInterval(() => {
+          const lastY = (window as any).__lastDragY;
+          if (lastY !== undefined) {
+            handleAutoScroll(lastY);
+          }
+        }, 16) as any;
+
+        (window as any).__dragCleanup = () => {
+          if (scrollIntervalRef.current) {
+            clearInterval(scrollIntervalRef.current);
+            scrollIntervalRef.current = null;
+          }
+          delete (window as any).__lastDragY;
+          delete (window as any).__dragCleanup;
+        };
+      }
+    }
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+    setIsDragOver(false);
+    
+    if ((window as any).__dragCleanup) {
+      (window as any).__dragCleanup();
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+    setIsDragOver(true);
+    (window as any).__lastDragY = e.clientY;
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    const relatedTarget = e.relatedTarget as HTMLElement;
+    if (!elemRef.current?.contains(relatedTarget) && !elemRef.current?.contains(relatedTarget?.parentElement)) {
+      setIsDragOver(false);
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    
+    const sourceStartStr = e.dataTransfer.getData('source-start');
+    const sourceEndStr = e.dataTransfer.getData('source-end');
+    
+    if (!sourceStartStr || !sourceEndStr || !node?.position?.start?.offset) {
+      return;
+    }
+    
+    const sourceStart = parseInt(sourceStartStr);
+    const sourceEnd = parseInt(sourceEndStr);
+    const targetStart = node.position.start.offset;
+    
+    if (sourceStart === targetStart) {
+      return;
+    }
+    
+    try {
+      await moveBlock(sourceStart, sourceEnd, targetStart);
+      
+      reportEnrichDataLayer("creator_block_moved", {
+        source_start: sourceStart,
+        source_end: sourceEnd,
+        target_start: targetStart,
+      });
+    } catch (error) {
+      console.error("Error moving block:", error);
+    }
+  };
+
+  const canDrag = node?.position?.start?.offset !== undefined && node?.position?.end?.offset !== undefined && tagName !== "new";
+
   return (
-    <div className={`creator-wrapper  ${tagName}`}>
+    <div 
+      className={`creator-wrapper  ${tagName} ${isDragOver ? 'drag-over' : ''} ${isDragging ? 'dragging' : ''}`}
+      draggable={canDrag}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      style={{ position: 'relative' }}
+    >
+      {isDragOver && (
+        <div 
+          className="drag-indicator-line" 
+          style={{ 
+            position: 'absolute', 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            height: '3px', 
+            background: 'var(--blue-rigo, #3b82f6)',
+            zIndex: 1000,
+            borderRadius: '2px'
+          }} 
+        />
+      )}
       <SimpleButton
         svg={svgs.plus}
         extraClass="top-centered display-on-hover above-all"
