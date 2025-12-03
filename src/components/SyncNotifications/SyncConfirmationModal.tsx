@@ -81,13 +81,6 @@ export const SyncConfirmationModal = ({ notification, onClose }: Props) => {
             </span>
           </div>
           
-          <div className="flex-x align-center gap-small padding-small rounded bg-warning text-black mt-3">
-            <Icon name="AlertCircle" size={16} />
-            <p className="m-0">
-              {t("sync-confirm-cannot-undo")}
-            </p>
-          </div>
-          
           {/* Show consumable info only if not unlimited */}
           {userConsumables.ai_generation !== -1 && (
             <div className="flex-x align-center gap-small padding-small rounded bg-1">

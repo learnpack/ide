@@ -684,20 +684,48 @@ export const FetchManager = {
     return loggedFormat;
   },
 
-  replaceReadme: async (slug: string, language: string, newReadme: string, skipSyncNotification?: boolean) => {
+  replaceReadme: async (
+    slug: string,
+    language: string,
+    newReadme: string,
+    skipSyncNotification?: boolean,
+    versionId?: string,
+    contentToSaveInHistory?: string
+  ): Promise<{ success: boolean; status?: number; version?: string } | false> => {
     const methods: TMethods = {
       localhost: async () => {
         const url = `${FetchManager.HOST
           }/exercise/${slug}/file/README${getReadmeExtension(language)}`;
+
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
+
+        if (versionId) {
+          headers["x-history-version"] = versionId;
+        }
+
+        // Send both the new content and the content to save in history
+        const body = JSON.stringify({
+          content: newReadme,
+          historyContent: contentToSaveInHistory,
+        });
+
         const res = await fetch(url, {
           method: "PUT",
-          body: newReadme,
+          headers,
+          body,
         });
+
         if (!res.ok) {
-          return false;
+          if (res.status === 409) {
+            toast.error("Version conflict. Refreshing content...");
+          }
+          return { success: false, status: res.status };
         }
-        // await res.json();
-        return true;
+
+        const result = await res.json();
+        return result;
       },
       scorm: async () => {
         console.log("REPLACING README IN SCORM: NOT IMPLEMENTED");
@@ -712,34 +740,60 @@ export const FetchManager = {
         const url = `${FetchManager.HOST
           }/exercise/${slug}/file/README${getReadmeExtension(
             language
-          )}?slug=${exerciseSlug}`;
+          )}?slug=${exerciseSlug}&lang=${language}`;
+
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
+
+        if (versionId) {
+          headers["x-history-version"] = versionId;
+        }
+
+        // Send both the new content and the content to save in history
+        const body = JSON.stringify({
+          content: newReadme,
+          historyContent: contentToSaveInHistory,
+        });
+
         const res = await fetch(url, {
           method: "PUT",
-          body: newReadme,
+          headers,
+          body,
         });
+
         if (!res.ok) {
-          return false;
+          if (res.status === 409) {
+            toast.error("Version conflict. Refreshing content...");
+          }
+          return { success: false, status: res.status };
         }
-        
+
+        const result = await res.json();
+
         // Create sync notification if there are other languages available
         // Skip notification if explicitly requested (e.g., when inserting/removing placeholder)
         if (!skipSyncNotification) {
           try {
             const { exercises } = useStore.getState();
-            const currentExercise = exercises.find(ex => ex.slug === slug);
-            const availableLanguages = Object.keys(currentExercise?.translations || {});
-            
+            const currentExercise = exercises.find((ex) => ex.slug === slug);
+            const availableLanguages = Object.keys(
+              currentExercise?.translations || {}
+            );
+
             // Only create notification if there are multiple languages
             if (availableLanguages.length > 1) {
-              const { createSyncNotification } = await import("../utils/syncNotifications");
+              const { createSyncNotification } = await import(
+                "../utils/syncNotifications"
+              );
               await createSyncNotification({
                 exerciseSlug: slug,
-                sourceLanguage: language
+                sourceLanguage: language,
               });
-              
+
               // Refresh notifications in the background
               const { getSyncNotifications } = useStore.getState();
-              getSyncNotifications().catch(err => {
+              getSyncNotifications().catch((err) => {
                 // Silently fail - non-critical operation
                 console.error("Error refreshing sync notifications:", err);
               });
@@ -750,8 +804,8 @@ export const FetchManager = {
             console.error("Error creating sync notification:", notifError);
           }
         }
-        
-        return true;
+
+        return result;
       },
     };
     return methods[FetchManager.ENVIRONMENT as keyof TMethods]();
