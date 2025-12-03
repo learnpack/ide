@@ -407,8 +407,7 @@ export interface IStore {
   replaceInReadme: (
     newText: string,
     startPosition: Point,
-    endPosition: Point,
-    skipHistory?: boolean
+    endPosition: Point
   ) => Promise<{ success: boolean; error?: any }>;
   getPortion: (startPoint: number, endPoint: number) => string;
   initRigoAI: () => void;

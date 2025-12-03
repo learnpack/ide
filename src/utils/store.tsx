@@ -2507,7 +2507,7 @@ The user's set up the application in "${language}" language, give your feedback 
     });
   },
 
-  replaceInReadme: async (newText: string, startPosition, endPosition, skipHistory: boolean = false) => {
+  replaceInReadme: async (newText: string, startPosition, endPosition) => {
     const {
       getCurrentExercise,
       language,
@@ -2525,12 +2525,6 @@ The user's set up the application in "${language}" language, give your feedback 
 
       let body: string = currentReadme.body;
 
-      // Get the content being replaced to detect placeholder removal
-      const originalContent = body.slice(
-        startPosition.offset,
-        endPosition.offset
-      );
-
       body =
         body.slice(0, startPosition.offset) +
         newText +
@@ -2546,20 +2540,14 @@ The user's set up the application in "${language}" language, give your feedback 
         currentContent: removeFrontMatter(newReadme),
       });
 
-      // Detect if we're removing only the placeholder (empty replacement of placeholder content)
-      const isRemovingPlaceholder =
-        newText === "" &&
-        (originalContent.includes("```new") || originalContent.trim() === "");
-
-
-      // Save with version - send CURRENT content to save in history (unless skipping)
+      // Save with version - always send CURRENT content to save in history
       const result = await FetchManager.replaceReadme(
         getCurrentExercise().slug,
         language,
         newReadme,
-        isRemovingPlaceholder || skipHistory, // Skip notification when removing placeholder or skipping history
-        skipHistory ? undefined : historyVersion, // Only send version if saving to history
-        skipHistory ? undefined : currentFullContent // Only send content to save in history if not skipping
+        false, // skipSyncNotification
+        historyVersion,
+        currentFullContent
       );
 
       // Verify result
@@ -2574,13 +2562,11 @@ The user's set up the application in "${language}" language, give your feedback 
         return { success: false };
       }
 
-      // Update version and history status only if not skipping history
-      if (!skipHistory) {
-        if (result.version) {
-          set({ historyVersion: result.version });
-        }
-        await get().updateHistoryStatus();
+      // Update version and history status
+      if (result.version) {
+        set({ historyVersion: result.version });
       }
+      await get().updateHistoryStatus();
 
       // Confirm with server
       const editedReadme = await FetchManager.getReadme(
@@ -2654,17 +2640,24 @@ The user's set up the application in "${language}" language, give your feedback 
       currentContent: removeFrontMatter(newReadme),
     });
     
-    // Detect if we're inserting the placeholder (contains "```new")
-    const isInsertingPlaceholder = newMarkdown.includes("```new");
+    // Get current content to save in history
+    const currentFullContent = remakeMarkdown(readme.attributes, readme.body);
+    const historyVersion = get().historyVersion;
     
-    await FetchManager.replaceReadme(
+    const result = await FetchManager.replaceReadme(
       getCurrentExercise().slug,
       language,
       newReadme,
-      isInsertingPlaceholder, // Skip notification when inserting placeholder
-      undefined, // Don't send versionId (skip history for placeholders)
-      undefined  // Don't send contentToSaveInHistory (skip history for placeholders)
+      false, // skipSyncNotification
+      historyVersion,
+      currentFullContent
     );
+
+    // Update version if returned
+    if (result && result.version) {
+      set({ historyVersion: result.version });
+    }
+    await get().updateHistoryStatus();
 
     const editedReadme = await FetchManager.getReadme(
       getCurrentExercise().slug,

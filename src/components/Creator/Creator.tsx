@@ -73,18 +73,11 @@ export const CreatorWrapper = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [interactions, setInteractions] = useState<TInteraction[]>([]);
   const [isEditingAsMarkdown, setIsEditingAsMarkdown] = useState(false);
-  const [containsNewElement, setContainsNewElement] = useState(false);
 
   const elemRef = useRef<HTMLDivElement>(null);
   const targetRef = useRef<HTMLDivElement>(null);
 
   const { t } = useTranslation();
-
-  useEffect(() => {
-    if (elemRef.current?.querySelector(".new")) {
-      setContainsNewElement(true);
-    }
-  }, []);
 
   const simplifyLanguage = () => {
     let text = elemRef.current?.innerHTML;
@@ -284,9 +277,7 @@ export const CreatorWrapper = ({
 
   const removeThis = async () => {
     if (node?.position?.start && node?.position?.end) {
-      // Skip history if removing a temporary element (placeholder)
-      const isTemporary = tagName === "new" || containsNewElement;
-      await replaceInReadme("", node?.position?.start, node?.position?.end, isTemporary);
+      await replaceInReadme("", node?.position?.start, node?.position?.end);
     }
     setIsOpen(false);
   };
@@ -499,7 +490,7 @@ export const CreatorWrapper = ({
             isBuildable={isBuildable}
           />
         )}
-        {tagName !== "new" && !containsNewElement && (
+        {tagName !== "new" && (
           <SimpleButton
             svg={svgs.edit}
             extraClass="creator-options-opener svg-blue active-on-hover"
