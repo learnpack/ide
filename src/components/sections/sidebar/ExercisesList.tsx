@@ -457,9 +457,10 @@ function ExerciseCard({
               {DEV_MODE && (
                 <button
                   onClick={() => {
+                    toast.success("Marking as done...");
                     markLessonAsDone(
                       config.config.slug,
-                      foundInSyllabus.id,
+                      slug,
                       token
                     );
                   }}

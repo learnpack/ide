@@ -191,16 +191,16 @@ export const continueGenerating = async (
 
 export const markLessonAsDone = async (
   courseSlug: string,
-  lessonId: string,
+  lessonSlug: string,
   rigoToken: string
 ) => {
   const headers = {
     "x-rigo-token": rigoToken,
   };
-  const response = await axios.post(
+  const response = await axios.put(
     `${
       DEV_MODE ? "http://localhost:3000" : ""
-    }/actions/mark-as-done/${courseSlug}/${lessonId}`,
+    }/courses/${courseSlug}/lessons/${lessonSlug}/status`,
     {},
     { headers }
   );

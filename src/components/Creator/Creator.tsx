@@ -10,6 +10,11 @@ import { Loader } from "../composites/Loader/Loader";
 import { AutoResizeTextarea } from "../composites/AutoResizeTextarea/AutoResizeTextarea";
 import toast from "react-hot-toast";
 import { Icon } from "../Icon";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import DOMPurify from "dompurify";
 import {
   DEV_MODE,
@@ -101,7 +106,7 @@ export const CreatorWrapper = ({
       );
       text = textPortion;
     }
-    
+
     if (text && targetRef.current) {
       setIsGenerating(true);
       RigoAI.useTemplate({
@@ -185,7 +190,7 @@ export const CreatorWrapper = ({
         onComplete: (success: boolean, data: any) => {
           console.log(data, "DATA FROM SUMMARIZE TEXT");
           if (success) {
-            
+
             setIsGenerating(false);
             setReplacementValue(data.data.answer);
             useConsumable("ai-generation");
@@ -250,7 +255,7 @@ export const CreatorWrapper = ({
         node?.position?.end.offset || 0
       );
     }
-    
+
     if (elementText && targetRef.current && question) {
       console.log(getComponentsInfo());
       RigoAI.useTemplate({
@@ -267,7 +272,7 @@ export const CreatorWrapper = ({
           if (success) {
             setIsGenerating(false);
             console.log(data, "DATE RETURNED BY RIGOBOT");
-            
+
             setReplacementValue(data.data.parsed.replacement);
             const interaction: TInteraction = {
               initial: elementText,
@@ -423,8 +428,8 @@ export const CreatorWrapper = ({
 
   const getPortion = () => {
     console.log(node?.position?.start?.offset && node?.position?.end?.offset);
-    
-    if (typeof(node?.position?.start?.offset) === "number" && typeof(node?.position?.end?.offset) === "number") {
+
+    if (typeof (node?.position?.start?.offset) === "number" && typeof (node?.position?.end?.offset) === "number") {
       return getPortionFromText(
         currentContent,
         node?.position?.start.offset,
@@ -445,20 +450,20 @@ export const CreatorWrapper = ({
 
   const findScrollableContainer = (element: HTMLElement | null): HTMLElement | null => {
     if (!element) return null;
-    
+
     let current: HTMLElement | null = element;
     while (current) {
       const style = window.getComputedStyle(current);
       const overflowY = style.overflowY || style.overflow;
       const hasScrollableContent = current.scrollHeight > current.clientHeight;
-      
+
       if ((overflowY === 'auto' || overflowY === 'scroll') && hasScrollableContent) {
         return current;
       }
-      
+
       current = current.parentElement;
     }
-    
+
     return document.documentElement;
   };
 
@@ -476,8 +481,8 @@ export const CreatorWrapper = ({
     if (distanceFromTop < scrollThreshold && scrollableContainer.scrollTop > 0) {
       const scrollAmount = Math.max(1, scrollSpeed * (1 - distanceFromTop / scrollThreshold));
       scrollableContainer.scrollTop -= scrollAmount;
-    } else if (distanceFromBottom < scrollThreshold && 
-               scrollableContainer.scrollTop < scrollableContainer.scrollHeight - scrollableContainer.clientHeight) {
+    } else if (distanceFromBottom < scrollThreshold &&
+      scrollableContainer.scrollTop < scrollableContainer.scrollHeight - scrollableContainer.clientHeight) {
       const scrollAmount = Math.max(1, scrollSpeed * (1 - distanceFromBottom / scrollThreshold));
       scrollableContainer.scrollTop += scrollAmount;
     }
@@ -515,7 +520,7 @@ export const CreatorWrapper = ({
   const handleDragEnd = () => {
     setIsDragging(false);
     setIsDragOver(false);
-    
+
     if ((window as any).__dragCleanup) {
       (window as any).__dragCleanup();
     }
@@ -541,25 +546,25 @@ export const CreatorWrapper = ({
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
-    
+
     const sourceStartStr = e.dataTransfer.getData('source-start');
     const sourceEndStr = e.dataTransfer.getData('source-end');
-    
+
     if (!sourceStartStr || !sourceEndStr || !node?.position?.start?.offset) {
       return;
     }
-    
+
     const sourceStart = parseInt(sourceStartStr);
     const sourceEnd = parseInt(sourceEndStr);
     const targetStart = node.position.start.offset;
-    
+
     if (sourceStart === targetStart) {
       return;
     }
-    
+
     try {
       await moveBlock(sourceStart, sourceEnd, targetStart);
-      
+
       reportEnrichDataLayer("creator_block_moved", {
         source_start: sourceStart,
         source_end: sourceEnd,
@@ -572,30 +577,30 @@ export const CreatorWrapper = ({
 
   const canDrag = node?.position?.start?.offset !== undefined && node?.position?.end?.offset !== undefined && tagName !== "new";
 
+  console.log(canDrag, "CAN DRAG");
+
+
   return (
-    <div 
+    <div
       className={`creator-wrapper  ${tagName} ${isDragOver ? 'drag-over' : ''} ${isDragging ? 'dragging' : ''}`}
-      draggable={canDrag}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       style={{ position: 'relative' }}
     >
       {isDragOver && (
-        <div 
-          className="drag-indicator-line" 
-          style={{ 
-            position: 'absolute', 
-            top: 0, 
-            left: 0, 
-            right: 0, 
-            height: '3px', 
+        <div
+          className="drag-indicator-line"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '3px',
             background: 'var(--blue-rigo, #3b82f6)',
             zIndex: 1000,
             borderRadius: '2px'
-          }} 
+          }}
         />
       )}
       <SimpleButton
@@ -656,12 +661,34 @@ export const CreatorWrapper = ({
           />
         )}
         {tagName !== "new" && !containsNewElement && (
-          <SimpleButton
-            svg={svgs.edit}
-            extraClass="creator-options-opener svg-blue active-on-hover"
-            title={t("edit-element-tooltip")}
-            action={() => setIsOpen(!isOpen)}
-          />
+          <div className="creator-controls">
+            {canDrag && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div
+                    className="creator-drag-handle svg-blue active-on-hover"
+                    draggable={true}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ cursor: 'grab' }}
+                  >
+                    <Icon name="Move" size={16} />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-[200px]">
+                  <p>{t("drag-to-reorder")}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            <SimpleButton
+              svg={svgs.edit}
+              extraClass="creator-options-opener svg-blue active-on-hover"
+              title={t("edit-element-tooltip")}
+              action={() => setIsOpen(!isOpen)}
+            />
+          </div>
         )}
         {isEditingAsMarkdown ? (
           <AutoResizeTextarea
@@ -675,16 +702,15 @@ export const CreatorWrapper = ({
         )}
       </div>
       <div
-        className={`creator-target  ${
-          replacementValue ? "border-blue padding-medium" : ""
-        }`}
+        className={`creator-target  ${replacementValue ? "border-blue padding-medium" : ""
+          }`}
       >
         <div
           contentEditable
           className="creator-target-content hidden"
           ref={targetRef}
         ></div>
-        
+
         {isEditingAsMarkdown ? (
           replacementValue && (
             <div className="flex-x gap-small target-buttons justify-center">
@@ -873,7 +899,7 @@ const ImageUploader = ({
     const imgSlug = slugify(fileToUpload.name);
     const imgPath = `courses/${config.config?.slug}/.learn/assets/${imgSlug}`;
     const relativePath = `/.learn/assets/${imgSlug}`;
-    
+
     try {
       const blob = new Blob([fileToUpload]);
       await uploadBlobToBucket(blob, imgPath);
@@ -942,11 +968,10 @@ const ImageGenerator = ({
         await generateImage(token, {
           prompt,
           context: `The image to generate is part of a lesson in a tutorial, this is the content of the lesson: ${currentContent}`,
-          callbackUrl: `${
-            DEV_MODE
-              ? DEV_URL
-              : window.location.origin
-          }/webhooks/${config.config?.slug}/images/${randomID}`,
+          callbackUrl: `${DEV_MODE
+            ? DEV_URL
+            : window.location.origin
+            }/webhooks/${config.config?.slug}/images/${randomID}`,
         });
 
         const replacement = makeReplacement(randomID, prompt);
@@ -1049,13 +1074,13 @@ const CodeChallengeGenerator = ({
           // Create the block with GENERATING status
           const generatingContent = `\`\`\`code_challenge_proposal\nGENERATING(${result.id}) ${promptText}\n\`\`\``;
           onFinish(generatingContent);
-          
+
           toast.success(t("code-challenge-generation-started"), { id: tid });
           reportEnrichDataLayer("creator_code_challenge_generation_started", {
             prompt: promptText,
             completion_id: result.id,
           });
-          
+
           try {
             await useConsumable("ai-generation");
           } catch (error) {
@@ -1220,19 +1245,19 @@ const RigoInput = ({
               // 2. allowedElements must be exactly ["new"]
               // 3. type must be "button"
               // 4. text must match the translation key
-              const isCodeChallengeButton = tagName === "new" && 
+              const isCodeChallengeButton = tagName === "new" &&
                 Array.isArray(prompt.allowedElements) &&
-                prompt.allowedElements.length === 1 && 
+                prompt.allowedElements.length === 1 &&
                 prompt.allowedElements[0] === "new" &&
                 prompt.type === "button" &&
                 prompt.text === t("add-code-challenge");
-              
+
               // Only disable if:
               // 1. This is definitely the code challenge button
               // 2. AND isBuildable is true (meaning the lesson has interactive exercises - entry file or files for cloud compilation)
               // isBuildable comes from the store and indicates if the exercise can be built/executed
               const isDisabled = isCodeChallengeButton && isBuildable === true;
-              
+
               const tooltipTitle = isDisabled ? t("add-code-challenge-disabled-tooltip") : prompt.title;
 
               return prompt.type === "button" ? (
@@ -1262,7 +1287,7 @@ const RigoInput = ({
                     ref={toneRef}
                     key={prompt.text}
                     className={`rounded `}
-                    // onChange={(e) => prompt.action(e.target.value)}
+                  // onChange={(e) => prompt.action(e.target.value)}
                   >
                     {prompt.options?.map((option) => (
                       <option key={option} value={option}>
