@@ -39,6 +39,7 @@ import { useCompletionJobStatus } from "../../../hooks/useCompletionJobStatus";
 import { AutoResizeTextarea } from "../AutoResizeTextarea/AutoResizeTextarea";
 import { isRunnableCodeBlock } from "../../../utils/runnableDetection";
 import MonacoEditor from "@monaco-editor/react";
+import { Toolbar } from "../Editor/Editor";
 
 
 const ClickMeToGetID = ({ id }: { id: string }) => {
@@ -443,12 +444,12 @@ export const Markdowner = ({
               if (metadata) {
                 metadataObject = extractMetadata(metadata);
               }
-              
+
               const isRunnable = isRunnableCodeBlock(code, lang);
               if (isRunnable) {
                 metadataObject.runnable = true;
               }
-              
+
               return {
                 lang,
                 code,
@@ -535,7 +536,7 @@ const CustomImage = ({
       // Check if alt is a path (user-uploaded image) vs a description (AI proposal)
       const isUserUploadedImage = alt?.startsWith("/.learn/assets/") || alt?.startsWith(".learn/assets/");
       const isAIImageInAssets = src.includes("/.learn/assets/") || src.startsWith(".learn/assets/");
-      
+
       // If it's an AI image proposal (in .learn/assets, no "GENERATING" prefix, and alt is not a path), 
       // show RealtimeImage directly. Proposals don't have images yet, so we shouldn't wait for hasError
       if (isAIImageInAssets && !isGenerating && !isUserUploadedImage) {
@@ -550,7 +551,7 @@ const CustomImage = ({
           </CreatorWrapper>
         );
       }
-      
+
       // For images with "GENERATING" prefix, user-uploaded images, or external images, try to load first
       // If it fails and has "GENERATING", show RealtimeImage (handles both generating and completed images with bug)
       return (
@@ -738,78 +739,79 @@ const CustomCodeBlock = ({
     return <FillInTheBlankRenderer node={node} code={code} metadata={metadata} />;
   }
 
+
+  const isHtml = language.toLowerCase() === "html";
+
+
+  const buildWithRigo = async () => {
+    if (isExecuting) return;
+    if (!token) {
+      toast.error(t("youMustLoginFirst"));
+      setOpenedModals({ mustLogin: true });
+      return;
+    }
+    setIsExecuting(true);
+    setExecutionResult(null);
+    setIsError(false);
+    RigoAI.useTemplate({
+      slug: "structured-build-learnpack",
+      inputs: {
+        code: editedCode,
+        inputs: "{}",
+      },
+      onComplete: (success, rigoData) => {
+        if (success && rigoData?.data?.parsed) {
+          const parsed = rigoData.data.parsed;
+
+          if (parsed.exit_code && parsed.exit_code > 0) {
+            const errorMessage = parsed.stderr || parsed.stdout || t("errorExecutingCode");
+            setExecutionResult(errorMessage);
+            setIsError(true);
+            useConsumable("ai-compilation");
+          } else {
+            setExecutionResult(parsed.stdout || "");
+            setIsError(false);
+            useConsumable("ai-compilation");
+          }
+        } else {
+          const errorMessage = rigoData?.error || t("errorConnectingAPI");
+          setExecutionResult(errorMessage);
+          setIsError(true);
+          console.error("Error running code", rigoData);
+        }
+        setIsExecuting(false);
+      },
+    });
+  }
+
+  const onBuild = () => {
+    setExecutionResult(null);
+    setIsError(false);
+    if (isHtml) {
+      setIsExecuting(true);
+      setShowHtmlPreview(!showHtmlPreview);
+      setIsExecuting(false);
+    } else {
+      buildWithRigo();
+    }
+  };
+
   const metadataComponents = {
     runnable: (value: boolean | string) => {
-      if (value) {
-        const isHtml = language.toLowerCase() === "html";
-        
-        if (isHtml) {
-          return (
-            <SimpleButton
-              title={showHtmlPreview ? "Show Code" : t("runCode")}
-              svg={showHtmlPreview ? <Icon name="Code" /> : <Icon name="Play" />}
-              action={() => {
-                setShowHtmlPreview(!showHtmlPreview);
-              }}
-              extraClass=""
-            />
-          );
-        }
-        
-        return (
-          <SimpleButton
-            title={t("runCode")}
-            svg={isExecuting ? <Loader extraClass="svg-blue" svg={<Icon name="Play" />} text={t("runningCode")} size="sm"/> : <Icon name="Play" />}
-            action={async () => {
-              if (isExecuting) return;
-              if (!token) {
-                toast.error(t("youMustLoginFirst"));
-                setOpenedModals({ mustLogin: true });
-                return;
-              }
-              setIsExecuting(true);
-              setExecutionResult(null);
-              setIsError(false);
-              RigoAI.useTemplate({
-                slug: "structured-build-learnpack",
-                inputs: {
-                  code: editedCode,
-                  inputs: "{}",
-                },
-                onComplete: (success, rigoData) => {
-                  if (success && rigoData?.data?.parsed) {
-                    const parsed = rigoData.data.parsed;
-                    
-                    if (parsed.exit_code && parsed.exit_code > 0) {
-                      const errorMessage = parsed.stderr || parsed.stdout || t("errorExecutingCode");
-                      setExecutionResult(errorMessage);
-                      setIsError(true);
-                      useConsumable("ai-compilation");
-                    } else {
-                      setExecutionResult(parsed.stdout || "");
-                      setIsError(false);
-                      useConsumable("ai-compilation");
-                    }
-                  } else {
-                    const errorMessage = rigoData?.error || t("errorConnectingAPI");
-                    setExecutionResult(errorMessage);
-                    setIsError(true);
-                    console.error("Error running code", rigoData);
-                  }
-                  setIsExecuting(false);
-                },
-              });
-            }}
-            extraClass=""
-          />
-        );
-      }
+      console.debug("runnable", value);
+      return null
     },
   };
 
   const metadataComponentsArray = objectToArray(metadata);
-  const isHtml = language.toLowerCase() === "html";
-  const hasRunnableMetadata = metadataComponentsArray.some(({ key, value }) => key === "runnable" && value);
+  // const hasRunnableMetadata = metadataComponentsArray.some(({ key, value }) => key === "runnable" && value);
+
+  const onReset = () => {
+    setEditedCode(code);
+  };
+
+  console.log("executionResult", executionResult);
+
 
   return (
     <div className="flex-y my-small custom-code-block">
@@ -818,13 +820,15 @@ const CustomCodeBlock = ({
         <div className="d-flex gap-small text-normal">
           {!isIframe && agent !== "vscode" && (
             <>
-              <SimpleButton
-                title={isEditing ? "Stop editing" : "Edit code"}
-                svg={isEditing ? <Icon name="Check" /> : <Icon name="Pencil" />}
-                action={() => {
-                  setIsEditing(!isEditing);
-                }}
-              />
+              {isEditing && (
+                <SimpleButton
+                  title={t("stopEditing")}
+                  svg={<Icon name="Check" />}
+                  action={() => {
+                    setIsEditing(false);
+                  }}
+                />
+              )}
               <SimpleButton
                 title={t("copyCodeToClipboard")}
                 svg={<Icon name="Copy" />}
@@ -833,17 +837,6 @@ const CustomCodeBlock = ({
                   toast.success(t("copied"));
                 }}
               />
-              {editedCode !== code && (
-                <SimpleButton
-                  title="Restore original code"
-                  svg={<Icon name="RotateCcw" />}
-                  action={() => {
-                    setEditedCode(code);
-                    toast.success("Code restored");
-                  }}
-                  extraClass=""
-                />
-              )}
             </>
           )}
           {metadataComponentsArray.map(({ key, value }) => {
@@ -856,26 +849,14 @@ const CustomCodeBlock = ({
         </div>
       </div>
 
-      {isHtml && hasRunnableMetadata && showHtmlPreview ? (
-        <iframe
-          srcDoc={editedCode}
-          title="HTML Preview"
-          style={{
-            width: "100%",
-            minHeight: "400px",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-            marginTop: "8px",
-          }}
-        />
-      ) : isEditing ? (
+      {isEditing ? (
         <>
           <MonacoEditor
-            height="300px"
+            height="230px"
             language={getMonacoLanguage(language)}
             theme="vs-dark"
             value={editedCode}
-            onChange={(value) => setEditedCode(value || "")}
+            onChange={(value) => { setEditedCode(value || ""); setExecutionResult(null); setIsError(false); }}
             options={{
               minimap: { enabled: false },
               fontSize: 14,
@@ -892,28 +873,70 @@ const CustomCodeBlock = ({
               automaticLayout: true,
             }}
           />
-          {executionResult && (
-            <div className={isError ? "stderr" : "stdout"}>
-              <p className="stdout-prefix">
-                ~/learnpack/{getCurrentExercise().slug}
-              </p>
-              {executionResult}
+          <Toolbar
+            editorStatus="MODIFIED"
+            position="sticky"
+            onReset={onReset}
+            onBuild={onBuild}
+            isRunning={isExecuting}
+            isHtml={isHtml}
+          />
+
+          {(Boolean(executionResult) || showHtmlPreview) && (
+            <div>
+              {isHtml ? (
+                <>
+                  <div style={{ width: "fit-content" }} className="browser-tab d-flex align-center gap-small">
+                    <span>HTML Preview</span>
+                    <SimpleButton
+                      title="Close"
+                      extraClass="text-danger"
+                      svg={<Icon name="X" />}
+                      action={() => {
+                        setShowHtmlPreview(false);
+                      }}
+                    />
+                  </div>
+                  <iframe
+                    srcDoc={editedCode}
+                    title="HTML Preview"
+                    style={{
+                      width: "100%",
+                      minHeight: "400px",
+                      border: "1px solid #ccc",
+                      borderRadius: "4px",
+                      marginTop: "8px",
+                    }}
+                  />
+                </>
+              ) : (
+                <>
+                  <div className={isError ? "stderr" : "stdout"}>
+                    <p className="stdout-prefix">
+                      ~/learnpack/{getCurrentExercise().slug}
+                    </p>
+                    <pre>{executionResult}</pre>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </>
       ) : (
         <>
-          <SyntaxHighlighter language={language} style={prismStyle}>
-            {editedCode}
-          </SyntaxHighlighter>
-          {executionResult && (
-            <div className={isError ? "stderr" : "stdout"}>
-              <p className="stdout-prefix">
-                ~/learnpack/{getCurrentExercise().slug}
-              </p>
-              {executionResult}
-            </div>
-          )}
+          <div
+            onDoubleClick={() => {
+              if (!isIframe) {
+                setIsEditing(true);
+              }
+            }}
+            style={{ cursor: !isIframe && agent !== "vscode" ? "pointer" : "default" }}
+            title={!isIframe && agent !== "vscode" ? "Double click to edit" : undefined}
+          >
+            <SyntaxHighlighter language={language} style={prismStyle}>
+              {editedCode}
+            </SyntaxHighlighter>
+          </div>
         </>
       )}
     </div>
@@ -930,12 +953,12 @@ const ChangesDiffRenderer = ({ code, node }: { code: string, node: any }) => {
     // Validate newContent before accepting
     if (!newContent || newContent.trim() === "" || newContent === "undefined") {
       toast.error(
-        t("changes-incomplete") || 
+        t("changes-incomplete") ||
         "The proposed changes are incomplete. Please reject them and try again with Rigobot."
       );
       return;
     }
-    
+
     console.log("acceptChanges", newContent, node.position.start, node.position.end);
     await replaceInReadme(newContent, node.position.start, node.position.end);
     toast.success(t("changes-accepted"));
@@ -1157,7 +1180,7 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
 
 
 const CodeChallengeProposalRenderer = ({ code, node, allowCreate }: { code: string, node: Element, allowCreate: boolean }) => {
-  
+
   const {
     replaceInReadme,
     token,
@@ -1212,7 +1235,7 @@ const CodeChallengeProposalRenderer = ({ code, node, allowCreate }: { code: stri
     }
   }, [pollingStatus]);
 
-  
+
   if (!node) return null;
 
   // Handle socket updates for code challenge completion
@@ -1322,7 +1345,7 @@ const CodeChallengeProposalRenderer = ({ code, node, allowCreate }: { code: stri
   return (
     <div className="bg-2 padding-medium rounded border-blue">
       <h4 className="gap-small text-center flex-x align-center justify-center"><Icon name="Code" /> {t("code-challenge-proposal")}</h4>
-      
+
       {allowCreate && isEditing ? (
         <div className="flex-y gap-small">
           <AutoResizeTextarea
@@ -1333,7 +1356,7 @@ const CodeChallengeProposalRenderer = ({ code, node, allowCreate }: { code: stri
             placeholder={t("code-challenge-description-placeholder") || "Describe el ejercicio de código..."}
           />
           <div className="d-flex gap-small justify-center">
-            <SimpleButton 
+            <SimpleButton
               action={() => {
                 setIsEditing(false);
                 // Update the markdown with edited content
@@ -1341,19 +1364,19 @@ const CodeChallengeProposalRenderer = ({ code, node, allowCreate }: { code: stri
                 if (node?.position?.start && node?.position?.end) {
                   replaceInReadme(updatedContent, node.position.start, node.position.end);
                 }
-              }} 
-              extraClass="bg-blue-rigo text-white padding-small rounded" 
-              text={t("save")} 
-              svg={<Icon name="Check" />} 
+              }}
+              extraClass="bg-blue-rigo text-white padding-small rounded"
+              text={t("save")}
+              svg={<Icon name="Check" />}
             />
-            <SimpleButton 
+            <SimpleButton
               action={() => {
                 setIsEditing(false);
                 setEditedCode(originalCode);
-              }} 
-              extraClass="bg-gray padding-small rounded" 
-              text={t("cancel")} 
-              svg={<Icon name="X" />} 
+              }}
+              extraClass="bg-gray padding-small rounded"
+              text={t("cancel")}
+              svg={<Icon name="X" />}
             />
           </div>
         </div>
@@ -1362,23 +1385,23 @@ const CodeChallengeProposalRenderer = ({ code, node, allowCreate }: { code: stri
           <p>{editedCode || originalCode}</p>
           {allowCreate && (
             <div className="d-flex gap-small justify-center">
-              <SimpleButton 
-                action={() => setIsEditing(true)} 
-                extraClass="bg-gray padding-small rounded" 
-                text={t("edit")} 
-                svg={svgs.edit} 
+              <SimpleButton
+                action={() => setIsEditing(true)}
+                extraClass="bg-gray padding-small rounded"
+                text={t("edit")}
+                svg={svgs.edit}
               />
-              <SimpleButton 
-                action={handleAccept} 
-                extraClass="bg-blue-rigo text-white padding-small rounded" 
-                text={t("accept")} 
-                svg={<Icon name="Check" />} 
+              <SimpleButton
+                action={handleAccept}
+                extraClass="bg-blue-rigo text-white padding-small rounded"
+                text={t("accept")}
+                svg={<Icon name="Check" />}
               />
-              <SimpleButton 
-                action={handleReject} 
-                extraClass="bg-gray padding-small rounded" 
-                text={t("reject")} 
-                svg={<Icon name="X" />} 
+              <SimpleButton
+                action={handleReject}
+                extraClass="bg-gray padding-small rounded"
+                text={t("reject")}
+                svg={<Icon name="X" />}
               />
             </div>
           )}

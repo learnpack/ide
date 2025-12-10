@@ -20,7 +20,7 @@ export default function Sidebar() {
     setShowSidebar,
     isIframe,
     mode,
-    setMode,
+    // setMode,
     environment,
     openLink,
     fetchExercises,
@@ -32,7 +32,7 @@ export default function Sidebar() {
     setShowSidebar: state.setShowSidebar,
     isIframe: state.isIframe,
     mode: state.mode,
-    setMode: state.setMode,
+    // setMode: state.setMode,
     environment: state.environment,
     openLink: state.openLink,
     fetchExercises: state.fetchExercises,
@@ -68,19 +68,6 @@ export default function Sidebar() {
         <div className="sidebar-component">
           <section className="d-flex gap-small align-center justify-between  bg-rigo  rounded text-white w-100">
             <p className="margin-0 padding-small">Menu</p>
-            {environment === "creatorWeb" && (
-              <SimpleButton
-                svg={mode === "creator" ? svgs.run : svgs.edit}
-                title={mode === "creator" ? t("preview-as-student") : t("edit-mode")}
-                action={() => {
-                  if (mode === "creator") {
-                    setMode("student");
-                  } else {
-                    setMode("creator");
-                  }
-                }}
-              />
-            )}
           </section>
 
           <ExercisesList mode={mode} closeSidebar={closeSidebar} />

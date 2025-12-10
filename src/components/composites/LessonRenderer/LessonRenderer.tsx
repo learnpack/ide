@@ -132,14 +132,33 @@ export const LessonRenderer = memo(() => {
   const editingContent = useStore((s) => s.editingContent);
   const agent = useStore((s) => s.agent);
   const environment = useStore((s) => s.environment);
+  const setOpenedModals = useStore((s) => s.setOpenedModals);
+  const lastState = useStore((s) => s.lastState);
+  const isTesteable = useStore((s) => s.isTesteable);
+  const lastTestResult = useStore((s) => s.lastTestResult);
+  const isBuildable = useStore((s) => s.isBuildable);
 
   console.log("Rendering LessonRenderer", {
     currentContent,
     editingContent,
     agent,
     environment,
+    lastState,
   });
 
+  const onReset = () => {
+    setOpenedModals({ reset: true });
+  };
+
+  const onlyContinue = !isBuildable && !isTesteable;
+  const toolbarStateClass = 
+    lastTestResult?.status === "failed"
+      ? "error"  // Tests failed - keep toolbar red even if compilation succeeds
+      : lastTestResult?.status === "successful" && lastState === "success"
+      ? "success"  // Tests passed - toolbar green
+      : lastState === "error"
+      ? "error"  // Compilation error (no test result yet)
+      : "";  // Normal state
   return (
     <div className="lesson-content">
       <LessonInspector />
@@ -151,7 +170,7 @@ export const LessonRenderer = memo(() => {
       <ContinueButton />
 
       {environment === "localhost" && agent === "vscode" && (
-        <Toolbar editorStatus="MODIFIED" position="sticky" />
+        <Toolbar editorStatus="MODIFIED" position="sticky" onReset={onReset} toolbarStateClass={toolbarStateClass} onlyContinue={onlyContinue} />
       )}
     </div>
   );

@@ -143,7 +143,9 @@
     "test-my-code": "Test my code",
     "test-and-send": "Test & Send",
     "see-terminal-output": "View code execution",
+    "see-terminal-output-html": "Website preview",
     "see-terminal-output-tooltip": "Runs your code and shows the output.",
+    "see-terminal-output-tooltip-html": "Build your website and see the result in the browser.",
     "test-and-send-tooltip": "Verifies your code meets all requirements using automated tests",
     "display-another-tab": "Display in another tab",
     "close-tab": "Close tab",
@@ -578,5 +580,6 @@
     "languages-completed": "{{completed}} of {{total}} languages",
     "modified-time-ago": "Modified {{time}}",
     "time-since-modification-tooltip": "Modified {{time}} ago",
-    "languages": "languages"
+    "languages": "languages",
+    "stopEditing": "Stop editing"
 }

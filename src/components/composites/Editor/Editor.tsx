@@ -60,8 +60,11 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     updateFileContent,
     cleanTerminal,
     theme,
+    lastTestResult,
+    lastState,
     // updateDBSession,
     mode,
+    setOpenedModals,
     fetchExercises,
     createNewFile,
     renameFileInExercise,
@@ -72,11 +75,14 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     updateFileContent: state.updateFileContent,
     cleanTerminal: state.cleanTerminal,
     theme: state.theme,
+    lastTestResult: state.lastTestResult,
+    lastState: state.lastState,
     // updateDBSession: state.updateDBSession,
     mode: state.mode,
     fetchExercises: state.fetchExercises,
     createNewFile: state.createNewFile,
     renameFileInExercise: state.renameFileInExercise,
+    setOpenedModals: state.setOpenedModals,
   }));
 
   const { t } = useTranslation();
@@ -90,6 +96,8 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
   const [editingTabOriginalName, setEditingTabOriginalName] = useState<string>("");
   const [editingTabExtension, setEditingTabExtension] = useState<string>("");
   const [isRenaming, setIsRenaming] = useState<boolean>(false);
+  const isBuildable = useStore((s) => s.isBuildable);
+  const isTesteable = useStore((s) => s.isTesteable);
 
   // const debouncedStore = useCallback(
   //   debounce(() => {
@@ -425,9 +433,26 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     }
   }, [tabs]);
 
+  const onReset = () => {
+    setOpenedModals({ reset: true });
+  };
+
   const terminalTab = tabs.find((tab) => tab.name === "terminal");
 
   const filteredTabs = tabs.filter((tab) => tab.name !== "terminal");
+
+  const toolbarStateClass = 
+    lastTestResult?.status === "failed"
+      ? "error"  // Tests failed - keep toolbar red even if compilation succeeds
+      : lastTestResult?.status === "successful" && lastState === "success"
+      ? "success"  // Tests passed - toolbar green
+      : lastState === "error"
+      ? "error"  // Compilation error (no test result yet)
+      : "";  // Normal state
+
+  const onlyContinue = !isBuildable && !isTesteable;
+
+  const hasHTML = tabs.some((tab) => tab.name.includes(".html"));
 
   return (
     <div
@@ -610,7 +635,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                 </div>
               )
           )}
-          <Toolbar editorStatus={editorStatus} />
+          <Toolbar editorStatus={editorStatus} onReset={onReset} toolbarStateClass={toolbarStateClass} onlyContinue={onlyContinue} isHtml={hasHTML} />
         </div>
       )}
 
@@ -709,15 +734,20 @@ const Terminal = ({
   editorStatus: TEditorStatus;
 }) => {
   const { t } = useTranslation();
-  const { getCurrentExercise, lastState, isTesteable, runExerciseTests } = useStore((state) => ({
+  const { getCurrentExercise, lastState, isTesteable, lastTestResult, runExerciseTests, setOpenedModals } = useStore((state) => ({
     getCurrentExercise: state.getCurrentExercise,
     lastState: state.lastState,
     isTesteable: state.isTesteable,
+    lastTestResult: state.lastTestResult,
     runExerciseTests: state.runExerciseTests,
+    setOpenedModals: state.setOpenedModals,
     // editorStatus: state.editorStatus,
   }));
 
   const [showInfo, setShowInfo] = useState(false);
+  const onReset = () => {
+    setOpenedModals({ reset: true });
+  };
 
   const [browserTabTitle, setBrowserTabTitle] = useState(
     window.location.host + "/preview"
@@ -748,6 +778,17 @@ const Terminal = ({
     }
   };
 
+  const toolbarStateClass = 
+    lastTestResult?.status === "failed"
+      ? "error"  // Tests failed - keep toolbar red even if compilation succeeds
+      : lastTestResult?.status === "successful" && lastState === "success"
+      ? "success"  // Tests passed - toolbar green
+      : lastState === "error"
+      ? "error"  // Compilation error (no test result yet)
+      : "";  // Normal state
+
+  const onlyContinue = !isTesteable && lastState === "success"; 
+
   return (
     <>
       {terminalTab && !terminalTab.isHTML && (
@@ -763,6 +804,10 @@ const Terminal = ({
               editorStatus={editorStatus}
               position="relative"
               dropdownDirection="down"
+              toolbarStateClass={toolbarStateClass}
+              onlyContinue={onlyContinue}
+              onReset={onReset}
+              isHtml={terminalTab.isHTML}
             />
           )}
           <div className={`terminal ${terminalState}`}>
@@ -914,31 +959,38 @@ type EditorFooterProps = {
   editorStatus: TEditorStatus;
   position?: "absolute" | "fixed" | "sticky" | "relative";
   dropdownDirection?: "up" | "down";
+  onReset?: () => void;
+  toolbarStateClass?: "error" | "success" | "";
+  onlyContinue?: boolean;
+  onRunTests?: () => void;
+  onBuild?: () => void;
+  isRunning?: boolean;
+  isHtml?: boolean;
 };
 
 export const Toolbar = ({
   editorStatus,
   position = "absolute",
   dropdownDirection = "up",
+  onReset = () => {},
+  onlyContinue = false,
+  toolbarStateClass = "",
+  onRunTests,
+  onBuild,
+  isRunning,
+  isHtml,
 }: EditorFooterProps) => {
   const { t } = useTranslation();
   const {
     lastState,
     getCurrentExercise,
-    isBuildable,
-    isTesteable,
     currentExercisePosition,
     exercises,
-    lastTestResult,
   } = useStore((state) => ({
     lastState: state.lastState,
     getCurrentExercise: state.getCurrentExercise,
-    isBuildable: state.isBuildable,
-    isTesteable: state.isTesteable,
-    handlePositionChange: state.handlePositionChange,
     currentExercisePosition: state.currentExercisePosition,
     exercises: state.exercises,
-    lastTestResult: state.lastTestResult,
   }));
 
   const ex = getCurrentExercise();
@@ -946,19 +998,7 @@ export const Toolbar = ({
   const letPass =
     lastState === "success" && ex.done && editorStatus === "MODIFIED";
 
-  const onlyContinue = !isBuildable && !isTesteable;
   const isLastExercise = currentExercisePosition === exercises.length - 1;
-
-  // Only apply success class when tests pass, not when only compilation succeeds
-  // Keep error state if tests failed, even if compilation succeeds later
-  const toolbarStateClass = 
-    lastTestResult?.status === "failed"
-      ? "error"  // Tests failed - keep toolbar red even if compilation succeeds
-      : lastTestResult?.status === "successful" && lastState === "success"
-      ? "success"  // Tests passed - toolbar green
-      : lastState === "error"
-      ? "error"  // Compilation error (no test result yet)
-      : "";  // Normal state
 
   return (
     <div
@@ -967,7 +1007,7 @@ export const Toolbar = ({
     >
       {letPass && (
         <div className="footer-actions">
-          <ResetButton />
+          {onReset && <ResetButton onReset={onReset} />}
           <NextButton />
         </div>
       )}
@@ -998,8 +1038,8 @@ export const Toolbar = ({
             </>
           ) : (
             <>
-              <CompileOptions dropdownDirection={dropdownDirection} />
-              <ResetButton />
+              <CompileOptions dropdownDirection={dropdownDirection} onRunTests={onRunTests} onBuild={onBuild} isRunning={isRunning} isHtml={isHtml} />
+              {onReset && <ResetButton onReset={onReset} />}
               <FeedbackButton direction={dropdownDirection} />
             </>
           )}
