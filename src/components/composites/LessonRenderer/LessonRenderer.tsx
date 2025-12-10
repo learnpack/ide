@@ -69,20 +69,35 @@ const LessonInspector = () => {
     intervalRef.current = setTimeout(async () => {
       const katexErrors = document.querySelectorAll("span.katex-error");
       const errorTexts = document.querySelectorAll("text.error-text");
+      const taskListItems = document.querySelectorAll("li.task-list-item");
 
-      // Find the title attribute of the katex errors
-      const katexErrorsTitles = Array.from(katexErrors).map((error) => {
-        return error.getAttribute("title") || "";
-      });
+      if (katexErrors.length > 0 || errorTexts.length > 0 || taskListItems.length > 0) {
+        let foundErrors = "There are\n";
+        
+        if (katexErrors.length > 0) {
+          foundErrors += `<KATEX_ERRORS> ${katexErrors.length} katex errors:\n`;
+          katexErrors.forEach((error) => {
+            foundErrors += `  - ${error.getAttribute("title") || ""}\n`;
+          });
+          foundErrors += `</KATEX_ERRORS>\n`;
+        }
 
-      if (katexErrors.length > 0 || errorTexts.length > 0) {
-        const foundKatexErrors = `Inside this lesson, there are ${
-          katexErrors.length
-        } katex errors and ${
-          errorTexts.length
-        } error texts related to mermaid diagrams. The titles of the katex errors are: ${katexErrorsTitles.join(
-          ", "
-        )}`;
+        if (errorTexts.length > 0) {
+          foundErrors += `<MERMAID_ERRORS> ${errorTexts.length} error texts related to mermaid diagrams:\n`;
+          errorTexts.forEach((error) => {
+            foundErrors += `  - ${error.textContent || ""}\n`;
+          });
+          foundErrors += `</MERMAID_ERRORS>\n`;
+        }
+        
+        if (taskListItems.length > 0) {
+          foundErrors += `<TASK_LIST_ITEMS> ${taskListItems.length} task list items that are not properly formatted as quizzes:\n`;
+          taskListItems.forEach((item) => {
+            foundErrors += `  - ${item.textContent || ""}\n`;
+          });
+          foundErrors += `</TASK_LIST_ITEMS>\n`;
+        }
+
 
         if (environment !== "creatorWeb") {
           console.log("not creator web, skipping fix lesson");
@@ -93,7 +108,7 @@ const LessonInspector = () => {
 
         const inputs = {
           lesson_content: currentContent,
-          found_errors: foundKatexErrors,
+          found_errors: foundErrors,
         };
         const { notificationId } = await fixLesson(
           token,
