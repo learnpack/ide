@@ -1298,7 +1298,6 @@ a {
 
 .auto-resize-textarea {
   overflow: hidden;
-  max-height: 300px;
   border-radius: 5px;
   padding: 10px;
   font-size: 16px;

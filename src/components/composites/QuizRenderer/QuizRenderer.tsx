@@ -417,7 +417,6 @@ const QuizQuestion = ({
       restoredAnswer.current = ""; // Reset
     }
   }, [questionTitle, restoredSelections, currentAnswer]);
-
   return (
     <div className="flex-y gap-small">
       <QuizTitle onTitleReady={onTitleReady}>{p}</QuizTitle>
@@ -452,6 +451,9 @@ const QuizTitle = ({
     }
   }, [h4Ref.current]);
 
+  console.log(children, "children");
+  
+
   return <h4 ref={h4Ref}>{children}</h4>;
 };
 
@@ -474,7 +476,7 @@ const QuizAnswer = ({
   }
 
   if (typeof children.find !== "function") {
-    return children;
+    return <li className="text-base">{children}</li>;
   }
   const input = children.find((child: any) => child.type === "input");
 
