@@ -6,6 +6,9 @@ export const compileHTML = (tabs: Tab[]) => {
   let htmlCode = "";
 
   tabs.forEach((tab) => {
+    if (tab.name.includes("solution.hide")) {
+      return;
+    }
     if (tab.name.endsWith(".js")) {
       jsCode += `<script>${tab.content}</script>\n`;
     }
@@ -72,6 +75,10 @@ export const compileReactHTML = (tabs: Tab[]) => {
   `;
 
   tabs.forEach((tab) => {
+
+    if (tab.name.includes("solution.hide")) {
+      return;
+    }
     if (tab.name.endsWith(".js") || tab.name.endsWith(".jsx")) {
       const filteredContent = tab.content
         .split("\n")

@@ -5,7 +5,6 @@ import { Preview } from "../Preview/Preview";
 
 export const PreviewHTMLPage: React.FC = () => {
   const [htmlString, setHtmlString] = useState("");
-  const [isReact, setIsReact] = useState(false);
 
   const [previewTitle, setPreviewTitle] = useState("");
 
@@ -20,10 +19,8 @@ export const PreviewHTMLPage: React.FC = () => {
 
     const data = event.data;
     if (data.html) {
+      console.log("data.html", data.html);
       setHtmlString(data.html);
-    }
-    if (data.isReact) {
-      setIsReact(data.isReact);
     }
   };
 
@@ -41,12 +38,14 @@ export const PreviewHTMLPage: React.FC = () => {
     }
   }, [previewTitle]);
 
+  console.log(htmlString, "htmlString");
+
   return (
     <main className="vh100 overflow-y-hidden">
       <Preview
         onTitleRevealed={foundPreviewTitle}
         html={htmlString}
-        useIframe={isReact}
+        useIframe={true}
       />
     </main>
   );

@@ -734,7 +734,7 @@ const Terminal = ({
   editorStatus: TEditorStatus;
 }) => {
   const { t } = useTranslation();
-  const { getCurrentExercise, lastState, isTesteable, lastTestResult, runExerciseTests, setOpenedModals } = useStore((state) => ({
+  const { getCurrentExercise, lastState, isTesteable, lastTestResult, runExerciseTests, setOpenedModals, configObject } = useStore((state) => ({
     getCurrentExercise: state.getCurrentExercise,
     lastState: state.lastState,
     isTesteable: state.isTesteable,
@@ -742,6 +742,7 @@ const Terminal = ({
     runExerciseTests: state.runExerciseTests,
     setOpenedModals: state.setOpenedModals,
     // editorStatus: state.editorStatus,
+    configObject: state.configObject,
   }));
 
   const [showInfo, setShowInfo] = useState(false);
@@ -764,8 +765,9 @@ const Terminal = ({
   };
 
   const openTabAndSendMessage = (html: string, isReact: boolean) => {
+    const courseSlug = configObject.config.slug;
     const newTab = window.open(
-      `/preview?slug=${getCurrentExercise().slug}`,
+      `/preview/${courseSlug}/webview?${getCurrentExercise().slug}`,
       "__blank"
     );
 
@@ -896,7 +898,7 @@ const Terminal = ({
               </Tooltip>
               <div className="d-flex ">
                 <SimpleButton
-                  title={t("display-another-tab ")}
+                  title={t("display-another-tab")}
                   size="mini"
                   svg={svgs.newTab}
                   extraClass="hover rounded"
