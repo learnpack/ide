@@ -75,12 +75,12 @@ const HOST = getHost();
 
 // const chatSocket = io(`${FASTAPI_HOST}`);
 
-  // chatSocket.on("connect", () => {
-  //   console.debug("connected to chat socket at ", FASTAPI_HOST);
-  // });
-  // chatSocket.on("disconnect", () => {
-  //   console.debug("disconnected from chat socket at ", FASTAPI_HOST);
-  // });
+// chatSocket.on("connect", () => {
+//   console.debug("connected to chat socket at ", FASTAPI_HOST);
+// });
+// chatSocket.on("disconnect", () => {
+//   console.debug("disconnected from chat socket at ", FASTAPI_HOST);
+// });
 
 const defaultParams = getParamsObject() as TPossibleParams;
 
@@ -226,11 +226,11 @@ const useStore = create<IStore>((set, get) => ({
       const fixedParams = hashParams.replace(/\?/g, '&');
       const urlParams = new URLSearchParams(fixedParams);
       const paramsObject: Record<string, string> = {};
-      
+
       for (const [key, value] of urlParams.entries()) {
         paramsObject[key] = value;
       }
-      
+
       if (Object.keys(paramsObject).length > 0) {
         setQueryParams(paramsObject as TPossibleParams);
         window.location.hash = '';
@@ -241,7 +241,7 @@ const useStore = create<IStore>((set, get) => ({
       fetchExercises,
       fetchReadme,
       checkParams,
-      checkLoggedStatus,  
+      checkLoggedStatus,
       figureEnvironment,
       startTelemetry,
       getOrCreateActiveSession,
@@ -284,8 +284,8 @@ const useStore = create<IStore>((set, get) => ({
       });
   },
 
-  initCompilerSocket: async ( testingEnvironment?: "auto" | "cloud" | "local" ) => {
-    const {configObject, setListeners} = get();
+  initCompilerSocket: async (testingEnvironment?: "auto" | "cloud" | "local") => {
+    const { configObject, setListeners } = get();
     const testEnv = testingEnvironment || configObject.config.testingEnvironment || "auto";
 
     if (testEnv === "auto") {
@@ -331,7 +331,7 @@ const useStore = create<IStore>((set, get) => ({
       if (get().targetButtonForFeedback === "feedback") {
         setFeedbackButtonProps("test-and-send", "bg-success text-white");
       } else {
-        setBuildButtonPrompt("see-terminal-output", "bg-gray-dark text-black");
+        setBuildButtonPrompt("see-terminal-output", "bg-success text-white");
       }
       playEffect("success");
       Notifier.confetti();
@@ -366,7 +366,7 @@ const useStore = create<IStore>((set, get) => ({
       set({ isCompiling: false });
 
       setBuildButtonPrompt("try-again", "bg-fail text-white");
-      
+
       toastFromStatus("compiler-error");
       if (environment === "localStorage") {
         registerTelemetryEvent("compile", data);
@@ -384,7 +384,7 @@ const useStore = create<IStore>((set, get) => ({
 
       toastFromStatus("compiler-success");
 
-      setBuildButtonPrompt("see-terminal-output", "bg-gray-dark text-black");
+      setBuildButtonPrompt("see-terminal-output", "bg-success text-white");
       if (environment === "localStorage") {
         registerTelemetryEvent("compile", data);
       }
@@ -628,8 +628,9 @@ The user's set up the application in "${language}" language, give your feedback 
       const config = await FetchManager.getExercises(token);
       if (!config) {
         console.error("Config were not fetched from fetch manager");
-        
-        return};
+
+        return
+      };
 
       if (
         config.config.authentication &&
@@ -671,12 +672,12 @@ The user's set up the application in "${language}" language, give your feedback 
           user_id: user_id,
         },
       });
-      
+
       if (config.exercises && config.exercises.length > 0) {
         // Try to merge with session if available to preserve 'done' status
         const { sessionKey } = get();
         let exercisesToSet = config.exercises;
-        
+
         // If we have a session key, try to get session and merge exercises
         if (sessionKey && token) {
           try {
@@ -692,7 +693,7 @@ The user's set up the application in "${language}" language, give your feedback 
             console.log("Could not fetch session for merge in fetchExercises:", error);
           }
         }
-        
+
         set({ exercises: exercisesToSet });
       }
 
@@ -879,7 +880,7 @@ The user's set up the application in "${language}" language, give your feedback 
     }
     setBuildButtonPrompt("see-terminal-output", "");
     setFeedbackButtonProps("test-and-send", "");
-    set({ 
+    set({
       lastState: "",
       lastTestResult: {
         status: "",
@@ -1255,73 +1256,73 @@ The user's set up the application in "${language}" language, give your feedback 
     if (syllabus?.lessons) {
       const { exercises } = get();
       const pendingTranslations: TLanguageTranslation[] = [];
-      
+
       // Collect all languages that were started according to syllabus
       const languagesInProgress = new Set<string>();
-      
+
       syllabus.lessons.forEach((lesson: any) => {
         if (lesson.translations) {
           Object.entries(lesson.translations).forEach(([lang, trans]: [string, any]) => {
             // If translation was started (has startedAt), track it
-            if (trans.startedAt) {
+            if (trans.startedAt && !trans.completedAt) {
               languagesInProgress.add(lang);
             }
           });
         }
       });
-      
-      // ALSO collect all languages that already exist in exercises (to check if they're complete)
-      // This is important for languages like English that might be complete but not in syllabus
-      exercises.forEach((ex: TExercise) => {
-        if (ex.translations) {
-          Object.keys(ex.translations).forEach(lang => {
-            languagesInProgress.add(lang);
-          });
-        }
-      });
-      
+
+
       // For each language that was started, check if files actually exist
       // Strategy: Files are the source of truth (primary), completedAt is backup (secondary)
       // This ensures resilience: if syllabus update fails but file exists, we still detect completion
       // The ex.translations object comes from backend and is based on actual README files,
       // so checking ex.translations[lang] is equivalent to checking file existence
+
+      let langCompletionRate: Record<string, { pendingCount: number, totalCount: number }> = {}
+
       languagesInProgress.forEach(lang => {
+        langCompletionRate[lang] = { pendingCount: 0, totalCount: syllabus.lessons.length }
         const allHaveTranslation = exercises.every((ex: TExercise) => {
           // PRIORITY 1: Check if translation file exists (source of truth)
           // The translations object comes from backend endpoint that detects README files
           const hasFile = ex.translations && ex.translations[lang];
-          
+
           // Special case for English: README.md (without language code) is the English translation
           if (lang === "en" && !hasFile) {
             // Fallback: check if README.md exists in files array
-            const hasReadmeMd = ex.files && ex.files.some((f: TFile) => 
+            const hasReadmeMd = ex.files && ex.files.some((f: TFile) =>
               f.name === "README.md" || f.name.endsWith("/README.md")
             );
-            if (hasReadmeMd) return true;
+            if (hasReadmeMd) { return true }
+            else { langCompletionRate[lang].pendingCount++; }
           }
-          
+
+          langCompletionRate[lang].pendingCount++;
+
           // File existence is the source of truth
           // If file doesn't exist, translation is not complete (even if completedAt exists in syllabus)
           // This ensures consistency: if file was deleted or upload failed, we detect it correctly
           return hasFile;
         });
-        
+
         if (!allHaveTranslation) {
           // Files don't exist yet, so it's truly pending
-          const firstTransWithLang = syllabus.lessons.find((l: any) => 
+          const firstTransWithLang = syllabus.lessons.find((l: any) =>
             l.translations && l.translations[lang]
           );
-          
+
           pendingTranslations.push({
             code: lang,
             status: "translating",
             startedAt: firstTransWithLang?.translations[lang]?.startedAt || Date.now(),
+            completedExercises: langCompletionRate[lang].pendingCount,
+            totalExercises: langCompletionRate[lang].totalCount,
           });
         } else {
           console.log(`Translation for ${lang} is complete (all files exist), not adding to pending`);
         }
       });
-      
+
       if (pendingTranslations.length > 0) {
         set({ pendingTranslations });
       }
@@ -1339,7 +1340,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
     try {
       const data = await fetchSyncNotifications();
-    
+
       if (!data || !data.notifications) {
         set({ syncNotifications: [] });
         return;
@@ -1403,7 +1404,7 @@ The user's set up the application in "${language}" language, give your feedback 
     // Verify and consume consumable if not unlimited
     if (userConsumables.ai_generation !== -1) {
       const hasEnough = userConsumables.ai_generation >= 1;
-      
+
       if (!hasEnough) {
         toast.error(i18n.t("sync-consumable-insufficient"));
         return;
@@ -1411,7 +1412,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
       // Consume the consumable
       const consumed = await get().useConsumable("ai-generation");
-      
+
       if (!consumed) {
         toast.error(i18n.t("error-consuming-consumable"));
         return;
@@ -1445,7 +1446,7 @@ The user's set up the application in "${language}" language, give your feedback 
             : n
         ),
       });
-      
+
       // Note: If error occurred after consuming, we cannot revert the consumable
       // but we show the error to the user
     }
@@ -1522,7 +1523,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
     copy[Number(currentExercisePosition)].done = status === "successful";
 
-    set({ 
+    set({
       exercises: copy,
       lastTestResult: {
         status: status,
@@ -1713,12 +1714,12 @@ The user's set up the application in "${language}" language, give your feedback 
           ...ex,
           done: ex.done ?? false
         }));
-        
+
         const configToSave = {
           ...configObject,
           exercises: exercisesWithDone
         };
-        
+
         await updateSession(
           token,
           storedTabHash,
@@ -1793,7 +1794,7 @@ The user's set up the application in "${language}" language, give your feedback 
       exercises: exercisesWithDone,
       currentExercise: exercise.slug,
     };
-    
+
     let cachedSessionKey = "";
     if (!sessionKey) {
       cachedSessionKey = await FetchManager.getSessionKey();
@@ -1840,7 +1841,7 @@ The user's set up the application in "${language}" language, give your feedback 
   createNewFile: async (filename: string, content: string = "") => {
     const { getCurrentExercise, editorTabs, setEditorTabs, fetchExercises, mode } = get();
     const exercise = getCurrentExercise();
-    
+
     try {
       if (mode === "creator") {
         const { createFile } = await import("../utils/creator");
@@ -1861,7 +1862,7 @@ The user's set up the application in "${language}" language, give your feedback 
       setEditorTabs([...updatedTabs, newTab]);
 
       await fetchExercises();
-      
+
       console.log(`✅ File ${filename} created successfully`);
     } catch (error) {
       console.error("Error creating file:", error);
@@ -1869,12 +1870,12 @@ The user's set up the application in "${language}" language, give your feedback 
     }
   },
   renameFileInExercise: async (exerciseSlug: string, oldFilename: string, newFilename: string) => {
-    const { 
-      exercises, 
-      editorTabs, 
-      setEditorTabs, 
-      fetchExercises, 
-      mode 
+    const {
+      exercises,
+      editorTabs,
+      setEditorTabs,
+      fetchExercises,
+      mode
     } = get();
 
     // Función auxiliar para calcular el nombre del archivo de solución
@@ -2037,12 +2038,12 @@ The user's set up the application in "${language}" language, give your feedback 
         ...ex,
         done: ex.done ?? false
       }));
-      
+
       const configToSave = {
         ...configObject,
         exercises: exercisesWithDone
       };
-      
+
       const session = await createSession(
         token,
         tabHash,
@@ -2400,6 +2401,8 @@ The user's set up the application in "${language}" language, give your feedback 
   },
 
   setPendingTranslations: (translations: TLanguageTranslation[] | ((prev: TLanguageTranslation[]) => TLanguageTranslation[])) => {
+    console.log(translations, "translations from setPendingTranslations");
+
     if (typeof translations === 'function') {
       const { pendingTranslations } = get();
       set({ pendingTranslations: translations(pendingTranslations) });
@@ -2412,7 +2415,7 @@ The user's set up the application in "${language}" language, give your feedback 
     const { pendingTranslations } = get();
     set({
       pendingTranslations: pendingTranslations.map(t =>
-        t.code === languageCode 
+        t.code === languageCode
           ? { ...t, status, completedAt: status === "completed" ? Date.now() : t.completedAt, error }
           : t
       ),
@@ -2449,7 +2452,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
   test: async () => {
     FetchManager.logout()
-    
+
   },
 
   addVideoTutorial: async (videoTutorial: string) => {
@@ -2506,7 +2509,7 @@ The user's set up the application in "${language}" language, give your feedback 
     );
 
     let body: string = readme.body;
-    
+
     // Get the content being replaced to detect placeholder removal
     const originalContent = body.slice(startPosition.offset, endPosition.offset);
 
@@ -2520,12 +2523,12 @@ The user's set up the application in "${language}" language, give your feedback 
     set({
       currentContent: removeFrontMatter(newReadme),
     });
-    
+
     // Detect if we're removing only the placeholder (empty replacement of placeholder content)
-    const isRemovingPlaceholder = 
-      newText === "" && 
+    const isRemovingPlaceholder =
+      newText === "" &&
       (originalContent.includes("```new") || originalContent.trim() === "");
-    
+
     await FetchManager.replaceReadme(
       getCurrentExercise().slug,
       language,
@@ -2640,10 +2643,10 @@ The user's set up the application in "${language}" language, give your feedback 
     set({
       currentContent: removeFrontMatter(newReadme),
     });
-    
+
     // Detect if we're inserting the placeholder (contains "```new")
     const isInsertingPlaceholder = newMarkdown.includes("```new");
-    
+
     await FetchManager.replaceReadme(
       getCurrentExercise().slug,
       language,
