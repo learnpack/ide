@@ -8,6 +8,7 @@ import useStore from "../../../utils/store";
 import { Notifier } from "../../../managers/Notifier";
 import { svgs } from "../../../assets/svgs";
 import TelemetryManager, { TQuizSubmission } from "../../../managers/telemetry";
+import { eventBus } from "@/managers/eventBus";
 
 type TQuizGroup = {
   title: string;
@@ -263,6 +264,12 @@ export const QuizRenderer = ({ children }: { children: any }) => {
       quiz.current.attempts.push(submission);
 
       registerTelemetryEvent("quiz_submission", submission);
+      eventBus.emit("assessment_completed", {
+        status: submission.status,
+        ended_at: submission.ended_at,
+        type: "multiple-choice",
+        score: submission.percentage,
+      });
       setShowResults(true);
       if (submission.status === "SUCCESS") {
         toastFromStatus("quiz-success");

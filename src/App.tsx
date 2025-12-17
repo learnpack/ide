@@ -15,7 +15,7 @@ import PreviewGenerator from "./components/composites/PreviewImageGenerator/Prev
 import { PositionHandler } from "./components/composites/PositionHandler/PositionHandler";
 import TranslationListener from "./components/Creator/TranslationListener";
 import SyncNotificationListener from "./components/SyncNotifications/SyncNotificationListener";
-
+import EventListener from "./managers/eventListener";
 export default function Home() {
   const start = useStore((s) => s.start);
   const handleEnvironmentChange = useStore((s) => s.handleEnvironmentChange);
@@ -60,6 +60,7 @@ export default function Home() {
       <SocketHandler />
       <NewHeader />
       <Container />
+      <EventListener />
     </main>
   );
 }

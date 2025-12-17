@@ -40,6 +40,7 @@ import { AutoResizeTextarea } from "../AutoResizeTextarea/AutoResizeTextarea";
 import { isRunnableCodeBlock } from "../../../utils/runnableDetection";
 import MonacoEditor from "@monaco-editor/react";
 import { Toolbar } from "../Editor/Editor";
+import { eventBus } from "@/managers/eventBus";
 
 
 const ClickMeToGetID = ({ id }: { id: string }) => {
@@ -1109,6 +1110,12 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
     } else {
       toast.error(`You got ${correctCount} out of ${totalCount} correct. ${t("Keep practicing!")}`);
     }
+    eventBus.emit("assessment_completed", {
+      status: correctCount === totalCount ? "SUCCESS" : "ERROR",
+      ended_at: Date.now(),
+      type: "fill-in-the-blank",
+      score: correctCount === totalCount ? 100 : 0,
+    });
   };
 
   const handleReset = () => {

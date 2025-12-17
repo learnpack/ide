@@ -65,6 +65,7 @@ import {
   acceptSyncNotification as acceptSyncNotificationAPI,
 } from "./syncNotifications";
 import i18n from "./i18n";
+import { eventBus } from "@/managers/eventBus";
 
 type TFile = {
   name: string;
@@ -319,6 +320,12 @@ const useStore = create<IStore>((set, get) => ({
       set({ isCompiling: false });
       set({ lastState: "success", terminalShouldShow: true });
       toastFromStatus("testing-success");
+      eventBus.emit("assessment_completed", {
+        status: "SUCCESS",
+        ended_at: Date.now(),
+        type: "code",
+        score: 100,
+      });
 
       if (environment === "localStorage") {
         registerTelemetryEvent("test", data.result);
@@ -343,7 +350,12 @@ const useStore = create<IStore>((set, get) => ({
       setTestResult("failed", stdout);
       set({ lastState: "error", terminalShouldShow: true });
       toastFromStatus("testing-error");
-
+      eventBus.emit("assessment_completed", {
+        status: "ERROR",
+        ended_at: Date.now(),
+        type: "code",
+        score: 0,
+      });
       if (environment === "localStorage") {
         registerTelemetryEvent("test", data.result);
       }

@@ -588,5 +588,7 @@
     "modified-time-ago": "Modificada hace {{time}}",
     "time-since-modification-tooltip": "Modificada hace {{time}}",
     "languages": "idiomas",
-    "stopEditing": "Detener edición"
+    "stopEditing": "Detener edición",
+    "lesson-complete": "¡Lección Completada!",
+    "exercises-completed": "Ejercicios Completados"
 }

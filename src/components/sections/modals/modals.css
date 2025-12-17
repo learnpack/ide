@@ -28,3 +28,143 @@
 .login-modal input {
   font-size: 16px;
 }
+
+/* Last Lesson Finished Modal */
+.last-lesson-finished-modal {
+  text-align: center;
+}
+
+.last-lesson-finished-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  gap: 24px;
+  min-height: 400px;
+  justify-content: space-between;
+}
+
+.celebration-icon {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.celebration-emoji {
+  font-size: 80px;
+  animation: bounce 0.6s ease-in-out;
+  position: relative;
+  z-index: 1;
+}
+
+.celebration-crown {
+  position: absolute;
+  top: -10px;
+  font-size: 40px;
+  animation: float 2s ease-in-out infinite;
+  z-index: 2;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(-5deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(5deg);
+  }
+}
+
+.progress-bar-container {
+  width: 100%;
+  max-width: 300px;
+  height: 12px;
+  background-color: #e0e0e0;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd700, #ffed4e);
+  border-radius: 6px;
+  transition: width 0.5s ease-in-out;
+  box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+}
+
+.congratulations-message {
+  font-size: 28px;
+  font-weight: bold;
+  color: #333;
+  margin: 16px 0;
+  line-height: 1.3;
+}
+
+.course-title-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 400px;
+  margin: 8px 0;
+}
+
+.course-title-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.course-title-label {
+  font-size: 14px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.course-title-value {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.continue-button-container {
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  padding-top: 20px;
+}
+
+.continue-button-green {
+  min-width: 150px;
+  padding: 14px 28px;
+  font-size: 18px;
+  font-weight: 600;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.continue-button-green:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}

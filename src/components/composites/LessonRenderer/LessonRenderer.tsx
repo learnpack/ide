@@ -26,13 +26,24 @@ const ContinueButton = () => {
   };
 
   useEffect(() => {
-    eventBus.on("position_changed", () => {
+    const handlePositionChanged = () => {
       setLoading(false);
-    });
+    };
+    
+    const handleLastLessonFinished = () => {
+      setLoading(false);
+    };
+
+    eventBus.on("position_changed", handlePositionChanged);
+    eventBus.on("last_lesson_finished", handleLastLessonFinished);
+
+    return () => {
+      eventBus.off("position_changed", handlePositionChanged);
+      eventBus.off("last_lesson_finished", handleLastLessonFinished);
+    };
   }, []);
 
   return (
-    !isLastExercise &&
     agent !== "vscode" &&
     !hasBodyLessonLoader() && (
       <div
@@ -44,12 +55,16 @@ const ContinueButton = () => {
         tabIndex={0}
         onClick={() => {
           setLoading(true);
-          eventBus.emit("position_change", {
-            position: Number(currentExercisePosition) + 1,
-          });
+          if (isLastExercise) {
+            eventBus.emit("last_lesson_finished", {});
+          } else {
+            eventBus.emit("position_change", {
+              position: Number(currentExercisePosition) + 1,
+            });
+          }
         }}
       >
-        {loading ? t("loading") : t("continue")}
+        {loading ? t("loading") : isLastExercise ? "Finish" : t("continue")}
       </div>
     )
   );

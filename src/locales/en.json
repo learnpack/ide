@@ -581,5 +581,7 @@
     "modified-time-ago": "Modified {{time}}",
     "time-since-modification-tooltip": "Modified {{time}} ago",
     "languages": "languages",
-    "stopEditing": "Stop editing"
+    "stopEditing": "Stop editing",
+    "lesson-complete": "Lesson Complete!",
+    "exercises-completed": "Exercises Completed"
 }
