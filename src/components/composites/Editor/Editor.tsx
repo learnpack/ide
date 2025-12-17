@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState} from "react";
 import MonacoEditor from "@monaco-editor/react";
 import useStore from "../../../utils/store";
 import { LocalStorage } from "../../../managers/localStorage";
@@ -34,6 +34,17 @@ const languageMap: { [key: string]: string } = {
   ".css": "css",
   ".html": "html",
   ".jsx": "javascript",
+  ".ts": "typescript",
+  ".tsx": "typescript",
+  ".java": "java",
+  ".c": "c",
+  ".cpp": "cpp",
+  ".csharp": "csharp",
+  ".php": "php",
+  ".ruby": "ruby",
+  ".go": "go",
+  ".rs": "rust",
+  ".swift": "swift",
   // Agrega más extensiones y lenguajes según sea necesario
 };
 
@@ -883,6 +894,7 @@ const Terminal = ({
           }
           showCloseButton={false}
           addPadding={false}
+          resizable={true}
         >
           <div className={`terminal ${terminalState} html browser`}>
             <div className="d-flex justify-between align-center browser-header">
