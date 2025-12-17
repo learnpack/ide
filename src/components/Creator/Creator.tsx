@@ -27,7 +27,7 @@ import {
 import { generateCodeChallenge } from "../../utils/creator";
 
 type TPromp = {
-  type: "button" | "select" | "input";
+  type: "button" | "select" | "input" | "image-generate" | "code-challenge";
   text?: string;
   title?: string;
   options?: string[];
@@ -65,6 +65,9 @@ export const CreatorWrapper = ({
     reportEnrichDataLayer,
     isBuildable,
     moveBlock,
+    token,
+    configObject,
+    currentExercisePosition,
   } = useStore((state) => ({
     replaceInReadme: state.replaceInReadme,
     insertBeforeOrAfter: state.insertBeforeOrAfter,
@@ -73,6 +76,9 @@ export const CreatorWrapper = ({
     reportEnrichDataLayer: state.reportEnrichDataLayer,
     isBuildable: state.isBuildable,
     moveBlock: state.moveBlock,
+    token: state.token,
+    configObject: state.configObject,
+    currentExercisePosition: state.currentExercisePosition,
   }));
 
   const [isOpen, setIsOpen] = useState(false);
@@ -353,6 +359,107 @@ export const CreatorWrapper = ({
     reportEnrichDataLayer("creator_result_rejected", {});
   };
 
+  const handleImageGenerate = async (prompt: string) => {
+    if (!prompt.trim()) return;
+
+    const randomID = Math.random().toString(36).substring(2, 15);
+    await generateImage(token, {
+      prompt,
+      context: `The image to generate is part of a lesson in a tutorial, this is the content of the lesson: ${currentContent}`,
+      callbackUrl: `${DEV_MODE
+        ? DEV_URL
+        : window.location.origin
+        }/webhooks/${configObject.config?.slug}/images/${randomID}`,
+    });
+
+    const replacement = makeReplacement(randomID, prompt);
+    if (node?.position?.start && node?.position?.end) {
+      await replaceInReadme(
+        replacement,
+        node?.position?.start,
+        node?.position?.end
+      );
+    }
+    reportEnrichDataLayer("creator_image_generation_started", {
+      prompt,
+      image_id: randomID,
+    });
+    try {
+      await useConsumable("ai-generation");
+    } catch (error) {
+      console.error("Error using consumable", error);
+    }
+    setIsOpen(false);
+  };
+
+  const handleCodeChallenge = async (promptText: string) => {
+    const trimmedPrompt = promptText.trim();
+    if (!trimmedPrompt) {
+      toast.error(t("missing-required-content"));
+      return;
+    }
+
+    if (!token) {
+      toast.error(t("authentication-required"));
+      return;
+    }
+
+    const courseSlug = configObject?.config?.slug;
+    if (!courseSlug) {
+      toast.error(t("course-slug-not-found"));
+      return;
+    }
+
+    const tid = toast.loading(t("generating-code-challenge"));
+
+    try {
+      const result = await generateCodeChallenge(
+        trimmedPrompt,
+        currentContent,
+        Number(currentExercisePosition),
+        token,
+        courseSlug
+      );
+
+      if (result.status === "QUEUED") {
+        const generatingContent = `\`\`\`code_challenge_proposal\nGENERATING(${result.id}) ${trimmedPrompt}\n\`\`\``;
+        if (node?.position?.start && node?.position?.end) {
+          await replaceInReadme(
+            generatingContent,
+            node?.position?.start,
+            node?.position?.end
+          );
+        }
+
+        toast.success(t("code-challenge-generation-started"), { id: tid });
+        reportEnrichDataLayer("creator_code_challenge_generation_started", {
+          prompt: trimmedPrompt,
+          completion_id: result.id,
+        });
+
+        try {
+          await useConsumable("ai-generation");
+        } catch (error) {
+          console.error("Error using consumable", error);
+        }
+      } else {
+        toast.error(t("failed-to-start-code-challenge-generation"), { id: tid });
+      }
+    } catch (error) {
+      console.error("Error generating code challenge:", error);
+      toast.error(t("error-generating-code-challenge-files"), { id: tid });
+      const errorContent = `\`\`\`code_challenge_proposal\n${trimmedPrompt}\n\`\`\``;
+      if (node?.position?.start && node?.position?.end) {
+        await replaceInReadme(
+          errorContent,
+          node?.position?.start,
+          node?.position?.end
+        );
+      }
+    }
+    setIsOpen(false);
+  };
+
   const promps: TPromp[] = [
     {
       type: "button",
@@ -423,6 +530,26 @@ export const CreatorWrapper = ({
         "text-secondary  rounded padding-small danger-on-hover svg-blue",
       svg: svgs.trash,
       allowedElements: ["all"],
+    },
+    {
+      type: "image-generate",
+      text: t("generateImage"),
+      title: t("generate-image-tooltip"),
+      action: () => {},
+      extraClass: "text-secondary  rounded padding-small active-on-hover svg-blue",
+      svg: svgs.image,
+      allowedElements: ["all"],
+      placeholder: t("describeImage"),
+    },
+    {
+      type: "code-challenge",
+      text: t("add-code-challenge"),
+      title: isBuildable ? t("add-code-challenge-disabled-tooltip") : t("add-code-challenge-tooltip"),
+      action: () => {},
+      extraClass: "text-secondary  rounded padding-small active-on-hover svg-blue ",
+      svg: <Icon name="Code" />,
+      allowedElements: ["new"],
+      placeholder: t("code-challenge-prompt-placeholder"),
     },
   ];
 
@@ -627,6 +754,8 @@ export const CreatorWrapper = ({
           node={node}
           promps={promps}
           onSubmit={askAIAnything}
+          onImageGenerate={handleImageGenerate}
+          onCodeChallenge={handleCodeChallenge}
           isBuildable={isBuildable}
         />
       )}
@@ -657,6 +786,8 @@ export const CreatorWrapper = ({
             tagName={tagName}
             node={node}
             onEditAsMarkdown={handleEditAsMarkdown}
+            onImageGenerate={handleImageGenerate}
+            onCodeChallenge={handleCodeChallenge}
             isBuildable={isBuildable}
           />
         )}
@@ -943,214 +1074,6 @@ export const makeReplacement = (imgID: string, alt: string) => {
   return `![GENERATING: ${alt}](/.learn/assets/${imgID})`;
 };
 
-const ImageGenerator = ({
-  onFinish,
-}: {
-  onFinish: (replacement: string) => void;
-}) => {
-  const token = useStore((state) => state.token);
-  const config = useStore((state) => state.configObject);
-  const useConsumable = useStore((state) => state.useConsumable);
-  const reportEnrichDataLayer = useStore(
-    (state) => state.reportEnrichDataLayer
-  );
-  const currentContent = useStore((state) => state.currentContent);
-  const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  // "/webhooks/:courseSlug/images/:imageId",
-  const buttonAction = async () => {
-    if (isOpen) {
-      const prompt = inputRef.current?.value;
-      if (prompt) {
-        const randomID = Math.random().toString(36).substring(2, 15);
-        await generateImage(token, {
-          prompt,
-          context: `The image to generate is part of a lesson in a tutorial, this is the content of the lesson: ${currentContent}`,
-          callbackUrl: `${DEV_MODE
-            ? DEV_URL
-            : window.location.origin
-            }/webhooks/${config.config?.slug}/images/${randomID}`,
-        });
-
-        const replacement = makeReplacement(randomID, prompt);
-        onFinish(replacement);
-        reportEnrichDataLayer("creator_image_generation_started", {
-          prompt,
-          image_id: randomID,
-        });
-        try {
-          await useConsumable("ai-generation");
-        } catch (error) {
-          console.error("Error using consumable", error);
-        }
-      }
-
-      setIsOpen(false);
-    } else {
-      setIsOpen(true);
-    }
-  };
-  return (
-    <div className="d-flex gap-small align-center w-full active-on-hover rounded padding-small svg-blue text-secondary">
-      <SimpleButton
-        extraClass="text-secondary active-on-hover"
-        text={isOpen ? "" : t("generateImage")}
-        action={buttonAction}
-        svg={svgs.image}
-      />
-      {isOpen && (
-        <div className="image-input-wrapper">
-          <input
-            type="text"
-            placeholder={t("describeImage")}
-            className="input"
-            ref={inputRef}
-            onKeyUp={(e) => {
-              if (e.key === "Enter") {
-                buttonAction();
-              }
-            }}
-          />
-        </div>
-      )}
-    </div>
-  );
-};
-
-const CodeChallengeGenerator = ({
-  onFinish,
-  isBuildable,
-}: {
-  onFinish: (replacement: string) => void;
-  isBuildable: boolean;
-}) => {
-  const token = useStore((state) => state.token);
-  const config = useStore((state) => state.configObject);
-  const currentContent = useStore((state) => state.currentContent);
-  const currentExercisePosition = useStore((state) => state.currentExercisePosition);
-  const useConsumable = useStore((state) => state.useConsumable);
-  const reportEnrichDataLayer = useStore(
-    (state) => state.reportEnrichDataLayer
-  );
-  const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(false);
-  const [prompt, setPrompt] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-
-  const buttonAction = async () => {
-    if (isOpen) {
-      const promptText = prompt.trim();
-      if (!promptText) {
-        toast.error(t("missing-required-content"));
-        return;
-      }
-
-      if (!token) {
-        toast.error(t("authentication-required"));
-        return;
-      }
-
-      const courseSlug = config?.config?.slug;
-      if (!courseSlug) {
-        toast.error(t("course-slug-not-found"));
-        return;
-      }
-
-      setIsGenerating(true);
-      const tid = toast.loading(t("generating-code-challenge"));
-
-      try {
-        const result = await generateCodeChallenge(
-          promptText,
-          currentContent,
-          Number(currentExercisePosition),
-          token,
-          courseSlug
-        );
-
-        if (result.status === "QUEUED") {
-          // Create the block with GENERATING status
-          const generatingContent = `\`\`\`code_challenge_proposal\nGENERATING(${result.id}) ${promptText}\n\`\`\``;
-          onFinish(generatingContent);
-
-          toast.success(t("code-challenge-generation-started"), { id: tid });
-          reportEnrichDataLayer("creator_code_challenge_generation_started", {
-            prompt: promptText,
-            completion_id: result.id,
-          });
-
-          try {
-            await useConsumable("ai-generation");
-          } catch (error) {
-            console.error("Error using consumable", error);
-          }
-        } else {
-          toast.error(t("failed-to-start-code-challenge-generation"), { id: tid });
-        }
-      } catch (error) {
-        console.error("Error generating code challenge:", error);
-        toast.error(t("error-generating-code-challenge-files"), { id: tid });
-        // On error, create the block with the prompt so user can edit and retry
-        const errorContent = `\`\`\`code_challenge_proposal\n${promptText}\n\`\`\``;
-        onFinish(errorContent);
-      } finally {
-        setIsGenerating(false);
-        setIsOpen(false);
-        setPrompt("");
-      }
-    } else {
-      setIsOpen(true);
-    }
-  };
-
-  const isDisabled = isBuildable === true;
-
-  return (
-    <div className="d-flex gap-small align-center w-full active-on-hover rounded padding-small svg-blue text-secondary">
-      <SimpleButton
-        extraClass="text-secondary active-on-hover"
-        text={isOpen ? "" : t("add-code-challenge")}
-        action={buttonAction}
-        svg={<Icon name="Code" />}
-        disabled={isGenerating || isDisabled}
-        title={isDisabled ? t("add-code-challenge-disabled-tooltip") : t("add-code-challenge-tooltip")}
-      />
-      {isOpen && (
-        <div className="flex-y gap-small w-full code-challenge-input-wrapper">
-          <AutoResizeTextarea
-            defaultValue={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            className="w-100 input"
-            minHeight="120px"
-            placeholder={t("code-challenge-prompt-placeholder")}
-          />
-          <div className="d-flex gap-small justify-end">
-            <SimpleButton
-              action={() => {
-                setIsOpen(false);
-                setPrompt("");
-              }}
-              extraClass="bg-gray padding-small rounded"
-              text={t("cancel")}
-              svg={<Icon name="X" />}
-              disabled={isGenerating}
-            />
-            <SimpleButton
-              action={buttonAction}
-              extraClass="bg-blue-rigo text-white padding-small rounded code-challenge-generate-button"
-              text={isGenerating ? t("generating-code-challenge") : t("generate")}
-              svg={isGenerating ? <Loader size="sm" svg={svgs.rigoSvg} /> : <Icon name="Check" />}
-              disabled={isGenerating || !prompt.trim()}
-            />
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
 const RigoInput = ({
   onSubmit,
   inside,
@@ -1160,6 +1083,8 @@ const RigoInput = ({
   onEditAsMarkdown,
   onClose,
   isBuildable,
+  onImageGenerate,
+  onCodeChallenge,
 }: {
   onSubmit: (prompt: string) => void;
   inside: boolean;
@@ -1169,8 +1094,11 @@ const RigoInput = ({
   onEditAsMarkdown: () => void;
   onClose: () => void;
   isBuildable: boolean;
+  onImageGenerate?: (prompt: string) => void;
+  onCodeChallenge?: (prompt: string) => void;
 }) => {
   const [prompt, setPrompt] = useState("");
+  const [mode, setMode] = useState<"default" | "image-generate" | "code-challenge">("default");
   const replaceInReadme = useStore((state) => state.replaceInReadme);
   const [showPrompts, setShowPrompts] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -1196,15 +1124,37 @@ const RigoInput = ({
     };
   }, [containerRef]);
 
+  const handleSubmit = () => {
+    if (mode === "image-generate" && onImageGenerate) {
+      onImageGenerate(prompt);
+      setPrompt("");
+      setMode("default");
+    } else if (mode === "code-challenge" && onCodeChallenge) {
+      onCodeChallenge(prompt);
+      setPrompt("");
+      setMode("default");
+    } else {
+      onSubmit(prompt);
+      setPrompt("");
+    }
+  };
+
+  const currentPlaceholder = mode === "image-generate" 
+    ? t("describeImage")
+    : mode === "code-challenge"
+    ? t("code-challenge-prompt-placeholder")
+    : t("editWithRigobotPlaceholder");
+
   return (
     <div ref={containerRef} className={` ${inside ? "creator-options" : ""}`}>
       <div className={`rigo-input ${inside ? "" : "w-100"}`}>
         <SimpleButton
           svg={svgs.rigoSoftBlue}
-          action={() => onSubmit(prompt)}
+          action={handleSubmit}
           extraClass={"big-circle rigo-button mr-12"}
         />
         <AutoResizeTextarea
+          key={mode}
           onFocus={() => setShowPrompts(true)}
           onBlur={() => {
             setTimeout(() => {
@@ -1213,18 +1163,17 @@ const RigoInput = ({
               }
             }, 100);
           }}
-          placeholder={t("editWithRigobotPlaceholder")}
+          placeholder={currentPlaceholder}
           autoFocus
           className="rigo-textarea"
           onKeyUp={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
-              onSubmit(prompt);
-              setPrompt("");
+              handleSubmit();
             }
           }}
-          minHeight={60}
-          defaultValue={prompt}
+          minHeight={mode === "code-challenge" ? 120 : 60}
+          defaultValue=""
           onChange={(e) => {
             setPrompt(e.target.value);
           }}
@@ -1239,26 +1188,43 @@ const RigoInput = ({
               return false;
             })
             .map((prompt, index) => {
-              // Check if this is the code challenge button
-              // We identify it by checking multiple criteria to be sure:
-              // 1. tagName must be "new"
-              // 2. allowedElements must be exactly ["new"]
-              // 3. type must be "button"
-              // 4. text must match the translation key
-              const isCodeChallengeButton = tagName === "new" &&
-                Array.isArray(prompt.allowedElements) &&
-                prompt.allowedElements.length === 1 &&
-                prompt.allowedElements[0] === "new" &&
-                prompt.type === "button" &&
-                prompt.text === t("add-code-challenge");
-
-              // Only disable if:
-              // 1. This is definitely the code challenge button
-              // 2. AND isBuildable is true (meaning the lesson has interactive exercises - entry file or files for cloud compilation)
-              // isBuildable comes from the store and indicates if the exercise can be built/executed
+              const isCodeChallengeButton = prompt.type === "code-challenge";
               const isDisabled = isCodeChallengeButton && isBuildable === true;
-
               const tooltipTitle = isDisabled ? t("add-code-challenge-disabled-tooltip") : prompt.title;
+
+              if (prompt.type === "image-generate") {
+                return (
+                  <SimpleButton
+                    svg={prompt.svg}
+                    key={`${prompt.text}-${index}`}
+                    title={tooltipTitle}
+                    action={() => {
+                      setMode("image-generate");
+                      setPrompt("");
+                    }}
+                    extraClass={prompt.extraClass}
+                    text={prompt.text}
+                    disabled={isDisabled}
+                  />
+                );
+              }
+              
+              if (prompt.type === "code-challenge") {
+                return (
+                  <SimpleButton
+                    svg={prompt.svg}
+                    key={`${prompt.text}-${index}`}
+                    title={tooltipTitle}
+                    action={() => {
+                      setMode("code-challenge");
+                      setPrompt("");
+                    }}
+                    extraClass={prompt.extraClass}
+                    text={prompt.text}
+                    disabled={isDisabled}
+                  />
+                );
+              }
 
               return prompt.type === "button" ? (
                 <SimpleButton
@@ -1317,31 +1283,6 @@ const RigoInput = ({
               }
             }}
           />
-          <ImageGenerator
-            onFinish={async (replacement) => {
-              if (node?.position?.start && node?.position?.end) {
-                await replaceInReadme(
-                  replacement,
-                  node?.position?.start,
-                  node?.position?.end
-                );
-              }
-            }}
-          />
-          {tagName === "new" && (
-            <CodeChallengeGenerator
-              onFinish={async (replacement) => {
-                if (node?.position?.start && node?.position?.end) {
-                  await replaceInReadme(
-                    replacement,
-                    node?.position?.start,
-                    node?.position?.end
-                  );
-                }
-              }}
-              isBuildable={isBuildable}
-            />
-          )}
         </div>
       )}
     </div>

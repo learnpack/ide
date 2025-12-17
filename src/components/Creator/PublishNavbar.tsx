@@ -1,11 +1,11 @@
 import useStore from "../../utils/store";
-import { Icon } from "../Icon";
 import { useEffect } from "react";
 import PublishButton from "./PublishButton";
 import SimpleButton from "../mockups/SimpleButton";
 import { useTranslation } from "react-i18next";
 import { svgs } from "../../assets/svgs";
 import MiniLessonListener from "./MiniLessonListener";
+import SwitchComponent from "../ui/switch";
 
 export const PublishNavbar = () => {
   const isCreator = useStore((state) => state.isCreator);
@@ -41,18 +41,15 @@ export const PublishNavbar = () => {
         />
       </div>
       <div className="flex-x align-center gap-big">
+
         <MiniLessonListener />
-        <SimpleButton
-          svg={mode === "creator" ? <Icon name="Eye" /> : <Icon name="Edit" />}
-          title={mode === "creator" ? t("preview-as-student") : t("edit-mode")}
-          action={() => {
-            if (mode === "creator") {
-              setMode("student");
-            } else {
-              setMode("creator");
-            }
-          }}
-        />
+        <SwitchComponent checked={mode === "creator"} onChange={(checked) => {
+          if (checked) {
+            setMode("creator");
+          } else {
+            setMode("student");
+          }
+        }} label={t("edit-mode")} id="edit-mode" />
 
         <PublishButton />
       </div>
