@@ -9,6 +9,7 @@ import { eventBus } from "../../../managers/eventBus";
 import { fixLesson } from "../../../managers/EventProxy";
 import RealtimeNotificationListener from "../../Creator/RealtimeNotificationListener";
 import { svgs } from "../../../assets/svgs";
+import TelemetryManager from "../../../managers/telemetry";
 
 const ContinueButton = () => {
   const { t } = useTranslation();
@@ -18,6 +19,15 @@ const ContinueButton = () => {
   const exercises = useStore((s) => s.exercises);
   const [loading, setLoading] = useState(false);
   const isLastExercise = currentExercisePosition === exercises.length - 1;
+
+  // Check if the current step still has pending tasks (tests/quizzes not completed)
+  const hasPendingTasks =
+    typeof currentExercisePosition === "number" || typeof currentExercisePosition === "string"
+      ? TelemetryManager.hasPendingTasks(Number(currentExercisePosition))
+      : false;
+
+  const isFinishDisabled = isLastExercise && hasPendingTasks;
+  const isDisabled = loading || isFinishDisabled;
 
   const hasBodyLessonLoader = () => {
     const selector = ".lesson-loader";
@@ -47,13 +57,15 @@ const ContinueButton = () => {
     agent !== "vscode" &&
     !hasBodyLessonLoader() && (
       <div
-        aria-disabled={loading}
+        aria-disabled={isDisabled}
         className={`badge bg-blue  ${
           editorTabs.length > 0 ? "hide-continue-button" : "continue-button"
         }`}
         role="button"
         tabIndex={0}
+        style={isDisabled ? { opacity: 0.6, cursor: "not-allowed" } : {}}
         onClick={() => {
+          if (isDisabled) return;
           setLoading(true);
           if (isLastExercise) {
             eventBus.emit("last_lesson_finished", {});
@@ -64,7 +76,11 @@ const ContinueButton = () => {
           }
         }}
       >
-        {loading ? t("loading") : isLastExercise ? "Finish" : t("continue")}
+        {loading
+          ? t("loading")
+          : isLastExercise
+          ? "Finish"
+          : t("continue")}
       </div>
     )
   );
