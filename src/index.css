@@ -524,7 +524,7 @@ a {
 #main-container {
   width: var(--app-width);
   margin-inline: auto;
-  height: 100dvh;
+  height: 100vh;
   overflow-y: auto;
   /* overflow: hidden; */
   /* padding: 20px; */

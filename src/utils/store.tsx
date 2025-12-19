@@ -311,6 +311,7 @@ const useStore = create<IStore>((set, get) => ({
       registerTelemetryEvent,
       environment,
       useConsumable,
+      getCurrentExercise
     } = get();
 
     const debounceTestingSuccess = debounce((data: any) => {
@@ -342,6 +343,16 @@ const useStore = create<IStore>((set, get) => ({
       }
       playEffect("success");
       Notifier.confetti();
+
+      if (environment === "localStorage" || environment === "creatorWeb") {
+        const currentExercise = getCurrentExercise();
+        TelemetryManager.registerTesteableElement(Number(currentExercise.position), {
+          hash: currentExercise.slug,
+          searchString: currentExercise.slug,
+          type: "test",
+          is_completed: true,
+        });
+      }
     }, 100);
 
     const debounceTestingError = debounce((data: any) => {
@@ -865,6 +876,15 @@ The user's set up the application in "${language}" language, give your feedback 
       isBuildable: isBuildable,
       hasSolution: hasSolution,
     });
+
+    if (isTesteable && !TelemetryManager.hasTesteableElementByHash(index, slug)) {
+      TelemetryManager.registerTesteableElement(index, {
+        hash: slug,
+        searchString: slug,
+        type: "test",
+        is_completed: false,
+      });
+    }
 
     updateEditorTabs();
     return exercise;

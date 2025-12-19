@@ -18,6 +18,8 @@ import { Loader } from "../../composites/Loader/Loader";
 import { Modal } from "@/components/mockups/Modal";
 import { RigoMessage } from "@/components/Creator/RealtimeImage";
 import { AutoResizeTextarea } from "@/components/composites/AutoResizeTextarea/AutoResizeTextarea";
+import TelemetryManager from "@/managers/telemetry";
+import { Icon } from "@/components/Icon";
 interface IExerciseList {
   closeSidebar: () => void;
   mode: "creator" | "student";
@@ -384,7 +386,10 @@ function ExerciseCard({
   const current = getCurrentExercise();
   const isCurrent = current.slug === slug;
 
-  console.log(current, slug, isCurrent);
+  const isDone = TelemetryManager.isTesteable(position) && !TelemetryManager.hasPendingTasks(position);
+  const isTesteable = TelemetryManager.isTesteable(position);
+  console.table({graded, done, isDone, isTesteable});
+
 
   return (
     <div
@@ -440,7 +445,7 @@ function ExerciseCard({
               }
             }}
           >
-            <button className={`exercise-circle ${done ? "done" : ""}`}>
+            <button className={`exercise-circle ${isDone ? "done" : ""}`}>
               <span>{id}</span>
             </button>
             <span>{formattedTitle}</span>
@@ -479,9 +484,9 @@ function ExerciseCard({
               svg={svgs.pause}
             />
           )}
-        {graded && mode === "student" && (
+        {mode === "student" && isTesteable && (
           <SimpleButton
-            svg={done ? svgs.checkIcon : svgs.blankCircle}
+            svg={isDone ? <Icon className="text-green-500" size={20} name="Check" /> : <Icon className="text-gray-500" size={15} name="Circle" />}
             text=""
           />
         )}

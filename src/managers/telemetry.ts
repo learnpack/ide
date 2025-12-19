@@ -335,7 +335,9 @@ interface ITelemetryManager {
     stepPosition: number,
     testeableElement: TTesteableElement
   ) => void;
+  hasTesteableElementByHash: (stepPosition: number, hash: string) => boolean;
   hasPendingTasks: (stepPosition: number) => boolean;
+  isTesteable: (stepPosition: number) => boolean;
   getStepIndicators: (stepPosition: number) => TStepIndicators | null;
   streamEvent: (stepPosition: number, event: string, data: any) => void;
   submit: () => Promise<void>;
@@ -444,6 +446,13 @@ const TelemetryManager: ITelemetryManager = {
     this.listeners[event] = callback;
   },
 
+  hasTesteableElementByHash: function (stepPosition: number, hash: string) {
+    if (!this.current) {
+      return false;
+    }
+    return this.current.steps[stepPosition]?.testeable_elements?.some((e) => e.hash === hash) || false;
+  },
+
   registerTesteableElement: function (
     stepPosition: number,
     testeableElement: TTesteableElement
@@ -494,6 +503,14 @@ const TelemetryManager: ITelemetryManager = {
     console.log("step.testeable_elements", step.testeable_elements);
     this.current.steps[stepPosition] = step;
     this.save();
+  },
+
+  isTesteable: function (stepPosition: number) {
+    const step = this.current?.steps[stepPosition];
+    if (!step) {
+      return false;
+    }
+    return Boolean(step.is_testeable || (step.testeable_elements && step.testeable_elements.length > 0));
   },
 
   getStepIndicators: function (stepPosition: number) {

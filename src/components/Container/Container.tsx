@@ -203,7 +203,7 @@ export const Container = () => {
           {displayCodeEditor() && (
             <section
               ref={codeSectionRef}
-              className="w-100 "
+              className="w-100"
               style={{
                 display:
                   visibleTab === "code" || visibleTab === "all"

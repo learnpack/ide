@@ -110,13 +110,6 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
   const isBuildable = useStore((s) => s.isBuildable);
   const isTesteable = useStore((s) => s.isTesteable);
 
-  // const debouncedStore = useCallback(
-  //   debounce(() => {
-  //     updateDBSession();
-  //   }, 5000),
-  //   []
-  // );
-
   const updateContent = (id: number, content: string) => {
     const newTabs = tabs.map((tab) =>
       tab.id === id ? { ...tab, content } : tab
