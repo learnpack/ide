@@ -201,6 +201,7 @@ const useStore = create<IStore>((set, get) => ({
     testStruggles: false,
     addVideoTutorial: false,
     teacherOnboarding: false,
+    community: false,
   },
   teacherOnboardingClosed: false,
   activeTab: 0,

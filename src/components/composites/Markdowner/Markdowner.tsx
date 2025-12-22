@@ -10,6 +10,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark as prismStyle } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { QuizRenderer } from "../QuizRenderer/QuizRenderer";
 import { RigoQuestion } from "../RigoQuestion/RigoQuestion";
+import { CommunityLink } from "../CommunityLink/CommunityLink";
 import { CreatorWrapper } from "../../Creator/Creator";
 import SimpleButton from "../../mockups/SimpleButton";
 import { svgs } from "../../../assets/svgs";
@@ -93,6 +94,10 @@ const ClickMeToGetID = ({ id }: { id: string }) => {
 
 const isRigoQuestion = (href: string) => {
   return href.startsWith("https://4geeks.com/ask?query=");
+};
+
+const isCommunityLink = (href: string) => {
+  return href.startsWith("https://4geeks.com/community");
 };
 const checkForQuiz = (node: any) => {
   const containsTaskList = node?.children.filter(
@@ -186,6 +191,9 @@ export const Markdowner = ({
             if (href) {
               if (isRigoQuestion(href)) {
                 return <RigoQuestion href={href}>{children}</RigoQuestion>;
+              }
+              if (isCommunityLink(href)) {
+                return <CommunityLink>{children}</CommunityLink>;
               }
               return (
                 <a onClick={() => openLink(href)} target="_blank" href={href}>

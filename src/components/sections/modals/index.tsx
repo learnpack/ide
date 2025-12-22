@@ -23,6 +23,7 @@ import { useEffect } from "react";
 import { LocalStorage } from "../../../managers/localStorage";
 import { getTeacherOnboardingKey } from "../../../utils/lib";
 import { LastLessonFinishedModal } from "./LastLessonFinished";
+import { CommunityModal } from "./CommunityModal";
 
 export const ModalsContainer = () => {
   const { openedModals, setOpenedModals, mode, teacherOnboardingClosed } =
@@ -64,6 +65,7 @@ export const ModalsContainer = () => {
       {openedModals.syllabusFeedback && <SyllabusFeedbackModal />}
       {openedModals.teacherOnboarding && !LocalStorage.get(getTeacherOnboardingKey(), false) && <TeacherOnboarding />}
       {openedModals.lastLessonFinished && <LastLessonFinishedModal />}
+      {openedModals.community && <CommunityModal />}
     </>
   );
 };
