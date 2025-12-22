@@ -590,5 +590,19 @@
     "languages": "idiomas",
     "stopEditing": "Detener edición",
     "lesson-complete": "¡Lección Completada!",
-    "exercises-completed": "Ejercicios Completados"
+    "exercises-completed": "Ejercicios Completados",
+    "communities": {
+        "title": "Únete a Nuestras Comunidades",
+        "description": "Conéctate con otros estudiantes y obtén ayuda de nuestra comunidad",
+        "whatsapp": {
+            "es": {
+                "name": "Comunidad de WhatsApp (Español)",
+                "description": "Únete a nuestra comunidad de habla hispana en WhatsApp"
+            },
+            "en": {
+                "name": "Comunidad de WhatsApp (Inglés)",
+                "description": "Únete a nuestra comunidad de habla inglesa en WhatsApp"
+            }
+        }
+    }
 }
