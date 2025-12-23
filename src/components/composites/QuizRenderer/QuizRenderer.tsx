@@ -8,6 +8,7 @@ import useStore from "../../../utils/store";
 import { Notifier } from "../../../managers/Notifier";
 import { svgs } from "../../../assets/svgs";
 import TelemetryManager, { TQuizSubmission } from "../../../managers/telemetry";
+import { eventBus } from "@/managers/eventBus";
 
 type TQuizGroup = {
   title: string;
@@ -263,6 +264,12 @@ export const QuizRenderer = ({ children }: { children: any }) => {
       quiz.current.attempts.push(submission);
 
       registerTelemetryEvent("quiz_submission", submission);
+      eventBus.emit("assessment_completed", {
+        status: submission.status,
+        ended_at: submission.ended_at,
+        type: "multiple-choice",
+        score: submission.percentage,
+      });
       setShowResults(true);
       if (submission.status === "SUCCESS") {
         toastFromStatus("quiz-success");
@@ -417,7 +424,6 @@ const QuizQuestion = ({
       restoredAnswer.current = ""; // Reset
     }
   }, [questionTitle, restoredSelections, currentAnswer]);
-
   return (
     <div className="flex-y gap-small">
       <QuizTitle onTitleReady={onTitleReady}>{p}</QuizTitle>
@@ -452,6 +458,9 @@ const QuizTitle = ({
     }
   }, [h4Ref.current]);
 
+  console.log(children, "children");
+  
+
   return <h4 ref={h4Ref}>{children}</h4>;
 };
 
@@ -474,7 +483,7 @@ const QuizAnswer = ({
   }
 
   if (typeof children.find !== "function") {
-    return children;
+    return <li className="text-base">{children}</li>;
   }
   const input = children.find((child: any) => child.type === "input");
 

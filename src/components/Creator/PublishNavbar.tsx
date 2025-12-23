@@ -5,11 +5,14 @@ import SimpleButton from "../mockups/SimpleButton";
 import { useTranslation } from "react-i18next";
 import { svgs } from "../../assets/svgs";
 import MiniLessonListener from "./MiniLessonListener";
+import SwitchComponent from "../ui/switch";
 
 export const PublishNavbar = () => {
   const isCreator = useStore((state) => state.isCreator);
   const environment = useStore((state) => state.environment);
   const bctoken = useStore((state) => state.bc_token);
+  const mode = useStore((state) => state.mode);
+  const setMode = useStore((state) => state.setMode);
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -38,7 +41,16 @@ export const PublishNavbar = () => {
         />
       </div>
       <div className="flex-x align-center gap-big">
+
         <MiniLessonListener />
+        <SwitchComponent checked={mode === "creator"} onChange={(checked) => {
+          if (checked) {
+            setMode("creator");
+          } else {
+            setMode("student");
+          }
+        }} label={t("edit-mode")} id="edit-mode" />
+
         <PublishButton />
       </div>
     </div>

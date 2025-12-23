@@ -5,8 +5,10 @@ import { useTranslation } from "react-i18next";
 
 export default function BuildButton({
   extraClass = "",
+  isHtml,
 }: {
   extraClass: string;
+  isHtml?: boolean;
 }) {
   const { t } = useTranslation();
   const {
@@ -44,13 +46,16 @@ export default function BuildButton({
   
   const changeToTest = false;
 
+  const buttonText = isHtml ? `${buildbuttonText.text}-html` : buildbuttonText.text;
+  const tooltipText = isHtml ? `${t("see-terminal-output-tooltip-html")}` : t("see-terminal-output-tooltip");
+
   return (
     <SimpleButton
       id="build-button"
-      text={t(buildbuttonText.text)}
+      text={t(buttonText)}
       svg={svgs.buildIcon}
       extraClass={`pill ${buildbuttonText.className || "bg-blue"} ${extraClass}`}
-      title={t("see-terminal-output-tooltip")}
+      title={t(tooltipText)}
       tooltipSide="right"
       action={() => {
         changeToTest ? runTests() : build(t("Running..."));

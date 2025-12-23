@@ -69,7 +69,7 @@ export default function LanguageButton() {
     if (ex && ex.translations) {
       const languages = Object.keys(ex.translations);
       const canAddLanguage = environment !== "localStorage";
-      
+
       // Solo abrir dropdown si hay contenido que mostrar
       if (languages.length > 1 || canAddLanguage) {
         setShowDropdown(!showDrop);
@@ -98,7 +98,7 @@ export default function LanguageButton() {
 
   // Verificar si hay contenido para mostrar en el dropdown
   const ex = getCurrentExercise();
-  const hasDropdownContent = ex && ex.translations 
+  const hasDropdownContent = ex && ex.translations
     ? Object.keys(ex.translations).length > 1 || environment !== "localStorage"
     : false;
 
@@ -208,12 +208,12 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
 
   const setLang = (lang: string) => {
     const status = getLanguageStatus(lang);
-    
+
     // Don't allow changing if translation is in progress
     if (status === "pending" || status === "translating") {
       return;
     }
-    
+
     const fixedLang = fixLang(lang, environment);
     setLanguage(fixedLang);
     changeLanguage(fixedLang);
@@ -255,16 +255,21 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
     }
   };
 
+  const getLanguageCompletionRate = (lang: string) => {
+    const pending = pendingTranslations.find(t => t.code === lang);
+    return pending && typeof pending.completedExercises === 'number' && typeof pending.totalExercises === 'number' ? `${pending.completedExercises} / ${pending.totalExercises}` : "";
+  };
+
   return (
     <div className="language-dropdown">
       {allLanguages.map((l, index) => {
         if (l === language) return null;
-        
+
         const status = getLanguageStatus(l);
         const isDisabled = status === "pending" || status === "translating";
-        
+
         return (
-          <div 
+          <div
             key={index}
             style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%" }}
           >
@@ -289,9 +294,14 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
             {status && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <span style={{ display: "inline-flex", alignItems: "center" }}>
-                    {getStatusIcon(status)}
-                  </span>
+                  <div className="d-flex align-center gap-small">
+                    <span style={{ display: "inline-flex", alignItems: "center" }}>
+                      {getStatusIcon(status)}
+                    </span>
+                    {status === "translating" && (
+                      <span className="text-small text-gray-500">{getLanguageCompletionRate(l)}</span>
+                    )}
+                  </div>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>{getStatusTooltip(status, l)}</p>
@@ -365,125 +375,125 @@ const AddLanguageModal = ({ disabled }: { disabled: boolean }) => {
   };
 
   const performTranslation = async (languages: string) => {
-      setIsLoading(true);
-      const toastId = toast.loading(t("translatingExercises"));
-      
-      try {
-        console.log("PERFORMING TRANSLATION");
-        // Make the HTTP request FIRST to get the correct language codes
-        const res = await FetchManager.translateExercises(
-          exercises.map((e) => e.slug),
-          languages,
-          language,
-          token
-        );
-        console.log(res, "TRANSLATION RESPONSE");
-        
-        // Handle response with existing and translating languages
-        const translatingLanguages = res?.translatingLanguages || []
-        const existingLanguages = res?.existingLanguages || []
-        
-        // Case 1: All languages already exist
-        if (translatingLanguages.length === 0 && existingLanguages.length > 0) {
-          const existingNames = existingLanguages
-            .map((code: string) => getLanguageName(code, i18n.language))
-            .join(", ");
-          
-          toast.success(t("translationAlreadyExists", { languages: existingNames }), { 
-            id: toastId, 
-            duration: 6000 
-          });
-        }
-        // Case 2: Some languages exist, some are being translated
-        else if (translatingLanguages.length > 0 && existingLanguages.length > 0) {
-          const { setPendingTranslations } = useStore.getState();
-          
-          const newTranslations: TLanguageTranslation[] = translatingLanguages.map((code: string) => ({
-            code,
-            status: "translating" as TTranslationStatus,
-            startedAt: Date.now(),
-            totalExercises: exercises.length,
-            completedExercises: 0,
-          }));
-          
-          setPendingTranslations(newTranslations);
-          
-          const translatingNames = translatingLanguages
-            .map((code: string) => getLanguageName(code, i18n.language))
-            .join(", ");
-          const existingNames = existingLanguages
-            .map((code: string) => getLanguageName(code, i18n.language))
-            .join(", ");
-          
-          toast.success(
-            t("translationPartiallyStarted", { 
-              translating: translatingNames,
-              existing: existingNames 
-            }), 
-            { 
-              id: toastId, 
-              duration: 6000 
-            }
-          );
-        }
-        // Case 3: All languages are being translated (normal case)
-        else if (translatingLanguages.length > 0) {
-          const { setPendingTranslations } = useStore.getState();
-          
-          const newTranslations: TLanguageTranslation[] = translatingLanguages.map((code: string) => ({
-            code,
-            status: "translating" as TTranslationStatus,
-            startedAt: Date.now(),
-            totalExercises: exercises.length,
-            completedExercises: 0,
-          }));
-          
-          setPendingTranslations(newTranslations);
-          
-          const translatingNames = translatingLanguages
-            .map((code: string) => getLanguageName(code, i18n.language))
-            .join(", ");
-          
-          toast.success(t("translationStarted", { languages: translatingNames }), { 
-            id: toastId, 
-            duration: 6000 
-          });
-        }
-        // Case 4: Fallback (backward compatibility)
-        else if (res && res.languageCodes && res.languageCodes.length > 0) {
-          const { setPendingTranslations } = useStore.getState();
-          
-          const newTranslations: TLanguageTranslation[] = res.languageCodes.map((code: string) => ({
-            code,
-            status: "translating" as TTranslationStatus,
-            startedAt: Date.now(),
-            totalExercises: exercises.length,
-            completedExercises: 0,
-          }));
-          
-          setPendingTranslations(newTranslations);
-          
-          const languageNames = res.languageCodes
-            .map((code: string) => getLanguageName(code, i18n.language))
-            .join(", ");
-          
-          toast.success(t("translationStarted", { languages: languageNames }), { 
-            id: toastId, 
-            duration: 6000 
-          });
-        } else {
-          toast.success(t("translationRequestSent"), { id: toastId });
-        }
-        
-        setIsLoading(false);
-        setIsOpen(false);
-        setShowWarning(false);
-        await getSidebar();
-      } catch (error) {
-        toast.error(t("errorTranslatingExercises"), { id: toastId });
-        console.log(error, "Error");
-        setIsLoading(false);
+    setIsLoading(true);
+    const toastId = toast.loading(t("translatingExercises"));
+
+    try {
+      console.log("PERFORMING TRANSLATION");
+      // Make the HTTP request FIRST to get the correct language codes
+      const res = await FetchManager.translateExercises(
+        exercises.map((e) => e.slug),
+        languages,
+        language,
+        token
+      );
+      console.log(res, "TRANSLATION RESPONSE");
+
+      // Handle response with existing and translating languages
+      const translatingLanguages = res?.translatingLanguages || []
+      const existingLanguages = res?.existingLanguages || []
+
+      // Case 1: All languages already exist
+      if (translatingLanguages.length === 0 && existingLanguages.length > 0) {
+        const existingNames = existingLanguages
+          .map((code: string) => getLanguageName(code, i18n.language))
+          .join(", ");
+
+        toast.success(t("translationAlreadyExists", { languages: existingNames }), {
+          id: toastId,
+          duration: 6000
+        });
       }
+      // Case 2: Some languages exist, some are being translated
+      else if (translatingLanguages.length > 0 && existingLanguages.length > 0) {
+        const { setPendingTranslations } = useStore.getState();
+
+        const newTranslations: TLanguageTranslation[] = translatingLanguages.map((code: string) => ({
+          code,
+          status: "translating" as TTranslationStatus,
+          startedAt: Date.now(),
+          totalExercises: exercises.length,
+          completedExercises: 0,
+        }));
+
+        setPendingTranslations(newTranslations);
+
+        const translatingNames = translatingLanguages
+          .map((code: string) => getLanguageName(code, i18n.language))
+          .join(", ");
+        const existingNames = existingLanguages
+          .map((code: string) => getLanguageName(code, i18n.language))
+          .join(", ");
+
+        toast.success(
+          t("translationPartiallyStarted", {
+            translating: translatingNames,
+            existing: existingNames
+          }),
+          {
+            id: toastId,
+            duration: 6000
+          }
+        );
+      }
+      // Case 3: All languages are being translated (normal case)
+      else if (translatingLanguages.length > 0) {
+        const { setPendingTranslations } = useStore.getState();
+
+        const newTranslations: TLanguageTranslation[] = translatingLanguages.map((code: string) => ({
+          code,
+          status: "translating" as TTranslationStatus,
+          startedAt: Date.now(),
+          totalExercises: exercises.length,
+          completedExercises: 0,
+        }));
+
+        setPendingTranslations(newTranslations);
+
+        const translatingNames = translatingLanguages
+          .map((code: string) => getLanguageName(code, i18n.language))
+          .join(", ");
+
+        toast.success(t("translationStarted", { languages: translatingNames }), {
+          id: toastId,
+          duration: 6000
+        });
+      }
+      // Case 4: Fallback (backward compatibility)
+      else if (res && res.languageCodes && res.languageCodes.length > 0) {
+        const { setPendingTranslations } = useStore.getState();
+
+        const newTranslations: TLanguageTranslation[] = res.languageCodes.map((code: string) => ({
+          code,
+          status: "translating" as TTranslationStatus,
+          startedAt: Date.now(),
+          totalExercises: exercises.length,
+          completedExercises: 0,
+        }));
+
+        setPendingTranslations(newTranslations);
+
+        const languageNames = res.languageCodes
+          .map((code: string) => getLanguageName(code, i18n.language))
+          .join(", ");
+
+        toast.success(t("translationStarted", { languages: languageNames }), {
+          id: toastId,
+          duration: 6000
+        });
+      } else {
+        toast.success(t("translationRequestSent"), { id: toastId });
+      }
+
+      setIsLoading(false);
+      setIsOpen(false);
+      setShowWarning(false);
+      await getSidebar();
+    } catch (error) {
+      toast.error(t("errorTranslatingExercises"), { id: toastId });
+      console.log(error, "Error");
+      setIsLoading(false);
+    }
   };
 
   // const consume = async (slug: TConsumableSlug, n: number) => {
@@ -597,10 +607,10 @@ const AddLanguageModal = ({ disabled }: { disabled: boolean }) => {
                   markdown={
                     warningData.hasEnough
                       ? t("ai-generations-warning", {
-                          language: warningData.language,
-                          totalGenerations: exercises.length,
-                          aiGenerationsLeft: warningData.aiGenerationsLeft,
-                        })
+                        language: warningData.language,
+                        totalGenerations: exercises.length,
+                        aiGenerationsLeft: warningData.aiGenerationsLeft,
+                      })
                       : t("ai-generations-insufficient-description")
                   }
                 />

@@ -101,3 +101,37 @@
     opacity: 1;
   }
 }
+
+.modal-content.resizable {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  cursor: nwse-resize;
+  z-index: 10;
+  background: linear-gradient(
+    -45deg,
+    transparent 0%,
+    transparent 30%,
+    var(--color-active) 30%,
+    var(--color-active) 35%,
+    transparent 35%,
+    transparent 65%,
+    var(--color-active) 65%,
+    var(--color-active) 70%,
+    transparent 70%
+  );
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.resize-handle:hover {
+  opacity: 1;
+}

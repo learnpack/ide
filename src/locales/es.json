@@ -30,6 +30,7 @@
     "insert-before-tooltip": "Insertar contenido antes",
     "insert-after-tooltip": "Insertar contenido después",
     "edit-element-tooltip": "Editar elemento",
+    "drag-to-reorder": "Arrastrar para reordenar",
     "report": "Reportar 🐞",
     "login": "Inicia sesión",
     "Run": "Ejecutar",
@@ -147,8 +148,10 @@
     "execute-my-code": "Ejecutar mi código",
     "test-my-code": "Testear mi código",
     "test-and-send": "Testear & Enviar",
-    "see-terminal-output": "Ver salida en terminal",
-    "see-terminal-output-tooltip": "Ejecuta tu código y muestra la salida en la terminal",
+    "see-terminal-output": "Ver ejecución del código",
+    "see-terminal-output-html": "Ver sitio web",
+    "see-terminal-output-tooltip": "Ejecuta tu código y muestra la salida o resultado del mismo.",
+    "see-terminal-output-tooltip-html": "Compila tu sitio web y ve el resultado en el navegador.",
     "test-and-send-tooltip": "Verifica que tu código cumple con todos los requisitos usando los tests",
     "display-another-tab": "Mostrar en otra pestaña",
     "close-tab": "Cerrar pestaña",
@@ -589,5 +592,22 @@
     "undo-tooltip-mac": "Deshacer (⌘Z)",
     "redo-tooltip-mac": "Rehacer (⌘⇧Z)",
     "no-undo-available": "No hay cambios para deshacer",
-    "no-redo-available": "No hay cambios para rehacer"
+    "no-redo-available": "No hay cambios para rehacer",
+    "stopEditing": "Detener edición",
+    "lesson-complete": "¡Lección Completada!",
+    "exercises-completed": "Ejercicios Completados",
+    "communities": {
+        "title": "Únete a Nuestras Comunidades",
+        "description": "Conéctate con otros estudiantes y obtén ayuda de nuestra comunidad",
+        "whatsapp": {
+            "es": {
+                "name": "Comunidad de WhatsApp (Español)",
+                "description": "Únete a nuestra comunidad de habla hispana en WhatsApp"
+            },
+            "en": {
+                "name": "Comunidad de WhatsApp (Inglés)",
+                "description": "Únete a nuestra comunidad de habla inglesa en WhatsApp"
+            }
+        }
+    }
 }

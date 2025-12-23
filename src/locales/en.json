@@ -30,6 +30,7 @@
     "insert-before-tooltip": "Insert content before",
     "insert-after-tooltip": "Insert content after",
     "edit-element-tooltip": "Edit element",
+    "drag-to-reorder": "Drag to reorder",
     "login-message": "Log in to 4Geeks to get performance statistics, access to our AI mentor, and many other benefits.",
     "Run": "Run",
     "theme": "Theme",
@@ -141,8 +142,10 @@
     "execute-my-code": "Execute my code",
     "test-my-code": "Test my code",
     "test-and-send": "Test & Send",
-    "see-terminal-output": "See terminal output",
-    "see-terminal-output-tooltip": "Runs your code and shows the output in the terminal",
+    "see-terminal-output": "View code execution",
+    "see-terminal-output-html": "Website preview",
+    "see-terminal-output-tooltip": "Runs your code and shows the output.",
+    "see-terminal-output-tooltip-html": "Build your website and see the result in the browser.",
     "test-and-send-tooltip": "Verifies your code meets all requirements using automated tests",
     "display-another-tab": "Display in another tab",
     "close-tab": "Close tab",
@@ -582,5 +585,22 @@
     "undo-tooltip-mac": "Undo (⌘Z)",
     "redo-tooltip-mac": "Redo (⌘⇧Z)",
     "no-undo-available": "No changes to undo",
-    "no-redo-available": "No changes to redo"
+    "no-redo-available": "No changes to redo",
+    "stopEditing": "Stop editing",
+    "lesson-complete": "Lesson Complete!",
+    "exercises-completed": "Exercises Completed",
+    "communities": {
+        "title": "Join Our Communities",
+        "description": "Connect with other learners and get help from our community",
+        "whatsapp": {
+            "es": {
+                "name": "WhatsApp Community (Spanish)",
+                "description": "Join our Spanish-speaking community on WhatsApp"
+            },
+            "en": {
+                "name": "WhatsApp Community (English)",
+                "description": "Join our English-speaking community on WhatsApp"
+            }
+        }
+    }
 }

@@ -26,16 +26,16 @@ const router = createBrowserRouter([
         element: <App />,
       },
       {
-        path: "/preview",
-        element: <PreviewHTMLPage />,
-      },
-      {
         path: "/preview/:slug",
         element: <App />,
       },
       {
         path: "/config/index.html",
         element: <App />,
+      },
+      {
+        path: "/preview/:slug/webview",
+        element: <PreviewHTMLPage />,
       },
     ],
   },

@@ -20,6 +20,7 @@ import { makeQuizSubmission } from "../QuizRenderer/QuizRenderer";
 import { RigoAI } from "../../Rigobot/AI";
 import CustomDropdown from "../../CustomDropdown";
 import { Icon } from "../../Icon"
+import { eventBus } from "@/managers/eventBus";
 const splitInLines = (code: string) => {
   return code.split("\n").filter((line) => line.trim() !== "");
 };
@@ -238,6 +239,12 @@ export const Question = ({
           }
 
           registerTelemetryEvent("quiz_submission", submission);
+          eventBus.emit("assessment_completed", {
+            status: result.exit_code === 0 ? "SUCCESS" : "ERROR",
+            ended_at: Date.now(),
+            type: "open-question",
+            score: result.exit_code === 0 ? 100 : 0,
+          });
 
           setIsLoading(false);
           useConsumable("ai-compilation");

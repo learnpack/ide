@@ -16,23 +16,33 @@ export const AutoResizeTextarea = ({
   minHeight?: string | number;
 }) => {
   const ref = useRef<HTMLTextAreaElement>(null);
-  useEffect(() => {
+
+  const resizeTextarea = () => {
     if (ref.current) {
       ref.current.style.height = "auto";
       ref.current.style.height = `${ref.current.scrollHeight}px`;
+    }
+  };
+
+  useEffect(() => {
+    if (ref.current && defaultValue !== undefined) {
       ref.current.value = defaultValue;
-    } else {
-      console.error("[TEXTAREA] ref.current is null");
-      
+      resizeTextarea();
     }
   }, [defaultValue]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    onChange(e);
+    resizeTextarea();
+  };
 
   return (
     <textarea
       {...props}
       ref={ref}
       // value={value}
-      onChange={onChange}
+      onChange={handleChange}
+      onInput={resizeTextarea}
       placeholder={placeholder}
       rows={rows}
       className={`auto-resize-textarea ${className}`}

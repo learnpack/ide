@@ -62,7 +62,8 @@
   --bg-color-dark-gray: #a1a1a1;
   --bg-color: #f9f9f9;
   --app-bg-color: white;
-  --color-active: #02a9ea;
+  --color-active: #0084ff;
+  
   --header-height: 90px;
 
   --4geeks-yellow: #ffd900;
@@ -523,7 +524,7 @@ a {
 #main-container {
   width: var(--app-width);
   margin-inline: auto;
-  height: 100dvh;
+  height: 100vh;
   overflow-y: auto;
   /* overflow: hidden; */
   /* padding: 20px; */
@@ -765,10 +766,6 @@ a {
 
 .bg-gray {
   background-color: var(--color-hovered);
-}
-
-.bg-gray-dark {
-  background-color: var(--bg-color-dark-gray) !important;
 }
 
 .conector-blue {
@@ -1298,7 +1295,6 @@ a {
 
 .auto-resize-textarea {
   overflow: hidden;
-  max-height: 300px;
   border-radius: 5px;
   padding: 10px;
   font-size: 16px;
@@ -1322,4 +1318,8 @@ a {
 
 .align-content-start {
   align-content: flex-start;
+}
+
+.text-normal {
+  color: var(--read-font-color);
 }

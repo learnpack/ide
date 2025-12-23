@@ -10,6 +10,11 @@ import { Loader } from "../composites/Loader/Loader";
 import { AutoResizeTextarea } from "../composites/AutoResizeTextarea/AutoResizeTextarea";
 import toast from "react-hot-toast";
 import { Icon } from "../Icon";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import DOMPurify from "dompurify";
 import {
   DEV_MODE,
@@ -22,7 +27,7 @@ import {
 import { generateCodeChallenge } from "../../utils/creator";
 
 type TPromp = {
-  type: "button" | "select" | "input";
+  type: "button" | "select" | "input" | "image-generate" | "code-challenge";
   text?: string;
   title?: string;
   options?: string[];
@@ -59,6 +64,10 @@ export const CreatorWrapper = ({
     useConsumable,
     reportEnrichDataLayer,
     isBuildable,
+    moveBlock,
+    token,
+    configObject,
+    currentExercisePosition,
   } = useStore((state) => ({
     replaceInReadme: state.replaceInReadme,
     insertBeforeOrAfter: state.insertBeforeOrAfter,
@@ -66,6 +75,10 @@ export const CreatorWrapper = ({
     useConsumable: state.useConsumable,
     reportEnrichDataLayer: state.reportEnrichDataLayer,
     isBuildable: state.isBuildable,
+    moveBlock: state.moveBlock,
+    token: state.token,
+    configObject: state.configObject,
+    currentExercisePosition: state.currentExercisePosition,
   }));
 
   const [isOpen, setIsOpen] = useState(false);
@@ -73,9 +86,13 @@ export const CreatorWrapper = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [interactions, setInteractions] = useState<TInteraction[]>([]);
   const [isEditingAsMarkdown, setIsEditingAsMarkdown] = useState(false);
+  const [containsNewElement, setContainsNewElement] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const elemRef = useRef<HTMLDivElement>(null);
   const targetRef = useRef<HTMLDivElement>(null);
+  const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const { t } = useTranslation();
 
@@ -89,7 +106,7 @@ export const CreatorWrapper = ({
       );
       text = textPortion;
     }
-    
+
     if (text && targetRef.current) {
       setIsGenerating(true);
       RigoAI.useTemplate({
@@ -173,7 +190,7 @@ export const CreatorWrapper = ({
         onComplete: (success: boolean, data: any) => {
           console.log(data, "DATA FROM SUMMARIZE TEXT");
           if (success) {
-            
+
             setIsGenerating(false);
             setReplacementValue(data.data.answer);
             useConsumable("ai-generation");
@@ -238,7 +255,7 @@ export const CreatorWrapper = ({
         node?.position?.end.offset || 0
       );
     }
-    
+
     if (elementText && targetRef.current && question) {
       console.log(getComponentsInfo());
       RigoAI.useTemplate({
@@ -255,7 +272,7 @@ export const CreatorWrapper = ({
           if (success) {
             setIsGenerating(false);
             console.log(data, "DATE RETURNED BY RIGOBOT");
-            
+
             setReplacementValue(data.data.parsed.replacement);
             const interaction: TInteraction = {
               initial: elementText,
@@ -336,6 +353,107 @@ export const CreatorWrapper = ({
     reportEnrichDataLayer("creator_result_rejected", {});
   };
 
+  const handleImageGenerate = async (prompt: string) => {
+    if (!prompt.trim()) return;
+
+    const randomID = Math.random().toString(36).substring(2, 15);
+    await generateImage(token, {
+      prompt,
+      context: `The image to generate is part of a lesson in a tutorial, this is the content of the lesson: ${currentContent}`,
+      callbackUrl: `${DEV_MODE
+        ? DEV_URL
+        : window.location.origin
+        }/webhooks/${configObject.config?.slug}/images/${randomID}`,
+    });
+
+    const replacement = makeReplacement(randomID, prompt);
+    if (node?.position?.start && node?.position?.end) {
+      await replaceInReadme(
+        replacement,
+        node?.position?.start,
+        node?.position?.end
+      );
+    }
+    reportEnrichDataLayer("creator_image_generation_started", {
+      prompt,
+      image_id: randomID,
+    });
+    try {
+      await useConsumable("ai-generation");
+    } catch (error) {
+      console.error("Error using consumable", error);
+    }
+    setIsOpen(false);
+  };
+
+  const handleCodeChallenge = async (promptText: string) => {
+    const trimmedPrompt = promptText.trim();
+    if (!trimmedPrompt) {
+      toast.error(t("missing-required-content"));
+      return;
+    }
+
+    if (!token) {
+      toast.error(t("authentication-required"));
+      return;
+    }
+
+    const courseSlug = configObject?.config?.slug;
+    if (!courseSlug) {
+      toast.error(t("course-slug-not-found"));
+      return;
+    }
+
+    const tid = toast.loading(t("generating-code-challenge"));
+
+    try {
+      const result = await generateCodeChallenge(
+        trimmedPrompt,
+        currentContent,
+        Number(currentExercisePosition),
+        token,
+        courseSlug
+      );
+
+      if (result.status === "QUEUED") {
+        const generatingContent = `\`\`\`code_challenge_proposal\nGENERATING(${result.id}) ${trimmedPrompt}\n\`\`\``;
+        if (node?.position?.start && node?.position?.end) {
+          await replaceInReadme(
+            generatingContent,
+            node?.position?.start,
+            node?.position?.end
+          );
+        }
+
+        toast.success(t("code-challenge-generation-started"), { id: tid });
+        reportEnrichDataLayer("creator_code_challenge_generation_started", {
+          prompt: trimmedPrompt,
+          completion_id: result.id,
+        });
+
+        try {
+          await useConsumable("ai-generation");
+        } catch (error) {
+          console.error("Error using consumable", error);
+        }
+      } else {
+        toast.error(t("failed-to-start-code-challenge-generation"), { id: tid });
+      }
+    } catch (error) {
+      console.error("Error generating code challenge:", error);
+      toast.error(t("error-generating-code-challenge-files"), { id: tid });
+      const errorContent = `\`\`\`code_challenge_proposal\n${trimmedPrompt}\n\`\`\``;
+      if (node?.position?.start && node?.position?.end) {
+        await replaceInReadme(
+          errorContent,
+          node?.position?.start,
+          node?.position?.end
+        );
+      }
+    }
+    setIsOpen(false);
+  };
+
   const promps: TPromp[] = [
     {
       type: "button",
@@ -407,12 +525,32 @@ export const CreatorWrapper = ({
       svg: svgs.trash,
       allowedElements: ["all"],
     },
+    {
+      type: "image-generate",
+      text: t("generateImage"),
+      title: t("generate-image-tooltip"),
+      action: () => {},
+      extraClass: "text-secondary  rounded padding-small active-on-hover svg-blue",
+      svg: svgs.image,
+      allowedElements: ["all"],
+      placeholder: t("describeImage"),
+    },
+    {
+      type: "code-challenge",
+      text: t("add-code-challenge"),
+      title: isBuildable ? t("add-code-challenge-disabled-tooltip") : t("add-code-challenge-tooltip"),
+      action: () => {},
+      extraClass: "text-secondary  rounded padding-small active-on-hover svg-blue ",
+      svg: <Icon name="Code" />,
+      allowedElements: ["new"],
+      placeholder: t("code-challenge-prompt-placeholder"),
+    },
   ];
 
   const getPortion = () => {
     console.log(node?.position?.start?.offset && node?.position?.end?.offset);
-    
-    if (typeof(node?.position?.start?.offset) === "number" && typeof(node?.position?.end?.offset) === "number") {
+
+    if (typeof (node?.position?.start?.offset) === "number" && typeof (node?.position?.end?.offset) === "number") {
       return getPortionFromText(
         currentContent,
         node?.position?.start.offset,
@@ -431,8 +569,161 @@ export const CreatorWrapper = ({
     });
   };
 
+  const findScrollableContainer = (element: HTMLElement | null): HTMLElement | null => {
+    if (!element) return null;
+
+    let current: HTMLElement | null = element;
+    while (current) {
+      const style = window.getComputedStyle(current);
+      const overflowY = style.overflowY || style.overflow;
+      const hasScrollableContent = current.scrollHeight > current.clientHeight;
+
+      if ((overflowY === 'auto' || overflowY === 'scroll') && hasScrollableContent) {
+        return current;
+      }
+
+      current = current.parentElement;
+    }
+
+    return document.documentElement;
+  };
+
+  const handleAutoScroll = (clientY: number) => {
+    const scrollableContainer = findScrollableContainer(elemRef.current);
+    if (!scrollableContainer) return;
+
+    const containerRect = scrollableContainer.getBoundingClientRect();
+    const scrollThreshold = 100;
+    const scrollSpeed = 15;
+
+    const distanceFromTop = clientY - containerRect.top;
+    const distanceFromBottom = containerRect.bottom - clientY;
+
+    if (distanceFromTop < scrollThreshold && scrollableContainer.scrollTop > 0) {
+      const scrollAmount = Math.max(1, scrollSpeed * (1 - distanceFromTop / scrollThreshold));
+      scrollableContainer.scrollTop -= scrollAmount;
+    } else if (distanceFromBottom < scrollThreshold &&
+      scrollableContainer.scrollTop < scrollableContainer.scrollHeight - scrollableContainer.clientHeight) {
+      const scrollAmount = Math.max(1, scrollSpeed * (1 - distanceFromBottom / scrollThreshold));
+      scrollableContainer.scrollTop += scrollAmount;
+    }
+  };
+
+  const handleDragStart = (e: React.DragEvent) => {
+    if (node?.position?.start?.offset && node?.position?.end?.offset) {
+      const markdownContent = getPortion();
+      if (markdownContent) {
+        e.dataTransfer.setData('text/plain', markdownContent);
+        e.dataTransfer.setData('source-start', node.position.start.offset.toString());
+        e.dataTransfer.setData('source-end', node.position.end.offset.toString());
+        e.dataTransfer.effectAllowed = 'move';
+        setIsDragging(true);
+
+        scrollIntervalRef.current = setInterval(() => {
+          const lastY = (window as any).__lastDragY;
+          if (lastY !== undefined) {
+            handleAutoScroll(lastY);
+          }
+        }, 16) as any;
+
+        (window as any).__dragCleanup = () => {
+          if (scrollIntervalRef.current) {
+            clearInterval(scrollIntervalRef.current);
+            scrollIntervalRef.current = null;
+          }
+          delete (window as any).__lastDragY;
+          delete (window as any).__dragCleanup;
+        };
+      }
+    }
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+    setIsDragOver(false);
+
+    if ((window as any).__dragCleanup) {
+      (window as any).__dragCleanup();
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+    setIsDragOver(true);
+    (window as any).__lastDragY = e.clientY;
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    const relatedTarget = e.relatedTarget as HTMLElement;
+    if (!elemRef.current?.contains(relatedTarget) && !elemRef.current?.contains(relatedTarget?.parentElement)) {
+      setIsDragOver(false);
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const sourceStartStr = e.dataTransfer.getData('source-start');
+    const sourceEndStr = e.dataTransfer.getData('source-end');
+
+    if (!sourceStartStr || !sourceEndStr || !node?.position?.start?.offset) {
+      return;
+    }
+
+    const sourceStart = parseInt(sourceStartStr);
+    const sourceEnd = parseInt(sourceEndStr);
+    const targetStart = node.position.start.offset;
+
+    if (sourceStart === targetStart) {
+      return;
+    }
+
+    try {
+      await moveBlock(sourceStart, sourceEnd, targetStart);
+
+      reportEnrichDataLayer("creator_block_moved", {
+        source_start: sourceStart,
+        source_end: sourceEnd,
+        target_start: targetStart,
+      });
+    } catch (error) {
+      console.error("Error moving block:", error);
+    }
+  };
+
+  const canDrag = node?.position?.start?.offset !== undefined && node?.position?.end?.offset !== undefined && tagName !== "new";
+
+  console.log(canDrag, "CAN DRAG");
+
+
   return (
-    <div className={`creator-wrapper  ${tagName}`}>
+    <div
+      className={`creator-wrapper  ${tagName} ${isDragOver ? 'drag-over' : ''} ${isDragging ? 'dragging' : ''}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      style={{ position: 'relative' }}
+    >
+      {isDragOver && (
+        <div
+          className="drag-indicator-line"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '3px',
+            background: 'var(--blue-rigo, #3b82f6)',
+            zIndex: 1000,
+            borderRadius: '2px'
+          }}
+        />
+      )}
       <SimpleButton
         svg={svgs.plus}
         extraClass="top-centered display-on-hover above-all"
@@ -457,6 +748,8 @@ export const CreatorWrapper = ({
           node={node}
           promps={promps}
           onSubmit={askAIAnything}
+          onImageGenerate={handleImageGenerate}
+          onCodeChallenge={handleCodeChallenge}
           isBuildable={isBuildable}
         />
       )}
@@ -487,16 +780,40 @@ export const CreatorWrapper = ({
             tagName={tagName}
             node={node}
             onEditAsMarkdown={handleEditAsMarkdown}
+            onImageGenerate={handleImageGenerate}
+            onCodeChallenge={handleCodeChallenge}
             isBuildable={isBuildable}
           />
         )}
-        {tagName !== "new" && (
-          <SimpleButton
-            svg={svgs.edit}
-            extraClass="creator-options-opener svg-blue active-on-hover"
-            title={t("edit-element-tooltip")}
-            action={() => setIsOpen(!isOpen)}
-          />
+        {tagName !== "new" && !containsNewElement && (
+          <div className="creator-controls">
+            {canDrag && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div
+                    className="creator-drag-handle svg-blue active-on-hover"
+                    draggable={true}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ cursor: 'grab' }}
+                  >
+                    <Icon name="Move" size={16} />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-[200px]">
+                  <p>{t("drag-to-reorder")}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            <SimpleButton
+              svg={svgs.edit}
+              extraClass="creator-options-opener svg-blue active-on-hover"
+              title={t("edit-element-tooltip")}
+              action={() => setIsOpen(!isOpen)}
+            />
+          </div>
         )}
         {isEditingAsMarkdown ? (
           <AutoResizeTextarea
@@ -510,16 +827,15 @@ export const CreatorWrapper = ({
         )}
       </div>
       <div
-        className={`creator-target  ${
-          replacementValue ? "border-blue padding-medium" : ""
-        }`}
+        className={`creator-target  ${replacementValue ? "border-blue padding-medium" : ""
+          }`}
       >
         <div
           contentEditable
           className="creator-target-content hidden"
           ref={targetRef}
         ></div>
-        
+
         {isEditingAsMarkdown ? (
           replacementValue && (
             <div className="flex-x gap-small target-buttons justify-center">
@@ -708,7 +1024,7 @@ const ImageUploader = ({
     const imgSlug = slugify(fileToUpload.name);
     const imgPath = `courses/${config.config?.slug}/.learn/assets/${imgSlug}`;
     const relativePath = `/.learn/assets/${imgSlug}`;
-    
+
     try {
       const blob = new Blob([fileToUpload]);
       await uploadBlobToBucket(blob, imgPath);
@@ -752,215 +1068,6 @@ export const makeReplacement = (imgID: string, alt: string) => {
   return `![GENERATING: ${alt}](/.learn/assets/${imgID})`;
 };
 
-const ImageGenerator = ({
-  onFinish,
-}: {
-  onFinish: (replacement: string) => void;
-}) => {
-  const token = useStore((state) => state.token);
-  const config = useStore((state) => state.configObject);
-  const useConsumable = useStore((state) => state.useConsumable);
-  const reportEnrichDataLayer = useStore(
-    (state) => state.reportEnrichDataLayer
-  );
-  const currentContent = useStore((state) => state.currentContent);
-  const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  // "/webhooks/:courseSlug/images/:imageId",
-  const buttonAction = async () => {
-    if (isOpen) {
-      const prompt = inputRef.current?.value;
-      if (prompt) {
-        const randomID = Math.random().toString(36).substring(2, 15);
-        await generateImage(token, {
-          prompt,
-          context: `The image to generate is part of a lesson in a tutorial, this is the content of the lesson: ${currentContent}`,
-          callbackUrl: `${
-            DEV_MODE
-              ? DEV_URL
-              : window.location.origin
-          }/webhooks/${config.config?.slug}/images/${randomID}`,
-        });
-
-        const replacement = makeReplacement(randomID, prompt);
-        onFinish(replacement);
-        reportEnrichDataLayer("creator_image_generation_started", {
-          prompt,
-          image_id: randomID,
-        });
-        try {
-          await useConsumable("ai-generation");
-        } catch (error) {
-          console.error("Error using consumable", error);
-        }
-      }
-
-      setIsOpen(false);
-    } else {
-      setIsOpen(true);
-    }
-  };
-  return (
-    <div className="d-flex gap-small align-center w-full active-on-hover rounded padding-small svg-blue text-secondary">
-      <SimpleButton
-        extraClass="text-secondary active-on-hover"
-        text={isOpen ? "" : t("generateImage")}
-        action={buttonAction}
-        svg={svgs.image}
-      />
-      {isOpen && (
-        <div className="image-input-wrapper">
-          <input
-            type="text"
-            placeholder={t("describeImage")}
-            className="input"
-            ref={inputRef}
-            onKeyUp={(e) => {
-              if (e.key === "Enter") {
-                buttonAction();
-              }
-            }}
-          />
-        </div>
-      )}
-    </div>
-  );
-};
-
-const CodeChallengeGenerator = ({
-  onFinish,
-  isBuildable,
-}: {
-  onFinish: (replacement: string) => void;
-  isBuildable: boolean;
-}) => {
-  const token = useStore((state) => state.token);
-  const config = useStore((state) => state.configObject);
-  const currentContent = useStore((state) => state.currentContent);
-  const currentExercisePosition = useStore((state) => state.currentExercisePosition);
-  const useConsumable = useStore((state) => state.useConsumable);
-  const reportEnrichDataLayer = useStore(
-    (state) => state.reportEnrichDataLayer
-  );
-  const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState(false);
-  const [prompt, setPrompt] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-
-  const buttonAction = async () => {
-    if (isOpen) {
-      const promptText = prompt.trim();
-      if (!promptText) {
-        toast.error(t("missing-required-content"));
-        return;
-      }
-
-      if (!token) {
-        toast.error(t("authentication-required"));
-        return;
-      }
-
-      const courseSlug = config?.config?.slug;
-      if (!courseSlug) {
-        toast.error(t("course-slug-not-found"));
-        return;
-      }
-
-      setIsGenerating(true);
-      const tid = toast.loading(t("generating-code-challenge"));
-
-      try {
-        const result = await generateCodeChallenge(
-          promptText,
-          currentContent,
-          Number(currentExercisePosition),
-          token,
-          courseSlug
-        );
-
-        if (result.status === "QUEUED") {
-          // Create the block with GENERATING status
-          const generatingContent = `\`\`\`code_challenge_proposal\nGENERATING(${result.id}) ${promptText}\n\`\`\``;
-          onFinish(generatingContent);
-          
-          toast.success(t("code-challenge-generation-started"), { id: tid });
-          reportEnrichDataLayer("creator_code_challenge_generation_started", {
-            prompt: promptText,
-            completion_id: result.id,
-          });
-          
-          try {
-            await useConsumable("ai-generation");
-          } catch (error) {
-            console.error("Error using consumable", error);
-          }
-        } else {
-          toast.error(t("failed-to-start-code-challenge-generation"), { id: tid });
-        }
-      } catch (error) {
-        console.error("Error generating code challenge:", error);
-        toast.error(t("error-generating-code-challenge-files"), { id: tid });
-        // On error, create the block with the prompt so user can edit and retry
-        const errorContent = `\`\`\`code_challenge_proposal\n${promptText}\n\`\`\``;
-        onFinish(errorContent);
-      } finally {
-        setIsGenerating(false);
-        setIsOpen(false);
-        setPrompt("");
-      }
-    } else {
-      setIsOpen(true);
-    }
-  };
-
-  const isDisabled = isBuildable === true;
-
-  return (
-    <div className="d-flex gap-small align-center w-full active-on-hover rounded padding-small svg-blue text-secondary">
-      <SimpleButton
-        extraClass="text-secondary active-on-hover"
-        text={isOpen ? "" : t("add-code-challenge")}
-        action={buttonAction}
-        svg={<Icon name="Code" />}
-        disabled={isGenerating || isDisabled}
-        title={isDisabled ? t("add-code-challenge-disabled-tooltip") : t("add-code-challenge-tooltip")}
-      />
-      {isOpen && (
-        <div className="flex-y gap-small w-full code-challenge-input-wrapper">
-          <AutoResizeTextarea
-            defaultValue={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            className="w-100 input"
-            minHeight="120px"
-            placeholder={t("code-challenge-prompt-placeholder")}
-          />
-          <div className="d-flex gap-small justify-end">
-            <SimpleButton
-              action={() => {
-                setIsOpen(false);
-                setPrompt("");
-              }}
-              extraClass="bg-gray padding-small rounded"
-              text={t("cancel")}
-              svg={<Icon name="X" />}
-              disabled={isGenerating}
-            />
-            <SimpleButton
-              action={buttonAction}
-              extraClass="bg-blue-rigo text-white padding-small rounded code-challenge-generate-button"
-              text={isGenerating ? t("generating-code-challenge") : t("generate")}
-              svg={isGenerating ? <Loader size="sm" svg={svgs.rigoSvg} /> : <Icon name="Check" />}
-              disabled={isGenerating || !prompt.trim()}
-            />
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
 const RigoInput = ({
   onSubmit,
   inside,
@@ -970,6 +1077,8 @@ const RigoInput = ({
   onEditAsMarkdown,
   onClose,
   isBuildable,
+  onImageGenerate,
+  onCodeChallenge,
 }: {
   onSubmit: (prompt: string) => void;
   inside: boolean;
@@ -979,8 +1088,11 @@ const RigoInput = ({
   onEditAsMarkdown: () => void;
   onClose: () => void;
   isBuildable: boolean;
+  onImageGenerate?: (prompt: string) => void;
+  onCodeChallenge?: (prompt: string) => void;
 }) => {
   const [prompt, setPrompt] = useState("");
+  const [mode, setMode] = useState<"default" | "image-generate" | "code-challenge">("default");
   const replaceInReadme = useStore((state) => state.replaceInReadme);
   const [showPrompts, setShowPrompts] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -1006,15 +1118,37 @@ const RigoInput = ({
     };
   }, [containerRef]);
 
+  const handleSubmit = () => {
+    if (mode === "image-generate" && onImageGenerate) {
+      onImageGenerate(prompt);
+      setPrompt("");
+      setMode("default");
+    } else if (mode === "code-challenge" && onCodeChallenge) {
+      onCodeChallenge(prompt);
+      setPrompt("");
+      setMode("default");
+    } else {
+      onSubmit(prompt);
+      setPrompt("");
+    }
+  };
+
+  const currentPlaceholder = mode === "image-generate" 
+    ? t("describeImage")
+    : mode === "code-challenge"
+    ? t("code-challenge-prompt-placeholder")
+    : t("editWithRigobotPlaceholder");
+
   return (
     <div ref={containerRef} className={` ${inside ? "creator-options" : ""}`}>
       <div className={`rigo-input ${inside ? "" : "w-100"}`}>
         <SimpleButton
           svg={svgs.rigoSoftBlue}
-          action={() => onSubmit(prompt)}
+          action={handleSubmit}
           extraClass={"big-circle rigo-button mr-12"}
         />
         <AutoResizeTextarea
+          key={mode}
           onFocus={() => setShowPrompts(true)}
           onBlur={() => {
             setTimeout(() => {
@@ -1023,18 +1157,17 @@ const RigoInput = ({
               }
             }, 100);
           }}
-          placeholder={t("editWithRigobotPlaceholder")}
+          placeholder={currentPlaceholder}
           autoFocus
           className="rigo-textarea"
           onKeyUp={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
-              onSubmit(prompt);
-              setPrompt("");
+              handleSubmit();
             }
           }}
-          minHeight={60}
-          defaultValue={prompt}
+          minHeight={mode === "code-challenge" ? 120 : 60}
+          defaultValue=""
           onChange={(e) => {
             setPrompt(e.target.value);
           }}
@@ -1049,26 +1182,43 @@ const RigoInput = ({
               return false;
             })
             .map((prompt, index) => {
-              // Check if this is the code challenge button
-              // We identify it by checking multiple criteria to be sure:
-              // 1. tagName must be "new"
-              // 2. allowedElements must be exactly ["new"]
-              // 3. type must be "button"
-              // 4. text must match the translation key
-              const isCodeChallengeButton = tagName === "new" && 
-                Array.isArray(prompt.allowedElements) &&
-                prompt.allowedElements.length === 1 && 
-                prompt.allowedElements[0] === "new" &&
-                prompt.type === "button" &&
-                prompt.text === t("add-code-challenge");
-              
-              // Only disable if:
-              // 1. This is definitely the code challenge button
-              // 2. AND isBuildable is true (meaning the lesson has interactive exercises - entry file or files for cloud compilation)
-              // isBuildable comes from the store and indicates if the exercise can be built/executed
+              const isCodeChallengeButton = prompt.type === "code-challenge";
               const isDisabled = isCodeChallengeButton && isBuildable === true;
-              
               const tooltipTitle = isDisabled ? t("add-code-challenge-disabled-tooltip") : prompt.title;
+
+              if (prompt.type === "image-generate") {
+                return (
+                  <SimpleButton
+                    svg={prompt.svg}
+                    key={`${prompt.text}-${index}`}
+                    title={tooltipTitle}
+                    action={() => {
+                      setMode("image-generate");
+                      setPrompt("");
+                    }}
+                    extraClass={prompt.extraClass}
+                    text={prompt.text}
+                    disabled={isDisabled}
+                  />
+                );
+              }
+              
+              if (prompt.type === "code-challenge") {
+                return (
+                  <SimpleButton
+                    svg={prompt.svg}
+                    key={`${prompt.text}-${index}`}
+                    title={tooltipTitle}
+                    action={() => {
+                      setMode("code-challenge");
+                      setPrompt("");
+                    }}
+                    extraClass={prompt.extraClass}
+                    text={prompt.text}
+                    disabled={isDisabled}
+                  />
+                );
+              }
 
               return prompt.type === "button" ? (
                 <SimpleButton
@@ -1097,7 +1247,7 @@ const RigoInput = ({
                     ref={toneRef}
                     key={prompt.text}
                     className={`rounded `}
-                    // onChange={(e) => prompt.action(e.target.value)}
+                  // onChange={(e) => prompt.action(e.target.value)}
                   >
                     {prompt.options?.map((option) => (
                       <option key={option} value={option}>
@@ -1127,31 +1277,6 @@ const RigoInput = ({
               }
             }}
           />
-          <ImageGenerator
-            onFinish={async (replacement) => {
-              if (node?.position?.start && node?.position?.end) {
-                await replaceInReadme(
-                  replacement,
-                  node?.position?.start,
-                  node?.position?.end
-                );
-              }
-            }}
-          />
-          {tagName === "new" && (
-            <CodeChallengeGenerator
-              onFinish={async (replacement) => {
-                if (node?.position?.start && node?.position?.end) {
-                  await replaceInReadme(
-                    replacement,
-                    node?.position?.start,
-                    node?.position?.end
-                  );
-                }
-              }}
-              isBuildable={isBuildable}
-            />
-          )}
         </div>
       )}
     </div>

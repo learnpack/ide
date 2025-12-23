@@ -88,24 +88,81 @@
 }
 
 .creator-options-opener {
-  display: none;
-  position: absolute;
-  right: 100%;
-  top: 5px;
-  /* transform: translateY(-50%); */
-  z-index: 1000;
+  display: block;
   padding: 2px;
   border-radius: 5px;
   background-color: var(--app-bg-color);
 }
 
-.creator-wrapper:hover > .text-in-editor > .creator-options-opener {
-  display: block;
+.creator-controls {
+  display: none;
+  position: absolute;
+  right: 100%;
+  top: 5px;
+  z-index: 1000;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
+.creator-drag-handle {
+  display: flex;
+  padding: 4px;
+  border-radius: 5px;
+  background-color: var(--app-bg-color);
+  cursor: grab;
+  border: 1px solid transparent;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.creator-drag-handle:hover {
+  background-color: var(--color-blue-opaque);
+  border-color: var(--color-blue-rigo);
+}
+
+.creator-drag-handle:active {
+  cursor: grabbing;
+}
+
+.creator-wrapper:hover > .text-in-editor > .creator-controls {
+  display: flex !important;
 }
 
 .creator-wrapper:hover {
   background-color: var(--color-blue-opaque);
   border-radius: 2px;
+}
+
+.creator-wrapper.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+.creator-wrapper[draggable="true"] {
+  cursor: grab;
+}
+
+.creator-wrapper[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.creator-wrapper.drag-over {
+  background-color: var(--color-blue-opaque);
+}
+
+.drag-indicator-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--color-blue-rigo, #3b82f6);
+  z-index: 1000;
+  border-radius: 2px;
+  pointer-events: none;
 }
 
 .creator-target-content {

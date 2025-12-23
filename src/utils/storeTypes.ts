@@ -410,6 +410,11 @@ export interface IStore {
     endPosition: Point
   ) => Promise<{ success: boolean; error?: any }>;
   getPortion: (startPoint: number, endPoint: number) => string;
+  moveBlock: (
+    sourceStart: number,
+    sourceEnd: number,
+    targetStart: number
+  ) => Promise<void>;
   initRigoAI: () => void;
   // History management
   historyVersion: string;
