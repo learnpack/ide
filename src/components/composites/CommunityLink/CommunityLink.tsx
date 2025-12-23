@@ -1,11 +1,9 @@
-import { svgs } from "../../../assets/svgs";
+import { Icon } from "../../Icon";
 import useStore from "../../../utils/store";
+import { useTranslation } from "react-i18next";
 
-export const CommunityLink = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
+export const CommunityLink = () => {
+  const { t } = useTranslation();
   const { setOpenedModals } = useStore((state) => ({
     setOpenedModals: state.setOpenedModals,
   }));
@@ -15,14 +13,14 @@ export const CommunityLink = ({
       onClick={() => {
         setOpenedModals({ community: true });
       }}
-      className="d-inline-flex align-items-center gap-small padding-small rounded bg-blue-opaque fit-content active-on-hover"
+      className="d-inline-flex items-center gap-small padding-small rounded bg-blue-opaque fit-content active-on-hover"
     >
-      <span style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-        <span style={{ width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {svgs.whatsapp}
-        </span>
-      </span>
-      <span>{children}</span>
+      <Icon 
+        name="MessageCircle" 
+        size={20} 
+        color="var(--color-blue-rigo)" 
+      />
+      <span>{t("communities.linkText")}</span>
     </div>
   );
 };
