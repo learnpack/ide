@@ -592,6 +592,7 @@
     "communities": {
         "title": "Join Our Communities",
         "description": "Connect with other learners and get help from our community",
+        "linkText": "Join our communities",
         "whatsapp": {
             "es": {
                 "name": "WhatsApp Community (Spanish)",

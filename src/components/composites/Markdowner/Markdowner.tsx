@@ -193,7 +193,7 @@ export const Markdowner = ({
                 return <RigoQuestion href={href}>{children}</RigoQuestion>;
               }
               if (isCommunityLink(href)) {
-                return <CommunityLink>{children}</CommunityLink>;
+                return <CommunityLink />;
               }
               return (
                 <a onClick={() => openLink(href)} target="_blank" href={href}>
