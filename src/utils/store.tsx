@@ -2647,11 +2647,15 @@ The user's set up the application in "${language}" language, give your feedback 
     sourceEnd: number,
     targetStart: number
   ) => {
-    const { getCurrentExercise, language } = get();
+    const { getCurrentExercise, language, historyVersion } = get();
     const readme = await FetchManager.getReadme(
       getCurrentExercise().slug,
       language
     );
+    
+    // Get current content BEFORE the change to save in history
+    const currentFullContent = remakeMarkdown(readme.attributes, readme.body);
+    
     let body: string = readme.body;
 
     if (sourceStart === targetStart || sourceStart >= sourceEnd) {
@@ -2684,12 +2688,21 @@ The user's set up the application in "${language}" language, give your feedback 
       currentContent: removeFrontMatter(newReadme),
     });
 
-    await FetchManager.replaceReadme(
+    // Save with history - pass versionId and contentToSaveInHistory
+    const result = await FetchManager.replaceReadme(
       getCurrentExercise().slug,
       language,
       newReadme,
-      false
+      false,
+      historyVersion,
+      currentFullContent // Content BEFORE the change
     );
+
+    // Update version and history status
+    if (result && result.version) {
+      set({ historyVersion: result.version });
+    }
+    await get().updateHistoryStatus();
 
     const editedReadme = await FetchManager.getReadme(
       getCurrentExercise().slug,
