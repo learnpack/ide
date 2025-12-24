@@ -108,6 +108,74 @@ const mergeExercisesWithSession = (
   });
 };
 
+/**
+ * Detects if the exercise has code files that can be executed/compiled
+ * @param isBuildable - Flag from store indicating if exercise has executable code
+ * @returns true if exercise has code files
+ */
+const hasCodeFiles = (isBuildable: boolean | undefined): boolean => {
+  return isBuildable === true;
+};
+
+/**
+ * Cleans code_challenge_proposal blocks from content, except those in GENERATING state
+ * @param content - Markdown content to clean
+ * @returns Object with cleaned content and flag indicating if proposals were found
+ */
+const cleanCodeChallengeProposals = (content: string): {
+  cleaned: string;
+  hadProposals: boolean;
+} => {
+  // Regex to detect and remove code_challenge_proposal blocks
+  // IMPORTANT: Does NOT remove blocks in GENERATING state (contain "GENERATING(" marker)
+  // Pattern explanation:
+  // - Captures optional newlines before/after the block
+  // - Matches ```code_challenge_proposal
+  // - Negative lookahead (?![\s\S]*?GENERATING\() to exclude GENERATING blocks
+  // - Matches content until closing ```
+  const codeProposalRegex =
+    /(\r?\n)?```code_challenge_proposal(?![\s\S]*?GENERATING\()[\s\S]*?```(\r?\n)?/g;
+
+  const hadProposals = codeProposalRegex.test(content);
+  const cleaned = content.replace(codeProposalRegex, "");
+
+  return { cleaned, hadProposals };
+};
+
+/**
+ * Requests backend to remove code_challenge_proposals from all README files
+ * This is a background operation that doesn't block the UI
+ * @param slug - Exercise slug
+ * @param courseSlug - Course slug
+ */
+const removeCodeChallengeProposalsFromBackend = async (
+  slug: string,
+  courseSlug: string
+): Promise<void> => {
+  try {
+    const response = await fetch(
+      `${FetchManager.HOST}/exercise/${slug}/remove-code-proposals`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ courseSlug }),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error("❌ Failed to remove proposals from backend:", error);
+      return;
+    }
+
+    const result = await response.json();
+    console.log("✅ Code challenge proposals removed from backend:", result.message);
+  } catch (error) {
+    console.error("❌ Error removing proposals from backend:", error);
+    // Don't show error to user, just log for debugging
+  }
+};
+
 const useStore = create<IStore>((set, get) => ({
   language: defaultParams.language || "en",
   mustLoginMessageKey: "you-must-login-message",
@@ -1204,7 +1272,8 @@ The user's set up the application in "${language}" language, give your feedback 
       exercises,
       currentExercisePosition,
       fetchSingleExerciseInfo,
-      configObject
+      configObject,
+      isBuildable, // Already available in store
     } = get();
 
     // @ts-ignore
@@ -1248,6 +1317,27 @@ The user's set up the application in "${language}" language, give your feedback 
           // @ts-ignore
           configObject.config.variables[v]
         );
+      }
+    }
+
+    // Clean code_challenge_proposals if code files exist
+    // This handles both new and legacy lessons
+    if (hasCodeFiles(isBuildable)) {
+      const { cleaned, hadProposals } = cleanCodeChallengeProposals(readme);
+
+      if (hadProposals) {
+        console.log(
+          "🧹 Code files detected, cleaning code_challenge_proposals (except GENERATING)"
+        );
+        readme = cleaned;
+
+        // Remove from backend in background (non-blocking)
+        const courseSlug = configObject?.config?.slug;
+        if (courseSlug) {
+          removeCodeChallengeProposalsFromBackend(slug, courseSlug).catch(
+            (err) => console.error("Failed to cleanup proposals:", err)
+          );
+        }
       }
     }
 
