@@ -19,6 +19,7 @@ import {
 // import { Modal } from "../mockups/Modal";
 // import { createPortal } from "react-dom";
 import { eventBus } from "../../managers/eventBus";
+import { HistoryControls } from "../HistoryControls/HistoryControls";
 // import { slugToTitle } from "../Rigobot/utils";
 
 export const NewHeader = () => {
@@ -138,6 +139,7 @@ export const NewHeader = () => {
       </section>
       <section className="flex-x align-center">
         {showSyncNotifications() && <SyncNotificationBadge />}
+        <HistoryControls />
         {!isIframe && language && <LanguageButton />}
         {/* {hasSolution && (
           <SimpleButton

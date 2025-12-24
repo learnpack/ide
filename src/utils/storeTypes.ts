@@ -408,7 +408,7 @@ export interface IStore {
     newText: string,
     startPosition: Point,
     endPosition: Point
-  ) => Promise<void>;
+  ) => Promise<{ success: boolean; error?: any }>;
   getPortion: (startPoint: number, endPoint: number) => string;
   moveBlock: (
     sourceStart: number,
@@ -416,6 +416,15 @@ export interface IStore {
     targetStart: number
   ) => Promise<void>;
   initRigoAI: () => void;
+  // History management
+  historyVersion: string;
+  canUndo: boolean;
+  canRedo: boolean;
+  isUndoRedoInProgress: boolean;
+  setHistoryVersion: (version: string) => void;
+  updateHistoryStatus: () => Promise<void>;
+  performUndo: () => Promise<void>;
+  performRedo: () => Promise<void>;
 }
 
 export type TEditorTab = {
