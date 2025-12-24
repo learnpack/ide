@@ -96,12 +96,6 @@ export const CreatorWrapper = ({
 
   const { t } = useTranslation();
 
-  useEffect(() => {
-    if (elemRef.current?.querySelector(".new")) {
-      setContainsNewElement(true);
-    }
-  }, []);
-
   const simplifyLanguage = () => {
     let text = elemRef.current?.innerHTML;
     if (node?.position?.start?.offset && node?.position?.end?.offset) {
