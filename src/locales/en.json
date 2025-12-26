@@ -389,6 +389,7 @@
     "convertInImg": "Convert in Img",
     "uploadImage": "Upload image",
     "generateImage": "Generate image",
+    "generate-image-tooltip": "Generate an image using AI",
     "describeImage": "Describe the image to generate",
     "imageGenerationInProcess": "Image generation in process",
     "oops-not-so-fast": "Oops! Not so fast!",
