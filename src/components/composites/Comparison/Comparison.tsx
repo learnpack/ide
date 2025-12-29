@@ -125,6 +125,17 @@ const ContentRenderer: React.FC<{
         );
       }
 
+    case "image":
+      return (
+        <div className="w-full h-full overflow-hidden bg-gray-100">
+          <img
+            src={String(item.content)}
+            alt={item.label || "Comparison image"}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      );
+
     default:
       return (
         <div className="w-full h-full flex items-center justify-center text-gray-500">
@@ -136,8 +147,9 @@ const ContentRenderer: React.FC<{
 
 // Determine default layout based on content types
 const determineLayout = (before: ComparisonItem, after: ComparisonItem): ComparisonLayout => {
-  // Use slider for visual content (HTML in rendered mode)
-  if (before.type === "html" || after.type === "html") {
+  // Use slider for visual content (HTML and images)
+  if (before.type === "html" || after.type === "html" || 
+      before.type === "image" || after.type === "image") {
     return "slider";
   }
   
@@ -171,6 +183,8 @@ const SliderComparison: React.FC<Omit<ComparisonProps, "layout">> = ({
         return ["rendered", "raw"];
       case "markdown":
         return ["rendered", "raw"];
+      case "image":
+        return ["rendered"];
       case "text":
         return ["raw"];
       case "code":
@@ -385,6 +399,8 @@ const SideBySideComparison: React.FC<Omit<ComparisonProps, "layout" | "defaultPo
         return ["rendered", "raw"];
       case "markdown":
         return ["rendered", "raw"];
+      case "image":
+        return ["rendered"];
       case "text":
         return ["raw"];
       case "code":
