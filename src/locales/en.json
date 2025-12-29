@@ -589,6 +589,7 @@
     "no-redo-available": "No changes to redo",
     "stopEditing": "Stop editing",
     "lesson-complete": "Lesson Complete!",
+    "tutorial-end-message": "You have reached the end of this interactive tutorial.",
     "exercises-completed": "Exercises Completed",
     "communities": {
         "title": "Join Our Communities",
