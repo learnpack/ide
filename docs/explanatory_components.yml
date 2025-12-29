@@ -45,6 +45,108 @@ components:
 
       [Ask Rigo how to create a function in Python](https://4geeks.com/ask?query=help-me-understand-how-to-create-a-function-in-python-in-the-simplest-possible-way)
 
+  - name: comparison
+    intendedUse:
+      - explanation
+      - educational comparison
+      - code improvement demonstration
+      - before/after visualization
+    description: >-
+      The comparison component allows side-by-side or slider-based comparison of two pieces of content.
+      It supports multiple content types including HTML previews, code with syntax highlighting, text,
+      Mermaid diagrams, Markdown rendering, and images. Perfect for showing code improvements, design changes,
+      or comparing different approaches to solve the same problem. The component automatically selects the best
+      layout based on content type: slider for visual content (HTML, images) and side-by-side for textual/code content.
+    goodFor:
+      - showing code before and after refactoring or bug fixes
+      - comparing correct vs incorrect implementations
+      - demonstrating design improvements (images, HTML)
+      - comparing simple vs detailed prompts or explanations
+      - showing Mermaid diagram code vs rendered output
+      - comparing different algorithms or approaches side by side
+      - visual before/after demonstrations of UI changes
+      - comparing code with different levels of complexity or optimization
+    whenToUse: Use when showing two versions of something enhances learning - comparing approaches, demonstrating improvements, or showing the evolution from a problem to its solution. Particularly effective for code quality improvements, bug fixes, design iterations, or when teaching best practices by contrasting good and bad examples.
+    avoid:
+      - comparing more than 2 items (component only supports 2 panels)
+      - using for unrelated content that doesn't benefit from comparison
+      - overusing in a single lesson (can be overwhelming, use sparingly)
+      - very long code blocks that make scrolling difficult (keep comparisons focused)
+      - using when a simple explanation would be clearer
+    rules:
+      - CRITICAL - Must use exactly the text "---SEPARATOR---" on its own line to divide the two content blocks
+      - The type attribute is REQUIRED and must be one of these values - html, text, code, mermaid, markdown, image
+      - For type="code", you MUST also specify the language attribute (e.g. language="python", language="javascript")
+      - Both content blocks should be comparable in length and complexity for best visual results
+      - Use descriptive left and right labels to guide the student and provide context
+      - For images, use full URLs or paths starting with ./.learn/assets/
+      - Keep the compared content focused on a single concept or improvement
+      - The separator must be on its own line with no extra spaces or characters
+    metadata:
+      - type - Content type (REQUIRED) - Must be one of html, text, code, mermaid, markdown, image
+      - language - Programming language (REQUIRED only for type="code") - python, javascript, java, etc
+      - left - Label for left panel (optional but recommended) - Describes what the left content represents
+      - right - Label for right panel (optional but recommended) - Describes what the right content represents
+      - layout - Force specific layout (optional) - "slider" for overlay comparison or "side-by-side" for split view. Auto-detected if omitted
+      - height - Component height (optional) - Default is "600px", accepts CSS values like "500px", "80vh", "700px"
+      - syncModes - Sync render/code toggle between panels (optional) - "true" or "false", default is "true"
+    example: |
+      ```comparison type="html" left="Sin estilos" right="Con estilos CSS"
+      <h1>Título básico</h1>
+      <p>Párrafo sin formato</p>
+
+      ---SEPARATOR---
+
+      <style>
+        h1 { color: #2563eb; font-size: 2rem; }
+        p { font-size: 1.1rem; line-height: 1.6; }
+      </style>
+      <h1>Título estilizado</h1>
+      <p>Párrafo con formato mejorado</p>
+      ```
+      --- Second Example ---
+
+      ```comparison type="code" language="python" left="Código ineficiente" right="Código optimizado"
+      def find_max(numbers):
+          sorted_numbers = sorted(numbers)
+          return sorted_numbers[-1]
+
+      ---SEPARATOR---
+
+      def find_max(numbers):
+          return max(numbers)
+      ```
+      --- Third Example ---
+
+      ```comparison type="text" left="Prompt vago" right="Prompt específico" height="400px"
+      Explica las funciones en Python
+
+      ---SEPARATOR---
+
+      Explica las funciones en Python de forma clara:
+      - Sintaxis para definir funciones
+      - Cómo usar parámetros y argumentos
+      - Valores de retorno con return
+      - Ejemplos prácticos aplicados
+      ```
+      --- Fourth Example ---
+      
+      ```comparison type="code" language="javascript" left="Versión con bucle" right="Versión con método"
+      function sumArray(arr) {
+          let sum = 0;
+          for(let i = 0; i < arr.length; i++) {
+              sum = sum + arr[i];
+          }
+          return sum;
+      }
+
+      ---SEPARATOR---
+
+      function sumArray(arr) {
+          return arr.reduce((sum, num) => sum + num, 0);
+      }
+      ```
+
   - name: image
     intendedUse:
       - educational explanation
