@@ -2,6 +2,11 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Preview } from "../Preview/Preview";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import MermaidRenderer from "../MermaidRenderer/MermaidRenderer";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 import type { ComparisonProps, ComparisonItem, ContentMode, ContentType, ComparisonLayout } from "./types";
 
 // Internal component to render content based on type and mode
@@ -65,6 +70,61 @@ const ContentRenderer: React.FC<{
         </div>
       );
 
+    case "mermaid":
+      if (currentMode === "rendered") {
+        return (
+          <div className="w-full h-full overflow-auto p-4 bg-white flex items-center justify-center">
+            <MermaidRenderer code={String(item.content)} />
+          </div>
+        );
+      } else {
+        return (
+          <div className="w-full h-full overflow-auto">
+            <SyntaxHighlighter
+              language="mermaid"
+              style={atomDark}
+              customStyle={{
+                margin: 0,
+                height: "100%",
+                fontSize: "0.875rem",
+              }}
+            >
+              {String(item.content)}
+            </SyntaxHighlighter>
+          </div>
+        );
+      }
+
+    case "markdown":
+      if (currentMode === "rendered") {
+        return (
+          <div className="w-full h-full overflow-auto p-6 bg-white prose prose-sm max-w-none">
+            <Markdown
+              remarkPlugins={[remarkGfm, remarkMath]}
+              rehypePlugins={[rehypeKatex]}
+            >
+              {String(item.content)}
+            </Markdown>
+          </div>
+        );
+      } else {
+        return (
+          <div className="w-full h-full overflow-auto">
+            <SyntaxHighlighter
+              language="markdown"
+              style={atomDark}
+              customStyle={{
+                margin: 0,
+                height: "100%",
+                fontSize: "0.875rem",
+              }}
+            >
+              {String(item.content)}
+            </SyntaxHighlighter>
+          </div>
+        );
+      }
+
     default:
       return (
         <div className="w-full h-full flex items-center justify-center text-gray-500">
@@ -81,7 +141,7 @@ const determineLayout = (before: ComparisonItem, after: ComparisonItem): Compari
     return "slider";
   }
   
-  // Use side-by-side for text and code
+  // Use side-by-side for text, code, mermaid, and markdown
   return "side-by-side";
 };
 
@@ -106,6 +166,10 @@ const SliderComparison: React.FC<Omit<ComparisonProps, "layout">> = ({
   const getDefaultModes = (type: ContentType): ContentMode[] => {
     switch (type) {
       case "html":
+        return ["rendered", "raw"];
+      case "mermaid":
+        return ["rendered", "raw"];
+      case "markdown":
         return ["rendered", "raw"];
       case "text":
         return ["raw"];
@@ -316,6 +380,10 @@ const SideBySideComparison: React.FC<Omit<ComparisonProps, "layout" | "defaultPo
   const getDefaultModes = (type: ContentType): ContentMode[] => {
     switch (type) {
       case "html":
+        return ["rendered", "raw"];
+      case "mermaid":
+        return ["rendered", "raw"];
+      case "markdown":
         return ["rendered", "raw"];
       case "text":
         return ["raw"];

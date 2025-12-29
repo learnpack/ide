@@ -3,7 +3,7 @@ import React from "react";
 // Types for content modes
 export type ContentMode = "rendered" | "raw";
 
-export type ContentType = "html" | "text" | "code" | "custom";
+export type ContentType = "html" | "text" | "code" | "mermaid" | "markdown" | "custom";
 
 // Layout types for comparison
 export type ComparisonLayout = "slider" | "side-by-side";
