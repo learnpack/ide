@@ -15,7 +15,8 @@ export default function EventListener() {
             console.debug("assessment_completed", event);
             if (isLastExercise) {
                 if (event.status === "SUCCESS" &&
-                    !TelemetryManager.hasPendingTasks(currentExercisePosition)) {
+                    !TelemetryManager.hasPendingTasks(currentExercisePosition) &&
+                    !TelemetryManager.hasPendingTasksInAnyLesson()) {
                     eventBus.emit("last_lesson_finished", {});
                 }
             }
@@ -23,13 +24,18 @@ export default function EventListener() {
 
         eventBus.on("last_lesson_finished", () => {
             console.debug("last_lesson_finished");
-            Notifier.confetti();
-            setOpenedModals({ lastLessonFinished: true });
+            // Verify again if there are pending tasks in any lesson
+            if (!TelemetryManager.hasPendingTasksInAnyLesson()) {
+                Notifier.confetti();
+                setOpenedModals({ lastLessonFinished: true });
+            } else {
+                console.debug("Modal not opened: there are pending tasks in other lessons");
+            }
         });
         return () => {
             eventBus.off("assessment_completed");
         }
-    }, [isLastExercise, currentExercisePosition]);
+    }, [isLastExercise, currentExercisePosition, setOpenedModals]);
 
     return null;
 }
