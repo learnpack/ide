@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Preview } from "../Preview/Preview";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
-import type { ComparisonProps, ComparisonItem, ContentMode, ContentType } from "./types";
+import type { ComparisonProps, ComparisonItem, ContentMode, ContentType, ComparisonLayout } from "./types";
 
 // Internal component to render content based on type and mode
 const ContentRenderer: React.FC<{
@@ -74,7 +74,19 @@ const ContentRenderer: React.FC<{
   }
 };
 
-export const Comparison: React.FC<ComparisonProps> = ({
+// Determine default layout based on content types
+const determineLayout = (before: ComparisonItem, after: ComparisonItem): ComparisonLayout => {
+  // Use slider for visual content (HTML in rendered mode)
+  if (before.type === "html" || after.type === "html") {
+    return "slider";
+  }
+  
+  // Use side-by-side for text and code
+  return "side-by-side";
+};
+
+// Slider Comparison Component (original behavior)
+const SliderComparison: React.FC<Omit<ComparisonProps, "layout">> = ({
   before,
   after,
   defaultPosition = 50,
@@ -84,7 +96,7 @@ export const Comparison: React.FC<ComparisonProps> = ({
   const [sliderPosition, setSliderPosition] = useState(defaultPosition);
   const [isDragging, setIsDragging] = useState(false);
   
-  // Mode states - if sync is true, we only need one state
+  // Mode states
   const [beforeMode, setBeforeMode] = useState<ContentMode>("rendered");
   const [afterMode, setAfterMode] = useState<ContentMode>("rendered");
   
@@ -114,7 +126,6 @@ export const Comparison: React.FC<ComparisonProps> = ({
     const x = clientX - rect.left;
     const percentage = (x / rect.width) * 100;
 
-    // Limit between 0% and 100%
     setSliderPosition(Math.min(Math.max(percentage, 0), 100));
   }, []);
 
@@ -176,19 +187,16 @@ export const Comparison: React.FC<ComparisonProps> = ({
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
 
-      // Prevent text selection while dragging
       document.body.style.userSelect = "none";
       document.body.style.cursor = "col-resize";
     } else {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
 
-      // Restore normal selection and cursor
       document.body.style.userSelect = "";
       document.body.style.cursor = "";
     }
 
-    // Cleanup on unmount
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
@@ -197,7 +205,6 @@ export const Comparison: React.FC<ComparisonProps> = ({
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
-  // Get mode label for button
   const getModeLabel = (mode: ContentMode) => {
     return mode === "rendered" ? "👁️ Vista" : "📝 Código";
   };
@@ -214,7 +221,7 @@ export const Comparison: React.FC<ComparisonProps> = ({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Background Layer (After) - Always full width */}
+      {/* Background Layer (After) */}
       <div
         className="absolute inset-0"
         style={{ pointerEvents: isDragging ? "none" : "auto" }}
@@ -239,7 +246,7 @@ export const Comparison: React.FC<ComparisonProps> = ({
         <ContentRenderer item={after} currentMode={syncModes ? beforeMode : afterMode} />
       </div>
 
-      {/* Foreground Layer (Before) - Clipped by slider position */}
+      {/* Foreground Layer (Before) - Clipped */}
       <div
         className="absolute inset-0"
         style={{
@@ -292,5 +299,131 @@ export const Comparison: React.FC<ComparisonProps> = ({
       </div>
     </div>
   );
+};
+
+// Side-by-Side Comparison Component (new)
+const SideBySideComparison: React.FC<Omit<ComparisonProps, "layout" | "defaultPosition">> = ({
+  before,
+  after,
+  height = "600px",
+  syncModes = true,
+}) => {
+  // Mode states
+  const [beforeMode, setBeforeMode] = useState<ContentMode>("rendered");
+  const [afterMode, setAfterMode] = useState<ContentMode>("rendered");
+
+  // Default available modes based on content type
+  const getDefaultModes = (type: ContentType): ContentMode[] => {
+    switch (type) {
+      case "html":
+        return ["rendered", "raw"];
+      case "text":
+        return ["raw"];
+      case "code":
+        return ["raw"];
+      default:
+        return ["rendered"];
+    }
+  };
+
+  const beforeModes = before.availableModes || getDefaultModes(before.type);
+  const afterModes = after.availableModes || getDefaultModes(after.type);
+
+  // Toggle mode handlers
+  const toggleBeforeMode = () => {
+    const currentIndex = beforeModes.indexOf(beforeMode);
+    const nextIndex = (currentIndex + 1) % beforeModes.length;
+    const nextMode = beforeModes[nextIndex];
+    
+    setBeforeMode(nextMode);
+    if (syncModes) {
+      setAfterMode(nextMode);
+    }
+  };
+
+  const toggleAfterMode = () => {
+    const currentIndex = afterModes.indexOf(afterMode);
+    const nextIndex = (currentIndex + 1) % afterModes.length;
+    const nextMode = afterModes[nextIndex];
+    
+    setAfterMode(nextMode);
+    if (syncModes) {
+      setBeforeMode(nextMode);
+    }
+  };
+
+  const getModeLabel = (mode: ContentMode) => {
+    return mode === "rendered" ? "👁️ Vista" : "📝 Código";
+  };
+
+  const getModeTitle = (mode: ContentMode) => {
+    return mode === "rendered" ? "Ver Código" : "Ver Renderizado";
+  };
+
+  return (
+    <div 
+      className="w-full rounded-lg border border-gray-300 overflow-hidden max-h-[90vh]"
+      style={{ height }}
+    >
+      <div className="flex flex-col md:flex-row h-full">
+        {/* Before Panel */}
+        <div className="relative flex-1 max-h-[50%] md:max-h-full border-b md:border-b-0 md:border-r border-gray-300 overflow-auto">
+          <div className="sticky top-2 left-2 z-10 flex items-center gap-2 mb-2">
+            {before.label && (
+              <div className="bg-black/70 text-white px-3 py-1 rounded text-sm font-medium">
+                {before.label}
+              </div>
+            )}
+            {beforeModes.length > 1 && (
+              <button
+                onClick={toggleBeforeMode}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
+                title={getModeTitle(beforeMode)}
+              >
+                {getModeLabel(beforeMode)}
+              </button>
+            )}
+          </div>
+          <ContentRenderer item={before} currentMode={beforeMode} />
+        </div>
+
+        {/* After Panel */}
+        <div className="relative flex-1 max-h-[50%] md:max-h-full overflow-auto">
+          <div className="sticky top-2 right-2 z-10 flex items-center gap-2 justify-end mb-2">
+            {after.label && (
+              <div className="bg-black/70 text-white px-3 py-1 rounded text-sm font-medium">
+                {after.label}
+              </div>
+            )}
+            {afterModes.length > 1 && (
+              <button
+                onClick={toggleAfterMode}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
+                title={getModeTitle(afterMode)}
+              >
+                {getModeLabel(afterMode)}
+              </button>
+            )}
+          </div>
+          <ContentRenderer item={after} currentMode={syncModes ? beforeMode : afterMode} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Main Comparison Component
+export const Comparison: React.FC<ComparisonProps> = (props) => {
+  const { before, after, layout } = props;
+  
+  // Determine layout automatically if not specified
+  const effectiveLayout = layout || determineLayout(before, after);
+  
+  // Render the appropriate layout
+  if (effectiveLayout === "slider") {
+    return <SliderComparison {...props} />;
+  } else {
+    return <SideBySideComparison {...props} />;
+  }
 };
 
