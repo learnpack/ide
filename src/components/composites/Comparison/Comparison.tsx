@@ -304,7 +304,10 @@ const SliderComparison: React.FC<Omit<ComparisonProps, "layout">> = ({
       {/* Background Layer (After) */}
       <div
         className="absolute inset-0"
-        style={{ pointerEvents: isDragging ? "none" : "auto" }}
+        style={{ 
+          clipPath: `inset(0 0 0 ${sliderPosition}%)`,
+          pointerEvents: isDragging ? "none" : "auto" 
+        }}
       >
         <div className="absolute top-2 right-2 z-10 flex items-center gap-2">
           {afterModes.length > 1 && (
