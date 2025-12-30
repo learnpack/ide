@@ -62,8 +62,8 @@ components:
       - comparing correct vs incorrect implementations
       - demonstrating design improvements (images, HTML)
       - comparing simple vs detailed prompts or explanations
-      - showing Mermaid diagram code vs rendered output (using leftDefaultMode="raw" and rightDefaultMode="rendered")
-      - showing Markdown source vs rendered output (using different defaultMode for each panel)
+      - showing Mermaid diagram code vs rendered output (using leftInitialMode="raw" and rightInitialMode="rendered")
+      - showing Markdown source vs rendered output (using different initialMode for each panel)
       - comparing different algorithms or approaches side by side
       - visual demonstrations of UI changes or variations
       - comparing code with different levels of complexity or optimization
@@ -79,24 +79,24 @@ components:
       - The type attribute is REQUIRED and must be one of these values - html, text, code, mermaid, markdown, image
       - For type="code", you MUST also specify the language attribute (e.g. language="python", language="javascript")
       - Both content blocks should be comparable in length and complexity for best visual results
-      - Use descriptive left and right labels to guide the student and provide context
+      - Use descriptive leftLabel and rightLabel to guide the student and provide context
       - For images, use full URLs or paths starting with ./.learn/assets/
       - Keep the compared content focused on a single concept or improvement
       - The separator must be on its own line with no extra spaces or characters
-      - To show code vs rendered output, use leftDefaultMode="raw" and rightDefaultMode="rendered" with syncModes="false"
-      - When using different defaultModes, consider setting syncModes="false" so each panel can be toggled independently
+      - To show code vs rendered output, use leftInitialMode="raw" and rightInitialMode="rendered" with syncRenderToggle="false"
+      - When using different initialModes, consider setting syncRenderToggle="false" so each panel can be toggled independently
     metadata:
       - type - Content type (REQUIRED) - Must be one of html, text, code, mermaid, markdown, image
       - language - Programming language (REQUIRED only for type="code") - python, javascript, java, etc
-      - left - Label for left panel (optional but recommended) - Describes what the left content represents
-      - right - Label for right panel (optional but recommended) - Describes what the right content represents
+      - leftLabel - Label for left panel (optional but recommended) - Describes what the left content represents
+      - rightLabel - Label for right panel (optional but recommended) - Describes what the right content represents
       - layout - Force specific layout (optional) - "slider" for overlay comparison or "side-by-side" for split view. Auto-detected if omitted
       - height - Component height (optional) - Default is "600px", accepts CSS values like "500px", "80vh", "700px"
-      - syncModes - Sync render/code toggle between panels (optional) - "true" or "false", default is "true"
-      - leftDefaultMode - Initial display mode for left panel (optional) - "rendered" or "raw". Defaults to first available mode for the content type
-      - rightDefaultMode - Initial display mode for right panel (optional) - "rendered" or "raw". Defaults to first available mode for the content type
+      - syncRenderToggle - Sync render/code toggle between panels (optional) - "true" or "false", default is "true". When true, changing mode in one panel also changes the other
+      - leftInitialMode - Initial display mode for left panel (optional) - "rendered" or "raw". Defaults to first available mode for the content type
+      - rightInitialMode - Initial display mode for right panel (optional) - "rendered" or "raw". Defaults to first available mode for the content type
     example: |
-      ```comparison type="html" left="Versión simple" right="Versión mejorada"
+      ```comparison type="html" leftLabel="Versión simple" rightLabel="Versión mejorada"
       <h1>Título básico</h1>
       <p>Párrafo sin formato</p>
 
@@ -111,7 +111,7 @@ components:
       ```
       --- Second Example ---
 
-      ```comparison type="code" language="python" left="Versión básica" right="Versión optimizada"
+      ```comparison type="code" language="python" leftLabel="Versión básica" rightLabel="Versión optimizada"
       def find_max(numbers):
           sorted_numbers = sorted(numbers)
           return sorted_numbers[-1]
@@ -123,7 +123,7 @@ components:
       ```
       --- Third Example ---
 
-      ```comparison type="text" left="Versión simple" right="Versión detallada" height="400px"
+      ```comparison type="text" leftLabel="Versión simple" rightLabel="Versión detallada" height="400px"
       Explica las funciones en Python
 
       ---SEPARATOR---
@@ -136,7 +136,7 @@ components:
       ```
       --- Fourth Example ---
       
-      ```comparison type="code" language="javascript" left="Versión con bucle" right="Versión con método"
+      ```comparison type="code" language="javascript" leftLabel="Versión con bucle" rightLabel="Versión con método"
       function sumArray(arr) {
           let sum = 0;
           for(let i = 0; i < arr.length; i++) {
@@ -153,7 +153,7 @@ components:
       ```
       --- Fifth Example (with different initial modes) ---
       
-      ```comparison type="mermaid" left="Mermaid Code" right="Rendered Diagram" syncModes="false" leftDefaultMode="raw" rightDefaultMode="rendered"
+      ```comparison type="mermaid" leftLabel="Mermaid Code" rightLabel="Rendered Diagram" syncRenderToggle="false" leftInitialMode="raw" rightInitialMode="rendered"
       graph TD
           A[Start] --> B{Decision}
           B -->|Yes| C[Action 1]

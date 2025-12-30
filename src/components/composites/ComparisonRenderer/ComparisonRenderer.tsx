@@ -31,13 +31,13 @@ export const ComparisonRenderer: React.FC<ComparisonRendererProps> = ({
   // Extract and validate metadata
   const type = (metadata.type as string || "code") as ContentType;
   const language = metadata.language as string | undefined;
-  const leftLabel = metadata.left as string | undefined;
-  const rightLabel = metadata.right as string | undefined;
+  const leftLabel = metadata.leftLabel as string | undefined;
+  const rightLabel = metadata.rightLabel as string | undefined;
   const layout = metadata.layout as ComparisonLayout | undefined;
   const height = (metadata.height as string) || "600px";
-  const syncModes = metadata.syncModes !== "false" && metadata.syncModes !== false; // default true
-  const leftDefaultMode = metadata.leftDefaultMode as ContentMode | undefined;
-  const rightDefaultMode = metadata.rightDefaultMode as ContentMode | undefined;
+  const syncRenderToggle = metadata.syncRenderToggle !== "false" && metadata.syncRenderToggle !== false; // default true
+  const leftInitialMode = metadata.leftInitialMode as ContentMode | undefined;
+  const rightInitialMode = metadata.rightInitialMode as ContentMode | undefined;
 
   // Validate type
   const validTypes: ContentType[] = ["html", "text", "code", "mermaid", "markdown", "image", "custom"];
@@ -64,7 +64,7 @@ export const ComparisonRenderer: React.FC<ComparisonRendererProps> = ({
     type: type,
     label: leftLabel,
     language: language,
-    defaultMode: leftDefaultMode,
+    defaultMode: leftInitialMode,
   };
 
   const right: ComparisonItem = {
@@ -72,7 +72,7 @@ export const ComparisonRenderer: React.FC<ComparisonRendererProps> = ({
     type: type,
     label: rightLabel,
     language: language,
-    defaultMode: rightDefaultMode,
+    defaultMode: rightInitialMode,
   };
 
   return (
@@ -82,7 +82,7 @@ export const ComparisonRenderer: React.FC<ComparisonRendererProps> = ({
         right={right}
         layout={layout}
         height={height}
-        syncModes={syncModes}
+        syncModes={syncRenderToggle}
       />
     </div>
   );
