@@ -442,7 +442,7 @@ const SideBySideComparison: React.FC<Omit<ComparisonProps, "layout" | "defaultPo
 
         {/* After Panel */}
         <div className="relative flex-1 max-h-[50%] md:max-h-full overflow-auto">
-          <div className="sticky top-0 left-0 z-10 flex items-center gap-2 p-2 bg-white justify-end">
+          <div className="sticky top-0 left-0 z-10 flex flex-row-reverse md:flex-row items-center gap-2 p-2 bg-white justify-end">
             {afterModes.length > 1 && (
               <SwitchComponent
                 checked={afterMode === "rendered"}
