@@ -26,7 +26,10 @@ const ContinueButton = () => {
       ? TelemetryManager.hasPendingTasks(Number(currentExercisePosition))
       : false;
 
-  const isFinishDisabled = isLastExercise && hasPendingTasks;
+  // Check if there are pending tasks in any lesson
+  const hasPendingTasksInAnyLesson = TelemetryManager.hasPendingTasksInAnyLesson();
+
+  const isFinishDisabled = isLastExercise && (hasPendingTasks || hasPendingTasksInAnyLesson);
   const isDisabled = loading || isFinishDisabled;
 
   const hasBodyLessonLoader = () => {
@@ -68,7 +71,13 @@ const ContinueButton = () => {
           if (isDisabled) return;
           setLoading(true);
           if (isLastExercise) {
-            eventBus.emit("last_lesson_finished", {});
+            // If there are no pending tasks in any lesson, finish the lesson
+            if (!hasPendingTasksInAnyLesson) {
+              eventBus.emit("last_lesson_finished", {});
+            } else {
+              console.debug("Cannot finish: there are pending tasks in other lessons");
+              setLoading(false);
+            }
           } else {
             eventBus.emit("position_change", {
               position: Number(currentExercisePosition) + 1,
