@@ -45,130 +45,204 @@ components:
 
       [Ask Rigo how to create a function in Python](https://4geeks.com/ask?query=help-me-understand-how-to-create-a-function-in-python-in-the-simplest-possible-way)
 
-  - name: comparison
+  - name: code_comparison
     intendedUse:
-      - explanation
-      - educational comparison
-      - code improvement demonstration
-      - side-by-side or slider visualization
+      - comparing code versions
+      - showing bug fixes or improvements
+      - demonstrating different algorithmic approaches
     description: >-
-      The comparison component allows side-by-side or slider-based comparison of two pieces of content.
-      It supports multiple content types including HTML previews, code with syntax highlighting, text,
-      Mermaid diagrams, Markdown rendering, and images. Perfect for showing code improvements, design changes,
-      or comparing different approaches to solve the same problem. The component automatically selects the best
-      layout based on content type: slider for visual content (HTML, images) and side-by-side for textual/code content.
+      Compare two code blocks side-by-side to show improvements, bug fixes, refactoring, or different approaches to solve the same problem. This is the most common comparison use case.
     goodFor:
-      - showing code improvements through refactoring or bug fixes
-      - comparing correct vs incorrect implementations
-      - demonstrating design improvements (images, HTML)
-      - comparing simple vs detailed prompts or explanations
-      - showing Mermaid diagram code vs rendered output (using leftInitialMode="raw" and rightInitialMode="rendered")
-      - showing Markdown source vs rendered output (using different initialMode for each panel)
-      - comparing different algorithms or approaches side by side
-      - visual demonstrations of UI changes or variations
-      - comparing code with different levels of complexity or optimization
-    whenToUse: Use when showing two versions or variations of something enhances learning - comparing approaches, demonstrating improvements, or showing different solutions to the same problem. Particularly effective for code quality improvements, bug fixes, design iterations, or when teaching best practices by contrasting different examples.
+      - showing before/after code improvements
+      - comparing simple vs optimized implementations
+      - demonstrating bug fixes with validation
+      - contrasting iterative vs functional approaches
+      - showing different coding patterns or best practices
+    whenToUse: Use when comparing two versions of code enhances learning. Perfect for teaching refactoring, debugging, optimization, or comparing different solutions to the same problem.
     avoid:
-      - comparing more than 2 items (component only supports 2 panels)
-      - using for unrelated content that doesn't benefit from comparison
-      - overusing in a single lesson (can be overwhelming, use sparingly)
-      - very long code blocks that make scrolling difficult (keep comparisons focused)
-      - using when a simple explanation would be clearer
+      - comparing unrelated code snippets
+      - very long code blocks (keep focused on the key differences)
+      - more than one concept per comparison
     rules:
-      - CRITICAL - Must use exactly the text "---SEPARATOR---" on its own line to divide the two content blocks
-      - The type attribute is REQUIRED and must be one of these values - html, text, code, mermaid, markdown, image
-      - For type="code", you MUST also specify the language attribute (e.g. language="python", language="javascript")
-      - Both content blocks should be comparable in length and complexity for best visual results
-      - Use descriptive leftLabel and rightLabel to guide the student and provide context
-      - For images, use full URLs or paths starting with ./.learn/assets/
-      - Keep the compared content focused on a single concept or improvement
-      - The separator must be on its own line with no extra spaces or characters
-      - To show code vs rendered output, use leftInitialMode="raw" and rightInitialMode="rendered" with syncRenderToggle="false"
-      - When using different initialModes, consider setting syncRenderToggle="false" so each panel can be toggled independently
+      - CRITICAL - Must use exactly "---SEPARATOR---" on its own line to divide the two code blocks
+      - type="code" is REQUIRED
+      - language attribute is REQUIRED (e.g. language="python", language="javascript")
+      - Use descriptive leftLabel and rightLabel to guide the student
+      - Keep both code blocks similar in length for best visual results
     metadata:
-      - type - Content type (REQUIRED) - Must be one of html, text, code, mermaid, markdown, image
-      - language - Programming language (REQUIRED only for type="code") - python, javascript, java, etc
-      - leftLabel - Label for left panel (optional but recommended) - Describes what the left content represents
-      - rightLabel - Label for right panel (optional but recommended) - Describes what the right content represents
-      - layout - Force specific layout (optional) - "slider" for overlay comparison or "side-by-side" for split view. Auto-detected if omitted
-      - height - Component height (optional) - Default is "600px", accepts CSS values like "500px", "80vh", "700px"
-      - syncRenderToggle - Sync render/code toggle between panels (optional) - "true" or "false", default is "true". When true, changing mode in one panel also changes the other
-      - leftInitialMode - Initial display mode for left panel (optional) - "rendered" or "raw". Defaults to first available mode for the content type
-      - rightInitialMode - Initial display mode for right panel (optional) - "rendered" or "raw". Defaults to first available mode for the content type
+      - type - Must be "code"
+      - language - REQUIRED - Programming language (python, javascript, java, etc)
+      - leftLabel - Recommended - Label for left panel (e.g. "Basic Version", "With Bug")
+      - rightLabel - Recommended - Label for right panel (e.g. "Optimized", "Fixed Version")
     example: |
-      ```comparison type="html" leftLabel="Versión simple" rightLabel="Versión mejorada"
-      <h1>Título básico</h1>
-      <p>Párrafo sin formato</p>
+      ```comparison type="code" language="python" leftLabel="Simple Version" rightLabel="With Validation"
+      def factorial(n):
+          result = 1
+          for i in range(1, n + 1):
+              result *= i
+          return result
 
       ---SEPARATOR---
 
-      <style>
-        h1 { color: #2563eb; font-size: 2rem; }
-        p { font-size: 1.1rem; line-height: 1.6; }
-      </style>
-      <h1>Título estilizado</h1>
-      <p>Párrafo con formato mejorado</p>
+      def factorial(n):
+          """Calculate factorial with validation."""
+          if not isinstance(n, int) or n < 0:
+              raise ValueError("Must be a positive integer")
+          if n == 0 or n == 1:
+              return 1
+          return n * factorial(n - 1)
       ```
       --- Second Example ---
 
-      ```comparison type="code" language="python" leftLabel="Versión básica" rightLabel="Versión optimizada"
-      def find_max(numbers):
-          sorted_numbers = sorted(numbers)
-          return sorted_numbers[-1]
+      ```comparison type="code" language="javascript" leftLabel="With Bug" rightLabel="Fixed"
+      function greet(name) {
+          console.log("Hello " + name)
+      }
+      greet() // Hello undefined
 
       ---SEPARATOR---
 
-      def find_max(numbers):
-          return max(numbers)
-      ```
-      --- Third Example ---
-
-      ```comparison type="text" leftLabel="Versión simple" rightLabel="Versión detallada" height="400px"
-      Explica las funciones en Python
-
-      ---SEPARATOR---
-
-      Explica las funciones en Python de forma clara:
-      - Sintaxis para definir funciones
-      - Cómo usar parámetros y argumentos
-      - Valores de retorno con return
-      - Ejemplos prácticos aplicados
-      ```
-      --- Fourth Example ---
-      
-      ```comparison type="code" language="javascript" leftLabel="Versión con bucle" rightLabel="Versión con método"
-      function sumArray(arr) {
-          let sum = 0;
-          for(let i = 0; i < arr.length; i++) {
-              sum = sum + arr[i];
+      function greet(name) {
+          if (!name) {
+              console.log("Hello, stranger!");
+              return;
           }
-          return sum;
+          console.log("Hello " + name);
       }
-
-      ---SEPARATOR---
-
-      function sumArray(arr) {
-          return arr.reduce((sum, num) => sum + num, 0);
-      }
+      greet() // Hello, stranger!
       ```
-      --- Fifth Example (with different initial modes) ---
-      
-      ```comparison type="mermaid" leftLabel="Mermaid Code" rightLabel="Rendered Diagram" syncRenderToggle="false" leftInitialMode="raw" rightInitialMode="rendered"
-      graph TD
-          A[Start] --> B{Decision}
-          B -->|Yes| C[Action 1]
-          B -->|No| D[Action 2]
-          C --> E[End]
-          D --> E
-      
+
+  - name: html_comparison
+    intendedUse:
+      - comparing visual designs
+      - showing CSS improvements
+      - demonstrating UI changes with slider
+    description: >-
+      Compare two HTML/CSS implementations using an interactive slider. Best for visual comparisons where design changes are the focus. The slider allows students to see differences by dragging.
+    goodFor:
+      - showing before/after design improvements
+      - comparing different CSS layout techniques (Flexbox vs Grid)
+      - demonstrating responsive design changes
+      - visual UI enhancements and styling improvements
+    whenToUse: Use when visual comparison is more important than code comparison. The slider layout is automatic for HTML content and provides an intuitive way to see design differences.
+    avoid:
+      - when code comparison is more important than visual result
+      - comparing completely different page structures (focus on similar layouts)
+    rules:
+      - CRITICAL - Must use exactly "---SEPARATOR---" on its own line to divide the two HTML blocks
+      - type="html" is REQUIRED
+      - Use descriptive leftLabel and rightLabel to describe each version
+      - Both HTML blocks should represent comparable designs for best effect
+      - Can force layout="side-by-side" if you prefer code comparison over visual slider
+    metadata:
+      - type - Must be "html"
+      - leftLabel - Recommended - Label for left panel (e.g. "Basic Design", "Flexbox")
+      - rightLabel - Recommended - Label for right panel (e.g. "Enhanced", "CSS Grid")
+      - layout - Optional - Use "side-by-side" to force code comparison instead of slider
+    example: |
+      ```comparison type="html" leftLabel="Basic Styles" rightLabel="Enhanced Design"
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { 
+              background: lightblue; 
+              padding: 20px;
+              font-family: Arial, sans-serif;
+            }
+            h1 { color: navy; }
+          </style>
+        </head>
+        <body>
+          <h1>Original Version</h1>
+          <p>Basic styling applied.</p>
+        </body>
+      </html>
+
       ---SEPARATOR---
-      
-      graph TD
-          A[Start] --> B{Decision}
-          B -->|Yes| C[Action 1]
-          B -->|No| D[Action 2]
-          C --> E[End]
-          D --> E
+
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { 
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              padding: 20px;
+              font-family: Arial, sans-serif;
+              color: white;
+            }
+            h1 { 
+              color: white;
+              text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            }
+            button {
+              background: white;
+              color: #667eea;
+              border: none;
+              padding: 10px 20px;
+              border-radius: 5px;
+              cursor: pointer;
+            }
+          </style>
+        </head>
+        <body>
+          <h1>Enhanced Version</h1>
+          <p>Modern gradient and improved styling.</p>
+          <button>Click me</button>
+        </body>
+      </html>
+      ```
+
+  - name: code_vs_rendered
+    intendedUse:
+      - teaching markup syntax (Markdown, Mermaid)
+      - showing source code and its rendered output
+    description: >-
+      Show source code on one side and its rendered output on the other. Perfect for teaching Markdown or Mermaid syntax by displaying the raw code and final result simultaneously.
+    goodFor:
+      - teaching Markdown syntax
+      - teaching Mermaid diagram syntax
+      - showing how markup translates to visual output
+    whenToUse: Use when teaching syntax where seeing both the source and rendered result together enhances understanding. Set different initial modes for each panel and disable sync.
+    avoid:
+      - when simple code-only comparison is sufficient
+      - for HTML (where preview is already obvious)
+    rules:
+      - CRITICAL - Must use exactly "---SEPARATOR---" on its own line (can use same content on both sides)
+      - type must be "mermaid" or "markdown"
+      - MUST set leftInitialMode="raw" and rightInitialMode="rendered"
+      - MUST set syncRenderToggle="false" to allow independent panel control
+      - Both sides typically contain the SAME content (shown differently)
+    metadata:
+      - type - Must be "mermaid" or "markdown"
+      - leftLabel - Recommended - Usually "Source Code" or "Markdown Code"
+      - rightLabel - Recommended - Usually "Rendered Output" or "Result"
+      - leftInitialMode - REQUIRED - Must be "raw"
+      - rightInitialMode - REQUIRED - Must be "rendered"
+      - syncRenderToggle - REQUIRED - Must be "false"
+    example: |
+      ```comparison type="mermaid" leftLabel="Mermaid Code" rightLabel="Rendered Diagram" leftInitialMode="raw" rightInitialMode="rendered" syncRenderToggle="false"
+      sequenceDiagram
+          participant User
+          participant Frontend
+          participant Backend
+          
+          User->>Frontend: Request Data
+          Frontend->>Backend: API Call
+          Backend-->>Frontend: Response
+          Frontend-->>User: Display Data
+
+      ---SEPARATOR---
+
+      sequenceDiagram
+          participant User
+          participant Frontend
+          participant Backend
+          
+          User->>Frontend: Request Data
+          Frontend->>Backend: API Call
+          Backend-->>Frontend: Response
+          Frontend-->>User: Display Data
       ```
 
   - name: image
