@@ -357,8 +357,8 @@ const SliderComparison: React.FC<Omit<ComparisonProps, "layout">> = ({
 
       {/* Slider Divider */}
       <div
-        className="absolute top-0 h-full w-1 bg-blue-500 cursor-col-resize z-20 hover:bg-blue-600 transition-colors"
-        style={{ left: `${sliderPosition}%`, transform: "translateX(-50%)" }}
+        className="absolute top-0 w-1 bg-blue-500 cursor-col-resize z-20 hover:bg-blue-600 transition-colors"
+        style={{ left: `${sliderPosition}%`, transform: "translateX(-50%)", height: "100%" }}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
       >
