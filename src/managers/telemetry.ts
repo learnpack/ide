@@ -74,6 +74,33 @@ const sendBatchTelemetryRigobot = async function (body: object, token: string) {
   }
 };
 
+const getRigobotPackageIdBySlug = async function (
+  packageSlug: string,
+  token: string
+): Promise<number | string | null> {
+  if (!packageSlug || !token) return null;
+
+  const cleanToken = token.trim();
+  const url = `${RIGOBOT_HOST}/v1/learnpack/package/${packageSlug}/`;
+
+  try {
+    const response: AxiosResponse<any> = await axios.get(url, {
+      headers: {
+        Authorization: `Token ${cleanToken}`,
+      },
+    });
+
+    return response?.data?.id ?? null;
+  } catch (error) {
+    // Best-effort enrichment, never block telemetry start/submit
+    console.warn("Unable to resolve Rigobot package_id", {
+      packageSlug,
+      error,
+    });
+    return null;
+  }
+};
+
 const sendStreamTelemetry = async function (
   url: string,
   body: object,
@@ -270,6 +297,7 @@ export interface ITelemetryJSONSchema {
   user_id?: number | string;
   fullname?: string;
   slug: string;
+  package_id?: number | string;
   version: string;
   cohort_id: string | null;
   academy_id: string | null;
@@ -416,6 +444,25 @@ const TelemetryManager: ITelemetryManager = {
 
           if (!this.current.version) {
             this.current.version = `CLOUD:${this.version}`;
+          }
+
+          // Best-effort: enrich telemetry with Rigobot package_id using current slug.
+          if (
+            !this.current.package_id &&
+            this.current.slug &&
+            this.user.rigo_token
+          ) {
+            getRigobotPackageIdBySlug(this.current.slug, this.user.rigo_token)
+              .then((packageId) => {
+                if (!packageId || !this.current) return;
+                if (this.current.package_id) return;
+                this.current.package_id = packageId;
+                this.save();
+              })
+              .catch((error) => {
+                // ignore
+                console.error("Error getting Rigobot package id by slug", error);
+              });
           }
 
           this.save();
