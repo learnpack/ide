@@ -1042,6 +1042,10 @@ a {
   & svg {
     --read-font-color: white;
   }
+
+  & svg[stroke] {
+    stroke: white;
+  }
 }
 
 .active-on-hover:hover .code-challenge-input-wrapper textarea {

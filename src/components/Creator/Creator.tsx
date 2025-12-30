@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import useStore from "../../utils/store";
 import { useTranslation } from "react-i18next";
 import { RigoAI } from "../Rigobot/AI";
@@ -95,12 +95,6 @@ export const CreatorWrapper = ({
   const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const { t } = useTranslation();
-
-  useEffect(() => {
-    if (elemRef.current?.querySelector(".new")) {
-      setContainsNewElement(true);
-    }
-  }, []);
 
   const simplifyLanguage = () => {
     let text = elemRef.current?.innerHTML;
@@ -537,7 +531,7 @@ export const CreatorWrapper = ({
       title: t("generate-image-tooltip"),
       action: () => {},
       extraClass: "text-secondary  rounded padding-small active-on-hover svg-blue",
-      svg: svgs.image,
+      svg: <Icon name="Image" color="var(--read-font-color)" />,
       allowedElements: ["all"],
       placeholder: t("describeImage"),
     },
@@ -547,7 +541,7 @@ export const CreatorWrapper = ({
       title: isBuildable ? t("add-code-challenge-disabled-tooltip") : t("add-code-challenge-tooltip"),
       action: () => {},
       extraClass: "text-secondary  rounded padding-small active-on-hover svg-blue ",
-      svg: <Icon name="Code" />,
+      svg: <Icon name="Code" color="var(--read-font-color)" />,
       allowedElements: ["new"],
       placeholder: t("code-challenge-prompt-placeholder"),
     },
@@ -1064,7 +1058,7 @@ const ImageUploader = ({
             inputRef.current.click();
           }
         }}
-        svg={svgs.image}
+        svg={<Icon name="ImageUp" color="var(--read-font-color)" />}
       />
     </>
   );
@@ -1124,6 +1118,28 @@ const RigoInput = ({
     };
   }, [containerRef]);
 
+  // Function to get the icon for the mode
+  const getIconForMode = () => {
+    let icon;
+    
+    if (mode === "default") {
+      icon = svgs.rigoSoftBlue;
+    } else {
+      const promptForMode = promps.find((p) => p.type === mode);
+      icon = promptForMode?.svg || svgs.rigoSoftBlue;
+    }
+    
+    // If the icon is a Lucide Icon component, clone it and apply white color
+    if (React.isValidElement(icon) && icon.type === Icon) {
+      return React.cloneElement(icon as React.ReactElement<{ color?: string }>, {
+        color: "var(--white)",
+      });
+    }
+    
+    // If it's the Rigo SVG or another SVG, return it as is
+    return icon;
+  };
+
   const handleSubmit = () => {
     if (mode === "image-generate" && onImageGenerate) {
       onImageGenerate(prompt);
@@ -1149,7 +1165,7 @@ const RigoInput = ({
     <div ref={containerRef} className={` ${inside ? "creator-options" : ""}`}>
       <div className={`rigo-input ${inside ? "" : "w-100"}`}>
         <SimpleButton
-          svg={svgs.rigoSoftBlue}
+          svg={getIconForMode()}
           action={handleSubmit}
           extraClass={"big-circle rigo-button mr-12"}
         />

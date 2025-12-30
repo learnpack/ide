@@ -396,6 +396,7 @@
     "convertInImg": "Convertir en Imagen",
     "uploadImage": "Subir imagen",
     "generateImage": "Generar imagen",
+    "generate-image-tooltip": "Generar una imagen usando IA",
     "describeImage": "Describe la imagen a generar",
     "imageGenerationInProcess": "Generación de imagen en proceso",
     "oops-not-so-fast": "¡Ups! ¡No tan rápido!",
@@ -569,7 +570,6 @@
     "sync-confirm-warning": "Esto creará nuevas versiones de esta lección en todos los demás idiomas disponibles.",
     "sync-confirm-source": "Origen",
     "sync-confirm-will-overwrite": "Se actualizarán",
-    "sync-confirm-cannot-undo": "Esta acción no se puede deshacer.",
     "sync-will-consume": "Esta sincronización consumirá **1** Generación de IA.",
     "sync-consumable-warning": "Sincronizar esta lección consumirá **1** Generación de IA y tienes **{{aiGenerationsLeft}}** restantes en tu plan. [Haz clic aquí](https://www.learnpack.co/settings) para leer más sobre las Generaciones de IA.",
     "sync-consumable-insufficient": "No tienes suficientes Generaciones de IA para sincronizar esta lección. Por favor actualiza tu plan o compra más Generaciones de IA.",
@@ -588,7 +588,28 @@
     "modified-time-ago": "Modificada hace {{time}}",
     "time-since-modification-tooltip": "Modificada hace {{time}}",
     "languages": "idiomas",
+    "undo-tooltip": "Deshacer (Ctrl+Z)",
+    "redo-tooltip": "Rehacer (Ctrl+Y)",
+    "undo-tooltip-mac": "Deshacer (⌘Z)",
+    "redo-tooltip-mac": "Rehacer (⌘⇧Z)",
+    "no-undo-available": "No hay cambios para deshacer",
+    "no-redo-available": "No hay cambios para rehacer",
     "stopEditing": "Detener edición",
     "lesson-complete": "¡Lección Completada!",
-    "exercises-completed": "Ejercicios Completados"
+    "exercises-completed": "Ejercicios Completados",
+    "communities": {
+        "title": "Únete a Nuestras Comunidades",
+        "description": "Conéctate con otros estudiantes y obtén ayuda de nuestra comunidad",
+        "linkText": "Únete a nuestras comunidades",
+        "whatsapp": {
+            "es": {
+                "name": "Comunidad de WhatsApp (Español)",
+                "description": "Únete a nuestra comunidad de habla hispana en WhatsApp"
+            },
+            "en": {
+                "name": "Comunidad de WhatsApp (Inglés)",
+                "description": "Únete a nuestra comunidad de habla inglesa en WhatsApp"
+            }
+        }
+    }
 }
