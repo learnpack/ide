@@ -59,7 +59,7 @@ export const ComparisonRenderer: React.FC<ComparisonRendererProps> = ({
   }
 
   // Build comparison items
-  const before: ComparisonItem = {
+  const left: ComparisonItem = {
     content: leftContent,
     type: type,
     label: leftLabel,
@@ -67,7 +67,7 @@ export const ComparisonRenderer: React.FC<ComparisonRendererProps> = ({
     defaultMode: leftDefaultMode,
   };
 
-  const after: ComparisonItem = {
+  const right: ComparisonItem = {
     content: rightContent,
     type: type,
     label: rightLabel,
@@ -78,8 +78,8 @@ export const ComparisonRenderer: React.FC<ComparisonRendererProps> = ({
   return (
     <div className="my-small">
       <Comparison
-        before={before}
-        after={after}
+        left={left}
+        right={right}
         layout={layout}
         height={height}
         syncModes={syncModes}

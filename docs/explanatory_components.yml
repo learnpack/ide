@@ -50,7 +50,7 @@ components:
       - explanation
       - educational comparison
       - code improvement demonstration
-      - before/after visualization
+      - side-by-side or slider visualization
     description: >-
       The comparison component allows side-by-side or slider-based comparison of two pieces of content.
       It supports multiple content types including HTML previews, code with syntax highlighting, text,
@@ -58,16 +58,16 @@ components:
       or comparing different approaches to solve the same problem. The component automatically selects the best
       layout based on content type: slider for visual content (HTML, images) and side-by-side for textual/code content.
     goodFor:
-      - showing code before and after refactoring or bug fixes
+      - showing code improvements through refactoring or bug fixes
       - comparing correct vs incorrect implementations
       - demonstrating design improvements (images, HTML)
       - comparing simple vs detailed prompts or explanations
       - showing Mermaid diagram code vs rendered output (using leftDefaultMode="raw" and rightDefaultMode="rendered")
       - showing Markdown source vs rendered output (using different defaultMode for each panel)
       - comparing different algorithms or approaches side by side
-      - visual before/after demonstrations of UI changes
+      - visual demonstrations of UI changes or variations
       - comparing code with different levels of complexity or optimization
-    whenToUse: Use when showing two versions of something enhances learning - comparing approaches, demonstrating improvements, or showing the evolution from a problem to its solution. Particularly effective for code quality improvements, bug fixes, design iterations, or when teaching best practices by contrasting good and bad examples.
+    whenToUse: Use when showing two versions or variations of something enhances learning - comparing approaches, demonstrating improvements, or showing different solutions to the same problem. Particularly effective for code quality improvements, bug fixes, design iterations, or when teaching best practices by contrasting different examples.
     avoid:
       - comparing more than 2 items (component only supports 2 panels)
       - using for unrelated content that doesn't benefit from comparison
@@ -96,7 +96,7 @@ components:
       - leftDefaultMode - Initial display mode for left panel (optional) - "rendered" or "raw". Defaults to first available mode for the content type
       - rightDefaultMode - Initial display mode for right panel (optional) - "rendered" or "raw". Defaults to first available mode for the content type
     example: |
-      ```comparison type="html" left="Sin estilos" right="Con estilos CSS"
+      ```comparison type="html" left="Versión simple" right="Versión mejorada"
       <h1>Título básico</h1>
       <p>Párrafo sin formato</p>
 
@@ -111,7 +111,7 @@ components:
       ```
       --- Second Example ---
 
-      ```comparison type="code" language="python" left="Código ineficiente" right="Código optimizado"
+      ```comparison type="code" language="python" left="Versión básica" right="Versión optimizada"
       def find_max(numbers):
           sorted_numbers = sorted(numbers)
           return sorted_numbers[-1]
@@ -123,7 +123,7 @@ components:
       ```
       --- Third Example ---
 
-      ```comparison type="text" left="Prompt vago" right="Prompt específico" height="400px"
+      ```comparison type="text" left="Versión simple" right="Versión detallada" height="400px"
       Explica las funciones en Python
 
       ---SEPARATOR---

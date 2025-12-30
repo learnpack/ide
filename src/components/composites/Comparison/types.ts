@@ -19,8 +19,8 @@ export interface ComparisonItem {
 }
 
 export interface ComparisonProps {
-  before: ComparisonItem;
-  after: ComparisonItem;
+  left: ComparisonItem;
+  right: ComparisonItem;
   defaultPosition?: number; // 0-100, default 50 (only for slider layout)
   height?: string; // CSS height value, default "600px"
   syncModes?: boolean; // If true, both panels change mode together (default: true)

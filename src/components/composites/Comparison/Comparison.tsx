@@ -149,10 +149,10 @@ const ContentRenderer: React.FC<{
 };
 
 // Determine default layout based on content types
-const determineLayout = (before: ComparisonItem, after: ComparisonItem): ComparisonLayout => {
+const determineLayout = (left: ComparisonItem, right: ComparisonItem): ComparisonLayout => {
   // Use slider for visual content (HTML and images)
-  if (before.type === "html" || after.type === "html" || 
-      before.type === "image" || after.type === "image") {
+  if (left.type === "html" || right.type === "html" || 
+      left.type === "image" || right.type === "image") {
     return "slider";
   }
   
@@ -194,8 +194,8 @@ const getInitialMode = (item: ComparisonItem): ContentMode => {
 
 // Slider Comparison Component (original behavior)
 const SliderComparison: React.FC<Omit<ComparisonProps, "layout">> = ({
-  before,
-  after,
+  left,
+  right,
   defaultPosition = 50,
   height = "600px",
   syncModes = true,
@@ -205,13 +205,13 @@ const SliderComparison: React.FC<Omit<ComparisonProps, "layout">> = ({
   const [isDragging, setIsDragging] = useState(false);
   
   // Mode states - use defaultMode if provided, otherwise use first available mode
-  const [beforeMode, setBeforeMode] = useState<ContentMode>(() => getInitialMode(before));
-  const [afterMode, setAfterMode] = useState<ContentMode>(() => getInitialMode(after));
+  const [leftMode, setLeftMode] = useState<ContentMode>(() => getInitialMode(left));
+  const [rightMode, setRightMode] = useState<ContentMode>(() => getInitialMode(right));
   
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const beforeModes = before.availableModes || getDefaultModes(before.type);
-  const afterModes = after.availableModes || getDefaultModes(after.type);
+  const leftModes = left.availableModes || getDefaultModes(left.type);
+  const rightModes = right.availableModes || getDefaultModes(right.type);
 
   const updateSliderPosition = useCallback((clientX: number) => {
     if (!containerRef.current) return;
@@ -253,19 +253,19 @@ const SliderComparison: React.FC<Omit<ComparisonProps, "layout">> = ({
   };
 
   // Mode change handlers for SwitchComponent
-  const handleBeforeModeChange = (checked: boolean) => {
+  const handleLeftModeChange = (checked: boolean) => {
     const newMode: ContentMode = checked ? "rendered" : "raw";
-    setBeforeMode(newMode);
+    setLeftMode(newMode);
     if (syncModes) {
-      setAfterMode(newMode);
+      setRightMode(newMode);
     }
   };
 
-  const handleAfterModeChange = (checked: boolean) => {
+  const handleRightModeChange = (checked: boolean) => {
     const newMode: ContentMode = checked ? "rendered" : "raw";
-    setAfterMode(newMode);
+    setRightMode(newMode);
     if (syncModes) {
-      setBeforeMode(newMode);
+      setLeftMode(newMode);
     }
   };
 
@@ -301,7 +301,7 @@ const SliderComparison: React.FC<Omit<ComparisonProps, "layout">> = ({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Background Layer (After) */}
+      {/* Background Layer (Right) */}
       <div
         className="absolute inset-0"
         style={{ 
@@ -309,26 +309,26 @@ const SliderComparison: React.FC<Omit<ComparisonProps, "layout">> = ({
           pointerEvents: isDragging ? "none" : "auto" 
         }}
       >
-        <div className={`top-0 right-0 p-2 z-10 flex items-center gap-2 ${beforeMode === "raw" ? "bg-white sticky justify-end" : "absolute"}`}>
-          {afterModes.length > 1 && (
+        <div className={`top-0 right-0 p-2 z-10 flex items-center gap-2 ${leftMode === "raw" ? "bg-white sticky justify-end" : "absolute"}`}>
+          {rightModes.length > 1 && (
             <SwitchComponent
-              checked={afterMode === "rendered"}
-              onChange={handleAfterModeChange}
+              checked={rightMode === "rendered"}
+              onChange={handleRightModeChange}
               label={t("preview")}
-              id="after-mode-switch"
+              id="right-mode-switch"
             />
           )}
-          {after.label && (
+          {right.label && (
             <div className="bg-black/70 text-white px-3 py-1 rounded text-sm font-medium">
-              {after.label}
+              {right.label}
             </div>
           )}
         </div>
 
-        <ContentRenderer item={after} currentMode={syncModes ? beforeMode : afterMode} />
+        <ContentRenderer item={right} currentMode={syncModes ? leftMode : rightMode} />
       </div>
 
-      {/* Foreground Layer (Before) - Clipped */}
+      {/* Foreground Layer (Left) - Clipped */}
       <div
         className="absolute inset-0"
         style={{
@@ -336,23 +336,23 @@ const SliderComparison: React.FC<Omit<ComparisonProps, "layout">> = ({
           pointerEvents: isDragging ? "none" : "auto",
         }}
       >
-        <div className={`top-0 left-0 p-2 z-10 flex items-center gap-2 ${beforeMode === "raw" ? "bg-white sticky" : "absolute"}`}>
-          {before.label && (
+        <div className={`top-0 left-0 p-2 z-10 flex items-center gap-2 ${leftMode === "raw" ? "bg-white sticky" : "absolute"}`}>
+          {left.label && (
             <div className="bg-black/70 text-white px-3 py-1 rounded text-sm font-medium">
-              {before.label}
+              {left.label}
             </div>
           )}
-          {beforeModes.length > 1 && (
+          {leftModes.length > 1 && (
             <SwitchComponent
-              checked={beforeMode === "rendered"}
-              onChange={handleBeforeModeChange}
+              checked={leftMode === "rendered"}
+              onChange={handleLeftModeChange}
               label={t("preview")}
-              id="before-mode-switch"
+              id="left-mode-switch"
             />
           )}
         </div>
 
-        <ContentRenderer item={before} currentMode={beforeMode} />
+        <ContentRenderer item={left} currentMode={leftMode} />
       </div>
 
       {/* Slider Divider */}
@@ -384,33 +384,33 @@ const SliderComparison: React.FC<Omit<ComparisonProps, "layout">> = ({
 
 // Side-by-Side Comparison Component (new)
 const SideBySideComparison: React.FC<Omit<ComparisonProps, "layout" | "defaultPosition">> = ({
-  before,
-  after,
+  left,
+  right,
   height = "600px",
   syncModes = true,
 }) => {
   const { t } = useTranslation();
   // Mode states - use defaultMode if provided, otherwise use first available mode
-  const [beforeMode, setBeforeMode] = useState<ContentMode>(() => getInitialMode(before));
-  const [afterMode, setAfterMode] = useState<ContentMode>(() => getInitialMode(after));
+  const [leftMode, setLeftMode] = useState<ContentMode>(() => getInitialMode(left));
+  const [rightMode, setRightMode] = useState<ContentMode>(() => getInitialMode(right));
 
-  const beforeModes = before.availableModes || getDefaultModes(before.type);
-  const afterModes = after.availableModes || getDefaultModes(after.type);
+  const leftModes = left.availableModes || getDefaultModes(left.type);
+  const rightModes = right.availableModes || getDefaultModes(right.type);
 
   // Mode change handlers for SwitchComponent
-  const handleBeforeModeChange = (checked: boolean) => {
+  const handleLeftModeChange = (checked: boolean) => {
     const newMode: ContentMode = checked ? "rendered" : "raw";
-    setBeforeMode(newMode);
+    setLeftMode(newMode);
     if (syncModes) {
-      setAfterMode(newMode);
+      setRightMode(newMode);
     }
   };
 
-  const handleAfterModeChange = (checked: boolean) => {
+  const handleRightModeChange = (checked: boolean) => {
     const newMode: ContentMode = checked ? "rendered" : "raw";
-    setAfterMode(newMode);
+    setRightMode(newMode);
     if (syncModes) {
-      setBeforeMode(newMode);
+      setLeftMode(newMode);
     }
   };
 
@@ -420,44 +420,44 @@ const SideBySideComparison: React.FC<Omit<ComparisonProps, "layout" | "defaultPo
       style={{ height }}
     >
       <div className="flex flex-col md:flex-row h-full">
-        {/* Before Panel */}
+        {/* Left Panel */}
         <div className="relative flex-1 max-h-[50%] md:max-h-full border-b md:border-b-0 md:border-r border-gray-300 overflow-auto">
           <div className="sticky top-0 left-0 z-10 flex items-center gap-2 p-2 bg-white">
-            {before.label && (
+            {left.label && (
               <div className="bg-black/70 text-white px-3 py-1 rounded text-sm font-medium">
-                {before.label}
+                {left.label}
               </div>
             )}
-            {beforeModes.length > 1 && (
+            {leftModes.length > 1 && (
               <SwitchComponent
-                checked={beforeMode === "rendered"}
-                onChange={handleBeforeModeChange}
+                checked={leftMode === "rendered"}
+                onChange={handleLeftModeChange}
                 label={t("preview")}
-                id="before-mode-switch-side"
+                id="left-mode-switch-side"
               />
             )}
           </div>
-          <ContentRenderer item={before} currentMode={beforeMode} />
+          <ContentRenderer item={left} currentMode={leftMode} />
         </div>
 
-        {/* After Panel */}
+        {/* Right Panel */}
         <div className="relative flex-1 max-h-[50%] md:max-h-full overflow-auto">
           <div className="sticky top-0 left-0 z-10 flex flex-row-reverse md:flex-row items-center gap-2 p-2 bg-white justify-end">
-            {afterModes.length > 1 && (
+            {rightModes.length > 1 && (
               <SwitchComponent
-                checked={afterMode === "rendered"}
-                onChange={handleAfterModeChange}
+                checked={rightMode === "rendered"}
+                onChange={handleRightModeChange}
                 label={t("preview")}
-                id="after-mode-switch-side"
+                id="right-mode-switch-side"
               />
             )}
-            {after.label && (
+            {right.label && (
               <div className="bg-black/70 text-white px-3 py-1 rounded text-sm font-medium">
-                {after.label}
+                {right.label}
               </div>
             )}
           </div>
-          <ContentRenderer item={after} currentMode={syncModes ? beforeMode : afterMode} />
+          <ContentRenderer item={right} currentMode={syncModes ? leftMode : rightMode} />
         </div>
       </div>
     </div>
@@ -466,10 +466,10 @@ const SideBySideComparison: React.FC<Omit<ComparisonProps, "layout" | "defaultPo
 
 // Main Comparison Component
 export const Comparison: React.FC<ComparisonProps> = (props) => {
-  const { before, after, layout } = props;
+  const { left, right, layout } = props;
   
   // Determine layout automatically if not specified
-  const effectiveLayout = layout || determineLayout(before, after);
+  const effectiveLayout = layout || determineLayout(left, right);
   
   // Render the appropriate layout
   if (effectiveLayout === "slider") {
