@@ -62,7 +62,8 @@ components:
       - comparing correct vs incorrect implementations
       - demonstrating design improvements (images, HTML)
       - comparing simple vs detailed prompts or explanations
-      - showing Mermaid diagram code vs rendered output
+      - showing Mermaid diagram code vs rendered output (using leftDefaultMode="raw" and rightDefaultMode="rendered")
+      - showing Markdown source vs rendered output (using different defaultMode for each panel)
       - comparing different algorithms or approaches side by side
       - visual before/after demonstrations of UI changes
       - comparing code with different levels of complexity or optimization
@@ -82,6 +83,8 @@ components:
       - For images, use full URLs or paths starting with ./.learn/assets/
       - Keep the compared content focused on a single concept or improvement
       - The separator must be on its own line with no extra spaces or characters
+      - To show code vs rendered output, use leftDefaultMode="raw" and rightDefaultMode="rendered" with syncModes="false"
+      - When using different defaultModes, consider setting syncModes="false" so each panel can be toggled independently
     metadata:
       - type - Content type (REQUIRED) - Must be one of html, text, code, mermaid, markdown, image
       - language - Programming language (REQUIRED only for type="code") - python, javascript, java, etc
@@ -90,6 +93,8 @@ components:
       - layout - Force specific layout (optional) - "slider" for overlay comparison or "side-by-side" for split view. Auto-detected if omitted
       - height - Component height (optional) - Default is "600px", accepts CSS values like "500px", "80vh", "700px"
       - syncModes - Sync render/code toggle between panels (optional) - "true" or "false", default is "true"
+      - leftDefaultMode - Initial display mode for left panel (optional) - "rendered" or "raw". Defaults to first available mode for the content type
+      - rightDefaultMode - Initial display mode for right panel (optional) - "rendered" or "raw". Defaults to first available mode for the content type
     example: |
       ```comparison type="html" left="Sin estilos" right="Con estilos CSS"
       <h1>Título básico</h1>
@@ -145,6 +150,25 @@ components:
       function sumArray(arr) {
           return arr.reduce((sum, num) => sum + num, 0);
       }
+      ```
+      --- Fifth Example (with different initial modes) ---
+      
+      ```comparison type="mermaid" left="Mermaid Code" right="Rendered Diagram" syncModes="false" leftDefaultMode="raw" rightDefaultMode="rendered"
+      graph TD
+          A[Start] --> B{Decision}
+          B -->|Yes| C[Action 1]
+          B -->|No| D[Action 2]
+          C --> E[End]
+          D --> E
+      
+      ---SEPARATOR---
+      
+      graph TD
+          A[Start] --> B{Decision}
+          B -->|Yes| C[Action 1]
+          B -->|No| D[Action 2]
+          C --> E[End]
+          D --> E
       ```
 
   - name: image

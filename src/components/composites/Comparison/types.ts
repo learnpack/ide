@@ -14,6 +14,7 @@ export interface ComparisonItem {
   label?: string;
   language?: string; // For code highlighting
   availableModes?: ContentMode[]; // Modes available for this item
+  defaultMode?: ContentMode; // Initial mode for this item
   customRender?: (content: unknown, mode: ContentMode) => React.ReactNode;
 }
 

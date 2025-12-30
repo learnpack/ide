@@ -1,6 +1,6 @@
 import React from "react";
 import { Comparison } from "../Comparison/Comparison";
-import type { ComparisonItem, ContentType, ComparisonLayout } from "../Comparison/types";
+import type { ComparisonItem, ContentType, ComparisonLayout, ContentMode } from "../Comparison/types";
 import { TMetadata } from "../Markdowner/types";
 
 interface ComparisonRendererProps {
@@ -36,6 +36,8 @@ export const ComparisonRenderer: React.FC<ComparisonRendererProps> = ({
   const layout = metadata.layout as ComparisonLayout | undefined;
   const height = (metadata.height as string) || "600px";
   const syncModes = metadata.syncModes !== "false" && metadata.syncModes !== false; // default true
+  const leftDefaultMode = metadata.leftDefaultMode as ContentMode | undefined;
+  const rightDefaultMode = metadata.rightDefaultMode as ContentMode | undefined;
 
   // Validate type
   const validTypes: ContentType[] = ["html", "text", "code", "mermaid", "markdown", "image", "custom"];
@@ -62,6 +64,7 @@ export const ComparisonRenderer: React.FC<ComparisonRendererProps> = ({
     type: type,
     label: leftLabel,
     language: language,
+    defaultMode: leftDefaultMode,
   };
 
   const after: ComparisonItem = {
@@ -69,6 +72,7 @@ export const ComparisonRenderer: React.FC<ComparisonRendererProps> = ({
     type: type,
     label: rightLabel,
     language: language,
+    defaultMode: rightDefaultMode,
   };
 
   return (

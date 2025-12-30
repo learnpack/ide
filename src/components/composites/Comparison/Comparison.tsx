@@ -157,6 +157,38 @@ const determineLayout = (before: ComparisonItem, after: ComparisonItem): Compari
   return "side-by-side";
 };
 
+// Helper function to get default modes based on content type
+const getDefaultModes = (type: ContentType): ContentMode[] => {
+  switch (type) {
+    case "html":
+      return ["rendered", "raw"];
+    case "mermaid":
+      return ["rendered", "raw"];
+    case "markdown":
+      return ["rendered", "raw"];
+    case "image":
+      return ["rendered"];
+    case "text":
+      return ["raw"];
+    case "code":
+      return ["raw"];
+    default:
+      return ["rendered"];
+  }
+};
+
+// Helper function to determine initial mode for an item
+const getInitialMode = (item: ComparisonItem): ContentMode => {
+  // Use explicit defaultMode if provided
+  if (item.defaultMode) {
+    return item.defaultMode;
+  }
+  
+  // Otherwise use the first available mode
+  const modes = item.availableModes || getDefaultModes(item.type);
+  return modes[0];
+};
+
 // Slider Comparison Component (original behavior)
 const SliderComparison: React.FC<Omit<ComparisonProps, "layout">> = ({
   before,
@@ -168,31 +200,11 @@ const SliderComparison: React.FC<Omit<ComparisonProps, "layout">> = ({
   const [sliderPosition, setSliderPosition] = useState(defaultPosition);
   const [isDragging, setIsDragging] = useState(false);
   
-  // Mode states
-  const [beforeMode, setBeforeMode] = useState<ContentMode>("rendered");
-  const [afterMode, setAfterMode] = useState<ContentMode>("rendered");
+  // Mode states - use defaultMode if provided, otherwise use first available mode
+  const [beforeMode, setBeforeMode] = useState<ContentMode>(() => getInitialMode(before));
+  const [afterMode, setAfterMode] = useState<ContentMode>(() => getInitialMode(after));
   
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // Default available modes based on content type
-  const getDefaultModes = (type: ContentType): ContentMode[] => {
-    switch (type) {
-      case "html":
-        return ["rendered", "raw"];
-      case "mermaid":
-        return ["rendered", "raw"];
-      case "markdown":
-        return ["rendered", "raw"];
-      case "image":
-        return ["rendered"];
-      case "text":
-        return ["raw"];
-      case "code":
-        return ["raw"];
-      default:
-        return ["rendered"];
-    }
-  };
 
   const beforeModes = before.availableModes || getDefaultModes(before.type);
   const afterModes = after.availableModes || getDefaultModes(after.type);
@@ -386,29 +398,9 @@ const SideBySideComparison: React.FC<Omit<ComparisonProps, "layout" | "defaultPo
   height = "600px",
   syncModes = true,
 }) => {
-  // Mode states
-  const [beforeMode, setBeforeMode] = useState<ContentMode>("rendered");
-  const [afterMode, setAfterMode] = useState<ContentMode>("rendered");
-
-  // Default available modes based on content type
-  const getDefaultModes = (type: ContentType): ContentMode[] => {
-    switch (type) {
-      case "html":
-        return ["rendered", "raw"];
-      case "mermaid":
-        return ["rendered", "raw"];
-      case "markdown":
-        return ["rendered", "raw"];
-      case "image":
-        return ["rendered"];
-      case "text":
-        return ["raw"];
-      case "code":
-        return ["raw"];
-      default:
-        return ["rendered"];
-    }
-  };
+  // Mode states - use defaultMode if provided, otherwise use first available mode
+  const [beforeMode, setBeforeMode] = useState<ContentMode>(() => getInitialMode(before));
+  const [afterMode, setAfterMode] = useState<ContentMode>(() => getInitialMode(after));
 
   const beforeModes = before.availableModes || getDefaultModes(before.type);
   const afterModes = after.availableModes || getDefaultModes(after.type);
