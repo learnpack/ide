@@ -309,7 +309,7 @@ const SliderComparison: React.FC<Omit<ComparisonProps, "layout">> = ({
           pointerEvents: isDragging ? "none" : "auto" 
         }}
       >
-        <div className="absolute top-2 right-2 z-10 flex items-center gap-2">
+        <div className={`top-0 right-0 p-2 z-10 flex items-center gap-2 ${beforeMode === "raw" ? "bg-white sticky justify-end" : "absolute"}`}>
           {afterModes.length > 1 && (
             <SwitchComponent
               checked={afterMode === "rendered"}
@@ -336,7 +336,7 @@ const SliderComparison: React.FC<Omit<ComparisonProps, "layout">> = ({
           pointerEvents: isDragging ? "none" : "auto",
         }}
       >
-        <div className="absolute top-2 left-2 z-10 flex items-center gap-2">
+        <div className={`top-0 left-0 p-2 z-10 flex items-center gap-2 ${beforeMode === "raw" ? "bg-white sticky" : "absolute"}`}>
           {before.label && (
             <div className="bg-black/70 text-white px-3 py-1 rounded text-sm font-medium">
               {before.label}
