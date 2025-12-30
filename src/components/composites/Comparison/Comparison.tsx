@@ -7,6 +7,8 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import { useTranslation } from "react-i18next";
+import SwitchComponent from "../../ui/switch";
 import type { ComparisonProps, ComparisonItem, ContentMode, ContentType, ComparisonLayout } from "./types";
 
 // Internal component to render content based on type and mode
@@ -127,11 +129,11 @@ const ContentRenderer: React.FC<{
 
     case "image":
       return (
-        <div className="w-full h-full overflow-hidden bg-gray-100">
+        <div className="w-full overflow-hidden bg-gray-100">
           <img
             src={String(item.content)}
             alt={item.label || "Comparison image"}
-            className="w-full h-full object-cover"
+            className="w-full object-cover"
             style={{ maxWidth: "none", margin: 0 }}
           />
         </div>
@@ -198,6 +200,7 @@ const SliderComparison: React.FC<Omit<ComparisonProps, "layout">> = ({
   height = "600px",
   syncModes = true,
 }) => {
+  const { t } = useTranslation();
   const [sliderPosition, setSliderPosition] = useState(defaultPosition);
   const [isDragging, setIsDragging] = useState(false);
   
@@ -249,26 +252,20 @@ const SliderComparison: React.FC<Omit<ComparisonProps, "layout">> = ({
     updateSliderPosition(touch.clientX);
   };
 
-  // Toggle mode handlers
-  const toggleBeforeMode = () => {
-    const currentIndex = beforeModes.indexOf(beforeMode);
-    const nextIndex = (currentIndex + 1) % beforeModes.length;
-    const nextMode = beforeModes[nextIndex];
-    
-    setBeforeMode(nextMode);
+  // Mode change handlers for SwitchComponent
+  const handleBeforeModeChange = (checked: boolean) => {
+    const newMode: ContentMode = checked ? "rendered" : "raw";
+    setBeforeMode(newMode);
     if (syncModes) {
-      setAfterMode(nextMode);
+      setAfterMode(newMode);
     }
   };
 
-  const toggleAfterMode = () => {
-    const currentIndex = afterModes.indexOf(afterMode);
-    const nextIndex = (currentIndex + 1) % afterModes.length;
-    const nextMode = afterModes[nextIndex];
-    
-    setAfterMode(nextMode);
+  const handleAfterModeChange = (checked: boolean) => {
+    const newMode: ContentMode = checked ? "rendered" : "raw";
+    setAfterMode(newMode);
     if (syncModes) {
-      setBeforeMode(nextMode);
+      setBeforeMode(newMode);
     }
   };
 
@@ -296,14 +293,6 @@ const SliderComparison: React.FC<Omit<ComparisonProps, "layout">> = ({
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
-  const getModeLabel = (mode: ContentMode) => {
-    return mode === "rendered" ? "👁️ Vista" : "📝 Código";
-  };
-
-  const getModeTitle = (mode: ContentMode) => {
-    return mode === "rendered" ? "Ver Código" : "Ver Renderizado";
-  };
-
   return (
     <div
       ref={containerRef}
@@ -318,19 +307,18 @@ const SliderComparison: React.FC<Omit<ComparisonProps, "layout">> = ({
         style={{ pointerEvents: isDragging ? "none" : "auto" }}
       >
         <div className="absolute top-2 right-2 z-10 flex items-center gap-2">
+          {afterModes.length > 1 && (
+            <SwitchComponent
+              checked={afterMode === "rendered"}
+              onChange={handleAfterModeChange}
+              label={t("preview")}
+              id="after-mode-switch"
+            />
+          )}
           {after.label && (
             <div className="bg-black/70 text-white px-3 py-1 rounded text-sm font-medium">
               {after.label}
             </div>
-          )}
-          {afterModes.length > 1 && (
-            <button
-              onClick={toggleAfterMode}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
-              title={getModeTitle(afterMode)}
-            >
-              {getModeLabel(afterMode)}
-            </button>
           )}
         </div>
 
@@ -352,13 +340,12 @@ const SliderComparison: React.FC<Omit<ComparisonProps, "layout">> = ({
             </div>
           )}
           {beforeModes.length > 1 && (
-            <button
-              onClick={toggleBeforeMode}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
-              title={getModeTitle(beforeMode)}
-            >
-              {getModeLabel(beforeMode)}
-            </button>
+            <SwitchComponent
+              checked={beforeMode === "rendered"}
+              onChange={handleBeforeModeChange}
+              label={t("preview")}
+              id="before-mode-switch"
+            />
           )}
         </div>
 
@@ -399,6 +386,7 @@ const SideBySideComparison: React.FC<Omit<ComparisonProps, "layout" | "defaultPo
   height = "600px",
   syncModes = true,
 }) => {
+  const { t } = useTranslation();
   // Mode states - use defaultMode if provided, otherwise use first available mode
   const [beforeMode, setBeforeMode] = useState<ContentMode>(() => getInitialMode(before));
   const [afterMode, setAfterMode] = useState<ContentMode>(() => getInitialMode(after));
@@ -406,35 +394,21 @@ const SideBySideComparison: React.FC<Omit<ComparisonProps, "layout" | "defaultPo
   const beforeModes = before.availableModes || getDefaultModes(before.type);
   const afterModes = after.availableModes || getDefaultModes(after.type);
 
-  // Toggle mode handlers
-  const toggleBeforeMode = () => {
-    const currentIndex = beforeModes.indexOf(beforeMode);
-    const nextIndex = (currentIndex + 1) % beforeModes.length;
-    const nextMode = beforeModes[nextIndex];
-    
-    setBeforeMode(nextMode);
+  // Mode change handlers for SwitchComponent
+  const handleBeforeModeChange = (checked: boolean) => {
+    const newMode: ContentMode = checked ? "rendered" : "raw";
+    setBeforeMode(newMode);
     if (syncModes) {
-      setAfterMode(nextMode);
+      setAfterMode(newMode);
     }
   };
 
-  const toggleAfterMode = () => {
-    const currentIndex = afterModes.indexOf(afterMode);
-    const nextIndex = (currentIndex + 1) % afterModes.length;
-    const nextMode = afterModes[nextIndex];
-    
-    setAfterMode(nextMode);
+  const handleAfterModeChange = (checked: boolean) => {
+    const newMode: ContentMode = checked ? "rendered" : "raw";
+    setAfterMode(newMode);
     if (syncModes) {
-      setBeforeMode(nextMode);
+      setBeforeMode(newMode);
     }
-  };
-
-  const getModeLabel = (mode: ContentMode) => {
-    return mode === "rendered" ? "👁️ Vista" : "📝 Código";
-  };
-
-  const getModeTitle = (mode: ContentMode) => {
-    return mode === "rendered" ? "Ver Código" : "Ver Renderizado";
   };
 
   return (
@@ -452,13 +426,12 @@ const SideBySideComparison: React.FC<Omit<ComparisonProps, "layout" | "defaultPo
               </div>
             )}
             {beforeModes.length > 1 && (
-              <button
-                onClick={toggleBeforeMode}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
-                title={getModeTitle(beforeMode)}
-              >
-                {getModeLabel(beforeMode)}
-              </button>
+              <SwitchComponent
+                checked={beforeMode === "rendered"}
+                onChange={handleBeforeModeChange}
+                label={t("preview")}
+                id="before-mode-switch-side"
+              />
             )}
           </div>
           <ContentRenderer item={before} currentMode={beforeMode} />
@@ -467,19 +440,18 @@ const SideBySideComparison: React.FC<Omit<ComparisonProps, "layout" | "defaultPo
         {/* After Panel */}
         <div className="relative flex-1 max-h-[50%] md:max-h-full overflow-auto">
           <div className="sticky top-2 right-2 z-10 flex items-center gap-2 justify-end mb-2">
+            {afterModes.length > 1 && (
+              <SwitchComponent
+                checked={afterMode === "rendered"}
+                onChange={handleAfterModeChange}
+                label={t("preview")}
+                id="after-mode-switch-side"
+              />
+            )}
             {after.label && (
               <div className="bg-black/70 text-white px-3 py-1 rounded text-sm font-medium">
                 {after.label}
               </div>
-            )}
-            {afterModes.length > 1 && (
-              <button
-                onClick={toggleAfterMode}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
-                title={getModeTitle(afterMode)}
-              >
-                {getModeLabel(afterMode)}
-              </button>
             )}
           </div>
           <ContentRenderer item={after} currentMode={syncModes ? beforeMode : afterMode} />
