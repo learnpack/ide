@@ -86,7 +86,7 @@ export const CreatorWrapper = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [interactions, setInteractions] = useState<TInteraction[]>([]);
   const [isEditingAsMarkdown, setIsEditingAsMarkdown] = useState(false);
-  const [containsNewElement, setContainsNewElement] = useState(false);
+  // const [containsNewElement, setContainsNewElement] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -785,7 +785,8 @@ export const CreatorWrapper = ({
             isBuildable={isBuildable}
           />
         )}
-        {tagName !== "new" && !containsNewElement && (
+        {/* {tagName !== "new" && !containsNewElement && ( */}
+        {tagName !== "new" && (
           <div className="creator-controls">
             {canDrag && (
               <Tooltip>
