@@ -132,6 +132,7 @@ const ContentRenderer: React.FC<{
             src={String(item.content)}
             alt={item.label || "Comparison image"}
             className="w-full h-full object-cover"
+            style={{ maxWidth: "none", margin: 0 }}
           />
         </div>
       );
