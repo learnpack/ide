@@ -419,7 +419,7 @@ const SideBySideComparison: React.FC<Omit<ComparisonProps, "layout" | "defaultPo
       <div className="flex flex-col md:flex-row h-full">
         {/* Before Panel */}
         <div className="relative flex-1 max-h-[50%] md:max-h-full border-b md:border-b-0 md:border-r border-gray-300 overflow-auto">
-          <div className="sticky top-2 left-2 z-10 flex items-center gap-2 mb-2">
+          <div className="sticky top-0 left-0 z-10 flex items-center gap-2 p-2 bg-white">
             {before.label && (
               <div className="bg-black/70 text-white px-3 py-1 rounded text-sm font-medium">
                 {before.label}
@@ -439,7 +439,7 @@ const SideBySideComparison: React.FC<Omit<ComparisonProps, "layout" | "defaultPo
 
         {/* After Panel */}
         <div className="relative flex-1 max-h-[50%] md:max-h-full overflow-auto">
-          <div className="sticky top-2 right-2 z-10 flex items-center gap-2 justify-end mb-2">
+          <div className="sticky top-0 left-0 z-10 flex items-center gap-2 p-2 bg-white justify-end">
             {afterModes.length > 1 && (
               <SwitchComponent
                 checked={afterMode === "rendered"}
