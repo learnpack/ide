@@ -42,6 +42,7 @@ import { isRunnableCodeBlock } from "../../../utils/runnableDetection";
 import MonacoEditor from "@monaco-editor/react";
 import { Toolbar } from "../Editor/Editor";
 import { eventBus } from "@/managers/eventBus";
+import { ComparisonRenderer } from "../ComparisonRenderer/ComparisonRenderer";
 
 
 const ClickMeToGetID = ({ id }: { id: string }) => {
@@ -723,6 +724,31 @@ const CustomCodeBlock = ({
   }
   if (language === "mermaid") {
     return <MermaidRenderer code={code} />;
+  }
+
+  if (language === "comparison") {
+    if (isCreator && mode === "creator" && allowCreate) {
+      return (
+        <CreatorWrapper node={node} tagName="comparison">
+          <ComparisonRenderer 
+            code={code}
+            metadata={metadata}
+            wholeMD={wholeMD}
+            node={node}
+            allowCreate={allowCreate}
+          />
+        </CreatorWrapper>
+      );
+    }
+    return (
+      <ComparisonRenderer 
+        code={code}
+        metadata={metadata}
+        wholeMD={wholeMD}
+        node={node}
+        allowCreate={allowCreate}
+      />
+    );
   }
 
   if (language === "changesDiff") {

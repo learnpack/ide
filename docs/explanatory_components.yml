@@ -45,6 +45,229 @@ components:
 
       [Ask Rigo how to create a function in Python](https://4geeks.com/ask?query=help-me-understand-how-to-create-a-function-in-python-in-the-simplest-possible-way)
 
+  - name: code_comparison
+    intendedUse:
+      - comparing code versions
+      - showing bug fixes or improvements
+      - demonstrating different algorithmic approaches
+    description: >-
+      Compare two code blocks side-by-side to show improvements, bug fixes, refactoring, or different approaches to solve the same problem. This is the most common comparison use case.
+    goodFor:
+      - showing before/after code improvements
+      - comparing simple vs optimized implementations
+      - demonstrating bug fixes with validation
+      - contrasting iterative vs functional approaches
+      - showing different coding patterns or best practices
+    whenToUse: Use when comparing two versions of code enhances learning. Perfect for teaching refactoring, debugging, optimization, or comparing different solutions to the same problem. For HTML/CSS comparisons, prefer html_css_comparison which offers both visual and code comparison modes.
+    avoid:
+      - comparing unrelated code snippets
+      - very long code blocks (keep focused on the key differences)
+      - more than one concept per comparison
+      - HTML code (use html_css_comparison instead for better flexibility with raw/rendered modes)
+    rules:
+      - CRITICAL - NEVER use this for HTML code, always use html_css_comparison component instead
+      - CRITICAL - Must use exactly "---SEPARATOR---" on its own line to divide the two code blocks
+      - type="code" is REQUIRED
+      - language attribute is REQUIRED (e.g. language="python", language="javascript")
+      - NEVER set language="html" - use html_css_comparison component instead
+      - Use descriptive leftLabel and rightLabel to guide the student
+      - Keep both code blocks similar in length for best visual results
+    metadata:
+      - type - Must be "code"
+      - language - REQUIRED - Programming language (python, javascript, java, etc.) NEVER "html"
+      - leftLabel - Recommended - Label for left panel (e.g. "Basic Version", "With Bug")
+      - rightLabel - Recommended - Label for right panel (e.g. "Optimized", "Fixed Version")
+    example: |
+      ```comparison type="code" language="python" leftLabel="Simple Version" rightLabel="With Validation"
+      def factorial(n):
+          result = 1
+          for i in range(1, n + 1):
+              result *= i
+          return result
+
+      ---SEPARATOR---
+
+      def factorial(n):
+          """Calculate factorial with validation."""
+          if not isinstance(n, int) or n < 0:
+              raise ValueError("Must be a positive integer")
+          if n == 0 or n == 1:
+              return 1
+          return n * factorial(n - 1)
+      ```
+      --- Second Example ---
+
+      ```comparison type="code" language="javascript" leftLabel="With Bug" rightLabel="Fixed"
+      function greet(name) {
+          console.log("Hello " + name)
+      }
+      greet() // Hello undefined
+
+      ---SEPARATOR---
+
+      function greet(name) {
+          if (!name) {
+              console.log("Hello, stranger!");
+              return;
+          }
+          console.log("Hello " + name);
+      }
+      greet() // Hello, stranger!
+      ```
+
+  - name: html_css_comparison
+    intendedUse:
+      - CSS styling comparisons
+      - visual design improvements
+      - HTML structure and semantics comparisons
+      - demonstrating CSS techniques
+    description: >-
+      Compare two HTML/CSS implementations side-by-side. PRIMARY USE: comparing CSS styling, layout techniques, and visual designs. This is THE component for teaching CSS concepts through visual or code comparisons. Supports both interactive slider view (for visual CSS changes) and side-by-side code view (for CSS structure/syntax). ALWAYS use this for any HTML/CSS content, never use code_comparison for HTML.
+    goodFor:
+      - CSS property comparisons (margin vs padding, flexbox vs grid)
+      - showing before/after styling improvements (basic CSS vs modern CSS)
+      - comparing CSS layout techniques (float vs flexbox, flexbox vs grid)
+      - demonstrating responsive design changes (mobile-first vs desktop-first)
+      - visual UI enhancements and styling improvements (colors, shadows, animations)
+      - CSS architecture patterns (BEM vs utility-first, CSS variables)
+      - comparing HTML structure and element placement
+      - showing semantic HTML differences (accessibility, attributes, form structure)
+    whenToUse: ALWAYS use this component for ANY HTML/CSS comparison in CSS courses, html courses, or UI design courses. By default shows an interactive slider for visual CSS comparisons. For code-focused comparisons (CSS syntax, selectors, structure), add layout="side-by-side" with leftInitialMode="raw" and rightInitialMode="raw". This is mandatory for HTML content - never use code_comparison for HTML/CSS.
+    avoid:
+      - comparing completely different page structures (focus on similar layouts)
+    rules:
+      - CRITICAL - Must use exactly "---SEPARATOR---" on its own line to divide the two HTML blocks
+      - type="html" is REQUIRED
+      - Use descriptive leftLabel and rightLabel to describe each version
+      - Both HTML blocks should represent comparable designs for best effect
+      - Use layout="side-by-side" with leftInitialMode="raw" and rightInitialMode="raw" when comparing code structure, not visual results
+      - Can force layout="side-by-side" if you prefer code comparison over visual slider
+    metadata:
+      - type - Must be "html"
+      - leftLabel - Recommended - Label for left panel (e.g. "Basic Design", "Flexbox")
+      - rightLabel - Recommended - Label for right panel (e.g. "Enhanced", "CSS Grid")
+      - layout - Optional - Use "side-by-side" to force code comparison instead of slider
+      - leftInitialMode - Optional - Set to "raw" to start left panel in code mode (defaults to "rendered")
+      - rightInitialMode - Optional - Set to "raw" to start right panel in code mode (defaults to "rendered")
+    example: |
+      ```comparison type="html" leftLabel="Basic Styles" rightLabel="Enhanced Design"
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { 
+              background: lightblue; 
+              padding: 20px;
+              font-family: Arial, sans-serif;
+            }
+            h1 { color: navy; }
+          </style>
+        </head>
+        <body>
+          <h1>Original Version</h1>
+          <p>Basic styling applied.</p>
+        </body>
+      </html>
+
+      ---SEPARATOR---
+
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { 
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              padding: 20px;
+              font-family: Arial, sans-serif;
+              color: white;
+            }
+            h1 { 
+              color: white;
+              text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            }
+            button {
+              background: white;
+              color: #667eea;
+              border: none;
+              padding: 10px 20px;
+              border-radius: 5px;
+              cursor: pointer;
+            }
+          </style>
+        </head>
+        <body>
+          <h1>Enhanced Version</h1>
+          <p>Modern gradient and improved styling.</p>
+          <button>Click me</button>
+        </body>
+      </html>
+      ```
+      --- Second Example ---
+
+      ```comparison type="html" layout="side-by-side" leftLabel="Without Accessibility" rightLabel="With ARIA Attributes" leftInitialMode="raw" rightInitialMode="raw"
+      <button class="close-btn">
+        ×
+      </button>
+
+      ---SEPARATOR---
+
+      <button class="close-btn" aria-label="Close dialog" role="button">
+        <span aria-hidden="true">×</span>
+      </button>
+      ```
+
+  - name: code_vs_rendered
+    intendedUse:
+      - teaching markup syntax (Markdown, Mermaid)
+      - showing source code and its rendered output
+    description: >-
+      Show source code on one side and its rendered output on the other. Perfect for teaching Markdown or Mermaid syntax by displaying the raw code and final result simultaneously.
+    goodFor:
+      - teaching Markdown syntax
+      - teaching Mermaid diagram syntax
+      - showing how markup translates to visual output
+    whenToUse: Use when teaching syntax where seeing both the source and rendered result together enhances understanding. Set different initial modes for each panel and disable sync.
+    avoid:
+      - when simple code-only comparison is sufficient
+      - for HTML (where preview is already obvious)
+    rules:
+      - CRITICAL - Must use exactly "---SEPARATOR---" on its own line (can use same content on both sides)
+      - type must be "mermaid" or "markdown"
+      - MUST set leftInitialMode="raw" and rightInitialMode="rendered"
+      - MUST set syncRenderToggle="false" to allow independent panel control
+      - Both sides typically contain the SAME content (shown differently)
+    metadata:
+      - type - Must be "mermaid" or "markdown"
+      - leftLabel - Recommended - Usually "Source Code" or "Markdown Code"
+      - rightLabel - Recommended - Usually "Rendered Output" or "Result"
+      - leftInitialMode - REQUIRED - Must be "raw"
+      - rightInitialMode - REQUIRED - Must be "rendered"
+      - syncRenderToggle - REQUIRED - Must be "false"
+    example: |
+      ```comparison type="mermaid" leftLabel="Mermaid Code" rightLabel="Rendered Diagram" leftInitialMode="raw" rightInitialMode="rendered" syncRenderToggle="false"
+      sequenceDiagram
+          participant User
+          participant Frontend
+          participant Backend
+          
+          User->>Frontend: Request Data
+          Frontend->>Backend: API Call
+          Backend-->>Frontend: Response
+          Frontend-->>User: Display Data
+
+      ---SEPARATOR---
+
+      sequenceDiagram
+          participant User
+          participant Frontend
+          participant Backend
+          
+          User->>Frontend: Request Data
+          Frontend->>Backend: API Call
+          Backend-->>Frontend: Response
+          Frontend-->>User: Display Data
+      ```
+
   - name: image
     intendedUse:
       - educational explanation
