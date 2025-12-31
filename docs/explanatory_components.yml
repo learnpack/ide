@@ -58,18 +58,18 @@ components:
       - demonstrating bug fixes with validation
       - contrasting iterative vs functional approaches
       - showing different coding patterns or best practices
-    whenToUse: Use when comparing two versions of code enhances learning. Perfect for teaching refactoring, debugging, optimization, or comparing different solutions to the same problem. For HTML/CSS comparisons, prefer html_comparison which offers both visual and code comparison modes.
+    whenToUse: Use when comparing two versions of code enhances learning. Perfect for teaching refactoring, debugging, optimization, or comparing different solutions to the same problem. For HTML/CSS comparisons, prefer html_css_comparison which offers both visual and code comparison modes.
     avoid:
       - comparing unrelated code snippets
       - very long code blocks (keep focused on the key differences)
       - more than one concept per comparison
-      - HTML code (use html_comparison instead for better flexibility with raw/rendered modes)
+      - HTML code (use html_css_comparison instead for better flexibility with raw/rendered modes)
     rules:
-      - CRITICAL - NEVER use this for HTML code, always use html_comparison component instead
+      - CRITICAL - NEVER use this for HTML code, always use html_css_comparison component instead
       - CRITICAL - Must use exactly "---SEPARATOR---" on its own line to divide the two code blocks
       - type="code" is REQUIRED
       - language attribute is REQUIRED (e.g. language="python", language="javascript")
-      - NEVER set language="html" - use html_comparison component instead
+      - NEVER set language="html" - use html_css_comparison component instead
       - Use descriptive leftLabel and rightLabel to guide the student
       - Keep both code blocks similar in length for best visual results
     metadata:
@@ -115,23 +115,24 @@ components:
       greet() // Hello, stranger!
       ```
 
-  - name: html_comparison
+  - name: html_css_comparison
     intendedUse:
-      - comparing visual designs
-      - showing CSS improvements
-      - demonstrating UI changes with slider
-      - comparing HTML structure and semantics
+      - CSS styling comparisons
+      - visual design improvements
+      - HTML structure and semantics comparisons
+      - demonstrating CSS techniques
     description: >-
-      Compare two HTML/CSS implementations. This component handles both visual comparisons (using an interactive slider) and code structure comparisons (using side-by-side layout with raw mode). ALWAYS use this for any HTML content, never use code_comparison for HTML.
+      Compare two HTML/CSS implementations side-by-side. PRIMARY USE: comparing CSS styling, layout techniques, and visual designs. This is THE component for teaching CSS concepts through visual or code comparisons. Supports both interactive slider view (for visual CSS changes) and side-by-side code view (for CSS structure/syntax). ALWAYS use this for any HTML/CSS content, never use code_comparison for HTML.
     goodFor:
-      - showing before/after design improvements
-      - comparing different CSS layout techniques (Flexbox vs Grid)
-      - demonstrating responsive design changes
-      - visual UI enhancements and styling improvements
+      - CSS property comparisons (margin vs padding, flexbox vs grid)
+      - showing before/after styling improvements (basic CSS vs modern CSS)
+      - comparing CSS layout techniques (float vs flexbox, flexbox vs grid)
+      - demonstrating responsive design changes (mobile-first vs desktop-first)
+      - visual UI enhancements and styling improvements (colors, shadows, animations)
+      - CSS architecture patterns (BEM vs utility-first, CSS variables)
       - comparing HTML structure and element placement
       - showing semantic HTML differences (accessibility, attributes, form structure)
-      - demonstrating different approaches to the same markup
-    whenToUse: ALWAYS use this component for ANY HTML/CSS comparison, whether the focus is visual design or code structure. By default, it shows an interactive slider for visual comparisons. For code-focused comparisons (structure, semantics, attributes), add layout="side-by-side" with leftInitialMode="raw" and rightInitialMode="raw".
+    whenToUse: ALWAYS use this component for ANY HTML/CSS comparison in CSS courses, html courses, or UI design courses. By default shows an interactive slider for visual CSS comparisons. For code-focused comparisons (CSS syntax, selectors, structure), add layout="side-by-side" with leftInitialMode="raw" and rightInitialMode="raw". This is mandatory for HTML content - never use code_comparison for HTML/CSS.
     avoid:
       - comparing completely different page structures (focus on similar layouts)
     rules:
