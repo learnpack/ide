@@ -365,6 +365,7 @@ interface ITelemetryManager {
   ) => void;
   hasTesteableElementByHash: (stepPosition: number, hash: string) => boolean;
   hasPendingTasks: (stepPosition: number) => boolean;
+  hasPendingTasksInAnyLesson: () => boolean;
   isTesteable: (stepPosition: number) => boolean;
   getStepIndicators: (stepPosition: number) => TStepIndicators | null;
   streamEvent: (stepPosition: number, event: string, data: any) => void;
@@ -752,6 +753,17 @@ const TelemetryManager: ITelemetryManager = {
       return false;
     }
     return Boolean(step.testeable_elements?.some((e) => !e.is_completed));
+  },
+
+  hasPendingTasksInAnyLesson: function () {
+    if (!this.current || !this.current.steps) {
+      return false;
+    }
+    
+    // Verify if any step has pending tasks
+    return this.current.steps.some((_, index) => 
+      this.hasPendingTasks(index)
+    );
   },
 
   submit: async function () {

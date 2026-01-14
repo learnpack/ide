@@ -22,11 +22,13 @@
 }
 
 .editor {
-  border: 7px solid var(--opaque-blue-editor);
+  --editor-container-padding: 8px;
+  --editor-border-width: 7px;
+  border: var(--editor-border-width) solid var(--opaque-blue-editor);
   border-radius: 0px;
   border-top-right-radius: 5px;
   position: relative;
-  height: 97%;
+  height: calc(100% - (var(--editor-border-width) * 2 + var(--editor-container-padding) * 2));
   /* background-color: red; */
 }
 /* 

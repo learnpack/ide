@@ -596,6 +596,7 @@
     "no-redo-available": "No hay cambios para rehacer",
     "stopEditing": "Detener edición",
     "lesson-complete": "¡Lección Completada!",
+    "tutorial-end-message": "Has llegado al final de este tutorial interactivo.",
     "exercises-completed": "Ejercicios Completados",
     "communities": {
         "title": "Únete a Nuestras Comunidades",
