@@ -6,16 +6,23 @@ import { svgs } from "../../assets/svgs";
 import { Modal } from "../mockups/Modal";
 import ProgressBar from "../composites/ProgressBar/ProgressBar";
 import useStore from "../../utils/store";
-import { publishTutorial, changeSlug } from "../../utils/creator";
+import { publishTutorial, changeSlug, getUserAcademies, getPackageAcademy } from "../../utils/creator";
 import { toast } from "react-hot-toast";
 import { playEffect, getSlugFromPath, slugify } from "../../utils/lib";
 import { Notifier } from "../../managers/Notifier";
 import { FetchManager } from "../../managers/fetchManager";
 import { isSlugAvailable } from "../../utils/lib";
 
+type Academy = {
+  id: number;
+  name: string;
+  slug: string;
+  timezone: string;
+};
+
 const PublishConfirmationModal: FC<{
   onClose: () => void;
-  onPublish: (slug: string) => Promise<void>;
+  onPublish: (slug: string, academyId?: number) => Promise<void>;
 }> = ({ onClose, onPublish }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -27,6 +34,12 @@ const PublishConfirmationModal: FC<{
   const [needToReviewAll, setNeedToReviewAll] = useState(false);
   const [editableSlug, setEditableSlug] = useState("");
   const [slugStatus, setSlugStatus] = useState<"checking" | "available" | "taken" | null>(null);
+  const [academies, setAcademies] = useState<Academy[]>([]);
+  const [selectedAcademyId, setSelectedAcademyId] = useState<number | undefined>(undefined);
+  const [loadingAcademies, setLoadingAcademies] = useState(false);
+  const [packageAcademyId, setPackageAcademyId] = useState<number | null>(null);
+  const [isPublished, setIsPublished] = useState(false);
+  const [loadingPackageInfo, setLoadingPackageInfo] = useState(false);
 
   useEffect(() => {
     checkConsumables();
@@ -36,6 +49,38 @@ const PublishConfirmationModal: FC<{
       setEditableSlug(currentSlug);
     }
   }, []);
+
+  useEffect(() => {
+    if (isOpen && bcToken) {
+      fetchPackageInfo();
+      fetchAcademies();
+    }
+  }, [isOpen, bcToken]);
+
+  const fetchPackageInfo = async () => {
+    if (!bcToken) return;
+    const currentSlug = getSlugFromPath();
+    if (!currentSlug) return;
+    
+    try {
+      setLoadingPackageInfo(true);
+      const packageInfo = await getPackageAcademy(bcToken, currentSlug);
+      setPackageAcademyId(packageInfo.academyId);
+      setIsPublished(packageInfo.isPublished);
+      
+      // If package has an academy, use it automatically
+      if (packageInfo.academyId !== null) {
+        setSelectedAcademyId(packageInfo.academyId);
+      }
+    } catch (error) {
+      console.error("Error fetching package academy:", error);
+      // On error, assume not published so user can still select academy
+      setPackageAcademyId(null);
+      setIsPublished(false);
+    } finally {
+      setLoadingPackageInfo(false);
+    }
+  };
 
   useEffect(() => {
     if (!syllabus || !syllabus.lessons) {
@@ -73,6 +118,24 @@ const PublishConfirmationModal: FC<{
 
     return () => clearTimeout(timeoutId);
   }, [editableSlug]);
+
+  const fetchAcademies = async () => {
+    if (!bcToken) return;
+    try {
+      setLoadingAcademies(true);
+      const academiesList = await getUserAcademies(bcToken);
+      setAcademies(academiesList);
+      // Auto-select if only one academy
+      if (academiesList.length === 1) {
+        setSelectedAcademyId(academiesList[0].id);
+      }
+    } catch (error) {
+      console.error("Error fetching academies:", error);
+      toast.error("Error loading academies");
+    } finally {
+      setLoadingAcademies(false);
+    }
+  };
 
   const checkConsumables = async () => {
     const consumables = await getUserConsumables();
@@ -136,6 +199,7 @@ const PublishConfirmationModal: FC<{
                 onClick={(e) => e.stopPropagation()}
                 onChange={handleSlugChange}
                 placeholder={t("tutorial-slug")}
+                disabled={isPublished}
               />
               <div className="flex-x justify-between align-center">
                 <span className="text-small text-gray-600">{editableSlug.length}/47</span>
@@ -149,7 +213,32 @@ const PublishConfirmationModal: FC<{
                   <span className="text-small text-danger">{t("slug-taken")}</span>
                 )}
               </div>
+              {isPublished && (
+                <p className="text-small text-gray-600 m-0">
+                  You can't change the slug in published packages
+                </p>
+              )}
             </div>
+
+            {academies.length > 0 && !loadingPackageInfo && packageAcademyId === null && (
+              <div className="flex-y gap-small padding-small">
+                <label className="text-blue font-medium">Academy</label>
+                <select
+                  className="padding-small rounded border"
+                  value={selectedAcademyId || ""}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => setSelectedAcademyId(e.target.value ? Number(e.target.value) : undefined)}
+                  disabled={loadingAcademies}
+                >
+                  {academies.length > 1 && <option value="">Select an academy</option>}
+                  {academies.map((academy) => (
+                    <option key={academy.id} value={academy.id}>
+                      {academy.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="flex-x gap-small justify-center align-center">
               <SimpleButton
@@ -162,7 +251,7 @@ const PublishConfirmationModal: FC<{
                 disabled={!editableSlug || (slugStatus === "taken" || slugStatus === "checking")}
                 svg={"🚀"}
                 text={t("publish")}
-                action={() => onPublish(editableSlug)}
+                action={() => onPublish(editableSlug, selectedAcademyId)}
               />
             </div>
           </div>
@@ -261,10 +350,12 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
   // const getSyllabus = useStore((state) => state.getSyllabus);
   const currentSlug = useStore((state) => state.configObject.config.slug);
   const [deployedUrl, setDeployedUrl] = useState("");
+  const [publishErrors, setPublishErrors] = useState<Array<{ lang: string; error: any }>>([]);
 
-  const handlePublish = async (slug: string) => {
+  const handlePublish = async (slug: string, academyId?: number) => {
     try {
       setPublishing(true);
+      setPublishErrors([]);
       
       // Check if slug changed
       if (slug && currentSlug && slug !== currentSlug) {
@@ -287,10 +378,19 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
           return;
         }
       }
-      const res = await publishTutorial(bctoken, token);
-      toast.success(t("tutorial-published-successfully"));
-      Notifier.confetti();
-      playEffect("success");
+      const res = await publishTutorial(bctoken, token, academyId);
+      
+      // Check for errors in the response
+      if (res.errors && res.errors.length > 0) {
+        setPublishErrors(res.errors);
+        // Show warning toast if there are errors
+        toast.error(`${res.errors.length} language(s) failed to publish`);
+      } else {
+        toast.success(t("tutorial-published-successfully"));
+        Notifier.confetti();
+        playEffect("success");
+      }
+      
       setDeployedUrl(res.url);
       setPublishing(false);
       await fetchExercises();
@@ -344,6 +444,20 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
             <p className="text-center m-0">
               {t("congratulations-your-tutorial-is-published")}
             </p>
+            {publishErrors.length > 0 && (
+              <div className="flex-y gap-small padding-small bg-yellow-50 border border-yellow-200 rounded">
+                <p className="text-yellow-800 font-medium m-0">
+                  Warning: {publishErrors.length} language(s) failed to publish:
+                </p>
+                <ul className="text-yellow-700 text-small m-0 pl-4">
+                  {publishErrors.map((err, index) => (
+                    <li key={index}>
+                      <strong>{err.lang}:</strong> {err.error?.detail || err.error?.message || JSON.stringify(err.error)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <div className="flex-x gap-small align-center justify-between border-gray rounded padding-small">
               <p className="m-0 ">{deployedUrl}</p>
               <div className="flex-x gap-small">
