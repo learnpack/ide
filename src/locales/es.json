@@ -444,7 +444,7 @@
     "exercisesTranslationStarted": "La traducción de los ejercicios ha comenzado, estarán listos pronto.",
     "cannotTranslateWhileGenerating": "No puedes traducir mientras aún hay lecciones por generar",
     "translateAllTheCourse": "Traduce todo el curso de una vez",
-    "addVideoToStep": "Agrega un vídeo al paso {{step}}",
+    "addAVideoToStep": "Agrega un vídeo al paso {{step}}",
     "addVideoExplanation": "Para agregar un video al paso {{step}}, por favor pega la URL de uno de sitios soportados.",
     "add-video-tutorial": "Agrega un video tutorial",
     "startReviewingMyPackage": "Empezar a revisar mi paquete",

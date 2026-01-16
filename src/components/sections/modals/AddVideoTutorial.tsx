@@ -50,7 +50,9 @@ export const AddVideoTutorial = () => {
         />
         <div className="flex-x justify-center">
           <SimpleButton
-            text={t("addVideoToStep")}
+            text={t("addAVideoToStep", {
+              step: cleanFloatString(ex.title.split("-")[0]),
+            })}
             svg={svgs.checkIcon}
             extraClass=" active-on-hover padding-medium rounded"
             action={async () => {
