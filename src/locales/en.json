@@ -436,7 +436,6 @@
     "exercisesTranslationStarted": "Course translation started, it will be ready soon!",
     "cannotTranslateWhileGenerating": "You can't translate with pending lessons, please finish the first language first.",
     "translateAllTheCourse": "Translate all the course at once",
-    "addVideoToStep": "Add video to step",
     "addAVideoToStep": "Add a video to step {{step}}",
     "addVideoExplanation": "To add a video to this particular step {{step}}, please paste the URL from one of the supported sources",
     "add-video-tutorial": "Add video tutorial",
