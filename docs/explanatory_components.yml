@@ -45,43 +45,115 @@ components:
 
       [Ask Rigo how to create a function in Python](https://4geeks.com/ask?query=help-me-understand-how-to-create-a-function-in-python-in-the-simplest-possible-way)
 
-  - name: image
+  - name: technical_diagram
     intendedUse:
-      - educational explanation
-      - diagrammatic visualization that improves content comprehension
-    description: >-
-      Images must be educational and explanatory, designed to enhance understanding of concepts.
-      They should be diagrammatic in nature, using visual elements like arrows, labels, numbered steps,
-      annotations, and clear visual hierarchies to explain processes, relationships, or structures.
-      Images must provide real educational value beyond what text alone can convey. Each image is 
-      generated from a descriptive alt text that acts as a detailed prompt for AI, specifying the 
-      educational elements and diagrammatic features needed.
-    goodFor:
-      - process flows with labeled steps
-      - system architecture diagrams
-      - concept relationships with arrows and connections
+      - technical explanation with structural relationships
+      - system architecture and component interactions
       - data structure visualizations
-      - comparative diagrams showing before/after or different approaches
-      - annotated technical illustrations
-      - step-by-step visual guides with numbered elements
-    whenToUse: Only when the visual representation significantly improves comprehension compared to text or code alone. Use when explaining relationships between components, sequential processes, spatial arrangements, hierarchical structures, or when comparing multiple concepts visually. The image must answer the question "How does this help the student understand better than text?"
+    description: >-
+      Technical diagrams show the structure and relationships between technical components.
+      They use precise lines, boxes, arrows, and labels to illustrate how systems, APIs,
+      databases, or code structures are organized and connected. Focus on clarity and
+      technical accuracy with a clean, professional aesthetic.
+    visualStyle: >-
+      Clean technical diagram with precise lines, clear component boundaries,
+      labeled connections, professional color scheme (blues and grays),
+      flat design, modern technical illustration style, vector-like appearance
+    goodFor:
+      - system architecture diagrams
+      - network topology and API interactions
+      - database schema and relationships
+      - component dependency diagrams
+      - data flow between systems
+    whenToUse: When explaining HOW technical components are structured, connected, or interact within a system. Use when the focus is on technical relationships and architecture.
     avoid:
-      - purely decorative images
-      - generic stock photos without educational annotations
-      - images that merely illustrate what the text already says clearly
-      - artistic or abstract images without clear educational purpose
-      - screenshots without annotations or highlights
-      - images where a mermaid diagram or code example would be clearer
-      - overly complex visuals that confuse rather than clarify
+      - purely decorative technical imagery
+      - overly complex diagrams (consider mermaid instead)
+      - sequential processes (use mermaid flowchart)
+      - realistic representations (use realistic_photography instead)
     rules:
-      - Should use standard markdown image syntax => ![alt text](image-url)
-      - The alt text must contain a detailed prompt with at least 30 words describing the educational and diagrammatic elements of the image
-      - The alt text must specify visual teaching elements like "with arrows showing", "labeled with", "numbered steps", "annotated to highlight", "color-coded to differentiate"
-      - The alt text should describe what the student will learn from the image, not just what it looks like
-      - The image URL must always start with "./.learn/assets/" and contain a meaningful descriptive filename
-      - Images must be directly relevant to the learning objective and add value beyond the text
-      - Every image should be explanatory and diagrammatic with clear labels, annotations, or visual guides
-      - Prefer diagrams with educational annotations over plain illustrations
-      - Include visual cues like arrows, numbers, labels, highlights, or color coding to guide understanding
+      - Must use standard markdown image syntax => ![alt text](image-url)
+      - Alt text must contain at least 30 words describing components and relationships
+      - Must specify visual elements, e.g. "labeled with", "arrows showing", "color-coded"
+      - Image URL must start with "./.learn/assets/"
+      - Must include clear labels for each component
+      - Must show connections/relationships with arrows or lines
+      - Use consistent visual language (boxes for components, cylinders for databases, etc.)
     example: |
-      ![A technical diagram illustrating the HTTP request-response cycle between client and server, with numbered steps from 1 to 5, arrows showing data flow direction, labels identifying DNS resolution, TCP connection, request headers, server processing, and response payload, color-coded to differentiate client-side actions in blue and server-side actions in green, with annotations explaining each component's role in the process](./.learn/assets/http-request-response-diagram.png)
+      ![Technical architecture diagram showing a three-tier web application with labeled components: React frontend in blue box at top, connecting via arrow labeled "REST API (HTTPS)" to Node.js backend in green box at center, which connects via arrow labeled "SQL queries" to PostgreSQL database shown as gray cylinder at bottom, with annotations explaining data flow and each layer's responsibility](./.learn/assets/three-tier-architecture.png)
+
+  - name: conceptual_illustration
+    intendedUse:
+      - abstract concept visualization
+      - metaphorical representation of programming ideas
+      - simplified educational illustrations
+    description: >-
+      Conceptual illustrations transform abstract programming concepts into visual metaphors
+      and simplified representations. They use friendly, approachable aesthetics with flat
+      colors and minimal details to make complex ideas accessible. Focus on clarity and
+      educational value through visual metaphors.
+    visualStyle: >-
+      Simplified illustration style, flat colors, minimal details, friendly and approachable
+      aesthetic, vector art style with smooth shapes, focus on clarity over realism,
+      educational and welcoming visual language
+    goodFor:
+      - abstract programming concepts (closures, scope, inheritance)
+      - memory models and heap/stack visualization
+      - conceptual relationships between ideas
+      - visual metaphors for complex topics
+      - explaining "how things work" conceptually
+    whenToUse: When the concept is abstract and benefits from a metaphorical or highly simplified visual representation. Use when realism would be confusing and a friendly illustration helps understanding.
+    avoid:
+      - technical accuracy over clarity (use technical_diagram instead)
+      - realistic depictions (use realistic_photography instead)
+      - step-by-step processes (use mermaid flowchart instead)
+      - purely decorative or artistic images without educational purpose
+    rules:
+      - Must use standard markdown image syntax => ![alt text](image-url)
+      - Alt text must contain at least 30 words describing the concept and visual metaphor
+      - Must specify visual elements, e.g. "shown as", "represented by", "color-coded to differentiate"
+      - Image URL must start with "./.learn/assets/"
+      - Should simplify complex ideas into basic visual metaphors
+      - Use color coding to differentiate concept categories
+      - Include annotations that bridge the metaphor to the actual concept
+    example: |
+      ![Conceptual illustration of JavaScript closure using nested container metaphor: outer function shown as large blue box labeled "Outer Function Scope" containing variable boxes (x, y), with inner function as smaller orange box labeled "Inner Function" inside it, arrows pointing from inner to outer variables with label "maintains access to", simplified flat design with friendly colors and clear annotations explaining the closure relationship](./.learn/assets/closure-concept.png)
+
+  - name: realistic_photography
+    intendedUse:
+      - realistic representations of physical objects, environments, or interfaces
+      - professional scenarios and workplace contexts
+      - hardware, equipment, or tangible items
+    description: >-
+      Realistic photography provides photorealistic depictions when concepts require
+      real-world context or physical representation. Uses professional photography style
+      with proper lighting, depth, and realistic details. Appropriate when illustration
+      would lose important real-world context.
+    visualStyle: >-
+      Professional photography style, realistic lighting and shadows, proper depth of field,
+      clean and organized composition, neutral professional background, high-quality
+      photorealistic rendering, appropriate for educational or professional contexts
+    goodFor:
+      - hardware setup and physical equipment
+      - workspace and development environment examples
+      - real user interfaces and application screenshots
+      - professional workplace scenarios
+      - physical objects relevant to development (keyboards, monitors, servers)
+      - real-world contexts that require authenticity
+    whenToUse: When the educational value requires showing real-world physical objects, professional environments, or when authenticity and realism are essential to understanding. Use when abstraction would remove important context.
+    avoid:
+      - generic stock photos without educational value
+      - purely decorative realistic images
+      - when a diagram or illustration would be clearer
+      - complex technical relationships (use technical_diagram instead)
+      - abstract concepts (use conceptual_illustration instead)
+    rules:
+      - Must use standard markdown image syntax => ![alt text](image-url)
+      - Alt text must contain at least 30 words describing the scene and its educational purpose
+      - Must specify what to show realistically and why it matters
+      - Image URL must start with "./.learn/assets/"
+      - Should include context that explains the educational relevance
+      - If showing UI/screens, specify what elements to highlight or annotate
+      - Maintain professional, clean aesthetic appropriate for learning
+    example: |
+      ![Professional photograph of a modern developer workspace showing a dual-monitor setup with code editor on left screen and browser developer tools on right screen, mechanical keyboard in foreground, with natural lighting from window, clean desk organization, demonstrating a typical full-stack development environment with annotations highlighting the debugging workflow between IDE and browser](./.learn/assets/developer-workspace.png)
