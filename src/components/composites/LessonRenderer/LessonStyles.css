@@ -9,6 +9,7 @@
 .lesson-content img {
   margin: 5px auto;
   max-width: 750px;
+  width: auto;
   display: block;
 }
 
