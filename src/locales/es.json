@@ -235,6 +235,7 @@
     "errorTranslatingExercises": "Error al traducir ejercicios",
     "translatingExercises": "Traduciendo contenido...",
     "invalidLanguage": "Idiomas inválidos, escribe los idiomas a traducir, separados por comas",
+    "progress-recovered": "Progreso recuperado. Los cambios de los últimos 10 minutos pueden no aparecer aún.",
     "threeStrugglesAlert": {
         "0": "¡Vaya, este se está haciendo difícil de conseguir! ¿Quieres que Rigobot intervenga o prefieres seguir rockeando solo?",
         "1": "Hmm, ¿sintiéndote complicado? Rigobot está aquí para ayudarte—¿quieres un impulso o sigues con ello?",

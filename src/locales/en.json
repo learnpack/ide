@@ -229,6 +229,7 @@
     "errorTranslatingExercises": "Error translating exercises",
     "translatingExercises": "Translating content...",
     "invalidLanguage": "Invalid languages, write the languages to translate to, separated by commas",
+    "progress-recovered": "Progress recovered. The changes of the last 10 minutes may not yet appear.",
     "threeStrugglesAlert": {
         "0": "Whoa, this one's playing hard to get! Want Rigobot to jump in, or keep rocking it solo?",
         "1": "Hmm, feeling tricky? Rigobot's got your back—want a boost, or sticking with it?",

@@ -166,3 +166,22 @@ export const getCompletionJob = async (token: string, completionId: string, host
 
   return responseData;
 };
+
+export const getPackageInfo = async (
+  token: string,
+  packageSlug: string
+): Promise<{ id: number; package_slug: string; [key: string]: any } | null> => {
+  const url = `${RIGOBOT_HOST}/v1/learnpack/package/${packageSlug}/`;
+
+  const headers = {
+    Authorization: `Token ${token}`,
+  };
+
+  try {
+    const response = await axios.get(url, { headers });
+    return response.data;
+  } catch (error: any) {
+    console.error("Error fetching package info:", error);
+    return null;
+  }
+};

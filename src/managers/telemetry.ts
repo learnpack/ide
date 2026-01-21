@@ -13,6 +13,9 @@ import axios, { AxiosResponse } from "axios";
 import { TAgent } from "../utils/storeTypes";
 import { LEARNPACK_LOCAL_URL } from "../utils/creator";
 import { RIGOBOT_HOST } from "../utils/lib";
+import toast from "react-hot-toast";
+import { getPackageInfo } from "../utils/apiCalls";
+import i18n from "../utils/i18n";
 
 export interface IFile {
   path: string;
@@ -137,6 +140,111 @@ const retrieveFromCLI =
       return null;
     }
   };
+
+// Transform Rigobot API response to ITelemetryJSONSchema format
+const transformRigobotResponse = function (
+  rigobotData: any,
+  tutorialSlug: string
+): ITelemetryJSONSchema | null {
+  try {
+    // Rigobot returns an array of telemetry objects, we take the first one
+    const data = Array.isArray(rigobotData.results) ? rigobotData.results[0] : rigobotData.results;
+
+    if (!data) {
+      return null;
+    }
+
+    // Map Rigobot structure to ITelemetryJSONSchema
+    const transformed: ITelemetryJSONSchema = {
+      telemetry_id: data.telemetry_id || data.id?.toString(),
+      user_id: data.user_id,
+      fullname: data.fullname,
+      slug: data.slug || tutorialSlug,
+      package_id: data.package_id,
+      version: data.version || "CLOUD:0.0.0",
+      cohort_id: data.cohort_id || null,
+      academy_id: data.academy_id || null,
+      agent: data.agent || "cloud",
+      tutorial_started_at: data.tutorial_started_at || Date.now(),
+      last_interaction_at: data.last_interaction_at || Date.now(),
+      steps: (data.steps || []).map((step: any) => ({
+        slug: step.slug,
+        position: step.position,
+        files: step.files || [],
+        is_testeable: step.is_testeable || false,
+        opened_at: step.opened_at,
+        testeable_elements: step.testeable_elements || [],
+        completed_at: step.completed_at,
+        compilations: step.compilations || [],
+        tests: step.tests || [],
+        sessions: step.sessions || [],
+        ai_interactions: step.ai_interactions || [],
+        quiz_submissions: step.quiz_submissions || [],
+        is_completed: step.is_completed || false,
+        metrics: step.metrics,
+        indicators: step.indicators,
+      })),
+      workout_session: data.workout_session || [
+        {
+          started_at: data.tutorial_started_at || Date.now(),
+        },
+      ],
+      global_metrics: data.global_metrics,
+      global_indicators: data.global_indicators,
+    };
+
+    return transformed;
+  } catch (error) {
+    console.error("Error transforming Rigobot response:", error);
+    return null;
+  }
+};
+
+const retrieveFromRigobot = async function (
+  userId: string,
+  packageId: string | number,
+  rigoToken: string,
+  tutorialSlug: string
+): Promise<ITelemetryJSONSchema | null> {
+  if (!userId || !packageId || !rigoToken) {
+    return null;
+  }
+
+  const url = `${RIGOBOT_HOST}/v1/learnpack/telemetry?user_ids=${userId}&package_ids=${packageId}&include_steps=true`;
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Token ${rigoToken}`,
+      },
+    });
+
+    const transformed = transformRigobotResponse(response.data, tutorialSlug);
+    return transformed;
+  } catch (error) {
+    console.error("Error while retrieving telemetry from Rigobot", error);
+    return null;
+  }
+};
+
+// Handle UX for server-retrieved telemetry
+const handleServerTelemetryUX = function (serverData: ITelemetryJSONSchema) {
+  // Always log when telemetry is recovered from server
+  console.log("[Telemetry] Telemetry recovered from server", serverData);
+
+  // Show toast only first time
+  const warningShown = LocalStorage.get("server_data_warning_shown");
+  if (!warningShown) {
+    toast(
+      i18n.t("progress-recovered"),
+      {
+        duration: 8000,
+        icon: "ℹ️",
+      }
+    );
+    LocalStorage.set("server_data_warning_shown", true);
+  }
+};
 
 const saveInCLI = async function (telemetry: ITelemetryJSONSchema) {
   try {
@@ -372,7 +480,7 @@ interface ITelemetryManager {
   submit: () => Promise<void>;
   finishWorkoutSession: () => void;
   save: () => void;
-  retrieve: () => Promise<ITelemetryJSONSchema | null>;
+  retrieve: () => Promise<{ telemetry: ITelemetryJSONSchema | null; fromServer: boolean }>;
   getStep: (stepPosition: number) => TStep | null;
 }
 
@@ -409,10 +517,18 @@ const TelemetryManager: ITelemetryManager = {
 
     if (!this.current) {
       this.retrieve()
-        .then((prevTelemetry) => {
+        .then((result) => {
+          const { telemetry: prevTelemetry, fromServer } = result;
+
           if (prevTelemetry) {
             this.current = prevTelemetry;
             this.finishWorkoutSession();
+
+            // If data came from server, handle UX
+            if (fromServer) {
+              handleServerTelemetryUX(prevTelemetry);
+              // Don't call submit() to avoid redundant re-send to server
+            }
           } else {
             console.debug(
               "No previous telemetry found, creating new one. Agent: ",
@@ -466,18 +582,22 @@ const TelemetryManager: ITelemetryManager = {
               });
           }
 
+          // Save telemetry (always save after setting user data)
           this.save();
 
           this.started = true;
 
-          if (!this.user.id) {
-            console.warn(
-              "No user ID found, impossible to submit telemetry at start"
-            );
-            return;
-          }
+          // Only submit if data came from local storage (not from server)
+          if (!fromServer) {
+            if (!this.user.id) {
+              console.warn(
+                "No user ID found, impossible to submit telemetry at start"
+              );
+              return;
+            }
 
-          this.submit();
+            this.submit();
+          }
         })
         .catch((error) => {
           console.log("ERROR: There was a problem starting the Telemetry");
@@ -733,17 +853,44 @@ const TelemetryManager: ITelemetryManager = {
       }
     }
   },
-  retrieve: function () {
+  retrieve: async function () {
+    // First try local/CLI storage
     if (this.agent === "os" || this.agent === "vscode") {
-      return retrieveFromCLI();
+      const cliData = await retrieveFromCLI();
+      return { telemetry: cliData, fromServer: false };
     }
 
     const saved = LocalStorage.get(this.telemetryKey);
     if (saved && saved.slug === this.tutorialSlug) {
-      return Promise.resolve(saved);
-    } else {
-      return Promise.resolve(null);
+      return { telemetry: saved, fromServer: false };
     }
+
+    // No local data found, try server fallback
+    if (this.user.rigo_token && this.user.id && this.tutorialSlug) {
+      try {
+        // Get package_id from slug
+        const packageInfo = await getPackageInfo(this.user.rigo_token, this.tutorialSlug);
+        
+        if (packageInfo && packageInfo.id) {
+          const serverTelemetry = await retrieveFromRigobot(
+            this.user.id,
+            packageInfo.id,
+            this.user.rigo_token,
+            this.tutorialSlug
+          );
+
+          if (serverTelemetry) {
+            return { telemetry: serverTelemetry, fromServer: true };
+          }
+        }
+      } catch (error) {
+        console.error("Error retrieving telemetry from server:", error);
+        // Fall through to return null
+      }
+    }
+
+    // No data found locally or on server
+    return { telemetry: null, fromServer: false };
   },
 
   hasPendingTasks: function (stepPosition: number) {
