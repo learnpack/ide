@@ -32,6 +32,7 @@ const PublishConfirmationModal: FC<{
   const syllabus = useStore((state) => state.syllabus);
   const [hasEnoughConsumables, setHasEnoughConsumables] = useState(false);
   const [needToReviewAll, setNeedToReviewAll] = useState(false);
+  const [pendingLessons, setPendingLessons] = useState<Array<{ id: string; title: string }>>([]);
   const [editableSlug, setEditableSlug] = useState("");
   const [slugStatus, setSlugStatus] = useState<"checking" | "available" | "taken" | null>(null);
   const [academies, setAcademies] = useState<Academy[]>([]);
@@ -85,15 +86,21 @@ const PublishConfirmationModal: FC<{
   useEffect(() => {
     if (!syllabus || !syllabus.lessons) {
       setNeedToReviewAll(false);
+      setPendingLessons([]);
       return;
     }
-    const anyNotGenerated = syllabus.lessons.some(
+    const notGeneratedLessons = syllabus.lessons.filter(
       (lesson) => !lesson.generated
     );
-    if (anyNotGenerated) {
+    if (notGeneratedLessons.length > 0) {
       setNeedToReviewAll(true);
+      setPendingLessons(notGeneratedLessons.map(lesson => ({
+        id: lesson.id,
+        title: lesson.title
+      })));
     } else {
       setNeedToReviewAll(false);
+      setPendingLessons([]);
     }
   }, [syllabus]);
 
@@ -171,6 +178,20 @@ const PublishConfirmationModal: FC<{
             <p className="padding-smll text-blue bg-soft-blue rounded padding-small text-big text-center">
               {t("please-review-all-lessons-before-publishing")}
             </p>
+            {pendingLessons.length > 0 && (
+              <div className="flex-y gap-small padding-small bg-soft-blue rounded">
+                <p className="text-blue font-medium m-0">
+                  Pending lessons ({pendingLessons.length}):
+                </p>
+                <ul className="text-blue text-small m-0 pl-4">
+                  {pendingLessons.map((lesson) => (
+                    <li key={lesson.id}>
+                      {lesson.id}. {lesson.title}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <SimpleButton
               extraClass="text-blue row-reverse padding-medium rounded"
               text={t("cancel")}

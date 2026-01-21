@@ -1371,6 +1371,25 @@ The user's set up the application in "${language}" language, give your feedback 
     }
   },
 
+  updateCourseTitle: (language, title) => {
+    const { configObject } = get();
+    const nextTitle = {
+      ...(configObject?.config?.title || {}),
+      [language]: title,
+    };
+    const nextConfig = {
+      ...configObject,
+      config: {
+        ...configObject.config,
+        title: nextTitle,
+      },
+    };
+    set({ configObject: nextConfig });
+    if (language === "us") {
+      set({ lessonTitle: title });
+    }
+  },
+
   getSyllabus: async () => {
     const { environment } = get();
 

@@ -9,6 +9,7 @@ import {
   deleteExercise,
   markLessonAsDone,
   renameExercise,
+  synchronizeSyllabus,
 } from "../../../utils/creator";
 import { FetchManager } from "../../../managers/fetchManager";
 import { Syllabus, TMode } from "../../../utils/storeTypes";
@@ -240,8 +241,52 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
     }
   };
 
+  const handleSyncSyllabus = async () => {
+    const toastId = toast.loading("Synchronizing syllabus...");
+    try {
+      const result = await synchronizeSyllabus();
+      
+      const totalChanges = (result.removedLessons || 0) + (result.duplicatesResolved || 0);
+      
+      if (totalChanges > 0) {
+        const messages = [];
+        if (result.removedLessons > 0) {
+          messages.push(`${result.removedLessons} non-existent lesson(s)`);
+        }
+        if (result.duplicatesResolved > 0) {
+          messages.push(`${result.duplicatesResolved} duplicate(s)`);
+        }
+        
+        toast.success(
+          `Syllabus synchronized! Removed: ${messages.join(", ")}`,
+          { id: toastId, duration: 6000 }
+        );
+      } else {
+        toast.success("Syllabus is already in sync!", { id: toastId });
+      }
+      
+      // Refresh sidebar
+      await getSidebar();
+      
+      console.log("Sync result:", result);
+    } catch (error) {
+      toast.error("Error synchronizing syllabus", { id: toastId });
+      console.error(error);
+    }
+  };
+
   return (
     <div className="exercise-list">
+      {mode === "creator" && DEV_MODE && (
+        <div className="padding-small bg-yellow-50 border-b border-yellow-200">
+          <SimpleButton
+            extraClass="w-100 text-small text-yellow-800 bg-yellow-100 hover:bg-yellow-200 padding-small rounded"
+            svg={<Icon name="Settings" size={16} />}
+            text="🔧 Sync Syllabus (Dev)"
+            action={handleSyncSyllabus}
+          />
+        </div>
+      )}
       {selectedExercises.length > 0 && (
         <div className="flex-y gap-small align-center">
           <div className="flex-x gap-small align-center bg-1 rounded padding-small w-100">
@@ -343,7 +388,7 @@ function ExerciseCard({
     if (isEditing) {
       const toastId = toast.loading(t("updatingExercise"));
       let newTitle = titleInputRef.current?.value;
-       if (!newTitle) {
+      if (!newTitle) {
         toast.error(t("titleCannotBeEmpty"), { id: toastId });
         return;
       }
@@ -352,7 +397,7 @@ function ExerciseCard({
       newTitle = slugify(newTitle);
 
       const { isValid, fixedTitle, error } = fixTitleFormat(newTitle);
-      if (!isValid && error ) {
+      if (!isValid && error) {
         toast.error(t(error), { id: toastId });
         return;
       }
@@ -388,7 +433,7 @@ function ExerciseCard({
 
   const isDone = TelemetryManager.isTesteable(position) && !TelemetryManager.hasPendingTasks(position);
   const isTesteable = TelemetryManager.isTesteable(position);
-  console.table({graded, done, isDone, isTesteable});
+  console.table({ graded, done, isDone, isTesteable });
 
 
   return (
@@ -475,6 +520,21 @@ function ExerciseCard({
               )}
             </>
           )}
+        {foundInSyllabus && DEV_MODE && (
+          <button
+            onClick={() => {
+              toast.success("Marking as done...");
+              markLessonAsDone(
+                config.config.slug,
+                slug,
+                token
+              );
+            }}
+          >
+
+            {foundInSyllabus.status}
+          </button>
+        )}
         {foundInSyllabus &&
           !foundInSyllabus.generated &&
           foundInSyllabus.status === "PENDING" && (

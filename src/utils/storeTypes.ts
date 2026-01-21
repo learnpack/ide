@@ -355,6 +355,7 @@ export interface IStore {
   registerTelemetryEvent: (event: TStepEvent, data: object) => void;
   getTelemetryStep: (stepPosition: number) => Promise<TStep | null>;
   setLanguage: (language: string, fetchExercise?: boolean) => void;
+  updateCourseTitle: (language: string, title: string) => void;
   checkLoggedStatus: (opts?: TCheckLoggedStatusOptions) => void;
   setToken: (newToken: string) => void;
   setBuildButtonPrompt: (t: string, c: string) => void;

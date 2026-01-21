@@ -147,6 +147,44 @@ export const deleteTutorial = async (
   }
 };
 
+export const updateCourseTitle = async (
+  rigoToken: string,
+  language: string,
+  title: string
+) => {
+  try {
+    const courseSlug = getSlugFromPath();
+    const headers = {
+      "x-rigo-token": rigoToken,
+    };
+    const response = await axios.post(
+      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/update-title?slug=${courseSlug}`,
+      {
+        language,
+        title,
+      },
+      { headers }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating course title:", error);
+    throw error;
+  }
+};
+
+export const synchronizeSyllabus = async () => {
+  try {
+    const courseSlug = getSlugFromPath();
+    const response = await axios.post(
+      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/synchronize-syllabus?slug=${courseSlug}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error synchronizing syllabus:", error);
+    throw error;
+  }
+};
+
 // app.post(
 //   "/actions/continue-generating/:courseSlug/:position",
 //   async (req, res) => {
