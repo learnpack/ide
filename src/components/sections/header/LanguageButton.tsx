@@ -151,7 +151,7 @@ function getMissingSlugsForLang(exercises: TExercise[], lang: string): string[] 
   ).map((ex) => ex.slug);
 }
 
-/** Returns true if the language has missing lessons AND is "stuck": either no in-progress entries (new lesson case) or the most recent startedAt without completedAt is > 15 min ago. */
+/** Returns true if the language has missing lessons AND the most recent startedAt is > 20 min ago. */
 function shouldShowRetryForLanguage(
   syllabus: Syllabus,
   exercises: TExercise[],
@@ -164,12 +164,12 @@ function shouldShowRetryForLanguage(
   syllabus?.lessons?.forEach((lesson) => {
     const lessonWithTranslations = lesson as Lesson & { translations?: Record<string, { startedAt?: number; completedAt?: number }> };
     const t = lessonWithTranslations.translations?.[lang];
-    if (t?.startedAt && !t.completedAt) {
+    if (t?.startedAt) {
       maxStartedAt = Math.max(maxStartedAt, t.startedAt);
     }
   });
-  if (maxStartedAt === 0) return true; // New lesson case: no in-progress entries
-  return Date.now() - maxStartedAt > 15 * 60 * 1000; // Stuck: > 15 min since last started
+  if (maxStartedAt === 0) return false;
+  return Date.now() - maxStartedAt > 20 * 60 * 1000;
 }
 
 const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
@@ -353,67 +353,77 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
         const status = getLanguageStatus(l);
         const isDisabled = status === "pending" || status === "translating";
 
+        const showRetry = mode === "creator" && exercises?.length > 0 && getMissingSlugsForLang(exercises, l).length > 0 && shouldShowRetryForLanguage(syllabus, exercises, l);
+        const missingCount = showRetry ? getMissingSlugsForLang(exercises, l).length : 0;
+
         return (
           <div
             key={index}
             style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%" }}
           >
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={() => setLang(l)}
-                  disabled={isDisabled}
-                  className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
-                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
-                >
-                  <span style={{ display: "inline-flex", alignItems: "center", width: "20px", height: "20px", flexShrink: 0, overflow: "hidden" }}>
-                    {svgsLanguageMap[l]}
-                  </span>
-                  <span>{l}</span>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{getLanguageName(l, i18n.language)}</p>
-              </TooltipContent>
-            </Tooltip>
-            {status && !shouldShowRetryForLanguage(syllabus, exercises, l) && (
+            <div style={{ flex: 1, display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="d-flex align-center gap-small">
-                    <span style={{ display: "inline-flex", alignItems: "center" }}>
-                      {getStatusIcon(status)}
+                  <button
+                    onClick={() => setLang(l)}
+                    disabled={isDisabled}
+                    className={isDisabled ? "opacity-50 cursor-not-allowed" : ""}
+                    style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                  >
+                    <span style={{ display: "inline-flex", alignItems: "center", width: "20px", height: "20px", flexShrink: 0, overflow: "hidden" }}>
+                      {svgsLanguageMap[l]}
                     </span>
-                    {status === "translating" && (
-                      <span className="text-small text-gray-500">{getLanguageCompletionRate(l)}</span>
-                    )}
-                  </div>
+                    <span>{l}</span>
+                  </button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{getStatusTooltip(status, l)}</p>
+                  <p>{getLanguageName(l, i18n.language)}</p>
                 </TooltipContent>
               </Tooltip>
-            )}
-            {mode === "creator" && exercises?.length > 0 && getMissingSlugsForLang(exercises, l).length > 0 && shouldShowRetryForLanguage(syllabus, exercises, l) && (
-              <>
-                <span className="text-small text-gray-500">
-                  {t("lessonsPendingTranslation", { count: getMissingSlugsForLang(exercises, l).length })}
-                </span>
+              {status && (status === "pending" || status === "translating" && !shouldShowRetryForLanguage(syllabus, exercises, l)) && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); handleRetryTranslation(l); }}
-                      disabled={retryingLang === l}
-                      className="text-small border border-gray-300 rounded px-2 py-0.5 hover:bg-gray-100 disabled:opacity-50"
-                    >
-                      {retryingLang === l ? "..." : t("translateRemaining")}
-                    </button>
+                    <div className="d-flex align-center gap-small">
+                      <span style={{ display: "inline-flex", alignItems: "center" }}>
+                        {getStatusIcon(status)}
+                      </span>
+                      {status === "translating" && (
+                        <span className="text-small text-gray-500">{getLanguageCompletionRate(l)}</span>
+                      )}
+                    </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{t("translateRemainingTooltip")}</p>
+                    <p>{getStatusTooltip(status, l)}</p>
                   </TooltipContent>
                 </Tooltip>
-              </>
+              )}
+            </div>
+            {showRetry && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); handleRetryTranslation(l); }}
+                    disabled={retryingLang === l}
+                    style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "4px" }}
+                    className="rounded hover:bg-gray-100 disabled:opacity-50"
+                    aria-label={t("translateRemaining")}
+                  >
+                    {retryingLang === l ? (
+                      <Loader size="sm" color="var(--color-blue-rigo)" />
+                    ) : (
+                      <span style={{ width: 14, height: 14, display: "inline-flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                        {svgs.resetIconV2}
+                      </span>
+                    )}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-[200px]" side="left">
+                  <p className="whitespace-normal break-words">
+                    {t("lessonsPendingTranslationTooltip", { count: missingCount })}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
             )}
           </div>
         );
