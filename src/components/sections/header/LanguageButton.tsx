@@ -14,7 +14,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { TTranslationStatus, TLanguageTranslation } from "../../../utils/storeTypes";
+import { TTranslationStatus, TLanguageTranslation, TExercise, Lesson, Syllabus } from "../../../utils/storeTypes";
 import { Loader } from "../../composites/Loader/Loader";
 // import { useConsumableCall } from "../../../utils/apiCalls";
 // import { TConsumableSlug } from "../../../utils/storeTypes";
@@ -144,6 +144,34 @@ export const fixLang = (lang: string, environment: string) => {
   }
 };
 
+/** Returns exercise slugs that don't have a translation file for the given language (en = README.md, others = README.lang.md). */
+function getMissingSlugsForLang(exercises: TExercise[], lang: string): string[] {
+  return exercises.filter(
+    (ex) => !(ex.translations && ex.translations[lang])
+  ).map((ex) => ex.slug);
+}
+
+/** Returns true if the language has missing lessons AND is "stuck": either no in-progress entries (new lesson case) or the most recent startedAt without completedAt is > 15 min ago. */
+function shouldShowRetryForLanguage(
+  syllabus: Syllabus,
+  exercises: TExercise[],
+  lang: string
+): boolean {
+  const missingCount = getMissingSlugsForLang(exercises, lang).length;
+  if (missingCount === 0) return false;
+
+  let maxStartedAt = 0;
+  syllabus?.lessons?.forEach((lesson) => {
+    const lessonWithTranslations = lesson as Lesson & { translations?: Record<string, { startedAt?: number; completedAt?: number }> };
+    const t = lessonWithTranslations.translations?.[lang];
+    if (t?.startedAt && !t.completedAt) {
+      maxStartedAt = Math.max(maxStartedAt, t.startedAt);
+    }
+  });
+  if (maxStartedAt === 0) return true; // New lesson case: no in-progress entries
+  return Date.now() - maxStartedAt > 15 * 60 * 1000; // Stuck: > 15 min since last started
+}
+
 const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
   const {
     language,
@@ -153,6 +181,11 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
     getCurrentExercise,
     syllabus,
     pendingTranslations,
+    exercises,
+    token,
+    getSidebar,
+    setPendingTranslations,
+    mode,
   } = useStore((state) => ({
     language: state.language,
     setLanguage: state.setLanguage,
@@ -161,11 +194,58 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
     environment: state.environment,
     syllabus: state.syllabus,
     pendingTranslations: state.pendingTranslations,
+    exercises: state.exercises,
+    token: state.token,
+    getSidebar: state.getSidebar,
+    setPendingTranslations: state.setPendingTranslations,
+    mode: state.mode,
   }));
 
   const currentExercise = getCurrentExercise();
   const [allowAddLanguage, setAllowAddLanguage] = useState(false);
+  const [retryingLang, setRetryingLang] = useState<string | null>(null);
   const { t } = useTranslation();
+
+  const handleRetryTranslation = async (lang: string) => {
+    if (!exercises?.length || !token) return;
+    const missingSlugs = getMissingSlugsForLang(exercises, lang);
+    if (missingSlugs.length === 0) {
+      toast.success(t("allLessonsAlreadyTranslated", { language: getLanguageName(lang, i18n.language) }));
+      return;
+    }
+    setRetryingLang(lang);
+    const toastId = toast.loading(t("translatingExercises"));
+    try {
+      const res = await FetchManager.translateExercises(
+        missingSlugs,
+        lang,
+        language,
+        token
+      );
+      const translatingLanguages = res?.translatingLanguages || res?.languageCodes || [];
+      if (translatingLanguages.includes(lang)) {
+        setPendingTranslations((prev) => {
+          const rest = prev.filter((t) => t.code !== lang);
+          const newEntry: TLanguageTranslation = {
+            code: lang,
+            status: "translating",
+            startedAt: Date.now(),
+            totalExercises: missingSlugs.length,
+            completedExercises: 0,
+          };
+          return [...rest, newEntry];
+        });
+        toast.success(t("translationStarted", { languages: getLanguageName(lang, i18n.language) }), { id: toastId });
+      } else {
+        toast.success(t("translationRequestSent"), { id: toastId });
+      }
+      await getSidebar();
+    } catch (err) {
+      toast.error(t("errorTranslatingExercises"), { id: toastId });
+    } finally {
+      setRetryingLang(null);
+    }
+  };
 
   useEffect(() => {
     if (
@@ -188,12 +268,17 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
   if (!currentExercise) return null;
 
   const languages = Object.keys(currentExercise.translations);
-
-  // Combine existing languages with pending translations
+  const syllabusLanguages = new Set<string>();
+  syllabus?.lessons?.forEach((lesson: Lesson & { translations?: Record<string, unknown> }) => {
+    Object.keys(lesson.translations || {}).forEach((code) => syllabusLanguages.add(code));
+  });
   const allLanguages = [
-    ...languages,
-    ...pendingTranslations.map(t => t.code).filter(code => !languages.includes(code))
-  ];
+    ...new Set([
+      ...languages,
+      ...pendingTranslations.map((t) => t.code),
+      ...syllabusLanguages,
+    ]),
+  ].filter((l) => l !== language);
 
   // Get translation status for a language
   const getLanguageStatus = (lang: string): TTranslationStatus | null => {
@@ -305,6 +390,23 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>{getStatusTooltip(status, l)}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {mode === "creator" && exercises?.length > 0 && getMissingSlugsForLang(exercises, l).length > 0 && shouldShowRetryForLanguage(syllabus, exercises, l) && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); handleRetryTranslation(l); }}
+                    disabled={retryingLang === l}
+                    className="text-small border border-gray-300 rounded px-2 py-0.5 hover:bg-gray-100 disabled:opacity-50"
+                  >
+                    {retryingLang === l ? "..." : t("translateRemaining")}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t("translateRemainingTooltip")}</p>
                 </TooltipContent>
               </Tooltip>
             )}
