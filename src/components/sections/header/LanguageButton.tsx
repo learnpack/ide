@@ -406,7 +406,7 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
                     onClick={(e) => { e.stopPropagation(); handleRetryTranslation(l); }}
                     disabled={retryingLang === l}
                     style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "4px" }}
-                    className="rounded hover:bg-gray-100 disabled:opacity-50"
+                    className={`rounded hover:bg-gray-100 disabled:opacity-50 ${retryingLang === l ? "cursor-not-allowed" : ""}`}
                     aria-label={t("translateRemaining")}
                   >
                     {retryingLang === l ? (
