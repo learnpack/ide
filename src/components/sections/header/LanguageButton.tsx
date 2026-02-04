@@ -376,7 +376,7 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
                 <p>{getLanguageName(l, i18n.language)}</p>
               </TooltipContent>
             </Tooltip>
-            {status && (
+            {status && !shouldShowRetryForLanguage(syllabus, exercises, l) && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="d-flex align-center gap-small">
@@ -394,21 +394,26 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
               </Tooltip>
             )}
             {mode === "creator" && exercises?.length > 0 && getMissingSlugsForLang(exercises, l).length > 0 && shouldShowRetryForLanguage(syllabus, exercises, l) && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); handleRetryTranslation(l); }}
-                    disabled={retryingLang === l}
-                    className="text-small border border-gray-300 rounded px-2 py-0.5 hover:bg-gray-100 disabled:opacity-50"
-                  >
-                    {retryingLang === l ? "..." : t("translateRemaining")}
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{t("translateRemainingTooltip")}</p>
-                </TooltipContent>
-              </Tooltip>
+              <>
+                <span className="text-small text-gray-500">
+                  {t("lessonsPendingTranslation", { count: getMissingSlugsForLang(exercises, l).length })}
+                </span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); handleRetryTranslation(l); }}
+                      disabled={retryingLang === l}
+                      className="text-small border border-gray-300 rounded px-2 py-0.5 hover:bg-gray-100 disabled:opacity-50"
+                    >
+                      {retryingLang === l ? "..." : t("translateRemaining")}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t("translateRemainingTooltip")}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </>
             )}
           </div>
         );

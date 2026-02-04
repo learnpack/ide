@@ -363,6 +363,8 @@
     "translationStarted": "Traducción iniciada para {{languages}}. Te notificaremos cuando esté lista.",
     "translateRemaining": "Traducir restantes",
     "translateRemainingTooltip": "Traducir solo las lecciones que faltan para este idioma",
+    "lessonsPendingTranslation_one": "{{count}} lección pendiente de traducción",
+    "lessonsPendingTranslation_other": "{{count}} lecciones pendientes de traducción",
     "allLessonsAlreadyTranslated": "Todas las lecciones tienen ya traducción para {{language}}",
     "translationRequestSent": "Solicitud de traducción enviada exitosamente",
     "translationAlreadyExists": "La traducción para {{languages}} ya existe.",

@@ -357,6 +357,8 @@
     "translationStarted": "Translation started for {{languages}}. You'll be notified when it's ready.",
     "translateRemaining": "Translate remaining",
     "translateRemainingTooltip": "Translate only the lessons that are still missing for this language",
+    "lessonsPendingTranslation_one": "{{count}} lesson pending translation",
+    "lessonsPendingTranslation_other": "{{count}} lessons pending translation",
     "allLessonsAlreadyTranslated": "All lessons already have translation for {{language}}",
     "translationRequestSent": "Translation request sent successfully",
     "translationAlreadyExists": "Translation for {{languages}} already exists.",
