@@ -428,7 +428,7 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
           </div>
         );
       })}
-      {environment !== "localStorage" && (
+      {environment !== "localStorage" && mode === "creator" && (
         <AddLanguageModal disabled={!allowAddLanguage} />
       )}
     </div>
