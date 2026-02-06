@@ -151,25 +151,34 @@ function getMissingSlugsForLang(exercises: TExercise[], lang: string): string[] 
   ).map((ex) => ex.slug);
 }
 
-/** Returns true if the language has missing lessons AND the most recent startedAt is > 20 min ago. */
-function shouldShowRetryForLanguage(
+/** Returns the effective display status for a language. When stuck (missing lessons + no progress in 20+ min), returns "error". */
+function resolveTranslationStatus(
   syllabus: Syllabus,
   exercises: TExercise[],
-  lang: string
-): boolean {
-  const missingCount = getMissingSlugsForLang(exercises, lang).length;
-  if (missingCount === 0) return false;
+  lang: string,
+  pendingEntry: TLanguageTranslation | undefined
+): TTranslationStatus | null {
+  if (!pendingEntry) return null;
+  if (pendingEntry.status === "completed") return "completed";
+  if (pendingEntry.status === "error") return "error";
 
-  let maxStartedAt = 0;
-  syllabus?.lessons?.forEach((lesson) => {
-    const lessonWithTranslations = lesson as Lesson & { translations?: Record<string, { startedAt?: number; completedAt?: number }> };
-    const t = lessonWithTranslations.translations?.[lang];
-    if (t?.startedAt) {
-      maxStartedAt = Math.max(maxStartedAt, t.startedAt);
-    }
-  });
-  if (maxStartedAt === 0) return false;
-  return Date.now() - maxStartedAt > 20 * 60 * 1000;
+  if (pendingEntry.status === "pending" || pendingEntry.status === "translating") {
+    const missingCount = getMissingSlugsForLang(exercises, lang).length;
+    if (missingCount === 0) return pendingEntry.status;
+
+    let maxStartedAt = 0;
+    syllabus?.lessons?.forEach((lesson) => {
+      const lessonWithTranslations = lesson as Lesson & { translations?: Record<string, { startedAt?: number; completedAt?: number }> };
+      const t = lessonWithTranslations.translations?.[lang];
+      if (t?.startedAt) {
+        maxStartedAt = Math.max(maxStartedAt, t.startedAt);
+      }
+    });
+    if (maxStartedAt === 0) return pendingEntry.status;
+    if (Date.now() - maxStartedAt > 20 * 60 * 1000) return "error";
+  }
+
+  return pendingEntry.status;
 }
 
 const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
@@ -280,24 +289,14 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
     ]),
   ].filter((l) => l !== language);
 
-  // Get translation status for a language
-  const getLanguageStatus = (lang: string): TTranslationStatus | null => {
-    const pending = pendingTranslations.find(t => t.code === lang);
-    return pending ? pending.status : null;
-  };
-
   const changeLanguage = (lang: string) => {
     if (lang === "us") lang = "en";
     i18n.changeLanguage(lang);
   };
 
   const setLang = (lang: string) => {
-    const status = getLanguageStatus(lang);
-
-    // Don't allow changing if translation is in progress
-    if (status === "pending" || status === "translating") {
-      return;
-    }
+    const missingCount = getMissingSlugsForLang(exercises || [], lang).length;
+    if (missingCount > 0) return;
 
     const fixedLang = fixLang(lang, environment);
     setLanguage(fixedLang);
@@ -324,7 +323,7 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
     }
   };
 
-  const getStatusTooltip = (status: TTranslationStatus | null, lang: string) => {
+  const getStatusTooltip = (status: TTranslationStatus | null, lang: string, errorMsg?: string) => {
     if (!status) return getLanguageName(lang, i18n.language);
     switch (status) {
       case "pending":
@@ -334,7 +333,7 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
       case "completed":
         return t("translationCompleted", { language: lang });
       case "error":
-        return t("translationError", { language: lang });
+        return t("translationError", { language: lang, error: errorMsg || t("translationIncompleteOrStuck") });
       default:
         return getLanguageName(lang, i18n.language);
     }
@@ -350,11 +349,12 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
       {allLanguages.map((l, index) => {
         if (l === language) return null;
 
-        const status = getLanguageStatus(l);
-        const isDisabled = status === "pending" || status === "translating";
-
-        const showRetry = mode === "creator" && exercises?.length > 0 && getMissingSlugsForLang(exercises, l).length > 0 && shouldShowRetryForLanguage(syllabus, exercises, l);
-        const missingCount = showRetry ? getMissingSlugsForLang(exercises, l).length : 0;
+        const pendingEntry = pendingTranslations.find(t => t.code === l);
+        const displayStatus = resolveTranslationStatus(syllabus, exercises || [], l, pendingEntry);
+        const missingCount = getMissingSlugsForLang(exercises || [], l).length;
+        const isDisabled = missingCount > 0;
+        const showRetry = mode === "creator" && displayStatus === "error" && missingCount > 0;
+        const showErrorIcon = mode === "creator" && displayStatus === "error" && missingCount === 0;
 
         return (
           <div
@@ -380,20 +380,20 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
                   <p>{getLanguageName(l, i18n.language)}</p>
                 </TooltipContent>
               </Tooltip>
-              {status && (status === "pending" || status === "translating" && !shouldShowRetryForLanguage(syllabus, exercises, l)) && (
+              {mode === "creator" && displayStatus && (displayStatus === "pending" || displayStatus === "translating") && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="d-flex align-center gap-small">
                       <span style={{ display: "inline-flex", alignItems: "center" }}>
-                        {getStatusIcon(status)}
+                        {getStatusIcon(displayStatus)}
                       </span>
-                      {status === "translating" && (
+                      {displayStatus === "translating" && (
                         <span className="text-small text-gray-500">{getLanguageCompletionRate(l)}</span>
                       )}
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{getStatusTooltip(status, l)}</p>
+                    <p>{getStatusTooltip(displayStatus, l)}</p>
                   </TooltipContent>
                 </Tooltip>
               )}
@@ -420,7 +420,24 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
                 </TooltipTrigger>
                 <TooltipContent className="max-w-[200px]" side="left">
                   <p className="whitespace-normal break-words">
-                    {t("lessonsPendingTranslationTooltip", { count: missingCount })}
+                    {t("retryTranslationTooltip", { count: missingCount })}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {showErrorIcon && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span
+                    style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "4px" }}
+                    aria-label={t("translationErrorLabel")}
+                  >
+                    {getStatusIcon("error")}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-[200px]" side="left">
+                  <p className="whitespace-normal break-words">
+                    {t("translationErrorTooltip")}
                   </p>
                 </TooltipContent>
               </Tooltip>
