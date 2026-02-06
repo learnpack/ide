@@ -174,8 +174,9 @@ function resolveTranslationStatus(
         maxStartedAt = Math.max(maxStartedAt, t.startedAt);
       }
     });
-    if (maxStartedAt === 0) return pendingEntry.status;
-    if (Date.now() - maxStartedAt > 20 * 60 * 1000) return "error";
+    const effectiveStartedAt = Math.max(maxStartedAt, pendingEntry.startedAt ?? 0);
+    if (effectiveStartedAt === 0) return pendingEntry.status;
+    if (Date.now() - effectiveStartedAt > 20 * 60 * 1000) return "error";
   }
 
   return pendingEntry.status;
