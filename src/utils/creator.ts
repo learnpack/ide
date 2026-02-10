@@ -334,10 +334,10 @@ export const createFile = async (exerciseSlug: string, filename: string, content
       `${
         DEV_MODE ? "http://localhost:3000" : ""
       }/exercise/${exerciseSlug}/file/${filename}?slug=${courseSlug}`,
-      content,
+      { content: content ?? "" },
       {
         headers: {
-          'Content-Type': 'text/plain',
+          "Content-Type": "application/json",
         },
       }
     );
