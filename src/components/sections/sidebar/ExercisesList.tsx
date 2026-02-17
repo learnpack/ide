@@ -246,19 +246,24 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
     try {
       const result = await synchronizeSyllabus();
       
-      const totalChanges = (result.removedLessons || 0) + (result.duplicatesResolved || 0);
-      
+      const totalChanges =
+        (result.removedLessons || 0) +
+        (result.duplicatesResolved || 0) +
+        (result.addedLessons || 0);
+
       if (totalChanges > 0) {
         const messages = [];
         if (result.removedLessons > 0) {
-          messages.push(`${result.removedLessons} non-existent lesson(s)`);
+          messages.push(`${result.removedLessons} non-existent removed`);
         }
         if (result.duplicatesResolved > 0) {
-          messages.push(`${result.duplicatesResolved} duplicate(s)`);
+          messages.push(`${result.duplicatesResolved} duplicate(s) resolved`);
         }
-        
+        if (result.addedLessons > 0) {
+          messages.push(`${result.addedLessons} added from bucket`);
+        }
         toast.success(
-          `Syllabus synchronized! Removed: ${messages.join(", ")}`,
+          `Syllabus synchronized: ${messages.join(", ")}`,
           { id: toastId, duration: 6000 }
         );
       } else {
