@@ -272,9 +272,9 @@ export const FetchManager = {
           const url = `${FetchManager.HOST}/exercise/${slug}/file/${filename}`;
           await fetch(url, {
             method: "PUT",
-            body: content,
+            body: JSON.stringify({ content: content ?? "" }),
             headers: {
-              'Content-Type': 'text/plain',
+              "Content-Type": "application/json",
             },
           });
         } catch (e) {
@@ -293,9 +293,9 @@ export const FetchManager = {
         const url = `${FetchManager.HOST}/exercise/${slug}/file/${filename}?slug=${courseSlug}`;
         const res = await fetch(url, {
           method: "PUT",
-          body: content,
+          body: JSON.stringify({ content: content ?? "" }),
           headers: {
-            'Content-Type': 'text/plain',
+            "Content-Type": "application/json",
           },
         });
         if (!res.ok) {
