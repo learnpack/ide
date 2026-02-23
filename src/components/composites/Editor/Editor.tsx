@@ -79,6 +79,10 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     fetchExercises,
     createNewFile,
     renameFileInExercise,
+    fileLoadNotFoundByLesson,
+    lessonSyncInProgress,
+    environment,
+    syncLessonFilesFromEditor,
   } = useStore((state) => ({
     tabs: state.editorTabs,
     setTabs: state.setEditorTabs,
@@ -94,6 +98,10 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     createNewFile: state.createNewFile,
     renameFileInExercise: state.renameFileInExercise,
     setOpenedModals: state.setOpenedModals,
+    fileLoadNotFoundByLesson: state.fileLoadNotFoundByLesson,
+    lessonSyncInProgress: state.lessonSyncInProgress,
+    environment: state.environment,
+    syncLessonFilesFromEditor: state.syncLessonFilesFromEditor,
   }));
 
   const { t } = useTranslation();
@@ -538,29 +546,69 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
               </Tooltip>
             )}
             {mode === "creator" && editingTabId !== tab.id && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteFile(tab.name);
-                    }}
-                    className="delete-file-btn"
-                    style={{
-                      marginLeft: "8px",
-                      padding: "2px 6px",
-                      fontSize: "12px",
-                      cursor: "pointer",
-                      color: "#ff4444",
-                    }}
-                  >
-                    <Icon size={10} name="Trash" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{t("delete-file") || "Delete file"}</p>
-                </TooltipContent>
-              </Tooltip>
+              (() => {
+                const currentSlug = getCurrentExercise()?.slug;
+                const isCreatorWebAndCreator = environment === "creatorWeb" && mode === "creator";
+                const showSyncIcon = isCreatorWebAndCreator && currentSlug && fileLoadNotFoundByLesson[currentSlug]?.includes(tab.name) && !tab.name.includes("solution.hide");
+                const buttonsDisabled = isCreatorWebAndCreator && lessonSyncInProgress === currentSlug;
+
+                if (showSyncIcon) {
+                  return (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (currentSlug && !buttonsDisabled) syncLessonFilesFromEditor(currentSlug);
+                          }}
+                          disabled={buttonsDisabled}
+                          className="delete-file-btn"
+                          style={{
+                            marginLeft: "8px",
+                            padding: "2px 6px",
+                            fontSize: "12px",
+                            cursor: buttonsDisabled ? "not-allowed" : "pointer",
+                            color: buttonsDisabled ? "#999" : "#0d6efd",
+                          }}
+                        >
+                          <Icon size={10} name="RefreshCw" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{t("sync-lesson-files-tooltip") || "Sync lesson files"}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                }
+
+                return (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!buttonsDisabled) handleDeleteFile(tab.name);
+                        }}
+                        disabled={buttonsDisabled}
+                        className="delete-file-btn"
+                        style={{
+                          marginLeft: "8px",
+                          padding: "2px 6px",
+                          fontSize: "12px",
+                          cursor: buttonsDisabled ? "not-allowed" : "pointer",
+                          color: buttonsDisabled ? "#999" : "#ff4444",
+                        }}
+                      >
+                        <Icon size={10} name="Trash" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{t("delete-file") || "Delete file"}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })()
             )}
           </div>
         ))}
