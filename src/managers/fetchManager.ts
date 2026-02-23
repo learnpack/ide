@@ -240,7 +240,10 @@ export const FetchManager = {
           const url = `${FetchManager.HOST}/exercise/${slug}/file/${filename}`;
           await fetch(url, {
             method: "PUT",
-            body: content,
+            body: JSON.stringify({ content: content ?? "" }),
+            headers: {
+              "Content-Type": "application/json",
+            },
           });
         } catch (e) {
           console.log("Error saving file content in CLI");
@@ -258,7 +261,10 @@ export const FetchManager = {
         const url = `${FetchManager.HOST}/exercise/${slug}/file/${filename}?slug=${exerciseSlug}`;
         const res = await fetch(url, {
           method: "PUT",
-          body: content,
+          body: JSON.stringify({ content: content ?? "" }),
+          headers: {
+            "Content-Type": "application/json",
+          },
         });
         if (!res.ok) {
           return false;
