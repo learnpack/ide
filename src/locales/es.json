@@ -531,6 +531,8 @@
     "sync-lesson-files-tooltip": "Sincronizar archivos de la lección",
     "sync-lesson-files-success": "Archivos de la lección sincronizados",
     "sync-lesson-files-error": "No se pudieron sincronizar los archivos",
+    "file-not-found": "Archivo no encontrado",
+    "file-not-found-sync-hint": "Usa el ícono de sincronizar en la pestaña para sincronizar los archivos de la lección.",
     "create-new-file": "Crear Nuevo Archivo",
     "new-file": "Nuevo Archivo",
     "file-name": "Nombre del Archivo",

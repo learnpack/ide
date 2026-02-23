@@ -637,53 +637,76 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
             (tab) =>
               tab.isActive && (
                 <div className="h-100" key={tab.id}>
-                  {tab.name.includes("solution.hide") && mode !== "creator" && (
-                    <div className=" padding-small margin-children-none text-small bg-warning text-black">
-                      <Markdowner
-                        allowCreate={false}
-                        markdown={t("solution-tab-not-editable", {
-                          switchTo:
-                            filteredTabs.filter(
-                              (t) => !t.name.includes("solution")
-                            ).length > 1
-                              ? t("another-tab")
-                              : filteredTabs[0].name,
-                        })}
-                      />
-                    </div>
-                  )}
-                  <MonacoEditor
-                    className="editor-monaco"
-                    height="100%"
-                    key={tab.id}
-                    language={getLanguageFromExtension(tab.name)}
-                    theme={editorTheme}
-                    value={tab.content}
-                    onChange={(value) => updateContent(tab.id, value || "")}
-                    options={{
-                      minimap: {
-                        enabled: false,
-                      },
-                      fontSize: 16,
-                      bracketPairColorization: {
-                        enabled: true,
-                      },
-                      cursorBlinking: "smooth",
-                      wordWrap: "off",
-                      padding: {
-                        top: 10,
-                        bottom: 0,
-                      },
-                      scrollbar: {
-                        vertical: "hidden",
-                        horizontal: "hidden",
-                      },
-                      lineNumbersMinChars: 3,
-                      readOnly:
-                        tab.name === "terminal" ||
-                        (tab.name.includes("solution.hide") && mode !== "creator"),
-                    }}
-                  />
+                  {(() => {
+                    const currentSlug = getCurrentExercise()?.slug;
+                    const isFileNotFoundTab =
+                      currentSlug &&
+                      fileLoadNotFoundByLesson[currentSlug]?.includes(tab.name);
+                    if (isFileNotFoundTab) {
+                      return (
+                        <div className="h-100 p-4 margin-children-none text-small text-orange-500" style={{ backgroundColor: "#1e1e1e" }}>
+                          <p>{t("file-not-found") || "File not found"}</p>
+                          {mode === "creator" && (
+                            <p className="margin-top-small">
+                              {t("file-not-found-sync-hint") ||
+                                "Use the sync icon in the tab to synchronize lesson files."}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    }
+                    return (
+                      <>
+                        {tab.name.includes("solution.hide") && mode !== "creator" && (
+                          <div className=" padding-small margin-children-none text-small bg-warning text-black">
+                            <Markdowner
+                              allowCreate={false}
+                              markdown={t("solution-tab-not-editable", {
+                                switchTo:
+                                  filteredTabs.filter(
+                                    (t) => !t.name.includes("solution")
+                                  ).length > 1
+                                    ? t("another-tab")
+                                    : filteredTabs[0].name,
+                              })}
+                            />
+                          </div>
+                        )}
+                        <MonacoEditor
+                          className="editor-monaco"
+                          height="100%"
+                          key={tab.id}
+                          language={getLanguageFromExtension(tab.name)}
+                          theme={editorTheme}
+                          value={tab.content}
+                          onChange={(value) => updateContent(tab.id, value || "")}
+                          options={{
+                            minimap: {
+                              enabled: false,
+                            },
+                            fontSize: 16,
+                            bracketPairColorization: {
+                              enabled: true,
+                            },
+                            cursorBlinking: "smooth",
+                            wordWrap: "off",
+                            padding: {
+                              top: 10,
+                              bottom: 0,
+                            },
+                            scrollbar: {
+                              vertical: "hidden",
+                              horizontal: "hidden",
+                            },
+                            lineNumbersMinChars: 3,
+                            readOnly:
+                              tab.name === "terminal" ||
+                              (tab.name.includes("solution.hide") && mode !== "creator"),
+                          }}
+                        />
+                      </>
+                    );
+                  })()}
                 </div>
               )
           )}
