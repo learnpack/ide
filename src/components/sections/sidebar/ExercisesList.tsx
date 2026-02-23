@@ -9,7 +9,6 @@ import {
   deleteExercise,
   markLessonAsDone,
   renameExercise,
-  synchronizeLessonFiles,
   synchronizeSyllabus,
 } from "../../../utils/creator";
 import { FetchManager } from "../../../managers/fetchManager";
@@ -171,8 +170,6 @@ const AddExerciseButton = ({
 export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
   const {
     exercises,
-    fetchExercises,
-    getCurrentExercise,
     getSidebar,
     sidebar,
     token,
@@ -180,8 +177,6 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
     syllabus,
   } = useStore((state) => ({
     exercises: state.exercises,
-    fetchExercises: state.fetchExercises,
-    getCurrentExercise: state.getCurrentExercise,
     getSidebar: state.getSidebar,
     sidebar: state.sidebar,
     token: state.token,
@@ -283,40 +278,6 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
     }
   };
 
-  const handleSyncLessonFiles = async () => {
-    const currentExercise = getCurrentExercise();
-    if (!currentExercise?.slug) {
-      toast.error("No lesson selected");
-      return;
-    }
-    const toastId = toast.loading("Synchronizing lesson files...");
-    try {
-      const result = await synchronizeLessonFiles(currentExercise.slug) as {
-        removedCount: number;
-        keptCount: number;
-        movedCount?: number;
-      };
-      const { removedCount, keptCount, movedCount = 0 } = result;
-      if (removedCount > 0 || movedCount > 0) {
-        const parts = [];
-        if (movedCount > 0) parts.push(`${movedCount} moved from subdir`);
-        if (removedCount > 0) parts.push(`${removedCount} removed from config`);
-        parts.push(`${keptCount} kept`);
-        toast.success(
-          `Lesson files synced: ${parts.join(", ")}`,
-          { id: toastId, duration: 5000 }
-        );
-      } else {
-        toast.success("Lesson files already in sync!", { id: toastId });
-      }
-      await getSidebar();
-      await fetchExercises();
-    } catch (error) {
-      toast.error("Error synchronizing lesson files", { id: toastId });
-      console.error(error);
-    }
-  };
-
   return (
     <div className="exercise-list">
       {mode === "creator" && DEV_MODE && (
@@ -326,12 +287,6 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
             svg={<Icon name="Settings" size={16} />}
             text="🔧 Sync Syllabus (Dev)"
             action={handleSyncSyllabus}
-          />
-          <SimpleButton
-            extraClass="w-100 text-small text-yellow-800 bg-yellow-100 hover:bg-yellow-200 padding-small rounded margin-top-small"
-            svg={<Icon name="Settings" size={16} />}
-            text="🔧 Sync lesson files (Dev)"
-            action={handleSyncLessonFiles}
           />
         </div>
       )}
