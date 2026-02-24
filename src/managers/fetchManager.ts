@@ -178,16 +178,21 @@ export const FetchManager = {
           }
         }
 
-        const exerciseSlug = getSlugFromPath();
-        const url = `${FetchManager.HOST}/courses/${exerciseSlug}/exercises/${slug}/file/${file}`;
-        const response = await fetch(url);
+        try {
+          const exerciseSlug = getSlugFromPath();
+          const url = `${FetchManager.HOST}/courses/${exerciseSlug}/exercises/${slug}/file/${file}`;
+          const response = await fetch(url);
 
-        if (!response.ok) {
+          if (!response.ok) {
+            return { fileContent: "", edited: false, notFound: true };
+          }
+
+          const fileContent = await response.text();
+          return { fileContent, edited: false };
+        } catch (error) {
+          console.error("getFileContent (creatorWeb):", error);
           return { fileContent: "", edited: false, notFound: true };
         }
-
-        const fileContent = await response.text();
-        return { fileContent, edited: false };
       },
     };
 
