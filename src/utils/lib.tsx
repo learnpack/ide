@@ -10,7 +10,7 @@ import assessmentComponentsRaw from "../../docs/assessment_components.yml?raw";
 import explanatoryComponentsRaw from "../../docs/explanatory_components.yml?raw";
 // import toast from "react-hot-toast";
 export const DEV_MODE =false;
-export const DEV_URL = "https://1gm40gnb-3000.use2.devtunnels.ms";
+export const DEV_URL = "https://1gm40gnb-3000.use2.devtunnels.ms/";
 
 export const FASTAPI_HOST = "https://ai.4geeks.com";
 // export const FASTAPI_HOST = "http://localhost:8003";
@@ -232,21 +232,38 @@ export const getParamsObject = (): TPossibleParams => {
   return getQueryParams();
 };
 
-export const debounce = (func: (...args: any[]) => void, wait: number) => {
-  let timeout: any;
+export type DebouncedFunction = ((...args: unknown[]) => void) & {
+  cancel: () => void;
+  flush: () => void;
+};
 
-  function debounced(this: any, ...args: any[]) {
+export const debounce = (func: (...args: unknown[]) => void, wait: number): DebouncedFunction => {
+  let timeout: ReturnType<typeof setTimeout>;
+  let lastArgs: unknown[] | null = null;
+
+  const debounced = (...args: unknown[]) => {
+    lastArgs = args;
     clearTimeout(timeout);
     timeout = setTimeout(() => {
-      func.apply(this, args);
+      lastArgs = null;
+      func(...args);
     }, wait);
-  }
+  };
 
   debounced.cancel = () => {
     clearTimeout(timeout);
+    lastArgs = null;
   };
 
-  return debounced;
+  debounced.flush = () => {
+    if (lastArgs !== null) {
+      clearTimeout(timeout);
+      func(...lastArgs);
+      lastArgs = null;
+    }
+  };
+
+  return debounced as DebouncedFunction;
 };
 
 

@@ -12,6 +12,7 @@ import {
   getParamsObject,
   replaceSlot,
   debounce,
+  type DebouncedFunction,
   removeSpecialCharacters,
   ENVIRONMENT,
   getEnvironment,
@@ -74,6 +75,39 @@ type TFile = {
 };
 
 const HOST = getHost();
+
+/** Debounce delay (ms) for persisting file content to bucket in creator mode. */
+const BUCKET_SAVE_DEBOUNCE_MS = 1500;
+
+/** Per-file debounced savers: key = `${slug}:${filename}`. Used only in creator mode. */
+const debouncedBucketSavers = new Map<string, DebouncedFunction>();
+
+function debouncedSaveFileContent(
+  slug: string,
+  filename: string,
+  content: string,
+  waitMs = BUCKET_SAVE_DEBOUNCE_MS
+) {
+  const key = `${slug}:${filename}`;
+  if (!debouncedBucketSavers.has(key)) {
+    debouncedBucketSavers.set(
+      key,
+      debounce(
+        (s: string, fn: string, c: string) => {
+          FetchManager.saveFileContent(s, fn, c);
+        },
+        waitMs
+      )
+    );
+  }
+  debouncedBucketSavers.get(key)!(slug, filename, content);
+}
+
+export function flushPendingBucketSaves() {
+  for (const saver of debouncedBucketSavers.values()) {
+    saver.flush();
+  }
+}
 
 // const chatSocket = io(`${FASTAPI_HOST}`);
 
@@ -968,6 +1002,9 @@ The user's set up the application in "${language}" language, give your feedback 
   },
 
   setPosition: async (newPosition) => {
+    // Flush any pending debounced bucket saves before switching exercise.
+    flushPendingBucketSaves();
+
     const {
       startConversation,
       fetchReadme,
@@ -1159,7 +1196,7 @@ The user's set up the application in "${language}" language, give your feedback 
     compilerSocket.openWindow(data);
   },
   updateEditorTabs: (newTab = null) => {
-    const { getCurrentExercise, editorTabs, environment, setFileLoadNotFound } =
+    const { getCurrentExercise, editorTabs, environment, setFileLoadNotFound, mode } =
       get();
 
     const exercise = getCurrentExercise();
@@ -1223,7 +1260,8 @@ The user's set up the application in "${language}" language, give your feedback 
         }
         content = notFound ? "" : fileContent;
 
-        if (!notFound && "content" in element && element.content !== content) {
+        // Only persist to bucket in creator mode; avoid writing in student mode.
+        if (mode === "creator" && !notFound && "content" in element && element.content !== content) {
           await FetchManager.saveFileContent(
             exercise.slug,
             element.name,
@@ -2012,7 +2050,7 @@ The user's set up the application in "${language}" language, give your feedback 
   updateFileContent: async (exerciseSlug, tab, updateTabs = false) => {
     const { exercises, updateEditorTabs, setShouldBeTested } = get();
 
-    let newExercises = exercises.map((e) => {
+    const newExercises = exercises.map((e) => {
       if (e.slug === exerciseSlug) {
         return {
           ...e,
@@ -2031,12 +2069,15 @@ The user's set up the application in "${language}" language, give your feedback 
       }
     });
 
-    await FetchManager.saveFileContent(exerciseSlug, tab.name, tab.content);
+    // State updates: immediate (UI stays responsive).
     set({ exercises: newExercises });
     setShouldBeTested(true);
     if (updateTabs) {
       updateEditorTabs();
     }
+
+    // Network PUT: debounced so we avoid 429; last content wins.
+    debouncedSaveFileContent(exerciseSlug, tab.name, tab.content);
   },
   createNewFile: async (filename: string, content: string = "") => {
     const { getCurrentExercise, editorTabs, setEditorTabs, fetchExercises, mode } = get();
