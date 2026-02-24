@@ -1196,7 +1196,7 @@ The user's set up the application in "${language}" language, give your feedback 
     compilerSocket.openWindow(data);
   },
   updateEditorTabs: (newTab = null) => {
-    const { getCurrentExercise, editorTabs, environment, setFileLoadNotFound } =
+    const { getCurrentExercise, editorTabs, environment, setFileLoadNotFound, mode } =
       get();
 
     const exercise = getCurrentExercise();
@@ -1260,7 +1260,8 @@ The user's set up the application in "${language}" language, give your feedback 
         }
         content = notFound ? "" : fileContent;
 
-        if (!notFound && "content" in element && element.content !== content) {
+        // Only persist to bucket in creator mode; avoid writing in student mode.
+        if (mode === "creator" && !notFound && "content" in element && element.content !== content) {
           await FetchManager.saveFileContent(
             exercise.slug,
             element.name,
