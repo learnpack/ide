@@ -165,7 +165,19 @@ export const FetchManager = {
       },
 
       creatorWeb: async () => {
-        let edited = false;
+        const mode = useStore.getState().mode;
+
+        // In student mode, prefer localStorage when cached so the student doesn't lose progress on reload
+        if (mode !== "creator" && opts.cached) {
+          const cachedEditorTabs = LocalStorage.get(`editorTabs_${slug}`);
+          if (cachedEditorTabs) {
+            const cached = cachedEditorTabs.find((t: any) => t.name === file);
+            if (cached) {
+              return { fileContent: cached.content, edited: true };
+            }
+          }
+        }
+
         const exerciseSlug = getSlugFromPath();
         const url = `${FetchManager.HOST}/courses/${exerciseSlug}/exercises/${slug}/file/${file}`;
         const response = await fetch(url);
@@ -175,19 +187,7 @@ export const FetchManager = {
         }
 
         const fileContent = await response.text();
-
-        if (opts.cached) {
-          const cachedEditorTabs = LocalStorage.get(`editorTabs_${slug}`);
-          if (cachedEditorTabs) {
-            const cached = cachedEditorTabs.find((t: any) => t.name === file);
-            if (cached) {
-              edited = true;
-              return { fileContent: cached.content, edited };
-            }
-          }
-        }
-
-        return { fileContent, edited };
+        return { fileContent, edited: false };
       },
     };
 
