@@ -17,7 +17,7 @@ import { LocalStorage } from "./localStorage";
 import TelemetryManager from "./telemetry";
 import toast from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
-import { TSidebar } from "../utils/storeTypes";
+import { TSidebar, TEditorTab } from "../utils/storeTypes";
 import { fixLang } from "../components/sections/header/LanguageButton";
 import useStore from "../utils/store";
 // import axios from "axios";
@@ -146,7 +146,7 @@ export const FetchManager = {
         if (opts.cached) {
           const cachedEditorTabs = LocalStorage.get(`editorTabs_${slug}`);
           if (cachedEditorTabs) {
-            const cached = cachedEditorTabs.find((t: any) => t.name === file);
+            const cached = cachedEditorTabs.find((t: TEditorTab) => t.name === file);
             if (cached) {
               edited = true;
               return { fileContent: cached.content, edited };
@@ -169,12 +169,17 @@ export const FetchManager = {
 
         // In student mode, prefer localStorage when cached so the student doesn't lose progress on reload
         if (mode !== "creator" && opts.cached) {
-          const cachedEditorTabs = LocalStorage.get(`editorTabs_${slug}`);
-          if (cachedEditorTabs) {
-            const cached = cachedEditorTabs.find((t: any) => t.name === file);
-            if (cached) {
-              return { fileContent: cached.content, edited: true };
+          try {
+            const cachedEditorTabs = LocalStorage.get(`editorTabs_${slug}`);
+            if (cachedEditorTabs) {
+              const cached = cachedEditorTabs.find((t: TEditorTab) => t.name === file);
+              if (cached) {
+                return { fileContent: cached.content, edited: true };
+              }
             }
+          } catch (error) {
+            console.error("getFileContent (creatorWeb localStorage):", error);
+            // Fall through to fetch from bucket
           }
         }
 
