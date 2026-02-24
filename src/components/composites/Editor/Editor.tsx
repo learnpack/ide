@@ -79,6 +79,10 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     fetchExercises,
     createNewFile,
     renameFileInExercise,
+    fileLoadNotFoundByLesson,
+    lessonSyncInProgress,
+    environment,
+    syncLessonFilesFromEditor,
   } = useStore((state) => ({
     tabs: state.editorTabs,
     setTabs: state.setEditorTabs,
@@ -94,6 +98,10 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     createNewFile: state.createNewFile,
     renameFileInExercise: state.renameFileInExercise,
     setOpenedModals: state.setOpenedModals,
+    fileLoadNotFoundByLesson: state.fileLoadNotFoundByLesson,
+    lessonSyncInProgress: state.lessonSyncInProgress,
+    environment: state.environment,
+    syncLessonFilesFromEditor: state.syncLessonFilesFromEditor,
   }));
 
   const { t } = useTranslation();
@@ -538,29 +546,69 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
               </Tooltip>
             )}
             {mode === "creator" && editingTabId !== tab.id && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteFile(tab.name);
-                    }}
-                    className="delete-file-btn"
-                    style={{
-                      marginLeft: "8px",
-                      padding: "2px 6px",
-                      fontSize: "12px",
-                      cursor: "pointer",
-                      color: "#ff4444",
-                    }}
-                  >
-                    <Icon size={10} name="Trash" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{t("delete-file") || "Delete file"}</p>
-                </TooltipContent>
-              </Tooltip>
+              (() => {
+                const currentSlug = getCurrentExercise()?.slug;
+                const isCreatorWebAndCreator = environment === "creatorWeb" && mode === "creator";
+                const showSyncIcon = isCreatorWebAndCreator && currentSlug && fileLoadNotFoundByLesson[currentSlug]?.includes(tab.name) && !tab.name.includes("solution.hide");
+                const buttonsDisabled = isCreatorWebAndCreator && lessonSyncInProgress === currentSlug;
+
+                if (showSyncIcon) {
+                  return (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (currentSlug && !buttonsDisabled) syncLessonFilesFromEditor(currentSlug);
+                          }}
+                          disabled={buttonsDisabled}
+                          className="delete-file-btn"
+                          style={{
+                            marginLeft: "8px",
+                            padding: "2px 6px",
+                            fontSize: "12px",
+                            cursor: buttonsDisabled ? "not-allowed" : "pointer",
+                            color: buttonsDisabled ? "#999" : "#0d6efd",
+                          }}
+                        >
+                          <Icon size={10} name="RefreshCw" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{t("sync-lesson-files-tooltip") || "Sync lesson files"}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                }
+
+                return (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!buttonsDisabled) handleDeleteFile(tab.name);
+                        }}
+                        disabled={buttonsDisabled}
+                        className="delete-file-btn"
+                        style={{
+                          marginLeft: "8px",
+                          padding: "2px 6px",
+                          fontSize: "12px",
+                          cursor: buttonsDisabled ? "not-allowed" : "pointer",
+                          color: buttonsDisabled ? "#999" : "#ff4444",
+                        }}
+                      >
+                        <Icon size={10} name="Trash" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{t("delete-file") || "Delete file"}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })()
             )}
           </div>
         ))}
@@ -589,53 +637,76 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
             (tab) =>
               tab.isActive && (
                 <div className="h-100" key={tab.id}>
-                  {tab.name.includes("solution.hide") && mode !== "creator" && (
-                    <div className=" padding-small margin-children-none text-small bg-warning text-black">
-                      <Markdowner
-                        allowCreate={false}
-                        markdown={t("solution-tab-not-editable", {
-                          switchTo:
-                            filteredTabs.filter(
-                              (t) => !t.name.includes("solution")
-                            ).length > 1
-                              ? t("another-tab")
-                              : filteredTabs[0].name,
-                        })}
-                      />
-                    </div>
-                  )}
-                  <MonacoEditor
-                    className="editor-monaco"
-                    height="100%"
-                    key={tab.id}
-                    language={getLanguageFromExtension(tab.name)}
-                    theme={editorTheme}
-                    value={tab.content}
-                    onChange={(value) => updateContent(tab.id, value || "")}
-                    options={{
-                      minimap: {
-                        enabled: false,
-                      },
-                      fontSize: 16,
-                      bracketPairColorization: {
-                        enabled: true,
-                      },
-                      cursorBlinking: "smooth",
-                      wordWrap: "off",
-                      padding: {
-                        top: 10,
-                        bottom: 0,
-                      },
-                      scrollbar: {
-                        vertical: "hidden",
-                        horizontal: "hidden",
-                      },
-                      lineNumbersMinChars: 3,
-                      readOnly:
-                        tab.name === "terminal" ||
-                        (tab.name.includes("solution.hide") && mode !== "creator"),
-                    }}
-                  />
+                  {(() => {
+                    const currentSlug = getCurrentExercise()?.slug;
+                    const isFileNotFoundTab =
+                      currentSlug &&
+                      fileLoadNotFoundByLesson[currentSlug]?.includes(tab.name);
+                    if (isFileNotFoundTab) {
+                      return (
+                        <div className="h-100 p-4 margin-children-none text-small text-orange-500" style={{ backgroundColor: "#1e1e1e" }}>
+                          <p>{t("file-not-found") || "File not found"}</p>
+                          {mode === "creator" && (
+                            <p className="margin-top-small">
+                              {t("file-not-found-sync-hint") ||
+                                "Use the sync icon in the tab to synchronize lesson files."}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    }
+                    return (
+                      <>
+                        {tab.name.includes("solution.hide") && mode !== "creator" && (
+                          <div className=" padding-small margin-children-none text-small bg-warning text-black">
+                            <Markdowner
+                              allowCreate={false}
+                              markdown={t("solution-tab-not-editable", {
+                                switchTo:
+                                  filteredTabs.filter(
+                                    (t) => !t.name.includes("solution")
+                                  ).length > 1
+                                    ? t("another-tab")
+                                    : filteredTabs[0].name,
+                              })}
+                            />
+                          </div>
+                        )}
+                        <MonacoEditor
+                          className="editor-monaco"
+                          height="100%"
+                          key={tab.id}
+                          language={getLanguageFromExtension(tab.name)}
+                          theme={editorTheme}
+                          value={tab.content}
+                          onChange={(value) => updateContent(tab.id, value || "")}
+                          options={{
+                            minimap: {
+                              enabled: false,
+                            },
+                            fontSize: 16,
+                            bracketPairColorization: {
+                              enabled: true,
+                            },
+                            cursorBlinking: "smooth",
+                            wordWrap: "off",
+                            padding: {
+                              top: 10,
+                              bottom: 0,
+                            },
+                            scrollbar: {
+                              vertical: "hidden",
+                              horizontal: "hidden",
+                            },
+                            lineNumbersMinChars: 3,
+                            readOnly:
+                              tab.name === "terminal" ||
+                              (tab.name.includes("solution.hide") && mode !== "creator"),
+                          }}
+                        />
+                      </>
+                    );
+                  })()}
                 </div>
               )
           )}

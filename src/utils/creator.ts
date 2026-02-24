@@ -185,6 +185,30 @@ export const synchronizeSyllabus = async () => {
   }
 };
 
+export const synchronizeLessonFiles = async (
+  lessonSlug: string
+): Promise<{ removedCount: number; keptCount: number; movedCount?: number }> => {
+  try {
+    const courseSlug = getSlugFromPath();
+    const response = await axios.post<{
+      removedCount: number;
+      keptCount: number;
+      movedCount?: number;
+    }>(
+      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/synchronize-lesson-files?slug=${courseSlug}`,
+      { lessonSlug }
+    );
+    return response.data as {
+      removedCount: number;
+      keptCount: number;
+      movedCount?: number;
+    };
+  } catch (error) {
+    console.error("Error synchronizing lesson files:", error);
+    throw error;
+  }
+};
+
 // app.post(
 //   "/actions/continue-generating/:courseSlug/:position",
 //   async (req, res) => {

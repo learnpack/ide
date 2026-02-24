@@ -170,7 +170,6 @@ const AddExerciseButton = ({
 export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
   const {
     exercises,
-    // fetchExercises,
     getSidebar,
     sidebar,
     token,
@@ -178,7 +177,6 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
     syllabus,
   } = useStore((state) => ({
     exercises: state.exercises,
-    // fetchExercises: state.fetchExercises,
     getSidebar: state.getSidebar,
     sidebar: state.sidebar,
     token: state.token,

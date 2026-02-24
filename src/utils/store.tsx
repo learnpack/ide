@@ -66,6 +66,7 @@ import {
 } from "./syncNotifications";
 import i18n from "./i18n";
 import { eventBus } from "@/managers/eventBus";
+import { synchronizeLessonFiles } from "./creator";
 
 type TFile = {
   name: string;
@@ -229,6 +230,8 @@ const useStore = create<IStore>((set, get) => ({
   isRigoOpened: false,
   editingContent: "",
   editorTabs: [],
+  fileLoadNotFoundByLesson: {},
+  lessonSyncInProgress: null,
   pendingTranslations: [] as TLanguageTranslation[],
   feedbackbuttonProps: {
     text: "test-and-send",
@@ -1156,7 +1159,7 @@ The user's set up the application in "${language}" language, give your feedback 
     compilerSocket.openWindow(data);
   },
   updateEditorTabs: (newTab = null) => {
-    const { getCurrentExercise, editorTabs, environment } =
+    const { getCurrentExercise, editorTabs, environment, setFileLoadNotFound } =
       get();
 
     const exercise = getCurrentExercise();
@@ -1208,14 +1211,19 @@ The user's set up the application in "${language}" language, give your feedback 
       for (const [index, element] of notHidden.entries()) {
         let content = "";
 
-        const { fileContent, edited } = await FetchManager.getFileContent(
+        const result = await FetchManager.getFileContent(
           exercise.slug,
           element.name,
           { cached: true }
         );
-        content = fileContent;
+        const { fileContent, edited, notFound } = result;
 
-        if ("content" in element && element.content !== content) {
+        if (environment === "creatorWeb") {
+          setFileLoadNotFound(exercise.slug, element.name, !!notFound);
+        }
+        content = notFound ? "" : fileContent;
+
+        if (!notFound && "content" in element && element.content !== content) {
           await FetchManager.saveFileContent(
             exercise.slug,
             element.name,
@@ -1264,6 +1272,47 @@ The user's set up the application in "${language}" language, give your feedback 
     const { editorTabs } = get();
     const newTabs = editorTabs.filter((t) => t.name !== "terminal");
     set({ editorTabs: [...newTabs] });
+  },
+
+  setFileLoadNotFound: (lessonSlug: string, filename: string, notFound: boolean) => {
+    const { fileLoadNotFoundByLesson } = get();
+    const list = fileLoadNotFoundByLesson[lessonSlug] ?? [];
+    const next = notFound
+      ? list.includes(filename) ? list : [...list, filename]
+      : list.filter((f) => f !== filename);
+    set({
+      fileLoadNotFoundByLesson: {
+        ...fileLoadNotFoundByLesson,
+        [lessonSlug]: next,
+      },
+    });
+  },
+
+  clearFileLoadNotFoundForLesson: (lessonSlug: string) => {
+    const { fileLoadNotFoundByLesson } = get();
+    const next = { ...fileLoadNotFoundByLesson };
+    delete next[lessonSlug];
+    set({ fileLoadNotFoundByLesson: next });
+  },
+
+  setLessonSyncInProgress: (slug: string | null) => {
+    set({ lessonSyncInProgress: slug });
+  },
+
+  syncLessonFilesFromEditor: async (lessonSlug: string) => {
+    const { setLessonSyncInProgress, clearFileLoadNotFoundForLesson, fetchExercises, updateEditorTabs } = get();
+    setLessonSyncInProgress(lessonSlug);
+    try {
+      await synchronizeLessonFiles(lessonSlug);
+      clearFileLoadNotFoundForLesson(lessonSlug);
+      await fetchExercises();
+      updateEditorTabs();
+      toast.success(i18n.t("sync-lesson-files-success"));
+    } catch {
+      toast.error(i18n.t("sync-lesson-files-error"));
+    } finally {
+      setLessonSyncInProgress(null);
+    }
   },
 
   fetchReadme: async () => {

@@ -169,6 +169,11 @@ export const FetchManager = {
         const exerciseSlug = getSlugFromPath();
         const url = `${FetchManager.HOST}/courses/${exerciseSlug}/exercises/${slug}/file/${file}`;
         const response = await fetch(url);
+
+        if (!response.ok) {
+          return { fileContent: "", edited: false, notFound: true };
+        }
+
         const fileContent = await response.text();
 
         if (opts.cached) {

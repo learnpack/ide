@@ -294,6 +294,8 @@ export interface IStore {
   shouldBeTested: boolean;
   targetButtonForFeedback: "build" | "feedback";
   editorTabs: TEditorTab[];
+  fileLoadNotFoundByLesson: Record<string, string[]>;
+  lessonSyncInProgress: string | null;
   isIframe: boolean;
   isRigoOpened: boolean;
   theme: string;
@@ -364,6 +366,10 @@ export interface IStore {
   toggleFeedback: () => void;
   fetchExercises: () => void;
   updateEditorTabs: () => void;
+  setFileLoadNotFound: (lessonSlug: string, filename: string, notFound: boolean) => void;
+  clearFileLoadNotFoundForLesson: (lessonSlug: string) => void;
+  setLessonSyncInProgress: (slug: string | null) => void;
+  syncLessonFilesFromEditor: (lessonSlug: string) => Promise<void>;
   startTelemetry: () => Promise<void>;
   build: (buildText: string, submittedInputs?: string[]) => void;
   setPosition: (position: number) => void;
