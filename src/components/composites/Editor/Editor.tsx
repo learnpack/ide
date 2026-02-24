@@ -8,7 +8,6 @@ import FeedbackButton from "../../sections/header/FeedbackButton";
 import ResetButton from "../../sections/header/ResetButton";
 
 import { useTranslation } from "react-i18next";
-// import { debounce } from "../../../utils/lib";
 import { Tab } from "../../../types/editor";
 import { CompileOptions } from "../../sections/header/CompileOptions";
 import SimpleButton from "../../mockups/SimpleButton";
@@ -137,7 +136,6 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
       if (mode === "creator") {
         updateFileContent(ex.slug, tab);
       }
-      // debouncedStore();
     }
   };
 
