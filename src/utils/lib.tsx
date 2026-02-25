@@ -232,16 +232,19 @@ export const getParamsObject = (): TPossibleParams => {
   return getQueryParams();
 };
 
-export type DebouncedFunction = ((...args: unknown[]) => void) & {
+export type DebouncedFunction<T extends unknown[] = unknown[]> = ((...args: T) => void) & {
   cancel: () => void;
   flush: () => void;
 };
 
-export const debounce = (func: (...args: unknown[]) => void, wait: number): DebouncedFunction => {
+export const debounce = <T extends unknown[]>(
+  func: (...args: T) => void,
+  wait: number
+): DebouncedFunction<T> => {
   let timeout: ReturnType<typeof setTimeout>;
-  let lastArgs: unknown[] | null = null;
+  let lastArgs: T | null = null;
 
-  const debounced = (...args: unknown[]) => {
+  const debounced = (...args: T) => {
     lastArgs = args;
     clearTimeout(timeout);
     timeout = setTimeout(() => {
@@ -263,7 +266,7 @@ export const debounce = (func: (...args: unknown[]) => void, wait: number): Debo
     }
   };
 
-  return debounced as DebouncedFunction;
+  return debounced as DebouncedFunction<T>;
 };
 
 
