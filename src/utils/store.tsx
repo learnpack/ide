@@ -80,7 +80,10 @@ const HOST = getHost();
 const BUCKET_SAVE_DEBOUNCE_MS = 1500;
 
 /** Per-file debounced savers: key = `${slug}:${filename}`. Used only in creator mode. */
-const debouncedBucketSavers = new Map<string, DebouncedFunction>();
+const debouncedBucketSavers = new Map<
+  string,
+  DebouncedFunction<[string, string, string]>
+>();
 
 function debouncedSaveFileContent(
   slug: string,
