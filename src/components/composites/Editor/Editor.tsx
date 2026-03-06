@@ -676,6 +676,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                           className="editor-monaco"
                           height="100%"
                           key={tab.id}
+                          path={`file:///${tab.id}/${tab.name}`}
                           language={getLanguageFromExtension(tab.name)}
                           theme={editorTheme}
                           value={tab.content}

@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/tooltip";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import { DEV_MODE } from "../../../utils/lib";
 
 
@@ -651,6 +651,16 @@ const getMonacoLanguage = (language: string): string => {
   return langMap[language.toLowerCase()] || "plaintext";
 };
 
+/** Returns file extension for Monaco model URI so TS/JS worker treats the file correctly. */
+const getExtensionForLanguage = (language: string): string => {
+  const lang = language.toLowerCase();
+  if (lang === "tsx") return "tsx";
+  if (lang === "ts" || lang === "typescript") return "ts";
+  if (lang === "jsx") return "jsx";
+  if (lang === "js" || lang === "javascript") return "js";
+  return "txt";
+};
+
 const CustomCodeBlock = ({
   code,
   language,
@@ -667,6 +677,7 @@ const CustomCodeBlock = ({
     node: any;
     allowCreate: boolean;
   }) => {
+  const blockId = useId();
   const {
     getCurrentExercise,
     isIframe,
@@ -863,6 +874,7 @@ const CustomCodeBlock = ({
         <>
           <MonacoEditor
             beforeMount={configureMonacoTypeScript}
+            path={`file:///markdown-block-${blockId.replace(/\W/g, "-")}.${getExtensionForLanguage(language)}`}
             height="230px"
             language={getMonacoLanguage(language)}
             theme="vs-dark"
