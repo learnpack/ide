@@ -26,6 +26,7 @@ import { Modal } from "../../mockups/Modal";
 import { deleteFile } from "../../../utils/creator";
 import { Icon } from "../../Icon";
 import toast from "react-hot-toast";
+import { configureMonacoTypeScript } from "../../../utils/monacoTsConfig";
 
 const languageMap: { [key: string]: string } = {
   ".js": "javascript",
@@ -671,9 +672,11 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                           </div>
                         )}
                         <MonacoEditor
+                          beforeMount={configureMonacoTypeScript}
                           className="editor-monaco"
                           height="100%"
                           key={tab.id}
+                          path={`file:///${tab.id}/${tab.name}`}
                           language={getLanguageFromExtension(tab.name)}
                           theme={editorTheme}
                           value={tab.content}
