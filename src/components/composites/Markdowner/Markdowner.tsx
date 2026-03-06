@@ -40,6 +40,7 @@ import { useCompletionJobStatus } from "../../../hooks/useCompletionJobStatus";
 import { AutoResizeTextarea } from "../AutoResizeTextarea/AutoResizeTextarea";
 import { isRunnableCodeBlock } from "../../../utils/runnableDetection";
 import MonacoEditor from "@monaco-editor/react";
+import { configureMonacoTypeScript } from "../../../utils/monacoTsConfig";
 import { Toolbar } from "../Editor/Editor";
 import { eventBus } from "@/managers/eventBus";
 
@@ -861,6 +862,7 @@ const CustomCodeBlock = ({
       {isEditing ? (
         <>
           <MonacoEditor
+            beforeMount={configureMonacoTypeScript}
             height="230px"
             language={getMonacoLanguage(language)}
             theme="vs-dark"
