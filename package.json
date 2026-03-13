@@ -28,7 +28,7 @@
     "mitt": "^3.0.1",
     "monaco-editor": "^0.50.0",
     "prompt-sync": "^4.2.0",
-    "pusher-js": "^8.4.0",
+    "pusher-js": "^7.6.0",
     "radix-ui": "^1.4.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
