@@ -33,9 +33,7 @@ import { Icon } from "../Icon";
 export const DIFF_SEPARATOR = "---SEPARATOR---";
 
 // Pusher configuration - adjust these values
-const PUSHER_KEY = process.env.NEXT_PUBLIC_PUSHER_KEY || "609743b48b8ed073d67f";
-const PUSHER_CLUSTER = process.env.NEXT_PUBLIC_PUSHER_CLUSTER || "us2";
-const API_HOST = process.env.NEXT_PUBLIC_API_HOST || "https://rigobot.herokuapp.com";
+const API_HOST = import.meta.env.VITE_API_HOST;
 
 // Types
 type AgentRunResponse = {
@@ -161,6 +159,9 @@ function setupPusherSubscription(
 ): { channel: any; pusher: any; cleanup: () => void } {
   let pusherClient: any = null;
   let channel: any = null;
+  const resolvedSoketiKey = import.meta.env.VITE_SOKETI_KEY;
+  const resolvedSoketiHost = import.meta.env.VITE_SOKETI_HOST;
+  const resolvedSoketiPort = import.meta.env.VITE_SOKETI_PORT;
 
   const cleanup = () => {
     if (channel) {
@@ -175,8 +176,13 @@ function setupPusherSubscription(
   // Dynamically import Pusher
   import("pusher-js").then((PusherModule) => {
     const Pusher = PusherModule.default;
-    pusherClient = new Pusher(PUSHER_KEY, {
-      cluster: PUSHER_CLUSTER,
+    pusherClient = new Pusher(resolvedSoketiKey, {
+      wsHost: resolvedSoketiHost,
+      wsPort: resolvedSoketiPort,
+      forceTLS: true,
+      encrypted: true,
+      disableStats: true,
+      enabledTransports: ["ws", "wss"],
     });
 
     const channelName = `agent-run-${runId}`;
