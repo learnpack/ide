@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 import useStore from "../../../utils/store";
 import SimpleButton from "../../mockups/SimpleButton";
 import toast from "react-hot-toast";
@@ -33,6 +34,21 @@ type CheckChangesResponse = {
 
 const buttonClass =
   "w-100 text-small text-yellow-800 bg-yellow-100 hover:bg-yellow-200 padding-small rounded";
+
+const getRequestErrorMessage = (err: unknown, fallback: string): string => {
+  if (axios.isAxiosError(err)) {
+    const responseData = err.response?.data as { message?: string } | undefined;
+    if (typeof responseData?.message === "string" && responseData.message) {
+      return responseData.message;
+    }
+  }
+
+  if (err instanceof Error && err.message) {
+    return err.message;
+  }
+
+  return fallback;
+};
 
 export function GitHubActions() {
   const { token, configObject } = useStore((state) => ({
@@ -86,7 +102,7 @@ export function GitHubActions() {
       setChanges(null);
       await fetchStatus();
     } catch (err) {
-      const msg = (err as Error)?.message || "Failed to create repository";
+      const msg = getRequestErrorMessage(err, "Failed to create repository");
       toast.error(msg, { id: toastId });
     } finally {
       setActionLoading(null);
@@ -109,7 +125,7 @@ export function GitHubActions() {
         );
       }
     } catch (err) {
-      const msg = (err as Error)?.message || "Failed to check changes";
+      const msg = getRequestErrorMessage(err, "Failed to check changes");
       toast.error(msg, { id: toastId });
     } finally {
       setActionLoading(null);
@@ -129,7 +145,7 @@ export function GitHubActions() {
       setChanges(null);
       await fetchStatus();
     } catch (err) {
-      const msg = (err as Error)?.message || "Failed to pull from GitHub";
+      const msg = getRequestErrorMessage(err, "Failed to pull from GitHub");
       toast.error(msg, { id: toastId });
     } finally {
       setActionLoading(null);
@@ -149,7 +165,7 @@ export function GitHubActions() {
       setChanges(null);
       await fetchStatus();
     } catch (err) {
-      const msg = (err as Error)?.message || "Failed to push to GitHub";
+      const msg = getRequestErrorMessage(err, "Failed to push to GitHub");
       toast.error(msg, { id: toastId });
     } finally {
       setActionLoading(null);

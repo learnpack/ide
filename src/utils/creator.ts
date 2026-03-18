@@ -462,6 +462,43 @@ export const createGithubRepo = async (
     return response.data;
   } catch (error) {
     console.error("Error creating GitHub repo:", error);
+    if (axios.isAxiosError(error)) {
+      const data = error.response?.data as {
+        message?: string;
+        details?: {
+          failedOperation?: string;
+          failedPath?: string;
+          repoCreated?: boolean;
+          github?: { message?: string };
+        };
+      } | undefined;
+
+      const backendMessage = data?.message;
+      const failedOperation = data?.details?.failedOperation;
+      const failedPath = data?.details?.failedPath;
+      const repoCreated = data?.details?.repoCreated;
+      const githubMessage = data?.details?.github?.message?.toLowerCase() || "";
+
+      if (
+        failedPath &&
+        (githubMessage.includes("push protection") ||
+          githubMessage.includes("secret"))
+      ) {
+        throw new Error(`Archivo bloqueado por push protection: ${failedPath}`);
+      }
+
+      if (repoCreated && failedOperation && failedOperation !== "create_repo") {
+        throw new Error(
+          backendMessage ||
+            "Repo creado en GitHub, pero falló el commit inicial"
+        );
+      }
+
+      if (backendMessage) {
+        throw new Error(backendMessage);
+      }
+    }
+
     throw error;
   }
 };
