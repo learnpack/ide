@@ -430,3 +430,82 @@ export const changeSlug = async (
     throw error;
   }
 };
+
+export const getGithubStatus = async (courseSlug: string) => {
+  try {
+    const response = await axios.get(
+      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/github/status?slug=${courseSlug}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching GitHub status:", error);
+    throw error;
+  }
+};
+
+export const createGithubRepo = async (
+  courseSlug: string,
+  repoName: string,
+  isPrivate: boolean,
+  rigoToken: string,
+  description?: string
+) => {
+  try {
+    const headers = { "x-rigo-token": rigoToken };
+    const body: Record<string, unknown> = { courseSlug, repoName, isPrivate };
+    if (description !== undefined) body.description = description;
+    const response = await axios.post(
+      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/github/create-repo`,
+      body,
+      { headers }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error creating GitHub repo:", error);
+    throw error;
+  }
+};
+
+export const checkGithubChanges = async (courseSlug: string) => {
+  try {
+    const response = await axios.get(
+      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/github/check-changes?slug=${courseSlug}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error checking GitHub changes:", error);
+    throw error;
+  }
+};
+
+export const pullFromGithub = async (
+  courseSlug: string,
+  targetSHA: string,
+  lessons?: string[]
+) => {
+  try {
+    const body: Record<string, unknown> = { courseSlug, targetSHA };
+    if (lessons !== undefined && Array.isArray(lessons)) body.lessons = lessons;
+    const response = await axios.post(
+      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/github/pull`,
+      body
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error pulling from GitHub:", error);
+    throw error;
+  }
+};
+
+export const pushToGithub = async (courseSlug: string) => {
+  try {
+    const response = await axios.post(
+      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/github/push`,
+      { courseSlug }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error pushing to GitHub:", error);
+    throw error;
+  }
+};
