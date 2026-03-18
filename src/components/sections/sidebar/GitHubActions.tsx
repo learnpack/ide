@@ -219,7 +219,7 @@ export function GitHubActions() {
       <SimpleButton
         extraClass={buttonClass}
         svg={<Icon name="RefreshCw" size={16} />}
-        text="Check changes in GitHub"
+        text="Check changes on GitHub"
         action={handleCheckChanges}
         disabled={!!actionLoading}
       />
