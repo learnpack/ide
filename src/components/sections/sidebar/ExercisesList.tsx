@@ -17,6 +17,7 @@ import { DEV_MODE, slugify, getLessonDisplayInfo } from "../../../utils/lib";
 import { eventBus } from "../../../managers/eventBus";
 import { Loader } from "../../composites/Loader/Loader";
 import { Modal } from "@/components/mockups/Modal";
+import { GitHubActions } from "./GitHubActions";
 import { RigoMessage } from "@/components/Creator/RealtimeImage";
 import { AutoResizeTextarea } from "@/components/composites/AutoResizeTextarea/AutoResizeTextarea";
 import TelemetryManager from "@/managers/telemetry";
@@ -288,6 +289,7 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
             text="🔧 Sync Syllabus (Dev)"
             action={handleSyncSyllabus}
           />
+          <GitHubActions />
         </div>
       )}
       {selectedExercises.length > 0 && (
