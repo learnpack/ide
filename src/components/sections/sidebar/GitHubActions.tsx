@@ -51,9 +51,10 @@ const getRequestErrorMessage = (err: unknown, fallback: string): string => {
 };
 
 export function GitHubActions() {
-  const { token, configObject } = useStore((state) => ({
+  const { token, configObject, fetchReadme } = useStore((state) => ({
     token: state.token,
     configObject: state.configObject,
+    fetchReadme: state.fetchReadme,
   }));
 
   const [status, setStatus] = useState<{
@@ -144,6 +145,7 @@ export function GitHubActions() {
       );
       setChanges(null);
       await fetchStatus();
+      await fetchReadme();
     } catch (err) {
       const msg = getRequestErrorMessage(err, "Failed to pull from GitHub");
       toast.error(msg, { id: toastId });
