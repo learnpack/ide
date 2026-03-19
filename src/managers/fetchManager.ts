@@ -610,7 +610,7 @@ export const FetchManager = {
       },
       localStorage: async () => {
         try {
-          const sidebar = await fetch(`/sidebar.json`);
+          const sidebar = await fetch(`/.learn/sidebar.json`);
           const json = await sidebar.json();
           return json;
         } catch (e) {
