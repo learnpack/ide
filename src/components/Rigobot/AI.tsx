@@ -45,7 +45,7 @@ type TRigoTemplateParams = {
 };
 
 const rigoTemplateDefaults = {
-  apiHost: process.env.VITE_RIGOBOT_API_HOST || "https://rigobot.herokuapp.com",
+  apiHost: process.env.RIGOBOT_HOST || "https://rigobot.herokuapp.com",
   pusherKey: "085fabde5864ef790a61",
   pusherCluster: "mt1",
 };
