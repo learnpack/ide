@@ -1142,9 +1142,10 @@ The user's set up the application in "${language}" language, give your feedback 
     try {
       const { bc_token, setToken, openLink, language, environment } = get();
 
+      const RIGOBOT_HOST = process.env.VITE_RIGOBOT_API_HOST || "https://rigobot.herokuapp.com";
       const acceptRigobot = () => {
         const inviteUrl =
-          "https://rigobot.herokuapp.com/invite?referer=4geeks&lang=" +
+          `${RIGOBOT_HOST}/invite?referer=4geeks&lang=` +
           correctLanguage(language) +
           "&token=" +
           bc_token +
