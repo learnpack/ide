@@ -10,7 +10,7 @@ import assessmentComponentsRaw from "../../docs/assessment_components.yml?raw";
 import explanatoryComponentsRaw from "../../docs/explanatory_components.yml?raw";
 // import toast from "react-hot-toast";
 export const DEV_MODE =false;
-export const DEV_URL = process.env.DEV_URL || "https://1gm40gnb-3000.use2.devtunnels.ms/";
+export const DEV_URL = import.meta.env.VITE_DEV_URL || "https://1gm40gnb-3000.use2.devtunnels.ms";
 
 export const FASTAPI_HOST = "https://ai.4geeks.com";
 // export const FASTAPI_HOST = "http://localhost:8003";
@@ -130,7 +130,7 @@ export const getEnvironment = async () => {
 
 getEnvironment();
 
-export const RIGOBOT_HOST = process.env.RIGOBOT_HOST || "https://rigobot.herokuapp.com";
+export const RIGOBOT_HOST = import.meta.env.VITE_RIGOBOT_HOST || "https://rigobot.herokuapp.com";
 // export const RIGOBOT_HOST = "https://8000-charlytoc-rigobot-bmwdeam7cev.ws-us120.gitpod.io";
 export const BREATHECODE_HOST = "https://breathecode.herokuapp.com";
 
