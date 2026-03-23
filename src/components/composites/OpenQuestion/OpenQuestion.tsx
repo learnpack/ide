@@ -16,7 +16,7 @@ import { TMetadata } from "../Markdowner/types";
 import { AutoResizeTextarea } from "../AutoResizeTextarea/AutoResizeTextarea";
 import { Markdowner } from "../Markdowner/Markdowner";
 import TelemetryManager, { TTesteableElement } from "../../../managers/telemetry";
-import { makeQuizSubmission } from "../QuizRenderer/QuizRenderer";
+import { makeQuizSubmission } from "../QuizRenderer/quizSubmissionUtils";
 import { RigoAI } from "../../Rigobot/AI";
 import CustomDropdown from "../../CustomDropdown";
 import { Icon } from "../../Icon"

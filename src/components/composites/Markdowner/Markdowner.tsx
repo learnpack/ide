@@ -8,11 +8,11 @@ import useStore from "../../../utils/store";
 import emoji from "remark-emoji";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark as prismStyle } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { QuizRenderer } from "../QuizRenderer/QuizRenderer";
 import {
-  QuizRenderer,
   buildFillInTheBlankIdentityString,
   makeFillInTheBlankSubmission,
-} from "../QuizRenderer/QuizRenderer";
+} from "../QuizRenderer/quizSubmissionUtils";
 import { RigoQuestion } from "../RigoQuestion/RigoQuestion";
 import { CommunityLink } from "../CommunityLink/CommunityLink";
 import { CreatorWrapper } from "../../Creator/Creator";
