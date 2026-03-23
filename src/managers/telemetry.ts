@@ -74,6 +74,11 @@ const sendBatchTelemetryRigobot = async function (body: object, token: string) {
   }
 };
 
+const FETCH_TELEMETRY_TIMEOUT_MS = 5000;
+const RESOLVE_PACKAGE_ID_TIMEOUT_MS = 3000;
+/** Idle threshold for refreshing telemetry from server when tab becomes visible again */
+export const TELEMETRY_VISIBILITY_REFRESH_IDLE_MS = 5 * 60 * 1000;
+
 const getRigobotPackageIdBySlug = async function (
   packageSlug: string,
   token: string
@@ -100,6 +105,177 @@ const getRigobotPackageIdBySlug = async function (
     return null;
   }
 };
+
+function resolvePackageIdWithTimeout(
+  packageSlug: string,
+  token: string,
+  ms: number
+): Promise<number | string | null> {
+  return Promise.race([
+    getRigobotPackageIdBySlug(packageSlug, token),
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), ms)),
+  ]);
+}
+
+export type TTelemetryFetchResponse = {
+  results?: unknown[];
+  sources?: string;
+  warning?: string;
+};
+
+/**
+ * GET latest telemetry from Rigobot (BigQuery + optional Redis buffer when include_buffer=true).
+ */
+export async function fetchTelemetryFromServer(params: {
+  userId: string;
+  packageId: number | string | null;
+  packageSlug: string;
+  rigoToken: string;
+}): Promise<ITelemetryJSONSchema | null> {
+  const { userId, packageId, packageSlug, rigoToken } = params;
+  if (!userId || !rigoToken || !packageSlug) {
+    return null;
+  }
+
+  const cleanToken = rigoToken.trim();
+  const search = new URLSearchParams();
+  search.set("user_id", String(userId));
+  search.set("include_buffer", "true");
+  search.set("include_steps", "true");
+  search.set("package_slug", packageSlug);
+  if (packageId != null && packageId !== "") {
+    search.set("package_ids", String(packageId));
+  }
+
+  const url = `${RIGOBOT_HOST}/v1/learnpack/telemetry?${search.toString()}`;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), FETCH_TELEMETRY_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Token ${cleanToken}`,
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      console.warn("fetchTelemetryFromServer: non-OK response", response.status);
+      return null;
+    }
+
+    const data = (await response.json()) as TTelemetryFetchResponse;
+    const first = data?.results?.[0] as ITelemetryJSONSchema | undefined;
+    if (!first || typeof first !== "object") {
+      return null;
+    }
+    if (first.slug && first.slug !== packageSlug) {
+      console.warn("fetchTelemetryFromServer: slug mismatch, ignoring");
+      return null;
+    }
+    return first;
+  } catch (error) {
+    if ((error as Error).name === "AbortError") {
+      console.warn("fetchTelemetryFromServer: timeout or aborted");
+    } else {
+      console.warn("fetchTelemetryFromServer: failed", error);
+    }
+    return null;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+export type TReconcileSource = "server" | "local" | "new";
+
+function telemetryTimestamp(t: ITelemetryJSONSchema | null | undefined): number {
+  if (!t || typeof t.last_interaction_at !== "number") {
+    return 0;
+  }
+  return t.last_interaction_at;
+}
+
+function createUUID(): string {
+  return (
+    Math.random().toString(36).slice(2, 10) +
+    Math.random().toString(36).slice(2, 10)
+  );
+}
+
+/**
+ * Chooses the canonical telemetry blob: server vs local vs new empty state (MVP: whole-blob comparison by last_interaction_at).
+ */
+export function reconcileTelemetry(
+  serverTelemetry: ITelemetryJSONSchema | null,
+  localTelemetry: ITelemetryJSONSchema | null,
+  freshSteps: TStep[],
+  tutorialSlug: string,
+  agent: TAgent,
+  appVersion: string
+): { telemetry: ITelemetryJSONSchema; source: TReconcileSource } {
+  const hasServer =
+    serverTelemetry &&
+    (!serverTelemetry.slug || serverTelemetry.slug === tutorialSlug);
+  const hasLocal =
+    localTelemetry && localTelemetry.slug === tutorialSlug;
+
+  if (hasServer && !hasLocal) {
+    return { telemetry: { ...serverTelemetry! }, source: "server" };
+  }
+  if (!hasServer && hasLocal) {
+    return { telemetry: { ...localTelemetry! }, source: "local" };
+  }
+  if (hasServer && hasLocal) {
+    const serverTs = telemetryTimestamp(serverTelemetry!);
+    const localTs = telemetryTimestamp(localTelemetry!);
+    if (serverTs > localTs) {
+      return { telemetry: { ...serverTelemetry! }, source: "server" };
+    }
+    if (localTs > serverTs) {
+      return { telemetry: { ...localTelemetry! }, source: "local" };
+    }
+    return { telemetry: { ...serverTelemetry! }, source: "server" };
+  }
+
+  const now = Date.now();
+  return {
+    telemetry: {
+      telemetry_id: createUUID(),
+      slug: tutorialSlug,
+      version: `${appVersion}`,
+      agent,
+      tutorial_started_at: now,
+      last_interaction_at: now,
+      steps: freshSteps,
+      workout_session: [{ started_at: now }],
+      fullname: "",
+      cohort_id: null,
+      academy_id: null,
+    },
+    source: "new",
+  };
+}
+
+/**
+ * POST telemetry to Rigobot using fetch with keepalive (survives page unload).
+ */
+export function submitViaBeacon(url: string, body: object, token: string): void {
+  if (!url || !token) {
+    return;
+  }
+  const cleanToken = token.trim();
+  fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${cleanToken}`,
+    },
+    body: JSON.stringify(body),
+    keepalive: true,
+  }).catch(() => {});
+}
 
 const sendStreamTelemetry = async function (
   url: string,
@@ -151,13 +327,6 @@ const saveInCLI = async function (telemetry: ITelemetryJSONSchema) {
     return null;
   }
 };
-
-function createUUID(): string {
-  return (
-    Math.random().toString(36).slice(2, 10) +
-    Math.random().toString(36).slice(2, 10)
-  );
-}
 
 function stringToBase64(input: string): string {
   if (typeof input !== "string") {
@@ -311,6 +480,34 @@ export interface ITelemetryJSONSchema {
   global_indicators?: TIndicators;
 }
 
+function buildSubmitPayload(
+  current: ITelemetryJSONSchema,
+  userId: string | number
+): object {
+  if (!current.telemetry_id) {
+    current.telemetry_id = createUUID();
+  }
+  const indicators = calculateIndicators(current);
+  const withMetricsSteps = current.steps.map((step, index) => {
+    const telID = current.telemetry_id || createUUID();
+
+    return {
+      ...step,
+      telemetry_id: telID,
+      metrics: indicators.steps[index].metrics,
+      indicators: indicators.steps[index].indicators,
+    };
+  });
+
+  return {
+    ...current,
+    steps: withMetricsSteps,
+    global_metrics: indicators.global.metrics,
+    global_indicators: indicators.global.indicators,
+    user_id: userId,
+  };
+}
+
 export type TStepEvent =
   | "compile"
   | "test"
@@ -335,6 +532,7 @@ type TAlerts = "test_struggles" | "compile_struggles";
 interface ITelemetryManager {
   current: ITelemetryJSONSchema | null;
   started: boolean;
+  reconciling: boolean;
   agent: TAgent;
   version: string;
   user: TUser;
@@ -347,7 +545,8 @@ interface ITelemetryManager {
     tutorialSlug: string,
     storageKey: string,
     student: TStudent
-  ) => void;
+  ) => Promise<void>;
+  refreshFromServerIfStale: () => Promise<void>;
   tutorialSlug: string;
   prevStep?: number;
   prevStepStartedAt?: number;
@@ -392,6 +591,7 @@ const TelemetryManager: ITelemetryManager = {
   },
   tutorialSlug: "",
   started: false,
+  reconciling: false,
   version: `${packageInfo.version}` || "CLOUD:0.0.0",
   salute: (message) => {
     console.log(message);
@@ -407,87 +607,217 @@ const TelemetryManager: ITelemetryManager = {
     this.user.fullname = student.fullname;
     // Email removed for security - not stored in telemetry
 
-    if (!this.current) {
-      this.retrieve()
-        .then((prevTelemetry) => {
-          if (prevTelemetry) {
-            this.current = prevTelemetry;
-            this.finishWorkoutSession();
-          } else {
-            console.debug(
-              "No previous telemetry found, creating new one. Agent: ",
-              agent
-            );
+    if (this.current) {
+      return Promise.resolve();
+    }
 
-            this.current = {
-              telemetry_id: createUUID(),
-              slug: tutorialSlug,
-              version: `${this.version}`,
-              agent,
-              tutorial_started_at: Date.now(),
-              last_interaction_at: Date.now(),
-              steps,
-              workout_session: [
-                {
-                  started_at: Date.now(),
-                },
-              ],
-              fullname: this.user.fullname,
-              cohort_id: null,
-              academy_id: null,
-            };
+    if (agent === "cloud") {
+      this.reconciling = true;
+      return (async () => {
+        try {
+          let packageId: number | string | null = null;
+          if (student.rigo_token && tutorialSlug) {
+            packageId = await resolvePackageIdWithTimeout(
+              tutorialSlug,
+              student.rigo_token,
+              RESOLVE_PACKAGE_ID_TIMEOUT_MS
+            );
           }
 
-          this.current.user_id = this.user.id;
-          this.current.fullname = this.user.fullname;
-          this.current.cohort_id = student.cohort_id;
-          this.current.academy_id = student.academy_id;
+          const localRaw = LocalStorage.get(this.telemetryKey);
+          const localTelemetry =
+            localRaw && localRaw.slug === tutorialSlug ? localRaw : null;
+
+          let serverTelemetry: ITelemetryJSONSchema | null = null;
+          if (student.rigo_token && student.user_id) {
+            serverTelemetry = await fetchTelemetryFromServer({
+              userId: student.user_id,
+              packageId,
+              packageSlug: tutorialSlug,
+              rigoToken: student.rigo_token,
+            });
+          }
+
+          const { telemetry, source } = reconcileTelemetry(
+            serverTelemetry,
+            localTelemetry,
+            steps,
+            tutorialSlug,
+            agent,
+            this.version
+          );
+
+          this.current = telemetry;
+          this.current.user_id = student.user_id;
+          this.current.fullname = student.fullname;
+          this.current.cohort_id = student.cohort_id || null;
+          this.current.academy_id = student.academy_id || null;
 
           if (!this.current.version) {
             this.current.version = `CLOUD:${this.version}`;
           }
 
-          // Best-effort: enrich telemetry with Rigobot package_id using current slug.
-          if (
+          if (!this.current.package_id && packageId) {
+            this.current.package_id = packageId;
+          } else if (
             !this.current.package_id &&
             this.current.slug &&
             this.user.rigo_token
           ) {
             getRigobotPackageIdBySlug(this.current.slug, this.user.rigo_token)
-              .then((packageId) => {
-                if (!packageId || !this.current) return;
+              .then((resolvedId) => {
+                if (!resolvedId || !this.current) return;
                 if (this.current.package_id) return;
-                this.current.package_id = packageId;
+                this.current.package_id = resolvedId;
                 this.save();
               })
               .catch((error) => {
-                // ignore
                 console.error("Error getting Rigobot package id by slug", error);
               });
           }
 
+          this.finishWorkoutSession();
           this.save();
-
           this.started = true;
 
-          if (!this.user.id) {
+          if (!student.user_id) {
             console.warn(
               "No user ID found, impossible to submit telemetry at start"
             );
             return;
           }
 
-          this.submit();
-        })
-        .catch((error) => {
+          if (source === "local") {
+            await this.submit();
+          }
+        } catch (error) {
           console.log("ERROR: There was a problem starting the Telemetry");
           console.error(error);
-
           throw new Error(
             "There was a problem starting, reload LearnPack\nRun\n$ learnpack start"
           );
-        });
+        } finally {
+          this.reconciling = false;
+        }
+      })();
     }
+
+    return this.retrieve()
+      .then((prevTelemetry) => {
+        if (prevTelemetry) {
+          this.current = prevTelemetry;
+          this.finishWorkoutSession();
+        } else {
+          console.debug(
+            "No previous telemetry found, creating new one. Agent: ",
+            agent
+          );
+
+          this.current = {
+            telemetry_id: createUUID(),
+            slug: tutorialSlug,
+            version: `${this.version}`,
+            agent,
+            tutorial_started_at: Date.now(),
+            last_interaction_at: Date.now(),
+            steps,
+            workout_session: [
+              {
+                started_at: Date.now(),
+              },
+            ],
+            fullname: this.user.fullname,
+            cohort_id: null,
+            academy_id: null,
+          };
+        }
+
+        this.current.user_id = this.user.id;
+        this.current.fullname = this.user.fullname;
+        this.current.cohort_id = student.cohort_id;
+        this.current.academy_id = student.academy_id;
+
+        if (!this.current.version) {
+          this.current.version = `CLOUD:${this.version}`;
+        }
+
+        if (
+          !this.current.package_id &&
+          this.current.slug &&
+          this.user.rigo_token
+        ) {
+          getRigobotPackageIdBySlug(this.current.slug, this.user.rigo_token)
+            .then((packageId) => {
+              if (!packageId || !this.current) return;
+              if (this.current.package_id) return;
+              this.current.package_id = packageId;
+              this.save();
+            })
+            .catch((error) => {
+              console.error("Error getting Rigobot package id by slug", error);
+            });
+        }
+
+        this.save();
+
+        this.started = true;
+
+        if (!this.user.id) {
+          console.warn(
+            "No user ID found, impossible to submit telemetry at start"
+          );
+          return;
+        }
+
+        this.submit();
+      })
+      .catch((error) => {
+        console.log("ERROR: There was a problem starting the Telemetry");
+        console.error(error);
+
+        throw new Error(
+          "There was a problem starting, reload LearnPack\nRun\n$ learnpack start"
+        );
+      });
+  },
+
+  refreshFromServerIfStale: async function () {
+    if (this.agent !== "cloud" || this.reconciling) {
+      return;
+    }
+    if (!this.user.rigo_token || !this.user.id || !this.tutorialSlug || !this.current) {
+      return;
+    }
+    const lastAt = this.current.last_interaction_at ?? 0;
+    if (Date.now() - lastAt <= TELEMETRY_VISIBILITY_REFRESH_IDLE_MS) {
+      return;
+    }
+
+    const server = await fetchTelemetryFromServer({
+      userId: this.user.id,
+      packageId: this.current.package_id ?? null,
+      packageSlug: this.tutorialSlug,
+      rigoToken: this.user.rigo_token,
+    });
+    if (!server) {
+      return;
+    }
+    if (server.slug && server.slug !== this.tutorialSlug) {
+      return;
+    }
+    const serverTs = server.last_interaction_at ?? 0;
+    if (serverTs <= lastAt) {
+      return;
+    }
+
+    this.current = {
+      ...server,
+      user_id: this.user.id,
+      fullname: this.user.fullname,
+      cohort_id: server.cohort_id ?? this.current.cohort_id,
+      academy_id: server.academy_id ?? this.current.academy_id,
+    };
+    this.save();
   },
 
   registerListener: function (event: TAlerts, callback: (data: any) => void) {
@@ -767,6 +1097,12 @@ const TelemetryManager: ITelemetryManager = {
   },
 
   submit: async function () {
+    if (this.reconciling) {
+      console.warn(
+        "Telemetry submit skipped during reconciliation bootstrap"
+      );
+      return Promise.resolve();
+    }
     if (!this.current || !this.user.token || !this.user.id) {
       console.warn(
         "Telemetry and user token are required to send telemetry, telemetry was not sent"
@@ -780,33 +1116,7 @@ const TelemetryManager: ITelemetryManager = {
       return;
     }
 
-    if (!this.current.telemetry_id) {
-      this.current.telemetry_id = createUUID();
-    }
-
-    // Calculate metrics for all steps
-    const indicators = calculateIndicators(this.current);
-    const withMetricsSteps = this.current.steps.map((step, index) => {
-      const telID = this.current?.telemetry_id || createUUID();
-
-      return {
-        ...step,
-        telemetry_id: telID,
-        metrics: indicators.steps[index].metrics,
-        indicators: indicators.steps[index].indicators,
-      };
-    });
-
-    const body = {
-      ...this.current,
-      steps: withMetricsSteps,
-      global_metrics: indicators.global.metrics,
-      global_indicators: indicators.global.indicators,
-    };
-
-    if (!body.user_id) {
-      body.user_id = this.user.id;
-    }
+    const body = buildSubmitPayload(this.current, this.user.id);
 
     try {
       await sendBatchTelemetryBreathecode(url, body, this.user.token);
@@ -854,5 +1164,23 @@ const TelemetryManager: ITelemetryManager = {
     sendStreamTelemetry(url, body, this.user.token);
   },
 };
+
+/**
+ * Best-effort Rigobot POST on page unload (keepalive). Does not send Breathecode batch.
+ */
+export function submitTelemetryToRigobotViaBeacon(): void {
+  if (!TelemetryManager.current || !TelemetryManager.user.rigo_token || !TelemetryManager.user.id) {
+    return;
+  }
+  const body = buildSubmitPayload(
+    TelemetryManager.current,
+    TelemetryManager.user.id
+  );
+  submitViaBeacon(
+    `${RIGOBOT_HOST}/v1/learnpack/telemetry`,
+    body,
+    TelemetryManager.user.rigo_token
+  );
+}
 
 export default TelemetryManager;

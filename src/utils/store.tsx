@@ -55,7 +55,12 @@ import {
   updateSession,
   isPackageAuthor,
 } from "./apiCalls";
-import TelemetryManager, { TStep } from "../managers/telemetry";
+import TelemetryManager, {
+  TStep,
+  submitTelemetryToRigobotViaBeacon,
+} from "../managers/telemetry";
+
+let telemetryLifecycleListenersRegistered = false;
 import { RigoAI } from "../components/Rigobot/AI";
 import { svgs } from "../assets/svgs";
 import { Notifier } from "../managers/Notifier";
@@ -2462,7 +2467,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
       const params = checkParams({ justReturn: true });
 
-      TelemetryManager.start(agent, steps, tutorialSlug, STORAGE_KEY, {
+      await TelemetryManager.start(agent, steps, tutorialSlug, STORAGE_KEY, {
         token: bc_token,
         user_id: String(user.id),
         fullname: user.first_name + " " + user.last_name,
@@ -2470,6 +2475,30 @@ The user's set up the application in "${language}" language, give your feedback 
         cohort_id: params.cohort_id || "",
         academy_id: params.academy_id || "",
       });
+
+      if (agent === "cloud" && !telemetryLifecycleListenersRegistered) {
+        telemetryLifecycleListenersRegistered = true;
+
+        const onVisibility = () => {
+          if (document.hidden) {
+            void TelemetryManager.submit();
+          } else {
+            void TelemetryManager.refreshFromServerIfStale();
+          }
+        };
+
+        let unloadBeaconSent = false;
+        const onUnload = () => {
+          if (unloadBeaconSent) return;
+          unloadBeaconSent = true;
+          submitTelemetryToRigobotViaBeacon();
+        };
+
+        document.addEventListener("visibilitychange", onVisibility);
+        window.addEventListener("beforeunload", onUnload);
+        window.addEventListener("pagehide", onUnload);
+      }
+
       TelemetryManager.registerListener(
         "compile_struggles",
         (stepIndicators) => {
