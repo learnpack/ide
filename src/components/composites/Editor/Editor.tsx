@@ -451,14 +451,16 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
 
   const filteredTabs = tabs.filter((tab) => tab.name !== "terminal");
 
-  const toolbarStateClass = 
+  const ex = getCurrentExercise();
+  const toolbarStateClass =
     lastTestResult?.status === "failed"
-      ? "error"  // Tests failed - keep toolbar red even if compilation succeeds
-      : lastTestResult?.status === "successful" && lastState === "success"
-      ? "success"  // Tests passed - toolbar green
-      : lastState === "error"
-      ? "error"  // Compilation error (no test result yet)
-      : "";  // Normal state
+      ? "error" // Tests failed - keep toolbar red even if compilation succeeds
+      : (lastTestResult?.status === "successful" && lastState === "success") ||
+          ex.done
+        ? "success" // Tests passed or persisted done - toolbar green
+        : lastState === "error"
+          ? "error" // Compilation error (no test result yet)
+          : ""; // Normal state
 
   const onlyContinue = !isBuildable && !isTesteable;
 
@@ -853,16 +855,19 @@ const Terminal = ({
     }
   };
 
-  const toolbarStateClass = 
+  const ex = getCurrentExercise();
+  const toolbarStateClass =
     lastTestResult?.status === "failed"
-      ? "error"  // Tests failed - keep toolbar red even if compilation succeeds
-      : lastTestResult?.status === "successful" && lastState === "success"
-      ? "success"  // Tests passed - toolbar green
-      : lastState === "error"
-      ? "error"  // Compilation error (no test result yet)
-      : "";  // Normal state
+      ? "error" // Tests failed - keep toolbar red even if compilation succeeds
+      : (lastTestResult?.status === "successful" && lastState === "success") ||
+          ex.done
+        ? "success" // Tests passed or persisted done - toolbar green
+        : lastState === "error"
+          ? "error" // Compilation error (no test result yet)
+          : ""; // Normal state
 
-  const onlyContinue = !isTesteable && lastState === "success"; 
+  const onlyContinue =
+    !isTesteable && (lastState === "success" || ex.done);
 
   return (
     <>
@@ -1057,22 +1062,17 @@ export const Toolbar = ({
   isHtml,
 }: EditorFooterProps) => {
   const { t } = useTranslation();
-  const {
-    lastState,
-    getCurrentExercise,
-    currentExercisePosition,
-    exercises,
-  } = useStore((state) => ({
-    lastState: state.lastState,
-    getCurrentExercise: state.getCurrentExercise,
-    currentExercisePosition: state.currentExercisePosition,
-    exercises: state.exercises,
-  }));
+  const { getCurrentExercise, currentExercisePosition, exercises } = useStore(
+    (state) => ({
+      getCurrentExercise: state.getCurrentExercise,
+      currentExercisePosition: state.currentExercisePosition,
+      exercises: state.exercises,
+    })
+  );
 
   const ex = getCurrentExercise();
 
-  const letPass =
-    lastState === "success" && ex.done && editorStatus === "MODIFIED";
+  const letPass = ex.done;
 
   const isLastExercise = currentExercisePosition === exercises.length - 1;
 

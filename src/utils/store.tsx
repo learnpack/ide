@@ -2247,6 +2247,7 @@ The user's set up the application in "${language}" language, give your feedback 
       if (e.slug === exerciseSlug) {
         return {
           ...e,
+          done: false,
           files: e.files.map((f: any) => {
             delete f.content;
             delete f.modified;
