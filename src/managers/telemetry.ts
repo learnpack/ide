@@ -145,7 +145,7 @@ export async function fetchTelemetryFromServer(params: {
 
   const cleanToken = rigoToken.trim();
   const search = new URLSearchParams();
-  search.set("user_id", String(userId));
+  search.set("user_ids", String(userId));
   search.set("include_buffer", "true");
   search.set("include_steps", "true");
   search.set("package_slug", packageSlug);

@@ -7,7 +7,7 @@
 
 ## When the client calls GET `/v1/learnpack/telemetry`
 
-1. **Bootstrap** — On `TelemetryManager.start` for agent `cloud`: GET with `include_buffer=true`, `include_steps=true`, `user_id`, `package_slug`, and **`package_ids` required** (resolve via Rigobot package endpoint, timeout ~5s; if still missing, fallback to `package_id` from cached telemetry **only when `slug` matches** the current course). GET timeout ~5s.
+1. **Bootstrap** — On `TelemetryManager.start` for agent `cloud`: GET with `include_buffer=true`, `include_steps=true`, `user_ids`, `package_slug`, and **`package_ids` required** (resolve via Rigobot package endpoint, timeout ~5s; if still missing, fallback to `package_id` from cached telemetry **only when `slug` matches** the current course). GET timeout ~5s.
 2. **Tab visible again** — On `visibilitychange` when the document becomes visible: if `Date.now() - last_interaction_at` exceeds `TELEMETRY_VISIBILITY_REFRESH_IDLE_MS` (5 minutes), `refreshFromServerIfStale` runs the same GET and replaces local state when the server blob is newer.
 
 ## Reconciliation (MVP)
