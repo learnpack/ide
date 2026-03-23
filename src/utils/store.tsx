@@ -1144,7 +1144,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
       const acceptRigobot = () => {
         const inviteUrl =
-          "https://rigobot.herokuapp.com/invite?referer=4geeks&lang=" +
+          `${RIGOBOT_HOST}/invite?referer=4geeks&lang=` +
           correctLanguage(language) +
           "&token=" +
           bc_token +
