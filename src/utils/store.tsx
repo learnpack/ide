@@ -2467,14 +2467,18 @@ The user's set up the application in "${language}" language, give your feedback 
 
       const params = checkParams({ justReturn: true });
 
-      await TelemetryManager.start(agent, steps, tutorialSlug, STORAGE_KEY, {
-        token: bc_token,
-        user_id: String(user.id),
-        fullname: user.first_name + " " + user.last_name,
-        rigo_token: token,
-        cohort_id: params.cohort_id || "",
-        academy_id: params.academy_id || "",
-      });
+      try {
+        await TelemetryManager.start(agent, steps, tutorialSlug, STORAGE_KEY, {
+          token: bc_token,
+          user_id: String(user.id),
+          fullname: user.first_name + " " + user.last_name,
+          rigo_token: token,
+          cohort_id: params.cohort_id || "",
+          academy_id: params.academy_id || "",
+        });
+      } finally {
+        set({ telemetryReady: true });
+      }
 
       if (agent === "cloud" && !telemetryLifecycleListenersRegistered) {
         telemetryLifecycleListenersRegistered = true;
@@ -2658,6 +2662,7 @@ The user's set up the application in "${language}" language, give your feedback 
     });
   },
   displayTestButton: DEV_MODE,
+  telemetryReady: false,
   getTelemetryStep: async (stepPosition: number) => {
     return await FetchManager.getTelemetryStep(stepPosition);
   },

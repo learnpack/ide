@@ -82,6 +82,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
     reportEnrichDataLayer,
     token,
     setOpenedModals,
+    telemetryReady,
   } = useStore((state) => ({
     registerTelemetryEvent: state.registerTelemetryEvent,
     maxQuizRetries: state.maxQuizRetries,
@@ -92,6 +93,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
     reportEnrichDataLayer: state.reportEnrichDataLayer,
     token: state.token,
     setOpenedModals: state.setOpenedModals,
+    telemetryReady: state.telemetryReady,
   }));
 
 
@@ -134,7 +136,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
   // Recover quiz state from telemetry when component mounts
   useEffect(() => {
     // Only attempt recovery after quiz is fully rendered and has a hash
-    if (!quiz.current.hash || !quizRendered) return;
+    if (!quiz.current.hash || !quizRendered || !telemetryReady) return;
 
     const recoverState = async () => {
       try {
@@ -187,7 +189,13 @@ export const QuizRenderer = ({ children }: { children: any }) => {
     };
 
     recoverState();
-  }, [quiz.current.hash, quizRendered, getTelemetryStep, currentExercisePosition]);
+  }, [
+    quiz.current.hash,
+    quizRendered,
+    getTelemetryStep,
+    currentExercisePosition,
+    telemetryReady,
+  ]);
 
 
   const onGroupReady = (group: TQuizGroup) => {

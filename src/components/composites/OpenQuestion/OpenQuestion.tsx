@@ -54,6 +54,7 @@ export const Question = ({
     getTelemetryStep,
     token,
     setOpenedModals,
+    telemetryReady,
   } = useStore((state) => ({
     replaceInReadme: state.replaceInReadme,
     mode: state.mode,
@@ -64,6 +65,7 @@ export const Question = ({
     reportEnrichDataLayer: state.reportEnrichDataLayer,
     getTelemetryStep: state.getTelemetryStep,
     setOpenedModals: state.setOpenedModals,
+    telemetryReady: state.telemetryReady,
   }));
 
   const [feedback, setFeedback] = useState<TFeedback | null>(null);
@@ -124,7 +126,7 @@ export const Question = ({
 
   // Recover answer state from telemetry when component mounts
   useEffect(() => {
-    if (!questionHash || !metadata.eval) return;
+    if (!questionHash || !metadata.eval || !telemetryReady) return;
 
     const recoverState = async () => {
       try {
@@ -169,7 +171,14 @@ export const Question = ({
     };
 
     recoverState();
-  }, [questionHash, metadata.eval, getTelemetryStep, currentExercisePosition, t]);
+  }, [
+    questionHash,
+    metadata.eval,
+    getTelemetryStep,
+    currentExercisePosition,
+    t,
+    telemetryReady,
+  ]);
 
 
 

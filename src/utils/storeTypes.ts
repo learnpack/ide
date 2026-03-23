@@ -398,6 +398,8 @@ export interface IStore {
   // registerAIInteraction: (setPosition: number, interaction: object) => void;
   sessionActions: (opts: TSessionActionsOpts) => void;
   displayTestButton: boolean;
+  /** True after TelemetryManager.start() has finished (cloud reconciliation included). */
+  telemetryReady: boolean;
   getOrCreateActiveSession: () => void;
   updateDBSession: () => void;
   test: () => void;
