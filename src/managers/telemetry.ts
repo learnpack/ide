@@ -75,7 +75,7 @@ const sendBatchTelemetryRigobot = async function (body: object, token: string) {
 };
 
 const FETCH_TELEMETRY_TIMEOUT_MS = 5000;
-const RESOLVE_PACKAGE_ID_TIMEOUT_MS = 3000;
+const RESOLVE_PACKAGE_ID_TIMEOUT_MS = 5000;
 /** Idle threshold for refreshing telemetry from server when tab becomes visible again */
 export const TELEMETRY_VISIBILITY_REFRESH_IDLE_MS = 5 * 60 * 1000;
 
@@ -133,7 +133,13 @@ export async function fetchTelemetryFromServer(params: {
   rigoToken: string;
 }): Promise<ITelemetryJSONSchema | null> {
   const { userId, packageId, packageSlug, rigoToken } = params;
-  if (!userId || !rigoToken || !packageSlug) {
+  if (
+    !userId ||
+    !rigoToken ||
+    !packageSlug ||
+    packageId == null ||
+    packageId === ""
+  ) {
     return null;
   }
 
@@ -143,9 +149,7 @@ export async function fetchTelemetryFromServer(params: {
   search.set("include_buffer", "true");
   search.set("include_steps", "true");
   search.set("package_slug", packageSlug);
-  if (packageId != null && packageId !== "") {
-    search.set("package_ids", String(packageId));
-  }
+  search.set("package_ids", String(packageId));
 
   const url = `${RIGOBOT_HOST}/v1/learnpack/telemetry?${search.toString()}`;
   const controller = new AbortController();
@@ -625,6 +629,15 @@ const TelemetryManager: ITelemetryManager = {
           }
 
           const localRaw = LocalStorage.get(this.telemetryKey);
+          if (
+            packageId == null &&
+            localRaw &&
+            localRaw.slug === tutorialSlug &&
+            localRaw.package_id
+          ) {
+            packageId = localRaw.package_id;
+          }
+
           const localTelemetry =
             localRaw && localRaw.slug === tutorialSlug ? localRaw : null;
 
