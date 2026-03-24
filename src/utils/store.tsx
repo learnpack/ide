@@ -502,6 +502,19 @@ const useStore = create<IStore>((set, get) => ({
         setBuildButtonPrompt("Try again", "bg-fail text-white");
       }
       playEffect("error");
+
+      if (environment === "localStorage" || environment === "creatorWeb") {
+        const currentExercise = getCurrentExercise();
+        TelemetryManager.registerTesteableElement(
+          Number(currentExercise.position),
+          {
+            hash: currentExercise.slug,
+            searchString: currentExercise.slug,
+            type: "test",
+            is_completed: false,
+          }
+        );
+      }
     }, 100);
 
     let compilerErrorHandler = debounce(async (data: any) => {
@@ -2310,8 +2323,14 @@ The user's set up the application in "${language}" language, give your feedback 
     reportEnrichDataLayer("learnpack_reset", {});
   },
   unlockExerciseEditing: () => {
-    const { exercises, currentExercisePosition, editorTabs, updateDBSession } =
-      get();
+    const {
+      exercises,
+      currentExercisePosition,
+      editorTabs,
+      updateDBSession,
+      environment,
+      mode,
+    } = get();
     const pos = Number(currentExercisePosition);
     const exercise = exercises[pos];
 
@@ -2327,6 +2346,18 @@ The user's set up the application in "${language}" language, give your feedback 
 
     set({ exercises: copy });
     updateDBSession();
+
+    const isWebStudent =
+      environment === "localStorage" ||
+      (environment === "creatorWeb" && mode !== "creator");
+    if (isWebStudent) {
+      TelemetryManager.registerTesteableElement(Number(exercise.position), {
+        hash: exercise.slug,
+        searchString: exercise.slug,
+        type: "test",
+        is_completed: false,
+      });
+    }
   },
   sessionActions: async ({ action = "new" }) => {
     const {

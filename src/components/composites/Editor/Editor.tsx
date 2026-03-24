@@ -681,7 +681,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                             </span>
                             <button
                               type="button"
-                              className="btn btn-sm btn-outline-light shrink-0"
+                              className="btn btn-sm shrink-0 bg-white text-success border-0 fw-semibold rounded-sm px-2 py-1"
                               onClick={() => unlockExerciseEditing()}
                             >
                               {t("exercise-done-unlock-edit")}
