@@ -265,7 +265,15 @@ export const FetchManager = {
       },
     };
 
-    return await methods[FetchManager.ENVIRONMENT as keyof TMethods]();
+    const env = (FetchManager.ENVIRONMENT || ENVIRONMENT) as keyof TMethods;
+    const method = methods[env];
+    if (!method) {
+      console.error(
+        `getExerciseInfo: no handler for environment "${String(env)}"`
+      );
+      return null;
+    }
+    return await method();
   },
   saveFileContent: async (slug: string, filename: string, content: string) => {
     const methods: TMethods = {
