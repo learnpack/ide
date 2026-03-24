@@ -667,6 +667,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                     const gradingStr = grading != null ? String(grading).trim() : "";
                     const showDoneReadonlyBanner =
                       exDoneReadonly.done &&
+                      !tab.name.includes("solution.hide") &&
                       gradingStr !== "" &&
                       gradingStr !== "no-grading" &&
                       isWebStudent;
