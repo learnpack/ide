@@ -9,7 +9,11 @@ import { Notifier } from "../../../managers/Notifier";
 import { svgs } from "../../../assets/svgs";
 import TelemetryManager, { TQuizSubmission } from "../../../managers/telemetry";
 import { eventBus } from "@/managers/eventBus";
-import { makeQuizSubmission, type TQuizGroup } from "./quizSubmissionUtils";
+import {
+  getLatestQuizSubmission,
+  makeQuizSubmission,
+  type TQuizGroup,
+} from "./quizSubmissionUtils";
 
 type TQuiz = {
   hash: string;
@@ -107,19 +111,18 @@ export const QuizRenderer = ({ children }: { children: any }) => {
 
         if (submissions.length === 0) return;
 
-        // Get the last submission (successful or failed)
-        const lastSubmission = submissions[submissions.length - 1];
+        const latestSubmission = getLatestQuizSubmission(submissions);
 
-        if (!lastSubmission) return;
-       
+        if (!latestSubmission) return;
+
         // Restore attempts history
         quiz.current.attempts = submissions;
 
         // Create an object with restored selections for React state
         const restored: Record<string, string> = {};
         
-        // Restore selections from telemetry
-        lastSubmission.selections?.forEach((selection) => {
+        // Restore selections from telemetry (latest attempt by timestamp)
+        latestSubmission.selections?.forEach((selection) => {
           // Store directly in state for React to render
           restored[selection.question] = selection.answer;
           
@@ -173,8 +176,10 @@ export const QuizRenderer = ({ children }: { children: any }) => {
   };
 
   const onGroupRendered = async (title: string) => {
-    quiz.current.renderedGroups.push(title);
-    
+    if (!quiz.current.renderedGroups.includes(title)) {
+      quiz.current.renderedGroups.push(title);
+    }
+
     if (quiz.current.renderedGroups.length === liChildren.length) {
       quiz.current.hash = await asyncHashText(
         quiz.current.renderedGroups.join(" ")
@@ -190,13 +195,6 @@ export const QuizRenderer = ({ children }: { children: any }) => {
       return;
     }
     if (Object.keys(quiz.current.groups).length === liChildren.length) {
-      const hash = await asyncHashText(
-        Object.values(quiz.current.groups)
-          .map((group) => group.title)
-          .join(" ")
-      );
-      quiz.current.hash = hash;
-
       const currentStep = await getTelemetryStep(
         Number(currentExercisePosition)
       );
