@@ -2279,7 +2279,7 @@ The user's set up the application in "${language}" language, give your feedback 
       throw error;
     }
   },
-  resetExercise: ({ exerciseSlug }) => {
+  resetExercise: async ({ exerciseSlug }) => {
     const {
       updateEditorTabs,
       exercises,
@@ -2288,13 +2288,16 @@ The user's set up the application in "${language}" language, give your feedback 
       setEditorTabs,
       editorTabs,
       reportEnrichDataLayer,
+      configObject,
+      environment,
+      mode,
     } = get();
 
     if (editorTabs.find((tab) => tab.name === "terminal")) {
       setEditorTabs(editorTabs.filter((tab) => tab.name !== "terminal"));
     }
 
-    let newExercises = exercises.map((e) => {
+    const newExercises = exercises.map((e) => {
       if (e.slug === exerciseSlug) {
         return {
           ...e,
@@ -2311,9 +2314,24 @@ The user's set up the application in "${language}" language, give your feedback 
       }
     });
 
-    set({ exercises: newExercises, lastState: "" });
+    const updatedConfigExercises = (configObject.exercises || []).map(
+      (ex: TExercise) => {
+        const fresh = newExercises.find((e) => e.slug === ex.slug);
+        return fresh ?? ex;
+      }
+    );
 
-    updateDBSession();
+    set({
+      exercises: newExercises,
+      lastState: "",
+      configObject: { ...configObject, exercises: updatedConfigExercises },
+    });
+
+    try {
+      await updateDBSession();
+    } catch (e) {
+      console.error("updateDBSession failed after resetExercise", e);
+    }
 
     const data = {
       exerciseSlug: exerciseSlug,
@@ -2321,6 +2339,21 @@ The user's set up the application in "${language}" language, give your feedback 
     };
     compilerSocket.emit("reset", data);
     reportEnrichDataLayer("learnpack_reset", {});
+
+    const isWebStudent =
+      environment === "localStorage" ||
+      (environment === "creatorWeb" && mode !== "creator");
+    if (isWebStudent) {
+      const exercise = newExercises.find((e) => e.slug === exerciseSlug);
+      if (exercise) {
+        TelemetryManager.registerTesteableElement(Number(exercise.position), {
+          hash: exercise.slug,
+          searchString: exercise.slug,
+          type: "test",
+          is_completed: false,
+        });
+      }
+    }
   },
   unlockExerciseEditing: () => {
     const {

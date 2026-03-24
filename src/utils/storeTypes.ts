@@ -403,7 +403,7 @@ export interface IStore {
     opts?: Partial<TRunExerciseTestsOptions>,
     submittedInputs?: string[]
   ) => void;
-  resetExercise: (opts: TResetExerciseOpts) => void;
+  resetExercise: (opts: TResetExerciseOpts) => Promise<void>;
   /** Web student: exit read-only approved state and allow editing again (clears approved_solution_files). */
   unlockExerciseEditing: () => void;
   // registerAIInteraction: (setPosition: number, interaction: object) => void;
