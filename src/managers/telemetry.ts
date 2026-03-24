@@ -226,38 +226,89 @@ export function reconcileTelemetry(
     localTelemetry && localTelemetry.slug === tutorialSlug;
 
   if (hasServer && !hasLocal) {
-    return { telemetry: { ...serverTelemetry! }, source: "server" };
+    return {
+      telemetry: normalizeTelemetrySchema(
+        { ...serverTelemetry! },
+        freshSteps,
+        tutorialSlug,
+        agent,
+        appVersion
+      ),
+      source: "server",
+    };
   }
   if (!hasServer && hasLocal) {
-    return { telemetry: { ...localTelemetry! }, source: "local" };
+    return {
+      telemetry: normalizeTelemetrySchema(
+        { ...localTelemetry! },
+        freshSteps,
+        tutorialSlug,
+        agent,
+        appVersion
+      ),
+      source: "local",
+    };
   }
   if (hasServer && hasLocal) {
     const serverTs = telemetryTimestamp(serverTelemetry!);
     const localTs = telemetryTimestamp(localTelemetry!);
     if (serverTs > localTs) {
-      return { telemetry: { ...serverTelemetry! }, source: "server" };
+      return {
+        telemetry: normalizeTelemetrySchema(
+          { ...serverTelemetry! },
+          freshSteps,
+          tutorialSlug,
+          agent,
+          appVersion
+        ),
+        source: "server",
+      };
     }
     if (localTs > serverTs) {
-      return { telemetry: { ...localTelemetry! }, source: "local" };
+      return {
+        telemetry: normalizeTelemetrySchema(
+          { ...localTelemetry! },
+          freshSteps,
+          tutorialSlug,
+          agent,
+          appVersion
+        ),
+        source: "local",
+      };
     }
-    return { telemetry: { ...serverTelemetry! }, source: "server" };
+    return {
+      telemetry: normalizeTelemetrySchema(
+        { ...serverTelemetry! },
+        freshSteps,
+        tutorialSlug,
+        agent,
+        appVersion
+      ),
+      source: "server",
+    };
   }
 
   const now = Date.now();
   return {
-    telemetry: {
-      telemetry_id: createUUID(),
-      slug: tutorialSlug,
-      version: `${appVersion}`,
+    telemetry: normalizeTelemetrySchema(
+      {
+        telemetry_id: createUUID(),
+        slug: tutorialSlug,
+        version: `${appVersion}`,
+        agent,
+        tutorial_started_at: now,
+        last_interaction_at: now,
+        steps: freshSteps,
+        workout_session: [{ started_at: now }],
+        fullname: "",
+        cohort_id: null,
+        academy_id: null,
+      },
+      freshSteps,
+      tutorialSlug,
       agent,
-      tutorial_started_at: now,
-      last_interaction_at: now,
-      steps: freshSteps,
-      workout_session: [{ started_at: now }],
-      fullname: "",
-      cohort_id: null,
-      academy_id: null,
-    },
+      appVersion
+    ),
     source: "new",
   };
 }
@@ -482,6 +533,110 @@ export interface ITelemetryJSONSchema {
   // number and start another session
   global_metrics?: GlobalMetrics;
   global_indicators?: TIndicators;
+}
+
+/** Allowed top-level keys for persisted telemetry (strips API metadata: id, email, created_at, etc.). */
+const TELEMETRY_WHITELIST_KEYS = [
+  "telemetry_id",
+  "user_id",
+  "fullname",
+  "slug",
+  "package_id",
+  "version",
+  "cohort_id",
+  "academy_id",
+  "agent",
+  "tutorial_started_at",
+  "last_interaction_at",
+  "steps",
+  "workout_session",
+  "global_metrics",
+  "global_indicators",
+] as const;
+
+function normalizeNullableId(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "string" && value.trim() === "") return null;
+  if (typeof value === "number" && !Number.isNaN(value)) return String(value);
+  if (typeof value === "string") return value;
+  return null;
+}
+
+function normalizeWorkoutSession(raw: unknown, now: number): TWorkoutSession[] {
+  if (!Array.isArray(raw)) {
+    return [{ started_at: now }];
+  }
+  if (raw.length === 0) {
+    return [{ started_at: now }];
+  }
+  const filtered = raw.filter(
+    (item): item is TWorkoutSession =>
+      Boolean(item) &&
+      typeof item === "object" &&
+      typeof (item as TWorkoutSession).started_at === "number"
+  );
+  if (filtered.length === 0) {
+    return [{ started_at: now }];
+  }
+  return filtered;
+}
+
+/**
+ * Ensures telemetry matches ITelemetryJSONSchema and strips non-contract fields from server/local blobs.
+ */
+export function normalizeTelemetrySchema(
+  rawInput: ITelemetryJSONSchema | Record<string, unknown>,
+  freshSteps: TStep[],
+  tutorialSlug: string,
+  agent: TAgent,
+  appVersion: string
+): ITelemetryJSONSchema {
+  const raw = rawInput as Record<string, unknown>;
+  const picked: Partial<ITelemetryJSONSchema> = {};
+  for (const key of TELEMETRY_WHITELIST_KEYS) {
+    if (Object.prototype.hasOwnProperty.call(raw, key)) {
+      (picked as Record<string, unknown>)[key] = raw[key];
+    }
+  }
+  const now = Date.now();
+  const slug =
+    typeof picked.slug === "string" && picked.slug.trim() !== ""
+      ? picked.slug
+      : tutorialSlug;
+  const version =
+    typeof picked.version === "string" && picked.version.trim() !== ""
+      ? picked.version
+      : `${appVersion}`;
+  const tutorial_started_at =
+    typeof picked.tutorial_started_at === "number"
+      ? picked.tutorial_started_at
+      : now;
+  const last_interaction_at =
+    typeof picked.last_interaction_at === "number"
+      ? picked.last_interaction_at
+      : now;
+  const steps =
+    Array.isArray(picked.steps) && picked.steps.length > 0
+      ? (picked.steps as TStep[])
+      : freshSteps;
+  const workout_session = normalizeWorkoutSession(picked.workout_session, now);
+  return {
+    telemetry_id: picked.telemetry_id,
+    user_id: picked.user_id,
+    fullname: picked.fullname,
+    slug,
+    package_id: picked.package_id,
+    version,
+    cohort_id: normalizeNullableId(picked.cohort_id),
+    academy_id: normalizeNullableId(picked.academy_id),
+    agent: typeof picked.agent === "string" ? picked.agent : agent,
+    tutorial_started_at,
+    last_interaction_at,
+    steps,
+    workout_session,
+    global_metrics: picked.global_metrics,
+    global_indicators: picked.global_indicators,
+  };
 }
 
 function buildSubmitPayload(
@@ -718,7 +873,13 @@ const TelemetryManager: ITelemetryManager = {
     return this.retrieve()
       .then((prevTelemetry) => {
         if (prevTelemetry) {
-          this.current = prevTelemetry;
+          this.current = normalizeTelemetrySchema(
+            prevTelemetry,
+            steps,
+            tutorialSlug,
+            agent,
+            this.version
+          );
           this.finishWorkoutSession();
         } else {
           console.debug(
@@ -726,29 +887,35 @@ const TelemetryManager: ITelemetryManager = {
             agent
           );
 
-          this.current = {
-            telemetry_id: createUUID(),
-            slug: tutorialSlug,
-            version: `${this.version}`,
-            agent,
-            tutorial_started_at: Date.now(),
-            last_interaction_at: Date.now(),
+          this.current = normalizeTelemetrySchema(
+            {
+              telemetry_id: createUUID(),
+              slug: tutorialSlug,
+              version: `${this.version}`,
+              agent,
+              tutorial_started_at: Date.now(),
+              last_interaction_at: Date.now(),
+              steps,
+              workout_session: [
+                {
+                  started_at: Date.now(),
+                },
+              ],
+              fullname: this.user.fullname,
+              cohort_id: null,
+              academy_id: null,
+            },
             steps,
-            workout_session: [
-              {
-                started_at: Date.now(),
-              },
-            ],
-            fullname: this.user.fullname,
-            cohort_id: null,
-            academy_id: null,
-          };
+            tutorialSlug,
+            agent,
+            this.version
+          );
         }
 
         this.current.user_id = this.user.id;
         this.current.fullname = this.user.fullname;
-        this.current.cohort_id = student.cohort_id;
-        this.current.academy_id = student.academy_id;
+        this.current.cohort_id = student.cohort_id || null;
+        this.current.academy_id = student.academy_id || null;
 
         if (!this.current.version) {
           this.current.version = `CLOUD:${this.version}`;
@@ -823,13 +990,19 @@ const TelemetryManager: ITelemetryManager = {
       return;
     }
 
-    this.current = {
-      ...server,
-      user_id: this.user.id,
-      fullname: this.user.fullname,
-      cohort_id: server.cohort_id ?? this.current.cohort_id,
-      academy_id: server.academy_id ?? this.current.academy_id,
-    };
+    this.current = normalizeTelemetrySchema(
+      {
+        ...server,
+        user_id: this.user.id,
+        fullname: this.user.fullname,
+        cohort_id: server.cohort_id ?? this.current.cohort_id,
+        academy_id: server.academy_id ?? this.current.academy_id,
+      },
+      this.current.steps,
+      this.tutorialSlug,
+      this.agent,
+      this.version
+    );
     this.save();
   },
 
@@ -918,8 +1091,14 @@ const TelemetryManager: ITelemetryManager = {
       return;
     }
 
+    if (!Array.isArray(this.current.workout_session)) {
+      this.current.workout_session = [{ started_at: Date.now() }];
+    } else if (this.current.workout_session.length === 0) {
+      this.current.workout_session.push({ started_at: Date.now() });
+    }
+
     const lastSession =
-      this.current?.workout_session[this.current.workout_session.length - 1];
+      this.current.workout_session[this.current.workout_session.length - 1];
     if (
       lastSession &&
       !lastSession.ended_at &&

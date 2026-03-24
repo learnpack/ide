@@ -82,6 +82,8 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     lessonSyncInProgress,
     environment,
     syncLessonFilesFromEditor,
+    configObject,
+    unlockExerciseEditing,
   } = useStore((state) => ({
     tabs: state.editorTabs,
     setTabs: state.setEditorTabs,
@@ -101,6 +103,8 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     lessonSyncInProgress: state.lessonSyncInProgress,
     environment: state.environment,
     syncLessonFilesFromEditor: state.syncLessonFilesFromEditor,
+    configObject: state.configObject,
+    unlockExerciseEditing: state.unlockExerciseEditing,
   }));
 
   const { t } = useTranslation();
@@ -451,14 +455,16 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
 
   const filteredTabs = tabs.filter((tab) => tab.name !== "terminal");
 
-  const toolbarStateClass = 
+  const ex = getCurrentExercise();
+  const toolbarStateClass =
     lastTestResult?.status === "failed"
-      ? "error"  // Tests failed - keep toolbar red even if compilation succeeds
-      : lastTestResult?.status === "successful" && lastState === "success"
-      ? "success"  // Tests passed - toolbar green
-      : lastState === "error"
-      ? "error"  // Compilation error (no test result yet)
-      : "";  // Normal state
+      ? "error" // Tests failed - keep toolbar red even if compilation succeeds
+      : (lastTestResult?.status === "successful" && lastState === "success") ||
+          ex.done
+        ? "success" // Tests passed or persisted done - toolbar green
+        : lastState === "error"
+          ? "error" // Compilation error (no test result yet)
+          : ""; // Normal state
 
   const onlyContinue = !isBuildable && !isTesteable;
 
@@ -653,8 +659,36 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                         </div>
                       );
                     }
+                    const exDoneReadonly = getCurrentExercise();
+                    const grading = configObject.config?.grading;
+                    const isWebStudent =
+                      environment === "localStorage" ||
+                      (environment === "creatorWeb" && mode !== "creator");
+                    const gradingStr = grading != null ? String(grading).trim() : "";
+                    const showDoneReadonlyBanner =
+                      exDoneReadonly.done &&
+                      !tab.name.includes("solution.hide") &&
+                      gradingStr !== "" &&
+                      gradingStr !== "no-grading" &&
+                      isWebStudent;
                     return (
                       <>
+                        {showDoneReadonlyBanner && (
+                          <div className="padding-small margin-children-none text-small bg-success text-white d-flex align-center justify-between gap-small flex-wrap">
+                            <span>
+                              {grading === "incremental"
+                                ? t("exercise-done-readonly-banner-incremental")
+                                : t("exercise-done-readonly-banner-isolated")}
+                            </span>
+                            <button
+                              type="button"
+                              className="btn btn-sm shrink-0 bg-white text-success border-0 fw-semibold rounded-sm px-2 py-1"
+                              onClick={() => unlockExerciseEditing()}
+                            >
+                              {t("exercise-done-unlock-edit")}
+                            </button>
+                          </div>
+                        )}
                         {tab.name.includes("solution.hide") && mode !== "creator" && (
                           <div className=" padding-small margin-children-none text-small bg-warning text-black">
                             <Markdowner
@@ -699,7 +733,8 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                             lineNumbersMinChars: 3,
                             readOnly:
                               tab.name === "terminal" ||
-                              (tab.name.includes("solution.hide") && mode !== "creator"),
+                              (tab.name.includes("solution.hide") && mode !== "creator") ||
+                              showDoneReadonlyBanner,
                           }}
                         />
                       </>
@@ -853,16 +888,19 @@ const Terminal = ({
     }
   };
 
-  const toolbarStateClass = 
+  const ex = getCurrentExercise();
+  const toolbarStateClass =
     lastTestResult?.status === "failed"
-      ? "error"  // Tests failed - keep toolbar red even if compilation succeeds
-      : lastTestResult?.status === "successful" && lastState === "success"
-      ? "success"  // Tests passed - toolbar green
-      : lastState === "error"
-      ? "error"  // Compilation error (no test result yet)
-      : "";  // Normal state
+      ? "error" // Tests failed - keep toolbar red even if compilation succeeds
+      : (lastTestResult?.status === "successful" && lastState === "success") ||
+          ex.done
+        ? "success" // Tests passed or persisted done - toolbar green
+        : lastState === "error"
+          ? "error" // Compilation error (no test result yet)
+          : ""; // Normal state
 
-  const onlyContinue = !isTesteable && lastState === "success"; 
+  const onlyContinue =
+    !isTesteable && (lastState === "success" || ex.done);
 
   return (
     <>
@@ -1057,22 +1095,17 @@ export const Toolbar = ({
   isHtml,
 }: EditorFooterProps) => {
   const { t } = useTranslation();
-  const {
-    lastState,
-    getCurrentExercise,
-    currentExercisePosition,
-    exercises,
-  } = useStore((state) => ({
-    lastState: state.lastState,
-    getCurrentExercise: state.getCurrentExercise,
-    currentExercisePosition: state.currentExercisePosition,
-    exercises: state.exercises,
-  }));
+  const { getCurrentExercise, currentExercisePosition, exercises } = useStore(
+    (state) => ({
+      getCurrentExercise: state.getCurrentExercise,
+      currentExercisePosition: state.currentExercisePosition,
+      exercises: state.exercises,
+    })
+  );
 
   const ex = getCurrentExercise();
 
-  const letPass =
-    lastState === "success" && ex.done && editorStatus === "MODIFIED";
+  const letPass = ex.done;
 
   const isLastExercise = currentExercisePosition === exercises.length - 1;
 

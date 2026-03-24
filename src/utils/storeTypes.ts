@@ -73,6 +73,13 @@ type TFile = {
   name: string;
   path: string;
 };
+
+/** Student code snapshot at the moment tests passed (persisted in session, web env only). */
+export type TApprovedSolutionFile = {
+  name: string;
+  content: string;
+};
+
 export type TExercise = {
   path: any;
   files: TFile[];
@@ -80,6 +87,8 @@ export type TExercise = {
   title: string;
   translations: Record<string, string>;
   done: boolean;
+  /** Student files when tests passed; excluded from package solution.hide tabs. */
+  approved_solution_files?: TApprovedSolutionFile[];
   graded: boolean;
   position: number;
   language: string;
@@ -394,7 +403,9 @@ export interface IStore {
     opts?: Partial<TRunExerciseTestsOptions>,
     submittedInputs?: string[]
   ) => void;
-  resetExercise: (opts: TResetExerciseOpts) => void;
+  resetExercise: (opts: TResetExerciseOpts) => Promise<void>;
+  /** Web student: exit read-only approved state and allow editing again (clears approved_solution_files). */
+  unlockExerciseEditing: () => void;
   // registerAIInteraction: (setPosition: number, interaction: object) => void;
   sessionActions: (opts: TSessionActionsOpts) => void;
   displayTestButton: boolean;
