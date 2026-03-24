@@ -82,6 +82,8 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     lessonSyncInProgress,
     environment,
     syncLessonFilesFromEditor,
+    configObject,
+    unlockExerciseEditing,
   } = useStore((state) => ({
     tabs: state.editorTabs,
     setTabs: state.setEditorTabs,
@@ -101,6 +103,8 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     lessonSyncInProgress: state.lessonSyncInProgress,
     environment: state.environment,
     syncLessonFilesFromEditor: state.syncLessonFilesFromEditor,
+    configObject: state.configObject,
+    unlockExerciseEditing: state.unlockExerciseEditing,
   }));
 
   const { t } = useTranslation();
@@ -655,8 +659,35 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                         </div>
                       );
                     }
+                    const exDoneReadonly = getCurrentExercise();
+                    const grading = configObject.config?.grading;
+                    const isWebStudent =
+                      environment === "localStorage" ||
+                      (environment === "creatorWeb" && mode !== "creator");
+                    const gradingStr = grading != null ? String(grading).trim() : "";
+                    const showDoneReadonlyBanner =
+                      exDoneReadonly.done &&
+                      gradingStr !== "" &&
+                      gradingStr !== "no-grading" &&
+                      isWebStudent;
                     return (
                       <>
+                        {showDoneReadonlyBanner && (
+                          <div className="padding-small margin-children-none text-small bg-success text-white d-flex align-center justify-between gap-small flex-wrap">
+                            <span>
+                              {grading === "incremental"
+                                ? t("exercise-done-readonly-banner-incremental")
+                                : t("exercise-done-readonly-banner-isolated")}
+                            </span>
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-outline-light shrink-0"
+                              onClick={() => unlockExerciseEditing()}
+                            >
+                              {t("exercise-done-unlock-edit")}
+                            </button>
+                          </div>
+                        )}
                         {tab.name.includes("solution.hide") && mode !== "creator" && (
                           <div className=" padding-small margin-children-none text-small bg-warning text-black">
                             <Markdowner
@@ -701,7 +732,8 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                             lineNumbersMinChars: 3,
                             readOnly:
                               tab.name === "terminal" ||
-                              (tab.name.includes("solution.hide") && mode !== "creator"),
+                              (tab.name.includes("solution.hide") && mode !== "creator") ||
+                              showDoneReadonlyBanner,
                           }}
                         />
                       </>

@@ -33,6 +33,7 @@ import {
 import {
   IStore,
   TAgent,
+  TApprovedSolutionFile,
   TExercise,
   TMode,
   TParamsActions,
@@ -146,7 +147,9 @@ const mergeExercisesWithSession = (
     );
     return {
       ...currentEx,
-      done: sessionEx?.done ?? currentEx.done ?? false
+      done: sessionEx?.done ?? currentEx.done ?? false,
+      approved_solution_files:
+        sessionEx?.approved_solution_files ?? currentEx.approved_solution_files,
     };
   });
 };
@@ -1764,17 +1767,52 @@ The user's set up the application in "${language}" language, give your feedback 
 
   setTestResult: (status, logs) => {
     logs;
-    const { exercises, currentExercisePosition, updateDBSession } = get();
+    const {
+      exercises,
+      currentExercisePosition,
+      editorTabs,
+      environment,
+      mode,
+      updateDBSession,
+    } = get();
     const copy = [...exercises];
+    const pos = Number(currentExercisePosition);
 
-    copy[Number(currentExercisePosition)].done = status === "successful";
+    copy[pos].done = status === "successful";
+
+    const isWebStudent =
+      environment === "localStorage" ||
+      (environment === "creatorWeb" && mode !== "creator");
+
+    if (status === "successful" && isWebStudent) {
+      const MAX_FILE_SIZE = 50 * 1024;
+      const MAX_TOTAL_SIZE = 200 * 1024;
+      let totalSize = 0;
+      const approvedFiles: TApprovedSolutionFile[] = [];
+
+      for (const tab of editorTabs) {
+        if (tab.name === "terminal") continue;
+        if (tab.name.includes("solution.hide")) continue;
+
+        const size = new Blob([tab.content || ""]).size;
+        if (size > MAX_FILE_SIZE) continue;
+        if (totalSize + size > MAX_TOTAL_SIZE) break;
+
+        approvedFiles.push({ name: tab.name, content: tab.content || "" });
+        totalSize += size;
+      }
+
+      copy[pos].approved_solution_files = approvedFiles;
+    } else if (status === "failed") {
+      copy[pos].approved_solution_files = undefined;
+    }
 
     set({
       exercises: copy,
       lastTestResult: {
         status: status,
         logs: logs,
-      }
+      },
     });
 
     updateDBSession();
@@ -2248,6 +2286,7 @@ The user's set up the application in "${language}" language, give your feedback 
         return {
           ...e,
           done: false,
+          approved_solution_files: undefined,
           files: e.files.map((f: any) => {
             delete f.content;
             delete f.modified;
@@ -2269,6 +2308,25 @@ The user's set up the application in "${language}" language, give your feedback 
     };
     compilerSocket.emit("reset", data);
     reportEnrichDataLayer("learnpack_reset", {});
+  },
+  unlockExerciseEditing: () => {
+    const { exercises, currentExercisePosition, editorTabs, updateDBSession } =
+      get();
+    const pos = Number(currentExercisePosition);
+    const exercise = exercises[pos];
+
+    const withoutTerminal = editorTabs.filter((t) => t.name !== "terminal");
+    LocalStorage.setEditorTabs(exercise.slug, withoutTerminal);
+
+    const copy = [...exercises];
+    copy[pos] = {
+      ...copy[pos],
+      done: false,
+      approved_solution_files: undefined,
+    };
+
+    set({ exercises: copy });
+    updateDBSession();
   },
   sessionActions: async ({ action = "new" }) => {
     const {
