@@ -9,6 +9,10 @@ import emoji from "remark-emoji";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark as prismStyle } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { QuizRenderer } from "../QuizRenderer/QuizRenderer";
+import {
+  buildFillInTheBlankIdentityString,
+  makeFillInTheBlankSubmission,
+} from "../QuizRenderer/quizSubmissionUtils";
 import { RigoQuestion } from "../RigoQuestion/RigoQuestion";
 import { CommunityLink } from "../CommunityLink/CommunityLink";
 import { CreatorWrapper } from "../../Creator/Creator";
@@ -21,8 +25,8 @@ import {
 } from "@/components/ui/tooltip";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { useState, useEffect } from "react";
-import { DEV_MODE } from "../../../utils/lib";
+import { useState, useEffect, useRef } from "react";
+import { DEV_MODE, asyncHashText, debounce, playEffect } from "../../../utils/lib";
 
 
 import MermaidRenderer from "../MermaidRenderer/MermaidRenderer";
@@ -42,6 +46,8 @@ import { isRunnableCodeBlock } from "../../../utils/runnableDetection";
 import MonacoEditor from "@monaco-editor/react";
 import { Toolbar } from "../Editor/Editor";
 import { eventBus } from "@/managers/eventBus";
+import TelemetryManager from "../../../managers/telemetry";
+import { Notifier } from "../../../managers/Notifier";
 
 
 const ClickMeToGetID = ({ id }: { id: string }) => {
@@ -1021,20 +1027,120 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [quizHash, setQuizHash] = useState("");
+  const hashRef = useRef("");
+  const startedAtRef = useRef(0);
+  const hasRestoredData = useRef(false);
+
   const { t } = useTranslation();
-  const { token, setOpenedModals } = useStore((state) => ({
+  const {
+    token,
+    setOpenedModals,
+    registerTelemetryEvent,
+    getTelemetryStep,
+    currentExercisePosition,
+    telemetryReady,
+    maxQuizRetries,
+    recordConsumable,
+    toastFromStatus,
+    reportEnrichDataLayer,
+  } = useStore((state) => ({
     token: state.token,
     setOpenedModals: state.setOpenedModals,
+    registerTelemetryEvent: state.registerTelemetryEvent,
+    getTelemetryStep: state.getTelemetryStep,
+    currentExercisePosition: state.currentExercisePosition,
+    telemetryReady: state.telemetryReady,
+    maxQuizRetries: state.maxQuizRetries,
+    recordConsumable: state.useConsumable,
+    toastFromStatus: state.toastFromStatus,
+    reportEnrichDataLayer: state.reportEnrichDataLayer,
   }));
 
   // Extract correct answers from metadata
   const correctAnswers: Record<string, string[]> = {};
   Object.keys(metadata).forEach(key => {
-    if (key.match(/^\d+$/)) { // Check if key is a number
-      const answers = metadata[key] as string;
-      correctAnswers[key] = answers.split(',').map(answer => answer.trim().toLowerCase());
+    if (key.match(/^\d+$/)) {
+      const ans = metadata[key] as string;
+      correctAnswers[key] = ans.split(',').map((a) => a.trim().toLowerCase());
     }
   });
+
+  useEffect(() => {
+    const run = async () => {
+      const id = buildFillInTheBlankIdentityString(code, metadata as Record<string, unknown>);
+      const h = await asyncHashText(id);
+      hashRef.current = h;
+      setQuizHash(h);
+    };
+    run();
+  }, [code, metadata]);
+
+  const registerFitb = async () => {
+    if (!hashRef.current) return;
+    TelemetryManager.registerTesteableElement(Number(currentExercisePosition), {
+      type: "quiz",
+      hash: hashRef.current,
+      searchString: code.slice(0, 200) || "",
+    });
+  };
+
+  const debouncedRegisterFitb = debounce(registerFitb, 2000);
+
+  useEffect(() => {
+    if (quizHash) {
+      debouncedRegisterFitb();
+    }
+    return () => {
+      debouncedRegisterFitb.cancel();
+    };
+  }, [quizHash]);
+
+  useEffect(() => {
+    if (!quizHash || !telemetryReady) return;
+
+    const recoverState = async () => {
+      try {
+        const currentStep = await getTelemetryStep(Number(currentExercisePosition));
+        if (!currentStep?.quiz_submissions) return;
+
+        const submissions = currentStep.quiz_submissions.filter(
+          (s) => s.quiz_hash === quizHash
+        );
+        if (submissions.length === 0) return;
+
+        const lastSubmission = submissions[submissions.length - 1];
+        if (!lastSubmission?.selections?.length) return;
+
+        const restored: Record<string, string> = {};
+        lastSubmission.selections.forEach((sel) => {
+          const m = /^blank_(\d+)$/.exec(sel.question);
+          if (m) restored[m[1]] = sel.answer;
+        });
+
+        setAnswers(restored);
+        setSubmitted(true);
+        setShowResults(true);
+        hasRestoredData.current = true;
+      } catch (error) {
+        console.error("Error recovering fill-in-the-blank from telemetry:", error);
+      }
+    };
+
+    recoverState();
+  }, [quizHash, telemetryReady, getTelemetryStep, currentExercisePosition]);
+
+  const onAnswerChange = (blankNum: string, value: string) => {
+    if (startedAtRef.current === 0) {
+      startedAtRef.current = Date.now();
+    }
+    if (hasRestoredData.current) {
+      setSubmitted(false);
+      setShowResults(false);
+      hasRestoredData.current = false;
+    }
+    setAnswers((prev) => ({ ...prev, [blankNum]: value }));
+  };
 
   // Parse the text and create JSX elements
   const parseTextWithInputs = () => {
@@ -1044,12 +1150,10 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
     let match;
 
     while ((match = blankRegex.exec(code)) !== null) {
-      // Add text before the blank
       if (match.index > lastIndex) {
         parts.push(code.slice(lastIndex, match.index));
       }
 
-      // Add input field for the blank
       const blankNum = match[1];
       const isCorrect = submitted && correctAnswers[blankNum]?.includes(answers[blankNum]?.toLowerCase());
       const isIncorrect = submitted && answers[blankNum] && !correctAnswers[blankNum]?.includes(answers[blankNum]?.toLowerCase());
@@ -1070,7 +1174,7 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
           className={inputClassName}
           placeholder="Type your answer..."
           value={answers[blankNum] || ''}
-          onChange={(e) => setAnswers(prev => ({ ...prev, [blankNum]: e.target.value }))}
+          onChange={(e) => onAnswerChange(blankNum, e.target.value)}
           readOnly={submitted}
         />
       );
@@ -1078,7 +1182,6 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
       lastIndex = match.index + match[0].length;
     }
 
-    // Add remaining text
     if (lastIndex < code.length) {
       parts.push(code.slice(lastIndex));
     }
@@ -1095,7 +1198,6 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
   }
   const uniqueBlanks = [...new Set(blanks)].sort((a, b) => parseInt(a) - parseInt(b));
 
-  // Check if all blanks are filled
   const allFilled = uniqueBlanks.every(blankNum => answers[blankNum]?.trim());
 
   // Calculate score
@@ -1104,32 +1206,75 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
   ).length;
   const totalCount = uniqueBlanks.length;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!token) {
       toast.error(t("youMustLoginFirst"));
       setOpenedModals({ mustLogin: true });
       return;
     }
+    if (!hashRef.current || uniqueBlanks.length === 0) {
+      return;
+    }
+
+    const currentStep = await getTelemetryStep(Number(currentExercisePosition));
+    const priorSubmissions =
+      currentStep?.quiz_submissions?.filter(
+        (s) => s.quiz_hash === hashRef.current
+      ) ?? [];
+    if (priorSubmissions.length >= maxQuizRetries) {
+      toast.error(t("max-quiz-retries-reached"));
+      return;
+    }
+
+    const startedAt = startedAtRef.current || Date.now();
+    const submission = makeFillInTheBlankSubmission(
+      uniqueBlanks,
+      answers,
+      correctAnswers,
+      hashRef.current,
+      startedAt
+    );
+
+    registerTelemetryEvent("quiz_submission", submission);
+
     setSubmitted(true);
     setShowResults(true);
+    startedAtRef.current = 0;
 
-    if (correctCount === totalCount) {
-      toast.success(`Perfect! You got all ${totalCount} answers correct!`);
-    } else {
-      toast.error(`You got ${correctCount} out of ${totalCount} correct. ${t("Keep practicing!")}`);
-    }
     eventBus.emit("assessment_completed", {
-      status: correctCount === totalCount ? "SUCCESS" : "ERROR",
-      ended_at: Date.now(),
+      status: submission.status,
+      ended_at: submission.ended_at,
       type: "fill-in-the-blank",
-      score: correctCount === totalCount ? 100 : 0,
+      score: submission.percentage,
     });
+
+    TelemetryManager.registerTesteableElement(Number(currentExercisePosition), {
+      type: "quiz",
+      hash: hashRef.current,
+      is_completed: true,
+      searchString: code.slice(0, 200) || "",
+    });
+
+    if (submission.status === "SUCCESS") {
+      toastFromStatus("quiz-success");
+      Notifier.confetti();
+      playEffect("success");
+      reportEnrichDataLayer("quiz_success", {});
+    } else {
+      toastFromStatus("quiz-error");
+      playEffect("error");
+      reportEnrichDataLayer("quiz_error", {});
+    }
+
+    recordConsumable("ai-compilation");
   };
 
   const handleReset = () => {
     setAnswers({});
     setSubmitted(false);
     setShowResults(false);
+    hasRestoredData.current = false;
+    startedAtRef.current = 0;
   };
 
   return (

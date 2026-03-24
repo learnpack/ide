@@ -9,17 +9,7 @@ import { Notifier } from "../../../managers/Notifier";
 import { svgs } from "../../../assets/svgs";
 import TelemetryManager, { TQuizSubmission } from "../../../managers/telemetry";
 import { eventBus } from "@/managers/eventBus";
-
-type TQuizGroup = {
-  title: string;
-  checkboxes: {
-    text: string;
-    isCorrect: boolean;
-    feedback?: string;
-  }[];
-  correctAnswer: string;
-  currentSelection: string;
-};
+import { makeQuizSubmission, type TQuizGroup } from "./quizSubmissionUtils";
 
 type TQuiz = {
   hash: string;
@@ -29,40 +19,6 @@ type TQuiz = {
   };
   renderedGroups: string[];
   started_at: number;
-};
-
-export const makeQuizSubmission = (
-  groups: TQuizGroup[],
-  quizHash: string,
-  started_at: number
-): TQuizSubmission => {
-  const correctAnswers = Object.values(groups).filter(
-    (group) => group.correctAnswer === group.currentSelection
-  );
-  const percentage = (correctAnswers.length / groups.length) * 100;
-  
-  const selections = groups.map((group) => {
-    // Find the checkbox that matches the current selection to get its feedback
-    const selectedCheckbox = group.checkboxes.find(
-      (cb) => cb.text === group.currentSelection
-    );
-    
-    return {
-      question: group.title,
-      answer: group.currentSelection,
-      isCorrect: group.correctAnswer === group.currentSelection,
-      feedback: selectedCheckbox?.feedback,
-    };
-  });
-  
-  return {
-    started_at,
-    ended_at: Date.now(),
-    status: percentage === 100 ? "SUCCESS" : "ERROR",
-    percentage,
-    quiz_hash: quizHash,
-    selections,
-  };
 };
 
 export const QuizRenderer = ({ children }: { children: any }) => {
