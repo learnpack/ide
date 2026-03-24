@@ -250,7 +250,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
         {
           type: "quiz",
           hash: quiz.current.hash,
-          is_completed: true,
+          is_completed: submission.status === "SUCCESS",
           searchString: quiz.current.renderedGroups[0] || "",
         }
       );

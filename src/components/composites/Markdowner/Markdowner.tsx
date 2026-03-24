@@ -1251,7 +1251,7 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
     TelemetryManager.registerTesteableElement(Number(currentExercisePosition), {
       type: "quiz",
       hash: hashRef.current,
-      is_completed: true,
+      is_completed: submission.status === "SUCCESS",
       searchString: code.slice(0, 200) || "",
     });
 
