@@ -45,6 +45,39 @@ export const makeQuizSubmission = (
   };
 };
 
+/**
+ * Returns a comparable timestamp for ordering submissions (newest wins).
+ * Prefer ended_at; fall back to started_at; unknown values become 0.
+ */
+export const getQuizSubmissionTimestampMs = (s: TQuizSubmission): number => {
+  const ended =
+    typeof s.ended_at === "number" && !Number.isNaN(s.ended_at)
+      ? s.ended_at
+      : 0;
+  const started =
+    typeof s.started_at === "number" && !Number.isNaN(s.started_at)
+      ? s.started_at
+      : 0;
+  return Math.max(ended, started);
+};
+
+/**
+ * Picks the most recent submission by timestamp. Does not assume array order
+ * (server/reconciliation may return submissions in any order).
+ */
+export const getLatestQuizSubmission = (
+  submissions: TQuizSubmission[]
+): TQuizSubmission | null => {
+  if (!submissions.length) {
+    return null;
+  }
+  return submissions.reduce((latest, current) =>
+    getQuizSubmissionTimestampMs(current) > getQuizSubmissionTimestampMs(latest)
+      ? current
+      : latest
+  );
+};
+
 /** Stable identity string for fill-in-the-blank blocks (code + ordered numeric metadata). */
 export const buildFillInTheBlankIdentityString = (
   code: string,

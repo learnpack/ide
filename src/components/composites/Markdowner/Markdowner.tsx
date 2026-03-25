@@ -11,6 +11,7 @@ import { atomDark as prismStyle } from "react-syntax-highlighter/dist/esm/styles
 import { QuizRenderer } from "../QuizRenderer/QuizRenderer";
 import {
   buildFillInTheBlankIdentityString,
+  getLatestQuizSubmission,
   makeFillInTheBlankSubmission,
 } from "../QuizRenderer/quizSubmissionUtils";
 import { RigoQuestion } from "../RigoQuestion/RigoQuestion";
@@ -1109,11 +1110,11 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
         );
         if (submissions.length === 0) return;
 
-        const lastSubmission = submissions[submissions.length - 1];
-        if (!lastSubmission?.selections?.length) return;
+        const latestSubmission = getLatestQuizSubmission(submissions);
+        if (!latestSubmission?.selections?.length) return;
 
         const restored: Record<string, string> = {};
-        lastSubmission.selections.forEach((sel) => {
+        latestSubmission.selections.forEach((sel) => {
           const m = /^blank_(\d+)$/.exec(sel.question);
           if (m) restored[m[1]] = sel.answer;
         });
@@ -1251,7 +1252,7 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
     TelemetryManager.registerTesteableElement(Number(currentExercisePosition), {
       type: "quiz",
       hash: hashRef.current,
-      is_completed: true,
+      is_completed: submission.status === "SUCCESS",
       searchString: code.slice(0, 200) || "",
     });
 

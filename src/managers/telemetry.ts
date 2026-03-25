@@ -1180,7 +1180,12 @@ const TelemetryManager: ITelemetryManager = {
 
         const now = Date.now();
         const hasPendingTasks = this.hasPendingTasks(stepPosition);
-        if (!hasPendingTasks && !step.completed_at) {
+        const isSuccessfulSubmission = data?.status === "SUCCESS";
+        if (
+          isSuccessfulSubmission &&
+          !hasPendingTasks &&
+          !step.completed_at
+        ) {
           step.completed_at = now;
           step.is_completed = true;
         } else {
