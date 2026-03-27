@@ -158,6 +158,53 @@ See `references/key-files.md` for the full file map with relevant line numbers.
 - `user.email`, `user.first_name`, `user.last_name`, `user.github` removed from localStorage
 - No explicit opt-out mechanism; without a Rigobot token, no data is sent to the server
 
+## How `is_completed` gets set (state machine)
+
+`step.is_completed` can only be set to `true` in `registerStepEvent` — there are four paths:
+
+| Path | Location | Condition |
+|------|----------|-----------|
+| Test passes | `case "test"` — `telemetry.ts` | `exit_code === 0` AND `!hasPendingTasks` AND `!step.completed_at` |
+| Quiz succeeds | `case "quiz_submission"` — `telemetry.ts` | `status === "SUCCESS"` AND no other pending testeable elements AND `!step.completed_at` |
+| User navigates away | `case "open_step"` — `telemetry.ts` | `!hasPendingTasks` on the previous step AND `!prevStep.completed_at` |
+| Last step opened | `case "open_step"` — `telemetry.ts` | `stepPosition === steps.length - 1` AND `!hasPendingTasks` |
+
+**If `is_completed` stays `false` after an exercise is completed, check these in order:**
+1. Did `hasPendingTasks` return `true` unexpectedly? → inspect `step.testeable_elements`
+2. Are there stale elements with `is_completed: false` from a previous failed attempt?
+3. Are testeable elements in the correct step slot (array index matches)?
+4. Was `submit()` called before the relevant state was updated?
+
+## `testeable_elements` and `hasPendingTasks`
+
+`testeable_elements` is a per-step array of trackable sub-tasks (individual quiz questions, code tests). It exists to support steps with **multiple** testeable items — the step is only complete when all items are done.
+
+`hasPendingTasks(stepPosition)` returns `true` if any element in `testeable_elements` has `is_completed: false`.
+
+**Critical: `testeable_elements` carries state across attempts.** A failed attempt registers an element with `is_completed: false`. If a subsequent successful attempt calls `registerStepEvent` before updating that element via `registerTesteableElement`, `hasPendingTasks` still sees the stale `false` value — and blocks `is_completed` from being set.
+
+**Where elements are registered:**
+- Code tests: `fetchSingleExerciseInfo` (on step load, `is_completed: false`), `debounceTestingSuccess/Error` (on result)
+- Quizzes: `QuizRenderer.tsx`, `Markdowner.tsx`, `OpenQuestion.tsx` (on submission)
+
+**The fix for quiz completion** (`telemetry.ts`, `case "quiz_submission"`): instead of calling `hasPendingTasks()` which includes the current quiz's stale element, check only OTHER elements: `step.testeable_elements?.some(e => e.hash !== data.quiz_hash && !e.is_completed)`. The current submission's `data.status` is the authoritative source for whether this quiz is done.
+
+## The double-call pattern
+
+For code tests and quizzes, a single logical "user completed X" maps to **two separate calls** that must be understood together:
+
+```
+registerTelemetryEvent(event, data)       → records the attempt in step.tests / step.quiz_submissions
+                                           → checks hasPendingTasks → may set is_completed → calls submit()
+
+registerTesteableElement(index, element)  → updates testeable_elements cache for this item
+                                           → calls save() only, NOT submit()
+```
+
+These two calls happen in sequence from the same handler (store.tsx or component), but `registerStepEvent` runs synchronously and calls `submit()` before `registerTesteableElement` updates the cache. **Any logic inside `registerStepEvent` that reads `testeable_elements` sees the state from before `registerTesteableElement` ran.**
+
+When diagnosing completion bugs, always check whether the relevant `registerTesteableElement` call happens before or after `registerTelemetryEvent` in the calling code.
+
 ## Important gotchas
 
 - `TelemetryManager` may not be initialized when the first event fires → retry loop of 3 attempts with 2s delay (`telemetry.ts:1114-1124`)
