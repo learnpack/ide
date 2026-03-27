@@ -31,6 +31,33 @@ TelemetryManager (singleton)       ← src/managers/telemetry.ts
     └─ submit() → POST Rigobot + Breathecode
 ```
 
+### The IDE as source of truth for step structure (cloud)
+
+In the cloud environment, the IDE is the **only actor that knows**:
+- Which exercises currently exist in the tutorial (from `configObject.exercises`)
+- Their current slugs and correct order
+- Which steps are testeable
+
+The server stores telemetry blobs but has no knowledge of the tutorial structure.
+This means **server data can arrive with steps in a different order or with stale
+slugs** if the tutorial was updated between sessions. The IDE must always enforce
+the current exercise structure when reconciling.
+
+### Step indexing contract
+
+`current.steps` is a flat array built from `configObject.exercises.map(...)`.
+The **array index** is the canonical identifier — `current.steps[N]` always
+corresponds to `exercises[N]`.
+
+**All code that accesses `current.steps` must use the array index**, not
+`exercise.position`. The two values can diverge if:
+- Exercises come from the server with non-sequential position values
+- The tutorial was updated and exercises were reordered between sessions
+
+Concretely:
+- `registerTelemetryEvent()` → uses `currentExercisePosition` (array index) ✓
+- `registerTesteableElement()` → **must also use `currentExercisePosition`**, not `exercise.position`
+
 ## Main file
 
 **`src/managers/telemetry.ts`** — contains almost all the logic:
@@ -93,6 +120,20 @@ Strategy: **"most recent `last_interaction_at` wins"**
 | Both have data | Most recent wins; tie → server |
 | Neither | Create new blob with UUID |
 
+### Step merge on reconciliation (`normalizeTelemetrySchema`)
+
+After choosing a winner blob, steps are **not** used as-is. They are merged into
+`freshSteps` (the current exercise list) by `slug`:
+
+- **Structural fields** (`slug`, `position`, `files`, `is_testeable`) always come
+  from `freshSteps` — this enforces correct array ordering.
+- **Activity fields** (`compilations`, `tests`, `ai_interactions`, `quiz_submissions`,
+  `testeable_elements`, `is_completed`, `completed_at`, `opened_at`, `sessions`)
+  are preserved from the stored blob when present.
+- Steps in the stored blob that have no matching slug in `freshSteps` are
+  **discarded** — they correspond to exercises removed from the tutorial.
+- Steps in `freshSteps` with no match in the stored blob get the blank defaults.
+
 ## Local storage
 
 - **Cloud**: `localStorage["TELEMETRY"]` — PII sanitized (FERPA): `fullname → "[REDACTED]"`, email removed
@@ -123,3 +164,5 @@ See `references/key-files.md` for the full file map with relevant line numbers.
 - Keys persisted in localStorage have a strict whitelist (`telemetry.ts:539-555`) — fields outside the whitelist are discarded during normalization
 - No HTTP retry: if the POST fails, it is logged and discarded
 - Source code, stdout, and stderr are always base64-encoded
+- **Never use `exercise.position` to index `current.steps`** — always use the array index (`currentExercisePosition` or `findIndex`). `exercise.position` can differ from the array index if the tutorial was reordered or if the server returned steps out of order. Using `.position` causes event data and testeable elements to land in wrong step slots, breaking `hasPendingTasks` and `is_completed` logic.
+- **`submit()` fires before step is marked complete in some paths** — `registerStepEvent("test")` calls `submit()` synchronously. Any `registerTesteableElement` call that should influence `hasPendingTasks` for that test must happen before `registerTelemetryEvent`, not after.
