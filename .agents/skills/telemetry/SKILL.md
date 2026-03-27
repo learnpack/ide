@@ -56,7 +56,7 @@ corresponds to `exercises[N]`.
 
 Concretely:
 - `registerTelemetryEvent()` → uses `currentExercisePosition` (array index) ✓
-- `registerTesteableElement()` → **must also use `currentExercisePosition`**, not `exercise.position`
+- `registerTesteableElement()` → **must use `currentExercisePosition`** (array index), not `exercise.position`. This was a bug fixed in the IDE: using `.position` caused testeable elements to land in a different step slot than the one modified by `registerTelemetryEvent`, breaking `hasPendingTasks` checks.
 
 ## Main file
 
