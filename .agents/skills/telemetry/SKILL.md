@@ -165,4 +165,3 @@ See `references/key-files.md` for the full file map with relevant line numbers.
 - No HTTP retry: if the POST fails, it is logged and discarded
 - Source code, stdout, and stderr are always base64-encoded
 - **Never use `exercise.position` to index `current.steps`** — always use the array index (`currentExercisePosition` or `findIndex`). `exercise.position` can differ from the array index if the tutorial was reordered or if the server returned steps out of order. Using `.position` causes event data and testeable elements to land in wrong step slots, breaking `hasPendingTasks` and `is_completed` logic.
-- **`submit()` fires before step is marked complete in some paths** — `registerStepEvent("test")` calls `submit()` synchronously. Any `registerTesteableElement` call that should influence `hasPendingTasks` for that test must happen before `registerTelemetryEvent`, not after.
