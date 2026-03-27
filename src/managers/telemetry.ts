@@ -1202,7 +1202,9 @@ const TelemetryManager: ITelemetryManager = {
         step.quiz_submissions.push(data);
 
         const now = Date.now();
-        const hasPendingTasks = this.hasPendingTasks(stepPosition);
+        const hasPendingTasks = step.testeable_elements?.some(
+          (e) => e.hash !== data.quiz_hash && !e.is_completed
+        ) ?? false;
         const isSuccessfulSubmission = data?.status === "SUCCESS";
         if (
           isSuccessfulSubmission &&
