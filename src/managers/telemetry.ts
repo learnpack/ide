@@ -615,10 +615,33 @@ export function normalizeTelemetrySchema(
     typeof picked.last_interaction_at === "number"
       ? picked.last_interaction_at
       : now;
-  const steps =
-    Array.isArray(picked.steps) && picked.steps.length > 0
-      ? (picked.steps as TStep[])
-      : freshSteps;
+  const steps = (() => {
+    if (!Array.isArray(picked.steps) || picked.steps.length === 0) {
+      return freshSteps;
+    }
+    const storedBySlug = new Map((picked.steps as TStep[]).map((s) => [s.slug, s]));
+    return freshSteps.map((fresh) => {
+      const stored = storedBySlug.get(fresh.slug);
+      if (!stored) return fresh;
+      return {
+        // structural fields always come from freshSteps (correct order & position)
+        slug: fresh.slug,
+        position: fresh.position,
+        files: fresh.files,
+        is_testeable: fresh.is_testeable,
+        // activity data preserved from stored telemetry
+        compilations: stored.compilations?.length ? stored.compilations : fresh.compilations,
+        tests: stored.tests?.length ? stored.tests : fresh.tests,
+        ai_interactions: stored.ai_interactions?.length ? stored.ai_interactions : fresh.ai_interactions,
+        quiz_submissions: stored.quiz_submissions?.length ? stored.quiz_submissions : fresh.quiz_submissions,
+        testeable_elements: stored.testeable_elements?.length ? stored.testeable_elements : fresh.testeable_elements,
+        is_completed: stored.is_completed ?? fresh.is_completed,
+        completed_at: stored.completed_at ?? fresh.completed_at,
+        opened_at: stored.opened_at ?? fresh.opened_at,
+        sessions: stored.sessions?.length ? stored.sessions : fresh.sessions,
+      } as TStep;
+    });
+  })();
   const workout_session = normalizeWorkoutSession(picked.workout_session, now);
   return {
     telemetry_id: picked.telemetry_id,

@@ -468,7 +468,7 @@ const useStore = create<IStore>((set, get) => ({
 
       if (environment === "localStorage" || environment === "creatorWeb") {
         const currentExercise = getCurrentExercise();
-        TelemetryManager.registerTesteableElement(Number(currentExercise.position), {
+        TelemetryManager.registerTesteableElement(Number(get().currentExercisePosition), {
           hash: currentExercise.slug,
           searchString: currentExercise.slug,
           type: "test",
@@ -506,7 +506,7 @@ const useStore = create<IStore>((set, get) => ({
       if (environment === "localStorage" || environment === "creatorWeb") {
         const currentExercise = getCurrentExercise();
         TelemetryManager.registerTesteableElement(
-          Number(currentExercise.position),
+          Number(get().currentExercisePosition),
           {
             hash: currentExercise.slug,
             searchString: currentExercise.slug,
@@ -2344,11 +2344,11 @@ The user's set up the application in "${language}" language, give your feedback 
       environment === "localStorage" ||
       (environment === "creatorWeb" && mode !== "creator");
     if (isWebStudent) {
-      const exercise = newExercises.find((e) => e.slug === exerciseSlug);
-      if (exercise) {
-        TelemetryManager.registerTesteableElement(Number(exercise.position), {
-          hash: exercise.slug,
-          searchString: exercise.slug,
+      const exerciseIndex = newExercises.findIndex((e) => e.slug === exerciseSlug);
+      if (exerciseIndex !== -1) {
+        TelemetryManager.registerTesteableElement(exerciseIndex, {
+          hash: exerciseSlug,
+          searchString: exerciseSlug,
           type: "test",
           is_completed: false,
         });
@@ -2384,7 +2384,7 @@ The user's set up the application in "${language}" language, give your feedback 
       environment === "localStorage" ||
       (environment === "creatorWeb" && mode !== "creator");
     if (isWebStudent) {
-      TelemetryManager.registerTesteableElement(Number(exercise.position), {
+      TelemetryManager.registerTesteableElement(pos, {
         hash: exercise.slug,
         searchString: exercise.slug,
         type: "test",
