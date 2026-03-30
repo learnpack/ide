@@ -205,6 +205,89 @@ These two calls happen in sequence from the same handler (store.tsx or component
 
 When diagnosing completion bugs, always check whether the relevant `registerTesteableElement` call happens before or after `registerTelemetryEvent` in the calling code.
 
+## Course completion architecture
+
+Course completion is determined by four layers that must all agree:
+
+### Layer 1 — `step.completed_at` (step status, source of truth)
+
+`metrics.ts` derives the status of each step from `step.completed_at`, **not** from `step.is_completed`:
+
+```typescript
+let status = step.completed_at
+  ? "completed"
+  : step.opened_at
+  ? "attempted"
+  : "unread";
+```
+
+`is_completed` is set alongside `completed_at` in `registerStepEvent`, but `completion_rate` and all per-step metrics in the telemetry payload are driven by `completed_at`. If `completed_at` is missing, the step is never counted as completed, regardless of `is_completed`.
+
+### Layer 2 — `hasPendingTasks` / `hasPendingTasksInAnyLesson` (real-time gate)
+
+- `hasPendingTasks(stepPosition)` — returns `true` if any `testeable_element` in that step has `is_completed: false` or undefined.
+- `hasPendingTasksInAnyLesson()` — iterates **all steps** and applies `hasPendingTasks` to each. A single pending element in any step blocks course completion.
+
+### Layer 3 — "Finish" button and last_lesson_finished modal
+
+Located in `LessonRenderer.tsx` and `eventListener.tsx`:
+
+```
+isFinishDisabled = isLastExercise && (hasPendingTasks || hasPendingTasksInAnyLesson)
+```
+
+When the student clicks Finish on the last step:
+1. `eventBus.emit("last_lesson_finished")` fires.
+2. `EventListener` re-checks `hasPendingTasksInAnyLesson()` — if still false, triggers confetti + modal.
+
+`assessment_completed` (from quiz/open-question submissions) also triggers `last_lesson_finished` automatically if the student is on the last step and all tasks are done.
+
+### Layer 4 — `completion_rate` in the telemetry payload
+
+Calculated in `calculateGlobalMetrics` (`metrics.ts`):
+
+```typescript
+const completion_rate = total_steps
+  ? (num_completed / total_steps) * 100
+  : 0;
+```
+
+`num_completed` = steps where `calculateStepMetrics` returns `status === "completed"` (i.e., `step.completed_at` exists).
+
+**Full flow:**
+```
+quiz SUCCESS / test pass / navigation
+        │
+        ▼
+registerStepEvent() → sets step.completed_at if !hasPendingTasks
+        │
+        ▼
+submit() → buildSubmitPayload() → calculateGlobalMetrics()
+        → completion_rate = steps_with_completed_at / total_steps * 100
+        → POST Rigobot + Breathecode
+
+        │  (on last step)
+        ▼
+hasPendingTasksInAnyLesson()? NO
+  → last_lesson_finished → confetti + modal
+```
+
+## Multi-language bug in `testeable_elements`
+
+**This is a known design gap.** Courses with multiple languages expose a structural inconsistency in `testeable_elements`:
+
+- Quiz hashes are computed from rendered text (`asyncHashText(renderedText)`). The same quiz in different languages produces **different hashes**.
+- `setLanguage` → `fetchReadme` reloads the markdown but **does not clear `testeable_elements`** for the current step.
+- As a result, if a student changes language on a step, the component for the new language registers a new hash (without `is_completed`). Now the step has **two hashes in `testeable_elements`**: the old language's hash (possibly `is_completed: true`) and the new language's hash (no `is_completed`).
+- `hasPendingTasks` evaluates `!e.is_completed` — `!undefined` is `true` — so the new-language hash is treated as pending, **blocking step and course completion** even if the student completed the quiz in the original language.
+
+**Diagnostic checklist for multi-language completion failures:**
+1. Inspect `step.testeable_elements` — are there hashes from multiple languages?
+2. Check if any element has `is_completed` missing (`undefined`) rather than explicitly `false`.
+3. Verify that the failing hash corresponds to a quiz the student never saw (different language or unseen content block).
+
+**Design direction for the fix:** add a `language?: string` field to `TTesteableElement` and filter by current language in `hasPendingTasks`. Code tests (language-agnostic) would have `language: undefined` and always be checked. See `references/schema.md` for the type definition.
+
 ## Important gotchas
 
 - `TelemetryManager` may not be initialized when the first event fires → retry loop of 3 attempts with 2s delay (`telemetry.ts:1114-1124`)
@@ -212,3 +295,5 @@ When diagnosing completion bugs, always check whether the relevant `registerTest
 - No HTTP retry: if the POST fails, it is logged and discarded
 - Source code, stdout, and stderr are always base64-encoded
 - **Never use `exercise.position` to index `current.steps`** — always use the array index (`currentExercisePosition` or `findIndex`). `exercise.position` can differ from the array index if the tutorial was reordered or if the server returned steps out of order. Using `.position` causes event data and testeable elements to land in wrong step slots, breaking `hasPendingTasks` and `is_completed` logic.
+- **`step.completed_at` is the real source of truth** for step status in metrics — `is_completed` (boolean) is always set together with it, but `metrics.ts` only reads `completed_at`. If debugging why a step doesn't count as completed in `completion_rate`, check `completed_at`, not `is_completed`.
+- **`hasPendingTasksInAnyLesson()` blocks the entire course** — a single `testeable_element` with no `is_completed` in any step (including steps the student hasn't visited yet) will prevent the Finish button and the completion modal from activating.
