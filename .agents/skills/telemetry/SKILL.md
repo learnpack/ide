@@ -6,7 +6,11 @@ description: >
   new tracking features, event bug fixes, changes to local/server reconciliation,
   data schema modifications, Rigobot integration, engagement/frustration metrics,
   or any question about how telemetry data flows. Also applies for onboarding
-  new developers to this module.
+  new developers to this module. Always use this skill when the user touches
+  TelemetryManager, registerTelemetryEvent, registerTesteableElement,
+  hasPendingTasks, is_completed, testeable_elements, quiz_submission, open_step,
+  reconcileTelemetry, normalizeTelemetrySchema, workout_session, or anything
+  related to completion_rate, step tracking, or telemetry submission/persistence.
 ---
 
 # Telemetry in the LearnPack IDE
@@ -69,11 +73,11 @@ Concretely:
 
 | Event | Registered in | Trigger |
 |-------|--------------|---------|
-| `compile` | `store.tsx:520,538` | Compilation result via socket |
-| `test` | `store.tsx:480,424` | Test result via socket |
-| `ai_interaction` | `Agent.tsx:618`, `NewAgent.tsx:544` | AI completes response |
-| `open_step` | `store.tsx:1061`, `store.tsx:2647` | User navigates to a step |
-| `quiz_submission` | `QuizRenderer.tsx:228`, `Markdowner.tsx:1239`, `OpenQuestion.tsx:250` | User submits quiz |
+| `compile` | `store.tsx:530,547` | Compilation result via socket |
+| `test` | `store.tsx:454,493` | Test result via socket |
+| `ai_interaction` | `Rigobot/Agent.tsx:618`, `Rigobot/NewAgent.tsx:544` | AI completes response |
+| `open_step` | `store.tsx:1061`, `store.tsx:2649` | User navigates to a step |
+| `quiz_submission` | `QuizRenderer/QuizRenderer.tsx:231`, `Markdowner/Markdowner.tsx:1242`, `OpenQuestion/OpenQuestion.tsx:254` | User submits quiz |
 
 ## How to register a new event
 
@@ -286,6 +290,15 @@ hasPendingTasksInAnyLesson()? NO
 1. Inspect `step.testeable_elements` — confirm quiz rows include `language` after redeploy.
 2. Confirm `TelemetryManager.currentLanguage` matches the UI locale (`setLanguage` path).
 3. Legacy rows without `language` can still block completion across locales; clearing local telemetry or re-submitting after the new build repopulates `language` on new registrations.
+
+## workout_session mechanics
+
+`workout_session` is an array of `{ started_at, ended_at? }` objects that track continuous study periods. A new session is created each time `TelemetryManager.start()` runs:
+
+- If the last saved session has no `ended_at` AND `last_interaction_at` exists → close the previous session (`ended_at = last_interaction_at`) and open a fresh one.
+- Otherwise → just open a new session with `started_at = Date.now()`.
+
+This is handled by `normalizeWorkoutSession()` (`telemetry.ts:567`) called inside `normalizeTelemetrySchema`. Because `last_interaction_at` is updated on every save, closing a session this way gives an accurate end-time even if the browser was closed abruptly.
 
 ## Important gotchas
 
