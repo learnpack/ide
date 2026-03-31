@@ -272,21 +272,20 @@ hasPendingTasksInAnyLesson()? NO
   → last_lesson_finished → confetti + modal
 ```
 
-## Multi-language bug in `testeable_elements`
+## Multi-language progress in `testeable_elements`
 
-**This is a known design gap.** Courses with multiple languages expose a structural inconsistency in `testeable_elements`:
+**Implemented behavior.** Quiz hashes still differ per language (`asyncHashText` on rendered text), and old hashes are **not** removed when the student changes language — but pending checks are scoped to the active locale.
 
-- Quiz hashes are computed from rendered text (`asyncHashText(renderedText)`). The same quiz in different languages produces **different hashes**.
-- `setLanguage` → `fetchReadme` reloads the markdown but **does not clear `testeable_elements`** for the current step.
-- As a result, if a student changes language on a step, the component for the new language registers a new hash (without `is_completed`). Now the step has **two hashes in `testeable_elements`**: the old language's hash (possibly `is_completed: true`) and the new language's hash (no `is_completed`).
-- `hasPendingTasks` evaluates `!e.is_completed` — `!undefined` is `true` — so the new-language hash is treated as pending, **blocking step and course completion** even if the student completed the quiz in the original language.
+- **`TTesteableElement.language?: string`** — set for quizzes/open questions from `QuizRenderer.tsx`, `Markdowner.tsx` (fill-in-the-blank), and `OpenQuestion.tsx`. Omitted for `type: "test"` (code tests share the same files across locales).
+- **`TelemetryManager.currentLanguage`** — updated via **`setCurrentLanguage`** from `store.tsx` on **`setLanguage`** and after **`start()`** bootstrap.
+- **`hasPendingTasks(stepPosition)`** — counts an element as pending only if it is incomplete **and** either: no `language` (legacy quiz data or any element without the field), `type === "test"`, or `e.language === currentLanguage`.
+- **`case "quiz_submission"`** — the “other pending elements” check uses the same language filter so `SUCCESS` can set `completed_at` when only other-locale quiz hashes remain.
+- **Backward compatibility** — stored blobs without `language` on quiz elements behave as before (every such element is still evaluated), so no migration is required.
 
-**Diagnostic checklist for multi-language completion failures:**
-1. Inspect `step.testeable_elements` — are there hashes from multiple languages?
-2. Check if any element has `is_completed` missing (`undefined`) rather than explicitly `false`.
-3. Verify that the failing hash corresponds to a quiz the student never saw (different language or unseen content block).
-
-**Design direction for the fix:** add a `language?: string` field to `TTesteableElement` and filter by current language in `hasPendingTasks`. Code tests (language-agnostic) would have `language: undefined` and always be checked. See `references/schema.md` for the type definition.
+**If completion still looks wrong in a multi-language course:**
+1. Inspect `step.testeable_elements` — confirm quiz rows include `language` after redeploy.
+2. Confirm `TelemetryManager.currentLanguage` matches the UI locale (`setLanguage` path).
+3. Legacy rows without `language` can still block completion across locales; clearing local telemetry or re-submitting after the new build repopulates `language` on new registrations.
 
 ## Important gotchas
 

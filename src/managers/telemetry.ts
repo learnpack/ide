@@ -414,6 +414,8 @@ export type TTesteableElement = {
   searchString: string;
   is_completed?: boolean;
   type: TTesteableElementType;
+  /** Quiz language (e.g. from README locale). Omitted or undefined = language-agnostic (code tests, legacy data). */
+  language?: string;
   metrics?: TTesteableElementMetrics;
 };
 
@@ -745,6 +747,8 @@ interface ITelemetryManager {
     testeableElement: TTesteableElement
   ) => void;
   hasTesteableElementByHash: (stepPosition: number, hash: string) => boolean;
+  currentLanguage: string;
+  setCurrentLanguage: (lang: string) => void;
   hasPendingTasks: (stepPosition: number) => boolean;
   hasPendingTasksInAnyLesson: () => boolean;
   isTesteable: (stepPosition: number) => boolean;
@@ -774,6 +778,10 @@ const TelemetryManager: ITelemetryManager = {
   tutorialSlug: "",
   started: false,
   reconciling: false,
+  currentLanguage: "en",
+  setCurrentLanguage: function (lang: string) {
+    this.currentLanguage = lang;
+  },
   version: `${packageInfo.version}` || "CLOUD:0.0.0",
   salute: (message) => {
     console.log(message);
@@ -1202,9 +1210,15 @@ const TelemetryManager: ITelemetryManager = {
         step.quiz_submissions.push(data);
 
         const now = Date.now();
-        const hasPendingTasks = step.testeable_elements?.some(
-          (e) => e.hash !== data.quiz_hash && !e.is_completed
-        ) ?? false;
+        const hasPendingTasks =
+          step.testeable_elements?.some(
+            (e) =>
+              e.hash !== data.quiz_hash &&
+              !e.is_completed &&
+              (!e.language ||
+                e.type === "test" ||
+                e.language === this.currentLanguage)
+          ) ?? false;
         const isSuccessfulSubmission = data?.status === "SUCCESS";
         if (
           isSuccessfulSubmission &&
@@ -1304,7 +1318,13 @@ const TelemetryManager: ITelemetryManager = {
     if (!step) {
       return false;
     }
-    return Boolean(step.testeable_elements?.some((e) => !e.is_completed));
+    return Boolean(
+      step.testeable_elements?.some((e) => {
+        if (e.is_completed) return false;
+        if (!e.language || e.type === "test") return true;
+        return e.language === this.currentLanguage;
+      })
+    );
   },
 
   hasPendingTasksInAnyLesson: function () {

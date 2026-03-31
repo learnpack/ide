@@ -55,6 +55,7 @@ export const Question = ({
     token,
     setOpenedModals,
     telemetryReady,
+    language,
   } = useStore((state) => ({
     replaceInReadme: state.replaceInReadme,
     mode: state.mode,
@@ -66,6 +67,7 @@ export const Question = ({
     getTelemetryStep: state.getTelemetryStep,
     setOpenedModals: state.setOpenedModals,
     telemetryReady: state.telemetryReady,
+    language: state.language,
   }));
 
   const [feedback, setFeedback] = useState<TFeedback | null>(null);
@@ -122,7 +124,7 @@ export const Question = ({
     return () => {
       debouncedRegister.cancel();
     };
-  }, [questionHash]);
+  }, [questionHash, language]);
 
   // Recover answer state from telemetry when component mounts
   useEffect(() => {
@@ -239,6 +241,7 @@ export const Question = ({
                 hash: hashRef.current,
                 is_completed: true,
                 searchString: metadata.eval as string,
+                language,
               }
             );
             playEffect("success");

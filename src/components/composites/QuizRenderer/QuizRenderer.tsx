@@ -43,6 +43,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
     token,
     setOpenedModals,
     telemetryReady,
+    language,
   } = useStore((state) => ({
     registerTelemetryEvent: state.registerTelemetryEvent,
     maxQuizRetries: state.maxQuizRetries,
@@ -54,6 +55,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
     token: state.token,
     setOpenedModals: state.setOpenedModals,
     telemetryReady: state.telemetryReady,
+    language: state.language,
   }));
 
 
@@ -77,6 +79,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
         type: "quiz",
         hash: quiz.current.hash,
         searchString: quiz.current.renderedGroups[0] || "",
+        language,
       }
     );
   };
@@ -91,7 +94,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
     return () => {
       debouncedRegister.cancel();
     };
-  }, [quizRendered]);
+  }, [quizRendered, language]);
 
   // Recover quiz state from telemetry when component mounts
   useEffect(() => {
@@ -250,6 +253,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
           hash: quiz.current.hash,
           is_completed: submission.status === "SUCCESS",
           searchString: quiz.current.renderedGroups[0] || "",
+          language,
         }
       );
       useConsumable("ai-compilation");

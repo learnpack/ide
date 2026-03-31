@@ -1473,6 +1473,7 @@ The user's set up the application in "${language}" language, give your feedback 
   setLanguage: (language, fetchExercise = true) => {
     const { fetchReadme, checkParams } = get();
     set({ language: language });
+    TelemetryManager.setCurrentLanguage(language);
 
     let params = checkParams({ justReturn: true });
     setQueryParams({ ...params, language: language });
@@ -2599,6 +2600,7 @@ The user's set up the application in "${language}" language, give your feedback 
           cohort_id: params.cohort_id || "",
           academy_id: params.academy_id || "",
         });
+        TelemetryManager.setCurrentLanguage(get().language);
       } finally {
         set({ telemetryReady: true });
       }

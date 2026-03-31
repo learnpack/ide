@@ -95,6 +95,7 @@ interface TQuizSubmission {
 interface TTesteableElement {
   hash: string
   type: "quiz" | "test"
+  language?: string         // quiz locale from README; omit for language-agnostic (code tests, legacy telemetry)
   is_completed?: boolean
   metrics?: TTesteableElementMetrics
 }
