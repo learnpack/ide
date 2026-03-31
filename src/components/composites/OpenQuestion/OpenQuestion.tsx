@@ -99,7 +99,8 @@ export const Question = ({
       type: "quiz",
       hash: questionHash,
       searchString: metadata.eval as string,
-    }
+      language,
+    };
     TelemetryManager.registerTesteableElement(Number(currentExercisePosition), elem);
   };
 

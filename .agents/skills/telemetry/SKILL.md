@@ -276,7 +276,7 @@ hasPendingTasksInAnyLesson()? NO
 
 **Implemented behavior.** Quiz hashes still differ per language (`asyncHashText` on rendered text), and old hashes are **not** removed when the student changes language — but pending checks are scoped to the active locale.
 
-- **`TTesteableElement.language?: string`** — set for quizzes/open questions from `QuizRenderer.tsx`, `Markdowner.tsx` (fill-in-the-blank), and `OpenQuestion.tsx`. Omitted for `type: "test"` (code tests share the same files across locales).
+- **`TTesteableElement.language?: string`** — set for quizzes/open questions from `QuizRenderer.tsx`, `Markdowner.tsx` (fill-in-the-blank), and `OpenQuestion.tsx` (debounced initial register **and** success path; omitting it on first register leaves legacy-style rows without `language`). Omitted for `type: "test"` (code tests share the same files across locales).
 - **`TelemetryManager.currentLanguage`** — updated via **`setCurrentLanguage`** from `store.tsx` on **`setLanguage`** and after **`start()`** bootstrap.
 - **`hasPendingTasks(stepPosition)`** — counts an element as pending only if it is incomplete **and** either: no `language` (legacy quiz data or any element without the field), `type === "test"`, or `e.language === currentLanguage`.
 - **`case "quiz_submission"`** — the “other pending elements” check uses the same language filter so `SUCCESS` can set `completed_at` when only other-locale quiz hashes remain.
