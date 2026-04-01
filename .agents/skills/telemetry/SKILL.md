@@ -276,9 +276,63 @@ hasPendingTasksInAnyLesson()? NO
   → last_lesson_finished → confetti + modal
 ```
 
+## Hash generation per testeable element type
+
+Each testeable element is uniquely identified by a `hash` (SHA-256 hex string) generated with `asyncHashText` (`src/utils/lib.tsx:361`). The input string differs per type:
+
+| Type | Input to `asyncHashText` | Notes |
+|------|--------------------------|-------|
+| **Quiz (multiple choice)** | `renderedGroups.join(" ")` | Concatenation of rendered group titles, computed in `QuizRenderer.tsx:187` once all groups have rendered |
+| **Open question** | `metadata.eval` | Literal string of the `eval` attribute in the markdown block, parsed by `extractMetadata` in `Markdowner.tsx:139` |
+| **Fill-in-the-blank** | Output of `buildFillInTheBlankIdentityString(code, metadata)` | Format: `fitb:<code.trim()>:<idx>=<answer>\|...` — block code + numeric metadata keys (correct answers) sorted by index. Defined in `QuizRenderer/quizSubmissionUtils.ts:82` |
+
+**All three types are language-sensitive**: `metadata.eval` and the block code/answers come from the README file, which is fetched per locale (`README.md` for English, `README.es.md` for Spanish, etc., via `getReadmeExtension` in `lib.tsx:434`). Rendered quiz group titles also change with the locale. Therefore, the same element in a different language produces a different hash.
+
+### Known limitation: content edits break student progress
+
+Because the hash is derived from content, **any text change — however small — produces
+a new hash and orphans the previous one.** This applies to all three element types.
+
+Examples of changes that break progress:
+- Fixing a typo in a quiz option or in `metadata.eval`
+- Adding or removing punctuation
+- Rewording an answer without changing its meaning
+- Changing the code block in a fill-in-the-blank
+
+**What happens when a student's stored hash no longer matches:**
+1. The old `testeable_element` (with the previous hash) stays in the array with whatever `is_completed` value it had.
+2. The component registers a **new** element with the new hash and `is_completed: false`.
+3. If the old element had `is_completed: false`, `hasPendingTasks` may still see it (depending on the `language` filter) — potentially blocking step and course completion.
+4. Even if completion is not blocked, `quiz_submissions` recorded under the old hash will not be found when the component tries to restore previous answers, so the student sees a fresh question with no history.
+
+**Net effect:** the student loses visible progress on that question and may need to answer it again. If the old element was incomplete, it can also block the Finish button.
+
+### Mitigation: `activeHashes` — in-memory orphan filter
+
+To prevent orphaned elements from blocking completion, `TelemetryManager` maintains
+an in-memory `activeHashes: Map<stepPosition, Set<hash>>`. It is **not persisted**
+and is rebuilt each session as components mount.
+
+**How it works:**
+- `registerTesteableElement` adds the incoming hash to `activeHashes` for that step.
+- `hasPendingTasks` and the inline check in `case "quiz_submission"` skip any
+  `type !== "test"` element whose hash is **not** in `activeHashes` for that step.
+- Code tests (`type: "test"`) use the exercise slug as hash and are never orphaned,
+  so they are always evaluated regardless of `activeHashes`.
+
+**Effect:** a quiz element stored from a previous session whose content changed is
+silently ignored — it never enters `activeHashes` because no component renders
+with the old content. The student can complete the updated quiz normally.
+
+**Orphans still accumulate.** Elements are never deleted from `testeable_elements`.
+Each content change adds a new element and leaves the old one in the array. This is
+inert (they are ignored by `hasPendingTasks`) but the array grows over time.
+There is no cleanup mechanism; a definitive solution would require stable IDs
+independent of content.
+
 ## Multi-language progress in `testeable_elements`
 
-**Implemented behavior.** Quiz hashes still differ per language (`asyncHashText` on rendered text), and old hashes are **not** removed when the student changes language — but pending checks are scoped to the active locale.
+**Implemented behavior.** All quiz-type elements (multiple choice, open question, fill-in-the-blank) produce different hashes per language because their hash input is derived from README content, and old hashes are **not** removed when the student changes language — but pending checks are scoped to the active locale.
 
 - **`TTesteableElement.language?: string`** — set for quizzes/open questions from `QuizRenderer.tsx`, `Markdowner.tsx` (fill-in-the-blank), and `OpenQuestion.tsx` (debounced initial register **and** success path; omitting it on first register leaves legacy-style rows without `language`). Omitted for `type: "test"` (code tests share the same files across locales).
 - **`TelemetryManager.currentLanguage`** — updated via **`setCurrentLanguage`** from `store.tsx` on **`setLanguage`** and after **`start()`** bootstrap.
