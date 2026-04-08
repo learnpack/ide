@@ -1170,7 +1170,16 @@ const TelemetryManager: ITelemetryManager = {
 
         this.prevStep = stepPosition;
         this.prevStepStartedAt = now;
-        if (stepPosition === this.current.steps.length - 1 && !this.hasPendingTasks(stepPosition)) {
+        // Auto-complete the last step only when it has no testeable exercises.
+        // If is_testeable is true, testeable_elements may not be registered yet at
+        // this point (fetchSingleExerciseInfo is async), so hasPendingTasks would
+        // return false even though there are pending tasks — causing a false completion.
+        // Testeable last steps complete through the normal test/quiz paths instead.
+        if (
+          stepPosition === this.current.steps.length - 1 &&
+          !step.is_testeable &&
+          !this.hasPendingTasks(stepPosition)
+        ) {
           step.is_completed = true;
           step.completed_at = now;
           this.current.steps[stepPosition] = step;
