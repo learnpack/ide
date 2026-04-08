@@ -1249,10 +1249,9 @@ const TelemetryManager: ITelemetryManager = {
     if (!this.current || !this.current.steps) {
       return false;
     }
-    
-    // Verify if any step has pending tasks
-    return this.current.steps.some((_, index) => 
-      this.hasPendingTasks(index)
+    return this.current.steps.some(
+      (step) =>
+        (step.is_testeable || step.testeable_elements?.length) && !step.is_completed
     );
   },
 
