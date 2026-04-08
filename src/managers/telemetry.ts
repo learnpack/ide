@@ -529,6 +529,51 @@ function normalizeWorkoutSession(raw: unknown, now: number): TWorkoutSession[] {
 }
 
 /**
+ * Merges stored step activity into the current exercise structure.
+ * freshSteps is the canonical source for slug, position, files, and is_testeable.
+ * storedSteps provides accumulated activity (tests, compilations, etc.) matched by slug.
+ * Steps in storedSteps with no matching slug in freshSteps are silently dropped.
+ *
+ * If an exercise's slug is renamed by the instructor, the stored step will have no
+ * match in freshSteps (old slug is gone) and the new slug will have no match in
+ * storedSteps (never seen before). The result is a clean step with no prior activity,
+ * indistinguishable from a brand-new exercise. This is an accepted trade-off: the slug
+ * is the stable identity of an exercise, and renaming it is treated the same as
+ * deleting and recreating it.
+ */
+function mergeSteps(freshSteps: TStep[], storedSteps: TStep[]): TStep[] {
+  const storedBySlug = new Map<string, TStep>();
+  for (const s of storedSteps) {
+    if (s.slug) {
+      storedBySlug.set(s.slug, s);
+    }
+  }
+
+  return freshSteps.map((fresh) => {
+    const stored = storedBySlug.get(fresh.slug);
+    if (!stored) return fresh;
+
+    return {
+      // structural fields: always from freshSteps (current tutorial state)
+      slug: fresh.slug,
+      position: fresh.position,
+      files: fresh.files,
+      is_testeable: fresh.is_testeable,
+      // activity fields: preserved from stored blob
+      compilations: stored.compilations ?? [],
+      tests: stored.tests ?? [],
+      ai_interactions: stored.ai_interactions ?? [],
+      quiz_submissions: stored.quiz_submissions ?? [],
+      testeable_elements: stored.testeable_elements ?? [],
+      is_completed: stored.is_completed ?? false,
+      completed_at: stored.completed_at,
+      opened_at: stored.opened_at,
+      sessions: stored.sessions ?? [],
+    };
+  });
+}
+
+/**
  * Ensures telemetry matches ITelemetryJSONSchema and strips non-contract fields from server/local blobs.
  */
 export function normalizeTelemetrySchema(
@@ -561,7 +606,7 @@ export function normalizeTelemetrySchema(
       : now;
   const steps =
     Array.isArray(picked.steps) && picked.steps.length > 0
-      ? (picked.steps as TStep[])
+      ? mergeSteps(freshSteps, picked.steps as TStep[])
       : freshSteps;
   const workout_session = normalizeWorkoutSession(picked.workout_session, now);
   return {
