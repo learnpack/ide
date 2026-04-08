@@ -706,14 +706,17 @@ interface ITelemetryManager {
     data: any,
     retry?: number
   ) => void;
+  activeHashes: Map<string, Set<string>>;
   registerTesteableElement: (
     stepPosition: number,
-    testeableElement: TTesteableElement
+    testeableElement: TTesteableElement,
+    language?: string
   ) => void;
   hasTesteableElementByHash: (stepPosition: number, hash: string) => boolean;
   hasPendingTasks: (stepPosition: number) => boolean;
   hasPendingTasksInAnyLesson: () => boolean;
   isTesteable: (stepPosition: number) => boolean;
+  isStepCompleted: (stepPosition: number) => boolean;
   getStepIndicators: (stepPosition: number) => TStepIndicators | null;
   streamEvent: (stepPosition: number, event: string, data: any) => void;
   submit: () => Promise<void>;
@@ -731,6 +734,7 @@ const TelemetryManager: ITelemetryManager = {
   agent: "cloud",
   prevStep: undefined,
   prevStepStartedAt: undefined,
+  activeHashes: new Map<string, Set<string>>(),
   user: {
     token: "",
     rigo_token: "",
@@ -746,6 +750,7 @@ const TelemetryManager: ITelemetryManager = {
   },
 
   start: function (agent, steps, tutorialSlug, storageKey, student) {
+    this.activeHashes = new Map<string, Set<string>>();
     this.telemetryKey = storageKey;
     this.tutorialSlug = tutorialSlug;
     this.agent = agent;
@@ -949,14 +954,12 @@ const TelemetryManager: ITelemetryManager = {
 
   registerTesteableElement: function (
     stepPosition: number,
-    testeableElement: TTesteableElement
+    testeableElement: TTesteableElement,
+    language?: string
   ) {
     if (!this.current) {
-      console.log("No current telemetry to register testeable element", stepPosition, testeableElement);
       return
-    };
-
-    console.log("Registering testeable element", stepPosition, testeableElement);
+    }
 
     // Chequea si el elemento ya existe en otro step
     const existsInOtherStep = this.current.steps.findIndex(
@@ -966,7 +969,6 @@ const TelemetryManager: ITelemetryManager = {
     );
 
     if (existsInOtherStep !== -1) {
-      console.log(`Testeable element already exists in at ${existsInOtherStep} step, moving on to current step`, stepPosition, testeableElement);
       const otherStep = this.current.steps[existsInOtherStep];
       // remove from other step
       otherStep.testeable_elements = otherStep.testeable_elements?.filter((e) => e.hash !== testeableElement.hash);
@@ -994,8 +996,15 @@ const TelemetryManager: ITelemetryManager = {
     elements.push(newElement);
 
     step.testeable_elements = elements;
-    console.log("step.testeable_elements", step.testeable_elements);
     this.current.steps[stepPosition] = step;
+
+    if (testeableElement.type === "quiz" && language) {
+      if (!this.activeHashes.has(language)) {
+        this.activeHashes.set(language, new Set());
+      }
+      this.activeHashes.get(language)!.add(testeableElement.hash);
+    }
+
     this.save();
   },
 
@@ -1205,11 +1214,35 @@ const TelemetryManager: ITelemetryManager = {
 
   hasPendingTasks: function (stepPosition: number) {
     const step = this.current?.steps[stepPosition];
+    if (!step?.testeable_elements?.length) return false;
 
-    if (!step) {
-      return false;
+    // Tests are language-independent: if any is incomplete, the step is not done
+    const hasIncompleteTests = step.testeable_elements.some(
+      (e) => e.type === "test" && !e.is_completed
+    );
+    if (hasIncompleteTests) return true;
+
+    // Quizzes: the step is done if ALL active elements of at least one language are completed
+    const quizElements = step.testeable_elements.filter((e) => e.type === "quiz");
+    if (quizElements.length === 0) return false;
+
+    for (const [, hashes] of this.activeHashes) {
+      const relevantHashes = [...hashes].filter((h) =>
+        quizElements.some((e) => e.hash === h)
+      );
+      if (relevantHashes.length === 0) continue;
+
+      const allDone = relevantHashes.every(
+        (hash) => quizElements.find((e) => e.hash === hash)?.is_completed === true
+      );
+      if (allDone) return false;
     }
-    return Boolean(step.testeable_elements?.some((e) => !e.is_completed));
+
+    return true;
+  },
+
+  isStepCompleted: function (stepPosition: number) {
+    return this.current?.steps[stepPosition]?.is_completed ?? false;
   },
 
   hasPendingTasksInAnyLesson: function () {

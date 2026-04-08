@@ -434,7 +434,7 @@ function ExerciseCard({
   const current = getCurrentExercise();
   const isCurrent = current.slug === slug;
 
-  const isDone = TelemetryManager.isTesteable(position) && !TelemetryManager.hasPendingTasks(position);
+  const isDone = TelemetryManager.isTesteable(position) && TelemetryManager.isStepCompleted(position);
   const isTesteable = TelemetryManager.isTesteable(position);
   console.table({ graded, done, isDone, isTesteable });
 
