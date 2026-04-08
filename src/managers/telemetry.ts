@@ -75,47 +75,8 @@ const sendBatchTelemetryRigobot = async function (body: object, token: string) {
 };
 
 const FETCH_TELEMETRY_TIMEOUT_MS = 5000;
-const RESOLVE_PACKAGE_ID_TIMEOUT_MS = 5000;
 /** Idle threshold for refreshing telemetry from server when tab becomes visible again */
 export const TELEMETRY_VISIBILITY_REFRESH_IDLE_MS = 5 * 60 * 1000;
-
-const getRigobotPackageIdBySlug = async function (
-  packageSlug: string,
-  token: string
-): Promise<number | string | null> {
-  if (!packageSlug || !token) return null;
-
-  const cleanToken = token.trim();
-  const url = `${RIGOBOT_HOST}/v1/learnpack/package/${packageSlug}/`;
-
-  try {
-    const response: AxiosResponse<any> = await axios.get(url, {
-      headers: {
-        Authorization: `Token ${cleanToken}`,
-      },
-    });
-
-    return response?.data?.id ?? null;
-  } catch (error) {
-    // Best-effort enrichment, never block telemetry start/submit
-    console.warn("Unable to resolve Rigobot package_id", {
-      packageSlug,
-      error,
-    });
-    return null;
-  }
-};
-
-function resolvePackageIdWithTimeout(
-  packageSlug: string,
-  token: string,
-  ms: number
-): Promise<number | string | null> {
-  return Promise.race([
-    getRigobotPackageIdBySlug(packageSlug, token),
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), ms)),
-  ]);
-}
 
 export type TTelemetryFetchResponse = {
   results?: unknown[];
@@ -128,18 +89,11 @@ export type TTelemetryFetchResponse = {
  */
 export async function fetchTelemetryFromServer(params: {
   userId: string;
-  packageId: number | string | null;
   packageSlug: string;
   rigoToken: string;
 }): Promise<ITelemetryJSONSchema | null> {
-  const { userId, packageId, packageSlug, rigoToken } = params;
-  if (
-    !userId ||
-    !rigoToken ||
-    !packageSlug ||
-    packageId == null ||
-    packageId === ""
-  ) {
+  const { userId, packageSlug, rigoToken } = params;
+  if (!userId || !rigoToken || !packageSlug) {
     return null;
   }
 
@@ -149,7 +103,6 @@ export async function fetchTelemetryFromServer(params: {
   search.set("include_buffer", "true");
   search.set("include_steps", "true");
   search.set("package_slug", packageSlug);
-  search.set("package_ids", String(packageId));
 
   const url = `${RIGOBOT_HOST}/v1/learnpack/telemetry?${search.toString()}`;
   const controller = new AbortController();
@@ -173,10 +126,6 @@ export async function fetchTelemetryFromServer(params: {
     const data = (await response.json()) as TTelemetryFetchResponse;
     const first = data?.results?.[0] as ITelemetryJSONSchema | undefined;
     if (!first || typeof first !== "object") {
-      return null;
-    }
-    if (first.slug && first.slug !== packageSlug) {
-      console.warn("fetchTelemetryFromServer: slug mismatch, ignoring");
       return null;
     }
     return first;
@@ -219,9 +168,7 @@ export function reconcileTelemetry(
   agent: TAgent,
   appVersion: string
 ): { telemetry: ITelemetryJSONSchema; source: TReconcileSource } {
-  const hasServer =
-    serverTelemetry &&
-    (!serverTelemetry.slug || serverTelemetry.slug === tutorialSlug);
+  const hasServer = !!serverTelemetry;
   const hasLocal =
     localTelemetry && localTelemetry.slug === tutorialSlug;
 
@@ -582,6 +529,51 @@ function normalizeWorkoutSession(raw: unknown, now: number): TWorkoutSession[] {
 }
 
 /**
+ * Merges stored step activity into the current exercise structure.
+ * freshSteps is the canonical source for slug, position, files, and is_testeable.
+ * storedSteps provides accumulated activity (tests, compilations, etc.) matched by slug.
+ * Steps in storedSteps with no matching slug in freshSteps are silently dropped.
+ *
+ * If an exercise's slug is renamed by the instructor, the stored step will have no
+ * match in freshSteps (old slug is gone) and the new slug will have no match in
+ * storedSteps (never seen before). The result is a clean step with no prior activity,
+ * indistinguishable from a brand-new exercise. This is an accepted trade-off: the slug
+ * is the stable identity of an exercise, and renaming it is treated the same as
+ * deleting and recreating it.
+ */
+function mergeSteps(freshSteps: TStep[], storedSteps: TStep[]): TStep[] {
+  const storedBySlug = new Map<string, TStep>();
+  for (const s of storedSteps) {
+    if (s.slug) {
+      storedBySlug.set(s.slug, s);
+    }
+  }
+
+  return freshSteps.map((fresh) => {
+    const stored = storedBySlug.get(fresh.slug);
+    if (!stored) return fresh;
+
+    return {
+      // structural fields: always from freshSteps (current tutorial state)
+      slug: fresh.slug,
+      position: fresh.position,
+      files: fresh.files,
+      is_testeable: fresh.is_testeable,
+      // activity fields: preserved from stored blob
+      compilations: stored.compilations ?? [],
+      tests: stored.tests ?? [],
+      ai_interactions: stored.ai_interactions ?? [],
+      quiz_submissions: stored.quiz_submissions ?? [],
+      testeable_elements: stored.testeable_elements ?? [],
+      is_completed: stored.is_completed ?? false,
+      completed_at: stored.completed_at,
+      opened_at: stored.opened_at,
+      sessions: stored.sessions ?? [],
+    };
+  });
+}
+
+/**
  * Ensures telemetry matches ITelemetryJSONSchema and strips non-contract fields from server/local blobs.
  */
 export function normalizeTelemetrySchema(
@@ -599,10 +591,7 @@ export function normalizeTelemetrySchema(
     }
   }
   const now = Date.now();
-  const slug =
-    typeof picked.slug === "string" && picked.slug.trim() !== ""
-      ? picked.slug
-      : tutorialSlug;
+  const slug = tutorialSlug;
   const version =
     typeof picked.version === "string" && picked.version.trim() !== ""
       ? picked.version
@@ -617,7 +606,7 @@ export function normalizeTelemetrySchema(
       : now;
   const steps =
     Array.isArray(picked.steps) && picked.steps.length > 0
-      ? (picked.steps as TStep[])
+      ? mergeSteps(freshSteps, picked.steps as TStep[])
       : freshSteps;
   const workout_session = normalizeWorkoutSession(picked.workout_session, now);
   return {
@@ -774,25 +763,7 @@ const TelemetryManager: ITelemetryManager = {
       this.reconciling = true;
       return (async () => {
         try {
-          let packageId: number | string | null = null;
-          if (student.rigo_token && tutorialSlug) {
-            packageId = await resolvePackageIdWithTimeout(
-              tutorialSlug,
-              student.rigo_token,
-              RESOLVE_PACKAGE_ID_TIMEOUT_MS
-            );
-          }
-
           const localRaw = LocalStorage.get(this.telemetryKey);
-          if (
-            packageId == null &&
-            localRaw &&
-            localRaw.slug === tutorialSlug &&
-            localRaw.package_id
-          ) {
-            packageId = localRaw.package_id;
-          }
-
           const localTelemetry =
             localRaw && localRaw.slug === tutorialSlug ? localRaw : null;
 
@@ -800,7 +771,6 @@ const TelemetryManager: ITelemetryManager = {
           if (student.rigo_token && student.user_id) {
             serverTelemetry = await fetchTelemetryFromServer({
               userId: student.user_id,
-              packageId,
               packageSlug: tutorialSlug,
               rigoToken: student.rigo_token,
             });
@@ -823,25 +793,6 @@ const TelemetryManager: ITelemetryManager = {
 
           if (!this.current.version) {
             this.current.version = `CLOUD:${this.version}`;
-          }
-
-          if (!this.current.package_id && packageId) {
-            this.current.package_id = packageId;
-          } else if (
-            !this.current.package_id &&
-            this.current.slug &&
-            this.user.rigo_token
-          ) {
-            getRigobotPackageIdBySlug(this.current.slug, this.user.rigo_token)
-              .then((resolvedId) => {
-                if (!resolvedId || !this.current) return;
-                if (this.current.package_id) return;
-                this.current.package_id = resolvedId;
-                this.save();
-              })
-              .catch((error) => {
-                console.error("Error getting Rigobot package id by slug", error);
-              });
           }
 
           this.finishWorkoutSession();
@@ -921,23 +872,6 @@ const TelemetryManager: ITelemetryManager = {
           this.current.version = `CLOUD:${this.version}`;
         }
 
-        if (
-          !this.current.package_id &&
-          this.current.slug &&
-          this.user.rigo_token
-        ) {
-          getRigobotPackageIdBySlug(this.current.slug, this.user.rigo_token)
-            .then((packageId) => {
-              if (!packageId || !this.current) return;
-              if (this.current.package_id) return;
-              this.current.package_id = packageId;
-              this.save();
-            })
-            .catch((error) => {
-              console.error("Error getting Rigobot package id by slug", error);
-            });
-        }
-
         this.save();
 
         this.started = true;
@@ -975,14 +909,10 @@ const TelemetryManager: ITelemetryManager = {
 
     const server = await fetchTelemetryFromServer({
       userId: this.user.id,
-      packageId: this.current.package_id ?? null,
       packageSlug: this.tutorialSlug,
       rigoToken: this.user.rigo_token,
     });
     if (!server) {
-      return;
-    }
-    if (server.slug && server.slug !== this.tutorialSlug) {
       return;
     }
     const serverTs = server.last_interaction_at ?? 0;
