@@ -1152,7 +1152,12 @@ const TelemetryManager: ITelemetryManager = {
           this.current.steps[this.prevStep] = prevStep;
         }
 
-        if (typeof this.prevStep === "number") {
+        // Only complete the previous step when actually navigating to a DIFFERENT
+        // step. If prevStep === stepPosition (same-step re-navigation — e.g., from
+        // getOrCreateActiveSession or a double startTelemetry call) skip this block
+        // entirely: completing the step we are already on based on "leaving" it is
+        // semantically wrong and produces false is_completed=true on initial load.
+        if (typeof this.prevStep === "number" && this.prevStep !== stepPosition) {
           const prevStep = this.current.steps[this.prevStep];
 
           const hasPendingTasks = this.hasPendingTasks(this.prevStep);
