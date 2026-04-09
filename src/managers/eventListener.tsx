@@ -26,6 +26,11 @@ export default function EventListener() {
             console.debug("last_lesson_finished");
             // Verify again if there are pending tasks in any lesson
             if (!TelemetryManager.hasPendingTasksInAnyLesson()) {
+                // Mark the last step as complete if it hasn't been yet.
+                // quiz_submission / case "test" handle testeable steps; this covers
+                // read-only last steps that have no departure open_step event.
+                const lastPos = exercises.length - 1;
+                TelemetryManager.completeStepIfReadOnly(lastPos);
                 Notifier.confetti();
                 setOpenedModals({ lastLessonFinished: true });
             } else {

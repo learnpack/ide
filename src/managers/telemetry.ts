@@ -12,7 +12,8 @@ import { LocalStorage } from "./localStorage";
 import axios, { AxiosResponse } from "axios";
 import { TAgent } from "../utils/storeTypes";
 import { LEARNPACK_LOCAL_URL } from "../utils/creator";
-import { RIGOBOT_HOST } from "../utils/lib";
+import { debounce, RIGOBOT_HOST } from "../utils/lib";
+import { eventBus } from "./eventBus";
 
 export interface IFile {
   path: string;
@@ -75,47 +76,8 @@ const sendBatchTelemetryRigobot = async function (body: object, token: string) {
 };
 
 const FETCH_TELEMETRY_TIMEOUT_MS = 5000;
-const RESOLVE_PACKAGE_ID_TIMEOUT_MS = 5000;
 /** Idle threshold for refreshing telemetry from server when tab becomes visible again */
 export const TELEMETRY_VISIBILITY_REFRESH_IDLE_MS = 5 * 60 * 1000;
-
-const getRigobotPackageIdBySlug = async function (
-  packageSlug: string,
-  token: string
-): Promise<number | string | null> {
-  if (!packageSlug || !token) return null;
-
-  const cleanToken = token.trim();
-  const url = `${RIGOBOT_HOST}/v1/learnpack/package/${packageSlug}/`;
-
-  try {
-    const response: AxiosResponse<any> = await axios.get(url, {
-      headers: {
-        Authorization: `Token ${cleanToken}`,
-      },
-    });
-
-    return response?.data?.id ?? null;
-  } catch (error) {
-    // Best-effort enrichment, never block telemetry start/submit
-    console.warn("Unable to resolve Rigobot package_id", {
-      packageSlug,
-      error,
-    });
-    return null;
-  }
-};
-
-function resolvePackageIdWithTimeout(
-  packageSlug: string,
-  token: string,
-  ms: number
-): Promise<number | string | null> {
-  return Promise.race([
-    getRigobotPackageIdBySlug(packageSlug, token),
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), ms)),
-  ]);
-}
 
 export type TTelemetryFetchResponse = {
   results?: unknown[];
@@ -128,18 +90,11 @@ export type TTelemetryFetchResponse = {
  */
 export async function fetchTelemetryFromServer(params: {
   userId: string;
-  packageId: number | string | null;
   packageSlug: string;
   rigoToken: string;
 }): Promise<ITelemetryJSONSchema | null> {
-  const { userId, packageId, packageSlug, rigoToken } = params;
-  if (
-    !userId ||
-    !rigoToken ||
-    !packageSlug ||
-    packageId == null ||
-    packageId === ""
-  ) {
+  const { userId, packageSlug, rigoToken } = params;
+  if (!userId || !rigoToken || !packageSlug) {
     return null;
   }
 
@@ -149,7 +104,6 @@ export async function fetchTelemetryFromServer(params: {
   search.set("include_buffer", "true");
   search.set("include_steps", "true");
   search.set("package_slug", packageSlug);
-  search.set("package_ids", String(packageId));
 
   const url = `${RIGOBOT_HOST}/v1/learnpack/telemetry?${search.toString()}`;
   const controller = new AbortController();
@@ -173,10 +127,6 @@ export async function fetchTelemetryFromServer(params: {
     const data = (await response.json()) as TTelemetryFetchResponse;
     const first = data?.results?.[0] as ITelemetryJSONSchema | undefined;
     if (!first || typeof first !== "object") {
-      return null;
-    }
-    if (first.slug && first.slug !== packageSlug) {
-      console.warn("fetchTelemetryFromServer: slug mismatch, ignoring");
       return null;
     }
     return first;
@@ -219,9 +169,7 @@ export function reconcileTelemetry(
   agent: TAgent,
   appVersion: string
 ): { telemetry: ITelemetryJSONSchema; source: TReconcileSource } {
-  const hasServer =
-    serverTelemetry &&
-    (!serverTelemetry.slug || serverTelemetry.slug === tutorialSlug);
+  const hasServer = !!serverTelemetry;
   const hasLocal =
     localTelemetry && localTelemetry.slug === tutorialSlug;
 
@@ -582,6 +530,51 @@ function normalizeWorkoutSession(raw: unknown, now: number): TWorkoutSession[] {
 }
 
 /**
+ * Merges stored step activity into the current exercise structure.
+ * freshSteps is the canonical source for slug, position, files, and is_testeable.
+ * storedSteps provides accumulated activity (tests, compilations, etc.) matched by slug.
+ * Steps in storedSteps with no matching slug in freshSteps are silently dropped.
+ *
+ * If an exercise's slug is renamed by the instructor, the stored step will have no
+ * match in freshSteps (old slug is gone) and the new slug will have no match in
+ * storedSteps (never seen before). The result is a clean step with no prior activity,
+ * indistinguishable from a brand-new exercise. This is an accepted trade-off: the slug
+ * is the stable identity of an exercise, and renaming it is treated the same as
+ * deleting and recreating it.
+ */
+function mergeSteps(freshSteps: TStep[], storedSteps: TStep[]): TStep[] {
+  const storedBySlug = new Map<string, TStep>();
+  for (const s of storedSteps) {
+    if (s.slug) {
+      storedBySlug.set(s.slug, s);
+    }
+  }
+
+  return freshSteps.map((fresh) => {
+    const stored = storedBySlug.get(fresh.slug);
+    if (!stored) return fresh;
+
+    return {
+      // structural fields: always from freshSteps (current tutorial state)
+      slug: fresh.slug,
+      position: fresh.position,
+      files: fresh.files,
+      is_testeable: fresh.is_testeable,
+      // activity fields: preserved from stored blob
+      compilations: stored.compilations ?? [],
+      tests: stored.tests ?? [],
+      ai_interactions: stored.ai_interactions ?? [],
+      quiz_submissions: stored.quiz_submissions ?? [],
+      testeable_elements: stored.testeable_elements ?? [],
+      is_completed: stored.is_completed ?? false,
+      completed_at: stored.completed_at,
+      opened_at: stored.opened_at,
+      sessions: stored.sessions ?? [],
+    };
+  });
+}
+
+/**
  * Ensures telemetry matches ITelemetryJSONSchema and strips non-contract fields from server/local blobs.
  */
 export function normalizeTelemetrySchema(
@@ -599,10 +592,7 @@ export function normalizeTelemetrySchema(
     }
   }
   const now = Date.now();
-  const slug =
-    typeof picked.slug === "string" && picked.slug.trim() !== ""
-      ? picked.slug
-      : tutorialSlug;
+  const slug = tutorialSlug;
   const version =
     typeof picked.version === "string" && picked.version.trim() !== ""
       ? picked.version
@@ -617,7 +607,7 @@ export function normalizeTelemetrySchema(
       : now;
   const steps =
     Array.isArray(picked.steps) && picked.steps.length > 0
-      ? (picked.steps as TStep[])
+      ? mergeSteps(freshSteps, picked.steps as TStep[])
       : freshSteps;
   const workout_session = normalizeWorkoutSession(picked.workout_session, now);
   return {
@@ -717,14 +707,20 @@ interface ITelemetryManager {
     data: any,
     retry?: number
   ) => void;
+  activeHashes: Map<string, Set<string>>;
   registerTesteableElement: (
     stepPosition: number,
-    testeableElement: TTesteableElement
+    testeableElement: TTesteableElement,
+    language?: string
   ) => void;
   hasTesteableElementByHash: (stepPosition: number, hash: string) => boolean;
+  completeStepIfReadOnly: (stepPosition: number) => void;
+  onLessonRendered: (stepPosition: number) => void;
+  _lessonRenderedDebounce: ReturnType<typeof debounce> | null;
   hasPendingTasks: (stepPosition: number) => boolean;
   hasPendingTasksInAnyLesson: () => boolean;
   isTesteable: (stepPosition: number) => boolean;
+  isStepCompleted: (stepPosition: number) => boolean;
   getStepIndicators: (stepPosition: number) => TStepIndicators | null;
   streamEvent: (stepPosition: number, event: string, data: any) => void;
   submit: () => Promise<void>;
@@ -742,6 +738,8 @@ const TelemetryManager: ITelemetryManager = {
   agent: "cloud",
   prevStep: undefined,
   prevStepStartedAt: undefined,
+  activeHashes: new Map<string, Set<string>>(),
+  _lessonRenderedDebounce: null,
   user: {
     token: "",
     rigo_token: "",
@@ -757,6 +755,7 @@ const TelemetryManager: ITelemetryManager = {
   },
 
   start: function (agent, steps, tutorialSlug, storageKey, student) {
+    this.activeHashes = new Map<string, Set<string>>();
     this.telemetryKey = storageKey;
     this.tutorialSlug = tutorialSlug;
     this.agent = agent;
@@ -774,25 +773,7 @@ const TelemetryManager: ITelemetryManager = {
       this.reconciling = true;
       return (async () => {
         try {
-          let packageId: number | string | null = null;
-          if (student.rigo_token && tutorialSlug) {
-            packageId = await resolvePackageIdWithTimeout(
-              tutorialSlug,
-              student.rigo_token,
-              RESOLVE_PACKAGE_ID_TIMEOUT_MS
-            );
-          }
-
           const localRaw = LocalStorage.get(this.telemetryKey);
-          if (
-            packageId == null &&
-            localRaw &&
-            localRaw.slug === tutorialSlug &&
-            localRaw.package_id
-          ) {
-            packageId = localRaw.package_id;
-          }
-
           const localTelemetry =
             localRaw && localRaw.slug === tutorialSlug ? localRaw : null;
 
@@ -800,7 +781,6 @@ const TelemetryManager: ITelemetryManager = {
           if (student.rigo_token && student.user_id) {
             serverTelemetry = await fetchTelemetryFromServer({
               userId: student.user_id,
-              packageId,
               packageSlug: tutorialSlug,
               rigoToken: student.rigo_token,
             });
@@ -823,25 +803,6 @@ const TelemetryManager: ITelemetryManager = {
 
           if (!this.current.version) {
             this.current.version = `CLOUD:${this.version}`;
-          }
-
-          if (!this.current.package_id && packageId) {
-            this.current.package_id = packageId;
-          } else if (
-            !this.current.package_id &&
-            this.current.slug &&
-            this.user.rigo_token
-          ) {
-            getRigobotPackageIdBySlug(this.current.slug, this.user.rigo_token)
-              .then((resolvedId) => {
-                if (!resolvedId || !this.current) return;
-                if (this.current.package_id) return;
-                this.current.package_id = resolvedId;
-                this.save();
-              })
-              .catch((error) => {
-                console.error("Error getting Rigobot package id by slug", error);
-              });
           }
 
           this.finishWorkoutSession();
@@ -921,23 +882,6 @@ const TelemetryManager: ITelemetryManager = {
           this.current.version = `CLOUD:${this.version}`;
         }
 
-        if (
-          !this.current.package_id &&
-          this.current.slug &&
-          this.user.rigo_token
-        ) {
-          getRigobotPackageIdBySlug(this.current.slug, this.user.rigo_token)
-            .then((packageId) => {
-              if (!packageId || !this.current) return;
-              if (this.current.package_id) return;
-              this.current.package_id = packageId;
-              this.save();
-            })
-            .catch((error) => {
-              console.error("Error getting Rigobot package id by slug", error);
-            });
-        }
-
         this.save();
 
         this.started = true;
@@ -975,14 +919,10 @@ const TelemetryManager: ITelemetryManager = {
 
     const server = await fetchTelemetryFromServer({
       userId: this.user.id,
-      packageId: this.current.package_id ?? null,
       packageSlug: this.tutorialSlug,
       rigoToken: this.user.rigo_token,
     });
     if (!server) {
-      return;
-    }
-    if (server.slug && server.slug !== this.tutorialSlug) {
       return;
     }
     const serverTs = server.last_interaction_at ?? 0;
@@ -1019,14 +959,12 @@ const TelemetryManager: ITelemetryManager = {
 
   registerTesteableElement: function (
     stepPosition: number,
-    testeableElement: TTesteableElement
+    testeableElement: TTesteableElement,
+    language?: string
   ) {
     if (!this.current) {
-      console.log("No current telemetry to register testeable element", stepPosition, testeableElement);
       return
-    };
-
-    console.log("Registering testeable element", stepPosition, testeableElement);
+    }
 
     // Chequea si el elemento ya existe en otro step
     const existsInOtherStep = this.current.steps.findIndex(
@@ -1036,7 +974,6 @@ const TelemetryManager: ITelemetryManager = {
     );
 
     if (existsInOtherStep !== -1) {
-      console.log(`Testeable element already exists in at ${existsInOtherStep} step, moving on to current step`, stepPosition, testeableElement);
       const otherStep = this.current.steps[existsInOtherStep];
       // remove from other step
       otherStep.testeable_elements = otherStep.testeable_elements?.filter((e) => e.hash !== testeableElement.hash);
@@ -1064,9 +1001,70 @@ const TelemetryManager: ITelemetryManager = {
     elements.push(newElement);
 
     step.testeable_elements = elements;
-    console.log("step.testeable_elements", step.testeable_elements);
+    this.current.steps[stepPosition] = step;
+
+    if (testeableElement.type === "quiz" && language) {
+      if (!this.activeHashes.has(language)) {
+        this.activeHashes.set(language, new Set());
+      }
+      this.activeHashes.get(language)!.add(testeableElement.hash);
+    }
+
+    this.save();
+  },
+
+  /**
+   * Mark a step as completed if it has no testeable content (reading-only).
+   *
+   * Called from fetchSingleExerciseInfo once it has resolved the exercise's
+   * actual graded/testeable status.  This is the safe moment to auto-complete
+   * a step — open_step fires too early (before elements are registered) and
+   * cannot distinguish a reading-only step from one whose elements haven't
+   * loaded yet.
+   */
+  completeStepIfReadOnly: function (stepPosition: number) {
+    if (!this.current) return;
+    const step = this.current.steps[stepPosition];
+    if (!step || step.completed_at) return;
+
+    // If the step has any testeable_elements at this point (e.g. quiz elements
+    // restored from a previous session), it is NOT read-only.
+    if (step.testeable_elements?.length) return;
+
+    // If the step has code tests, it is NOT read-only.
+    if (step.is_testeable) return;
+
+    step.completed_at = Date.now();
+    step.is_completed = true;
     this.current.steps[stepPosition] = step;
     this.save();
+  },
+
+  /**
+   * Called (via eventBus "lesson_rendered") after the markdown content has
+   * rendered in the browser.  A debounce of 3 seconds gives quiz/FITB/OQ
+   * components time to mount and register their testeable_elements.  If
+   * after the debounce the step still has no testeable_elements and is not
+   * a code-test step, it is genuinely read-only and can be completed.
+   *
+   * The debounce is cancelled every time a new lesson_rendered fires (e.g.
+   * the user navigated to another step), so stale completions are avoided.
+   */
+  onLessonRendered: function (stepPosition: number) {
+    if (!this.current) return;
+
+    // Cancel any pending debounce from a previous step/render.
+    if (this._lessonRenderedDebounce) {
+      this._lessonRenderedDebounce.cancel();
+    }
+
+    const READOLY_COMPLETION_DELAY_MS = 7000;
+
+    this._lessonRenderedDebounce = debounce(() => {
+      this.completeStepIfReadOnly(stepPosition);
+    }, READOLY_COMPLETION_DELAY_MS);
+
+    this._lessonRenderedDebounce();
   },
 
   isTesteable: function (stepPosition: number) {
@@ -1156,8 +1154,6 @@ const TelemetryManager: ITelemetryManager = {
         if (!hasPendingTasks && !step.completed_at && data.exit_code === 0) {
           step.completed_at = now;
           step.is_completed = true;
-        } else {
-          console.log("hasPendingTasks", hasPendingTasks);
         }
 
         this.current.steps[stepPosition] = step;
@@ -1188,9 +1184,6 @@ const TelemetryManager: ITelemetryManager = {
         ) {
           step.completed_at = now;
           step.is_completed = true;
-        } else {
-          console.log("hasPendingTasks", hasPendingTasks);
-          console.log("step.testeable_elements", step.testeable_elements);
         }
 
         this.current.steps[stepPosition] = step;
@@ -1205,22 +1198,38 @@ const TelemetryManager: ITelemetryManager = {
           typeof this.prevStep === "number" &&
           typeof this.prevStepStartedAt === "number"
         ) {
-          const prevStep = this.current.steps[this.prevStep];
+          const prevStepData = this.current.steps[this.prevStep];
           const delta = now - this.prevStepStartedAt;
 
-          if (!prevStep.sessions) prevStep.sessions = [];
-          prevStep.sessions.push(delta);
-          this.current.steps[this.prevStep] = prevStep;
+          if (!prevStepData.sessions) prevStepData.sessions = [];
+          prevStepData.sessions.push(delta);
+          this.current.steps[this.prevStep] = prevStepData;
         }
 
-        if (typeof this.prevStep === "number") {
-          const prevStep = this.current.steps[this.prevStep];
-
-          const hasPendingTasks = this.hasPendingTasks(this.prevStep);
-          if (!hasPendingTasks && !prevStep.completed_at) {
-            prevStep.completed_at = now;
-            prevStep.is_completed = true;
-            this.current.steps[this.prevStep] = prevStep;
+        // Auto-complete the PREVIOUS step on departure, but ONLY when
+        // testeable_elements already exist and all are done. This is a
+        // safety-net for steps whose quiz_submission / test handlers
+        // already set is_completed — it catches edge cases where the
+        // handler couldn't confirm completion at the time.
+        //
+        // Steps with empty testeable_elements are NOT completed here.
+        // Read-only steps are completed via the "lesson_rendered" event
+        // handled by onLessonRendered(), which fires after the markdown
+        // has rendered and quiz components have had time to register.
+        if (
+          typeof this.prevStep === "number" &&
+          this.prevStep !== stepPosition
+        ) {
+          const prev = this.current.steps[this.prevStep];
+          if (
+            prev &&
+            !prev.completed_at &&
+            prev.testeable_elements?.length &&
+            !this.hasPendingTasks(this.prevStep)
+          ) {
+            prev.is_completed = true;
+            prev.completed_at = now;
+            this.current.steps[this.prevStep] = prev;
           }
         }
 
@@ -1231,11 +1240,6 @@ const TelemetryManager: ITelemetryManager = {
 
         this.prevStep = stepPosition;
         this.prevStepStartedAt = now;
-        if (stepPosition === this.current.steps.length - 1 && !this.hasPendingTasks(stepPosition)) {
-          step.is_completed = true;
-          step.completed_at = now;
-          this.current.steps[stepPosition] = step;
-        }
 
         this.submit();
         break;
@@ -1275,21 +1279,44 @@ const TelemetryManager: ITelemetryManager = {
 
   hasPendingTasks: function (stepPosition: number) {
     const step = this.current?.steps[stepPosition];
+    if (!step?.testeable_elements?.length) return false;
 
-    if (!step) {
-      return false;
+    // Tests are language-independent: if any is incomplete, the step is not done
+    const hasIncompleteTests = step.testeable_elements.some(
+      (e) => e.type === "test" && !e.is_completed
+    );
+    if (hasIncompleteTests) return true;
+
+    // Quizzes: the step is done if ALL active elements of at least one language are completed
+    const quizElements = step.testeable_elements.filter((e) => e.type === "quiz");
+    if (quizElements.length === 0) return false;
+
+    for (const [, hashes] of this.activeHashes) {
+      const relevantHashes = [...hashes].filter((h) =>
+        quizElements.some((e) => e.hash === h)
+      );
+      if (relevantHashes.length === 0) continue;
+
+      const allDone = relevantHashes.every(
+        (hash) => quizElements.find((e) => e.hash === hash)?.is_completed === true
+      );
+      if (allDone) return false;
     }
-    return Boolean(step.testeable_elements?.some((e) => !e.is_completed));
+
+    return true;
+  },
+
+  isStepCompleted: function (stepPosition: number) {
+    return this.current?.steps[stepPosition]?.is_completed ?? false;
   },
 
   hasPendingTasksInAnyLesson: function () {
     if (!this.current || !this.current.steps) {
       return false;
     }
-    
-    // Verify if any step has pending tasks
-    return this.current.steps.some((_, index) => 
-      this.hasPendingTasks(index)
+    return this.current.steps.some(
+      (step) =>
+        (step.is_testeable || step.testeable_elements?.length) && !step.is_completed
     );
   },
 
@@ -1379,5 +1406,10 @@ export function submitTelemetryToRigobotViaBeacon(): void {
     TelemetryManager.user.rigo_token
   );
 }
+
+// Wire up the lesson_rendered event once, at module load time.
+eventBus.on("lesson_rendered", ({ stepPosition }) => {
+  TelemetryManager.onLessonRendered(stepPosition);
+});
 
 export default TelemetryManager;
