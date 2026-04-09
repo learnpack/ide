@@ -713,6 +713,7 @@ interface ITelemetryManager {
     language?: string
   ) => void;
   hasTesteableElementByHash: (stepPosition: number, hash: string) => boolean;
+  completeStepIfReadOnly: (stepPosition: number) => void;
   hasPendingTasks: (stepPosition: number) => boolean;
   hasPendingTasksInAnyLesson: () => boolean;
   isTesteable: (stepPosition: number) => boolean;
@@ -1008,6 +1009,30 @@ const TelemetryManager: ITelemetryManager = {
     this.save();
   },
 
+  /**
+   * Mark a step as completed if it has no testeable content (reading-only).
+   *
+   * Called from fetchSingleExerciseInfo once it has resolved the exercise's
+   * actual graded/testeable status.  This is the safe moment to auto-complete
+   * a step — open_step fires too early (before elements are registered) and
+   * cannot distinguish a reading-only step from one whose elements haven't
+   * loaded yet.
+   */
+  completeStepIfReadOnly: function (stepPosition: number) {
+    if (!this.current) return;
+    const step = this.current.steps[stepPosition];
+    if (!step || step.completed_at) return;
+
+    // If the step has any testeable_elements at this point (e.g. quiz elements
+    // restored from a previous session), it is NOT read-only.
+    if (step.testeable_elements?.length) return;
+
+    step.completed_at = Date.now();
+    step.is_completed = true;
+    this.current.steps[stepPosition] = step;
+    this.save();
+  },
+
   isTesteable: function (stepPosition: number) {
     const step = this.current?.steps[stepPosition];
     if (!step) {
@@ -1095,8 +1120,6 @@ const TelemetryManager: ITelemetryManager = {
         if (!hasPendingTasks && !step.completed_at && data.exit_code === 0) {
           step.completed_at = now;
           step.is_completed = true;
-        } else {
-          console.log("hasPendingTasks", hasPendingTasks);
         }
 
         this.current.steps[stepPosition] = step;
@@ -1127,9 +1150,6 @@ const TelemetryManager: ITelemetryManager = {
         ) {
           step.completed_at = now;
           step.is_completed = true;
-        } else {
-          console.log("hasPendingTasks", hasPendingTasks);
-          console.log("step.testeable_elements", step.testeable_elements);
         }
 
         this.current.steps[stepPosition] = step;
@@ -1144,27 +1164,44 @@ const TelemetryManager: ITelemetryManager = {
           typeof this.prevStep === "number" &&
           typeof this.prevStepStartedAt === "number"
         ) {
-          const prevStep = this.current.steps[this.prevStep];
+          const prevStepData = this.current.steps[this.prevStep];
           const delta = now - this.prevStepStartedAt;
 
-          if (!prevStep.sessions) prevStep.sessions = [];
-          prevStep.sessions.push(delta);
-          this.current.steps[this.prevStep] = prevStep;
+          if (!prevStepData.sessions) prevStepData.sessions = [];
+          prevStepData.sessions.push(delta);
+          this.current.steps[this.prevStep] = prevStepData;
         }
 
-        // Only complete the previous step when actually navigating to a DIFFERENT
-        // step. If prevStep === stepPosition (same-step re-navigation — e.g., from
-        // getOrCreateActiveSession or a double startTelemetry call) skip this block
-        // entirely: completing the step we are already on based on "leaving" it is
-        // semantically wrong and produces false is_completed=true on initial load.
-        if (typeof this.prevStep === "number" && this.prevStep !== stepPosition) {
-          const prevStep = this.current.steps[this.prevStep];
-
-          const hasPendingTasks = this.hasPendingTasks(this.prevStep);
-          if (!hasPendingTasks && !prevStep.completed_at) {
-            prevStep.completed_at = now;
-            prevStep.is_completed = true;
-            this.current.steps[this.prevStep] = prevStep;
+        // Auto-complete the PREVIOUS step on departure.
+        //
+        // When open_step(B) fires, step A (prevStep) has been fully rendered:
+        // quiz useEffects have run and testeable_elements is fully populated.
+        // hasPendingTasks(A) is therefore reliable.
+        //
+        // We do NOT auto-complete the CURRENT step (B) here: fetchSingleExerciseInfo
+        // is async and quiz useEffects haven't run yet, so testeable_elements for B
+        // is always empty at this point — any hasPendingTasks check would be wrong.
+        //
+        // Guards:
+        //   prevStep !== stepPosition   → skip same-step re-navigation (Bug A)
+        //   !prev.completed_at          → already completed by test/quiz, no-op
+        //   testeableButNotLoaded       → is_testeable=true but no elements registered
+        //                                 means fetchSingleExerciseInfo is still in
+        //                                 flight for a code-test step — skip
+        //   !hasPendingTasks(prevStep)  → all elements done (or step is read-only)
+        if (
+          typeof this.prevStep === "number" &&
+          this.prevStep !== stepPosition
+        ) {
+          const prev = this.current.steps[this.prevStep];
+          if (prev && !prev.completed_at) {
+            const testeableButNotLoaded =
+              prev.is_testeable && !prev.testeable_elements?.length;
+            if (!testeableButNotLoaded && !this.hasPendingTasks(this.prevStep)) {
+              prev.is_completed = true;
+              prev.completed_at = now;
+              this.current.steps[this.prevStep] = prev;
+            }
           }
         }
 
@@ -1175,20 +1212,6 @@ const TelemetryManager: ITelemetryManager = {
 
         this.prevStep = stepPosition;
         this.prevStepStartedAt = now;
-        // Auto-complete the last step only when it has no testeable exercises.
-        // If is_testeable is true, testeable_elements may not be registered yet at
-        // this point (fetchSingleExerciseInfo is async), so hasPendingTasks would
-        // return false even though there are pending tasks — causing a false completion.
-        // Testeable last steps complete through the normal test/quiz paths instead.
-        if (
-          stepPosition === this.current.steps.length - 1 &&
-          !step.is_testeable &&
-          !this.hasPendingTasks(stepPosition)
-        ) {
-          step.is_completed = true;
-          step.completed_at = now;
-          this.current.steps[stepPosition] = step;
-        }
 
         this.submit();
         break;
