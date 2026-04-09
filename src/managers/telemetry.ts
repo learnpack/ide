@@ -12,7 +12,8 @@ import { LocalStorage } from "./localStorage";
 import axios, { AxiosResponse } from "axios";
 import { TAgent } from "../utils/storeTypes";
 import { LEARNPACK_LOCAL_URL } from "../utils/creator";
-import { RIGOBOT_HOST } from "../utils/lib";
+import { debounce, RIGOBOT_HOST } from "../utils/lib";
+import { eventBus } from "./eventBus";
 
 export interface IFile {
   path: string;
@@ -714,6 +715,8 @@ interface ITelemetryManager {
   ) => void;
   hasTesteableElementByHash: (stepPosition: number, hash: string) => boolean;
   completeStepIfReadOnly: (stepPosition: number) => void;
+  onLessonRendered: (stepPosition: number) => void;
+  _lessonRenderedDebounce: ReturnType<typeof debounce> | null;
   hasPendingTasks: (stepPosition: number) => boolean;
   hasPendingTasksInAnyLesson: () => boolean;
   isTesteable: (stepPosition: number) => boolean;
@@ -736,6 +739,7 @@ const TelemetryManager: ITelemetryManager = {
   prevStep: undefined,
   prevStepStartedAt: undefined,
   activeHashes: new Map<string, Set<string>>(),
+  _lessonRenderedDebounce: null,
   user: {
     token: "",
     rigo_token: "",
@@ -1027,10 +1031,40 @@ const TelemetryManager: ITelemetryManager = {
     // restored from a previous session), it is NOT read-only.
     if (step.testeable_elements?.length) return;
 
+    // If the step has code tests, it is NOT read-only.
+    if (step.is_testeable) return;
+
     step.completed_at = Date.now();
     step.is_completed = true;
     this.current.steps[stepPosition] = step;
     this.save();
+  },
+
+  /**
+   * Called (via eventBus "lesson_rendered") after the markdown content has
+   * rendered in the browser.  A debounce of 3 seconds gives quiz/FITB/OQ
+   * components time to mount and register their testeable_elements.  If
+   * after the debounce the step still has no testeable_elements and is not
+   * a code-test step, it is genuinely read-only and can be completed.
+   *
+   * The debounce is cancelled every time a new lesson_rendered fires (e.g.
+   * the user navigated to another step), so stale completions are avoided.
+   */
+  onLessonRendered: function (stepPosition: number) {
+    if (!this.current) return;
+
+    // Cancel any pending debounce from a previous step/render.
+    if (this._lessonRenderedDebounce) {
+      this._lessonRenderedDebounce.cancel();
+    }
+
+    const READOLY_COMPLETION_DELAY_MS = 7000;
+
+    this._lessonRenderedDebounce = debounce(() => {
+      this.completeStepIfReadOnly(stepPosition);
+    }, READOLY_COMPLETION_DELAY_MS);
+
+    this._lessonRenderedDebounce();
   },
 
   isTesteable: function (stepPosition: number) {
@@ -1172,36 +1206,30 @@ const TelemetryManager: ITelemetryManager = {
           this.current.steps[this.prevStep] = prevStepData;
         }
 
-        // Auto-complete the PREVIOUS step on departure.
+        // Auto-complete the PREVIOUS step on departure, but ONLY when
+        // testeable_elements already exist and all are done. This is a
+        // safety-net for steps whose quiz_submission / test handlers
+        // already set is_completed — it catches edge cases where the
+        // handler couldn't confirm completion at the time.
         //
-        // When open_step(B) fires, step A (prevStep) has been fully rendered:
-        // quiz useEffects have run and testeable_elements is fully populated.
-        // hasPendingTasks(A) is therefore reliable.
-        //
-        // We do NOT auto-complete the CURRENT step (B) here: fetchSingleExerciseInfo
-        // is async and quiz useEffects haven't run yet, so testeable_elements for B
-        // is always empty at this point — any hasPendingTasks check would be wrong.
-        //
-        // Guards:
-        //   prevStep !== stepPosition   → skip same-step re-navigation (Bug A)
-        //   !prev.completed_at          → already completed by test/quiz, no-op
-        //   testeableButNotLoaded       → is_testeable=true but no elements registered
-        //                                 means fetchSingleExerciseInfo is still in
-        //                                 flight for a code-test step — skip
-        //   !hasPendingTasks(prevStep)  → all elements done (or step is read-only)
+        // Steps with empty testeable_elements are NOT completed here.
+        // Read-only steps are completed via the "lesson_rendered" event
+        // handled by onLessonRendered(), which fires after the markdown
+        // has rendered and quiz components have had time to register.
         if (
           typeof this.prevStep === "number" &&
           this.prevStep !== stepPosition
         ) {
           const prev = this.current.steps[this.prevStep];
-          if (prev && !prev.completed_at) {
-            const testeableButNotLoaded =
-              prev.is_testeable && !prev.testeable_elements?.length;
-            if (!testeableButNotLoaded && !this.hasPendingTasks(this.prevStep)) {
-              prev.is_completed = true;
-              prev.completed_at = now;
-              this.current.steps[this.prevStep] = prev;
-            }
+          if (
+            prev &&
+            !prev.completed_at &&
+            prev.testeable_elements?.length &&
+            !this.hasPendingTasks(this.prevStep)
+          ) {
+            prev.is_completed = true;
+            prev.completed_at = now;
+            this.current.steps[this.prevStep] = prev;
           }
         }
 
@@ -1378,5 +1406,10 @@ export function submitTelemetryToRigobotViaBeacon(): void {
     TelemetryManager.user.rigo_token
   );
 }
+
+// Wire up the lesson_rendered event once, at module load time.
+eventBus.on("lesson_rendered", ({ stepPosition }) => {
+  TelemetryManager.onLessonRendered(stepPosition);
+});
 
 export default TelemetryManager;

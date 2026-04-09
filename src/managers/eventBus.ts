@@ -11,6 +11,7 @@ type Events = {
     score: number;
   };
   last_lesson_finished: {};
+  lesson_rendered: { stepPosition: number };
 };
 
 export const eventBus: Emitter<Events> = mitt<Events>();
