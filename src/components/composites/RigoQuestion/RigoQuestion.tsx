@@ -1,5 +1,6 @@
 import { svgs } from "../../../assets/svgs";
 import useStore from "../../../utils/store";
+import { getLanguageName } from "../../../utils/lib";
 
 const extractQueryFromUrlAndformatAsMessage = (url: string) => {
   const urlObj = new URL(url);
@@ -14,6 +15,16 @@ const extractQueryFromUrlAndformatAsMessage = (url: string) => {
   return query;
 };
 
+const buildAskRigoTutorContext = (language: string) => {
+  const code = language === "us" ? "en" : language;
+  const label = getLanguageName(language, "en");
+  return (
+    "Please answer the question. This is meant to help the student learn something new or understand a concept in depth.\n\n" +
+    `IMPORTANT: The student is using the LearnPack UI in ${label} (language code: ${code}). ` +
+    `You MUST reply only in ${label} for your entire answer, even if the student's question is phrased in a different language.`
+  );
+};
+
 export const RigoQuestion = ({
   children,
   href,
@@ -21,26 +32,26 @@ export const RigoQuestion = ({
   children: React.ReactNode;
   href: string;
 }) => {
-  const { toggleRigo, setRigoContext, reportEnrichDataLayer } = useStore(
-    (state) => ({
+  const { toggleRigo, setRigoContext, reportEnrichDataLayer, language } =
+    useStore((state) => ({
       toggleRigo: state.toggleRigo,
       setRigoContext: state.setRigoContext,
       reportEnrichDataLayer: state.reportEnrichDataLayer,
-    })
-  );
+      language: state.language,
+    }));
 
   return (
     <div
       onClick={() => {
+        const userMessage =
+          extractQueryFromUrlAndformatAsMessage(href) || (children as string);
         toggleRigo({ ensure: "open" });
         setRigoContext({
-          context:
-            "Please answer the question. This is mean to help the student to learn something new or understand a concept in deep.",
-          userMessage:
-            extractQueryFromUrlAndformatAsMessage(href) || (children as string),
+          context: buildAskRigoTutorContext(language),
+          userMessage,
         });
         reportEnrichDataLayer("open_rigo_question", {
-          userMessage: extractQueryFromUrlAndformatAsMessage(href),
+          userMessage,
         });
       }}
       className="d-inline-flex align-items-center gap-small padding-small rounded bg-blue-opaque fit-content active-on-hover"
