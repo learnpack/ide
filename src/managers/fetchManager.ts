@@ -144,6 +144,18 @@ export const FetchManager = {
         const fileContent = await response.text();
 
         if (opts.cached) {
+          const state = useStore.getState();
+          const exercise = state.exercises.find((e) => e.slug === slug);
+
+          if (exercise?.done && exercise?.approved_solution_files) {
+            const approvedFile = exercise.approved_solution_files.find(
+              (f) => f.name === file
+            );
+            if (approvedFile) {
+              return { fileContent: approvedFile.content, edited: true };
+            }
+          }
+
           const cachedEditorTabs = LocalStorage.get(`editorTabs_${slug}`);
           if (cachedEditorTabs) {
             const cached = cachedEditorTabs.find((t: TEditorTab) => t.name === file);
@@ -170,6 +182,18 @@ export const FetchManager = {
         // In student mode, prefer localStorage when cached so the student doesn't lose progress on reload
         if (mode !== "creator" && opts.cached) {
           try {
+            const state = useStore.getState();
+            const exercise = state.exercises.find((e) => e.slug === slug);
+
+            if (exercise?.done && exercise?.approved_solution_files) {
+              const approvedFile = exercise.approved_solution_files.find(
+                (f) => f.name === file
+              );
+              if (approvedFile) {
+                return { fileContent: approvedFile.content, edited: true };
+              }
+            }
+
             const cachedEditorTabs = LocalStorage.get(`editorTabs_${slug}`);
             if (cachedEditorTabs) {
               const cached = cachedEditorTabs.find((t: TEditorTab) => t.name === file);
@@ -241,7 +265,15 @@ export const FetchManager = {
       },
     };
 
-    return await methods[FetchManager.ENVIRONMENT as keyof TMethods]();
+    const env = (FetchManager.ENVIRONMENT || ENVIRONMENT) as keyof TMethods;
+    const method = methods[env];
+    if (!method) {
+      console.error(
+        `getExerciseInfo: no handler for environment "${String(env)}"`
+      );
+      return null;
+    }
+    return await method();
   },
   saveFileContent: async (slug: string, filename: string, content: string) => {
     const methods: TMethods = {
@@ -610,7 +642,7 @@ export const FetchManager = {
       },
       localStorage: async () => {
         try {
-          const sidebar = await fetch(`/sidebar.json`);
+          const sidebar = await fetch(`/.learn/sidebar.json`);
           const json = await sidebar.json();
           return json;
         } catch (e) {

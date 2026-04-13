@@ -33,6 +33,7 @@ import {
 import {
   IStore,
   TAgent,
+  TApprovedSolutionFile,
   TExercise,
   TMode,
   TParamsActions,
@@ -55,7 +56,12 @@ import {
   updateSession,
   isPackageAuthor,
 } from "./apiCalls";
-import TelemetryManager, { TStep } from "../managers/telemetry";
+import TelemetryManager, {
+  TStep,
+  submitTelemetryToRigobotViaBeacon,
+} from "../managers/telemetry";
+
+let telemetryLifecycleListenersRegistered = false;
 import { RigoAI } from "../components/Rigobot/AI";
 import { svgs } from "../assets/svgs";
 import { Notifier } from "../managers/Notifier";
@@ -141,7 +147,9 @@ const mergeExercisesWithSession = (
     );
     return {
       ...currentEx,
-      done: sessionEx?.done ?? currentEx.done ?? false
+      done: sessionEx?.done ?? currentEx.done ?? false,
+      approved_solution_files:
+        sessionEx?.approved_solution_files ?? currentEx.approved_solution_files,
     };
   });
 };
@@ -494,6 +502,19 @@ const useStore = create<IStore>((set, get) => ({
         setBuildButtonPrompt("Try again", "bg-fail text-white");
       }
       playEffect("error");
+
+      if (environment === "localStorage" || environment === "creatorWeb") {
+        const currentExercise = getCurrentExercise();
+        TelemetryManager.registerTesteableElement(
+          Number(currentExercise.position),
+          {
+            hash: currentExercise.slug,
+            searchString: currentExercise.slug,
+            type: "test",
+            is_completed: false,
+          }
+        );
+      }
     }, 100);
 
     let compilerErrorHandler = debounce(async (data: any) => {
@@ -1144,7 +1165,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
       const acceptRigobot = () => {
         const inviteUrl =
-          "https://rigobot.herokuapp.com/invite?referer=4geeks&lang=" +
+          `${RIGOBOT_HOST}/invite?referer=4geeks&lang=` +
           correctLanguage(language) +
           "&token=" +
           bc_token +
@@ -1759,17 +1780,52 @@ The user's set up the application in "${language}" language, give your feedback 
 
   setTestResult: (status, logs) => {
     logs;
-    const { exercises, currentExercisePosition, updateDBSession } = get();
+    const {
+      exercises,
+      currentExercisePosition,
+      editorTabs,
+      environment,
+      mode,
+      updateDBSession,
+    } = get();
     const copy = [...exercises];
+    const pos = Number(currentExercisePosition);
 
-    copy[Number(currentExercisePosition)].done = status === "successful";
+    copy[pos].done = status === "successful";
+
+    const isWebStudent =
+      environment === "localStorage" ||
+      (environment === "creatorWeb" && mode !== "creator");
+
+    if (status === "successful" && isWebStudent) {
+      const MAX_FILE_SIZE = 50 * 1024;
+      const MAX_TOTAL_SIZE = 200 * 1024;
+      let totalSize = 0;
+      const approvedFiles: TApprovedSolutionFile[] = [];
+
+      for (const tab of editorTabs) {
+        if (tab.name === "terminal") continue;
+        if (tab.name.includes("solution.hide")) continue;
+
+        const size = new Blob([tab.content || ""]).size;
+        if (size > MAX_FILE_SIZE) continue;
+        if (totalSize + size > MAX_TOTAL_SIZE) break;
+
+        approvedFiles.push({ name: tab.name, content: tab.content || "" });
+        totalSize += size;
+      }
+
+      copy[pos].approved_solution_files = approvedFiles;
+    } else if (status === "failed") {
+      copy[pos].approved_solution_files = undefined;
+    }
 
     set({
       exercises: copy,
       lastTestResult: {
         status: status,
         logs: logs,
-      }
+      },
     });
 
     updateDBSession();
@@ -2223,7 +2279,7 @@ The user's set up the application in "${language}" language, give your feedback 
       throw error;
     }
   },
-  resetExercise: ({ exerciseSlug }) => {
+  resetExercise: async ({ exerciseSlug }) => {
     const {
       updateEditorTabs,
       exercises,
@@ -2232,16 +2288,21 @@ The user's set up the application in "${language}" language, give your feedback 
       setEditorTabs,
       editorTabs,
       reportEnrichDataLayer,
+      configObject,
+      environment,
+      mode,
     } = get();
 
     if (editorTabs.find((tab) => tab.name === "terminal")) {
       setEditorTabs(editorTabs.filter((tab) => tab.name !== "terminal"));
     }
 
-    let newExercises = exercises.map((e) => {
+    const newExercises = exercises.map((e) => {
       if (e.slug === exerciseSlug) {
         return {
           ...e,
+          done: false,
+          approved_solution_files: undefined,
           files: e.files.map((f: any) => {
             delete f.content;
             delete f.modified;
@@ -2253,9 +2314,24 @@ The user's set up the application in "${language}" language, give your feedback 
       }
     });
 
-    set({ exercises: newExercises, lastState: "" });
+    const updatedConfigExercises = (configObject.exercises || []).map(
+      (ex: TExercise) => {
+        const fresh = newExercises.find((e) => e.slug === ex.slug);
+        return fresh ?? ex;
+      }
+    );
 
-    updateDBSession();
+    set({
+      exercises: newExercises,
+      lastState: "",
+      configObject: { ...configObject, exercises: updatedConfigExercises },
+    });
+
+    try {
+      await updateDBSession();
+    } catch (e) {
+      console.error("updateDBSession failed after resetExercise", e);
+    }
 
     const data = {
       exerciseSlug: exerciseSlug,
@@ -2263,6 +2339,58 @@ The user's set up the application in "${language}" language, give your feedback 
     };
     compilerSocket.emit("reset", data);
     reportEnrichDataLayer("learnpack_reset", {});
+
+    const isWebStudent =
+      environment === "localStorage" ||
+      (environment === "creatorWeb" && mode !== "creator");
+    if (isWebStudent) {
+      const exercise = newExercises.find((e) => e.slug === exerciseSlug);
+      if (exercise) {
+        TelemetryManager.registerTesteableElement(Number(exercise.position), {
+          hash: exercise.slug,
+          searchString: exercise.slug,
+          type: "test",
+          is_completed: false,
+        });
+      }
+    }
+  },
+  unlockExerciseEditing: () => {
+    const {
+      exercises,
+      currentExercisePosition,
+      editorTabs,
+      updateDBSession,
+      environment,
+      mode,
+    } = get();
+    const pos = Number(currentExercisePosition);
+    const exercise = exercises[pos];
+
+    const withoutTerminal = editorTabs.filter((t) => t.name !== "terminal");
+    LocalStorage.setEditorTabs(exercise.slug, withoutTerminal);
+
+    const copy = [...exercises];
+    copy[pos] = {
+      ...copy[pos],
+      done: false,
+      approved_solution_files: undefined,
+    };
+
+    set({ exercises: copy });
+    updateDBSession();
+
+    const isWebStudent =
+      environment === "localStorage" ||
+      (environment === "creatorWeb" && mode !== "creator");
+    if (isWebStudent) {
+      TelemetryManager.registerTesteableElement(Number(exercise.position), {
+        hash: exercise.slug,
+        searchString: exercise.slug,
+        type: "test",
+        is_completed: false,
+      });
+    }
   },
   sessionActions: async ({ action = "new" }) => {
     const {
@@ -2462,14 +2590,42 @@ The user's set up the application in "${language}" language, give your feedback 
 
       const params = checkParams({ justReturn: true });
 
-      TelemetryManager.start(agent, steps, tutorialSlug, STORAGE_KEY, {
-        token: bc_token,
-        user_id: String(user.id),
-        fullname: user.first_name + " " + user.last_name,
-        rigo_token: token,
-        cohort_id: params.cohort_id || "",
-        academy_id: params.academy_id || "",
-      });
+      try {
+        await TelemetryManager.start(agent, steps, tutorialSlug, STORAGE_KEY, {
+          token: bc_token,
+          user_id: String(user.id),
+          fullname: user.first_name + " " + user.last_name,
+          rigo_token: token,
+          cohort_id: params.cohort_id || "",
+          academy_id: params.academy_id || "",
+        });
+      } finally {
+        set({ telemetryReady: true });
+      }
+
+      if (agent === "cloud" && !telemetryLifecycleListenersRegistered) {
+        telemetryLifecycleListenersRegistered = true;
+
+        const onVisibility = () => {
+          if (document.hidden) {
+            void TelemetryManager.submit();
+          } else {
+            void TelemetryManager.refreshFromServerIfStale();
+          }
+        };
+
+        let unloadBeaconSent = false;
+        const onUnload = () => {
+          if (unloadBeaconSent) return;
+          unloadBeaconSent = true;
+          submitTelemetryToRigobotViaBeacon();
+        };
+
+        document.addEventListener("visibilitychange", onVisibility);
+        window.addEventListener("beforeunload", onUnload);
+        window.addEventListener("pagehide", onUnload);
+      }
+
       TelemetryManager.registerListener(
         "compile_struggles",
         (stepIndicators) => {
@@ -2629,6 +2785,7 @@ The user's set up the application in "${language}" language, give your feedback 
     });
   },
   displayTestButton: DEV_MODE,
+  telemetryReady: false,
   getTelemetryStep: async (stepPosition: number) => {
     return await FetchManager.getTelemetryStep(stepPosition);
   },
