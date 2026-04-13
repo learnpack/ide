@@ -354,7 +354,10 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
         const displayStatus = resolveTranslationStatus(syllabus, exercises || [], l, pendingEntry);
         const missingCount = getMissingSlugsForLang(exercises || [], l).length;
         const isDisabled = missingCount > 0;
-        const showRetry = mode === "creator" && displayStatus === "error" && missingCount > 0;
+        const isTranslating = displayStatus === "pending" || displayStatus === "translating";
+        // Show sync button whenever the language is incomplete and not actively translating.
+        // This covers both explicit error cases and "incomplete with no tracked pending state".
+        const showRetry = mode === "creator" && missingCount > 0 && !isTranslating;
         const showErrorIcon = mode === "creator" && displayStatus === "error" && missingCount === 0;
 
         return (

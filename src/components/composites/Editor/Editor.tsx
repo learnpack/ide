@@ -1,4 +1,4 @@
-import React, { useEffect, useState} from "react";
+import React, { useCallback, useEffect, useRef, useState} from "react";
 import MonacoEditor from "@monaco-editor/react";
 import useStore from "../../../utils/store";
 import { LocalStorage } from "../../../managers/localStorage";
@@ -82,6 +82,8 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     lessonSyncInProgress,
     environment,
     syncLessonFilesFromEditor,
+    configObject,
+    unlockExerciseEditing,
   } = useStore((state) => ({
     tabs: state.editorTabs,
     setTabs: state.setEditorTabs,
@@ -101,6 +103,8 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     lessonSyncInProgress: state.lessonSyncInProgress,
     environment: state.environment,
     syncLessonFilesFromEditor: state.syncLessonFilesFromEditor,
+    configObject: state.configObject,
+    unlockExerciseEditing: state.unlockExerciseEditing,
   }));
 
   const { t } = useTranslation();
@@ -116,6 +120,14 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
   const [isRenaming, setIsRenaming] = useState<boolean>(false);
   const isBuildable = useStore((s) => s.isBuildable);
   const isTesteable = useStore((s) => s.isTesteable);
+
+  const tabsRef = useRef<HTMLDivElement | null>(null);
+  const [showFadeLeft, setShowFadeLeft] = useState(false);
+  const [showFadeRight, setShowFadeRight] = useState(false);
+  const isDraggingTabsRef = useRef(false);
+  const dragPointerIdRef = useRef<number | null>(null);
+  const dragStartXRef = useRef(0);
+  const dragScrollLeftRef = useRef(0);
 
   const updateContent = (id: number, content: string) => {
     const newTabs = tabs.map((tab) =>
@@ -443,6 +455,102 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     }
   }, [tabs]);
 
+  useEffect(() => {
+    const el = tabsRef.current;
+    if (!el) return;
+
+    const updateFades = () => {
+      const { scrollLeft, scrollWidth, clientWidth } = el;
+      setShowFadeLeft(scrollLeft > 0);
+      setShowFadeRight(scrollLeft + clientWidth < scrollWidth - 1);
+    };
+
+    updateFades();
+    el.addEventListener("scroll", updateFades);
+    window.addEventListener("resize", updateFades);
+
+    return () => {
+      el.removeEventListener("scroll", updateFades);
+      window.removeEventListener("resize", updateFades);
+    };
+  }, [tabs.length]);
+
+  const handleTabsWheel: React.WheelEventHandler<HTMLDivElement> = (e) => {
+    const el = tabsRef.current;
+    if (!el) return;
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      e.preventDefault();
+      el.scrollLeft += e.deltaY;
+    }
+  };
+
+  const DRAG_THRESHOLD_PX = 8;
+  const hasPointerDownRef = useRef(false);
+
+  const endTabsDrag = useCallback((pointerId: number) => {
+    const el = tabsRef.current;
+    if (!el) return;
+    if (dragPointerIdRef.current !== null) {
+      try {
+        el.releasePointerCapture(pointerId);
+      } catch {
+        // ignore
+      }
+      dragPointerIdRef.current = null;
+    }
+    isDraggingTabsRef.current = false;
+    hasPointerDownRef.current = false;
+    el.classList.remove("dragging");
+  }, []);
+
+  const handleDragStart: React.PointerEventHandler<HTMLDivElement> = (e) => {
+    const el = tabsRef.current;
+    if (!el) return;
+    hasPointerDownRef.current = true;
+    isDraggingTabsRef.current = false;
+    dragPointerIdRef.current = null;
+    dragStartXRef.current = e.clientX;
+    dragScrollLeftRef.current = el.scrollLeft;
+    const pointerId = e.pointerId;
+    const onPointerUpGlobal = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return;
+      hasPointerDownRef.current = false;
+      if (dragPointerIdRef.current !== null) {
+        endTabsDrag(ev.pointerId);
+      }
+      window.removeEventListener("pointerup", onPointerUpGlobal);
+      window.removeEventListener("pointercancel", onPointerUpGlobal);
+    };
+    window.addEventListener("pointerup", onPointerUpGlobal);
+    window.addEventListener("pointercancel", onPointerUpGlobal);
+  };
+
+  const handleDragMove: React.PointerEventHandler<HTMLDivElement> = (e) => {
+    const el = tabsRef.current;
+    if (!el) return;
+    if (!hasPointerDownRef.current) return;
+    if (!isDraggingTabsRef.current) {
+      if (Math.abs(e.clientX - dragStartXRef.current) < DRAG_THRESHOLD_PX) return;
+      isDraggingTabsRef.current = true;
+      dragPointerIdRef.current = e.pointerId;
+      el.classList.add("dragging");
+      dragStartXRef.current = e.clientX;
+      dragScrollLeftRef.current = el.scrollLeft;
+      try {
+        el.setPointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+    }
+    const dx = e.clientX - dragStartXRef.current;
+    el.scrollLeft = dragScrollLeftRef.current - dx;
+  };
+
+  const handleDragEnd: React.PointerEventHandler<HTMLDivElement> = (e) => {
+    if (e.pointerId !== dragPointerIdRef.current) return;
+    endTabsDrag(e.pointerId);
+  };
+
   const onReset = () => {
     setOpenedModals({ reset: true });
   };
@@ -451,14 +559,16 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
 
   const filteredTabs = tabs.filter((tab) => tab.name !== "terminal");
 
-  const toolbarStateClass = 
+  const ex = getCurrentExercise();
+  const toolbarStateClass =
     lastTestResult?.status === "failed"
-      ? "error"  // Tests failed - keep toolbar red even if compilation succeeds
-      : lastTestResult?.status === "successful" && lastState === "success"
-      ? "success"  // Tests passed - toolbar green
-      : lastState === "error"
-      ? "error"  // Compilation error (no test result yet)
-      : "";  // Normal state
+      ? "error" // Tests failed - keep toolbar red even if compilation succeeds
+      : (lastTestResult?.status === "successful" && lastState === "success") ||
+          ex.done
+        ? "success" // Tests passed or persisted done - toolbar green
+        : lastState === "error"
+          ? "error" // Compilation error (no test result yet)
+          : ""; // Normal state
 
   const onlyContinue = !isBuildable && !isTesteable;
 
@@ -470,14 +580,23 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
       style={{ display: `${tabs.length === 0 ? "none" : "block"}` }}
     >
       <div
-        className="tabs"
+        className="tabs-scroll-container"
         style={{ display: terminal === "only" ? "none" : "flex" }}
       >
-        {filteredTabs.map((tab) => (
-          <div
-            key={tab.id + tab.name}
-            className={`tab ${tab.isActive ? "active" : ""}`}
-          >
+        <div
+          className="tabs"
+          ref={tabsRef}
+          onWheel={handleTabsWheel}
+          onPointerDown={handleDragStart}
+          onPointerMove={handleDragMove}
+          onPointerUp={handleDragEnd}
+          onPointerLeave={handleDragEnd}
+        >
+          {filteredTabs.map((tab) => (
+            <div
+              key={tab.id + tab.name}
+              className={`tab ${tab.isActive ? "active" : ""}`}
+            >
             {editingTabId === tab.id ? (
               <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                 <input
@@ -524,6 +643,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
+                    className="whitespace-nowrap"
                     onClick={() => handleTabClick(tab.id)}
                     onDoubleClick={() => handleDoubleClick(tab)}
                   >
@@ -627,6 +747,9 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
             </Tooltip>
           </div>
         )}
+        </div>
+        {showFadeLeft && <div className="tabs-fade-left" />}
+        {showFadeRight && <div className="tabs-fade-right" />}
       </div>
 
       {!(terminal === "only") && (
@@ -653,8 +776,36 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                         </div>
                       );
                     }
+                    const exDoneReadonly = getCurrentExercise();
+                    const grading = configObject.config?.grading;
+                    const isWebStudent =
+                      environment === "localStorage" ||
+                      (environment === "creatorWeb" && mode !== "creator");
+                    const gradingStr = grading != null ? String(grading).trim() : "";
+                    const showDoneReadonlyBanner =
+                      exDoneReadonly.done &&
+                      !tab.name.includes("solution.hide") &&
+                      gradingStr !== "" &&
+                      gradingStr !== "no-grading" &&
+                      isWebStudent;
                     return (
                       <>
+                        {showDoneReadonlyBanner && (
+                          <div className="padding-small margin-children-none text-small bg-success text-white d-flex align-center justify-between gap-small flex-wrap">
+                            <span>
+                              {grading === "incremental"
+                                ? t("exercise-done-readonly-banner-incremental")
+                                : t("exercise-done-readonly-banner-isolated")}
+                            </span>
+                            <button
+                              type="button"
+                              className="btn btn-sm shrink-0 bg-white text-success border-0 fw-semibold rounded-sm px-2 py-1"
+                              onClick={() => unlockExerciseEditing()}
+                            >
+                              {t("exercise-done-unlock-edit")}
+                            </button>
+                          </div>
+                        )}
                         {tab.name.includes("solution.hide") && mode !== "creator" && (
                           <div className=" padding-small margin-children-none text-small bg-warning text-black">
                             <Markdowner
@@ -699,7 +850,8 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                             lineNumbersMinChars: 3,
                             readOnly:
                               tab.name === "terminal" ||
-                              (tab.name.includes("solution.hide") && mode !== "creator"),
+                              (tab.name.includes("solution.hide") && mode !== "creator") ||
+                              showDoneReadonlyBanner,
                           }}
                         />
                       </>
@@ -853,16 +1005,19 @@ const Terminal = ({
     }
   };
 
-  const toolbarStateClass = 
+  const ex = getCurrentExercise();
+  const toolbarStateClass =
     lastTestResult?.status === "failed"
-      ? "error"  // Tests failed - keep toolbar red even if compilation succeeds
-      : lastTestResult?.status === "successful" && lastState === "success"
-      ? "success"  // Tests passed - toolbar green
-      : lastState === "error"
-      ? "error"  // Compilation error (no test result yet)
-      : "";  // Normal state
+      ? "error" // Tests failed - keep toolbar red even if compilation succeeds
+      : (lastTestResult?.status === "successful" && lastState === "success") ||
+          ex.done
+        ? "success" // Tests passed or persisted done - toolbar green
+        : lastState === "error"
+          ? "error" // Compilation error (no test result yet)
+          : ""; // Normal state
 
-  const onlyContinue = !isTesteable && lastState === "success"; 
+  const onlyContinue =
+    !isTesteable && (lastState === "success" || ex.done);
 
   return (
     <>
@@ -1057,22 +1212,17 @@ export const Toolbar = ({
   isHtml,
 }: EditorFooterProps) => {
   const { t } = useTranslation();
-  const {
-    lastState,
-    getCurrentExercise,
-    currentExercisePosition,
-    exercises,
-  } = useStore((state) => ({
-    lastState: state.lastState,
-    getCurrentExercise: state.getCurrentExercise,
-    currentExercisePosition: state.currentExercisePosition,
-    exercises: state.exercises,
-  }));
+  const { getCurrentExercise, currentExercisePosition, exercises } = useStore(
+    (state) => ({
+      getCurrentExercise: state.getCurrentExercise,
+      currentExercisePosition: state.currentExercisePosition,
+      exercises: state.exercises,
+    })
+  );
 
   const ex = getCurrentExercise();
 
-  const letPass =
-    lastState === "success" && ex.done && editorStatus === "MODIFIED";
+  const letPass = ex.done;
 
   const isLastExercise = currentExercisePosition === exercises.length - 1;
 

@@ -9,17 +9,11 @@ import { Notifier } from "../../../managers/Notifier";
 import { svgs } from "../../../assets/svgs";
 import TelemetryManager, { TQuizSubmission } from "../../../managers/telemetry";
 import { eventBus } from "@/managers/eventBus";
-
-type TQuizGroup = {
-  title: string;
-  checkboxes: {
-    text: string;
-    isCorrect: boolean;
-    feedback?: string;
-  }[];
-  correctAnswer: string;
-  currentSelection: string;
-};
+import {
+  getLatestQuizSubmission,
+  makeQuizSubmission,
+  type TQuizGroup,
+} from "./quizSubmissionUtils";
 
 type TQuiz = {
   hash: string;
@@ -29,40 +23,6 @@ type TQuiz = {
   };
   renderedGroups: string[];
   started_at: number;
-};
-
-export const makeQuizSubmission = (
-  groups: TQuizGroup[],
-  quizHash: string,
-  started_at: number
-): TQuizSubmission => {
-  const correctAnswers = Object.values(groups).filter(
-    (group) => group.correctAnswer === group.currentSelection
-  );
-  const percentage = (correctAnswers.length / groups.length) * 100;
-  
-  const selections = groups.map((group) => {
-    // Find the checkbox that matches the current selection to get its feedback
-    const selectedCheckbox = group.checkboxes.find(
-      (cb) => cb.text === group.currentSelection
-    );
-    
-    return {
-      question: group.title,
-      answer: group.currentSelection,
-      isCorrect: group.correctAnswer === group.currentSelection,
-      feedback: selectedCheckbox?.feedback,
-    };
-  });
-  
-  return {
-    started_at,
-    ended_at: Date.now(),
-    status: percentage === 100 ? "SUCCESS" : "ERROR",
-    percentage,
-    quiz_hash: quizHash,
-    selections,
-  };
 };
 
 export const QuizRenderer = ({ children }: { children: any }) => {
@@ -82,6 +42,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
     reportEnrichDataLayer,
     token,
     setOpenedModals,
+    telemetryReady,
   } = useStore((state) => ({
     registerTelemetryEvent: state.registerTelemetryEvent,
     maxQuizRetries: state.maxQuizRetries,
@@ -92,6 +53,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
     reportEnrichDataLayer: state.reportEnrichDataLayer,
     token: state.token,
     setOpenedModals: state.setOpenedModals,
+    telemetryReady: state.telemetryReady,
   }));
 
 
@@ -134,7 +96,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
   // Recover quiz state from telemetry when component mounts
   useEffect(() => {
     // Only attempt recovery after quiz is fully rendered and has a hash
-    if (!quiz.current.hash || !quizRendered) return;
+    if (!quiz.current.hash || !quizRendered || !telemetryReady) return;
 
     const recoverState = async () => {
       try {
@@ -149,19 +111,18 @@ export const QuizRenderer = ({ children }: { children: any }) => {
 
         if (submissions.length === 0) return;
 
-        // Get the last submission (successful or failed)
-        const lastSubmission = submissions[submissions.length - 1];
+        const latestSubmission = getLatestQuizSubmission(submissions);
 
-        if (!lastSubmission) return;
-       
+        if (!latestSubmission) return;
+
         // Restore attempts history
         quiz.current.attempts = submissions;
 
         // Create an object with restored selections for React state
         const restored: Record<string, string> = {};
         
-        // Restore selections from telemetry
-        lastSubmission.selections?.forEach((selection) => {
+        // Restore selections from telemetry (latest attempt by timestamp)
+        latestSubmission.selections?.forEach((selection) => {
           // Store directly in state for React to render
           restored[selection.question] = selection.answer;
           
@@ -187,7 +148,13 @@ export const QuizRenderer = ({ children }: { children: any }) => {
     };
 
     recoverState();
-  }, [quiz.current.hash, quizRendered, getTelemetryStep, currentExercisePosition]);
+  }, [
+    quiz.current.hash,
+    quizRendered,
+    getTelemetryStep,
+    currentExercisePosition,
+    telemetryReady,
+  ]);
 
 
   const onGroupReady = (group: TQuizGroup) => {
@@ -209,8 +176,10 @@ export const QuizRenderer = ({ children }: { children: any }) => {
   };
 
   const onGroupRendered = async (title: string) => {
-    quiz.current.renderedGroups.push(title);
-    
+    if (!quiz.current.renderedGroups.includes(title)) {
+      quiz.current.renderedGroups.push(title);
+    }
+
     if (quiz.current.renderedGroups.length === liChildren.length) {
       quiz.current.hash = await asyncHashText(
         quiz.current.renderedGroups.join(" ")
@@ -226,13 +195,6 @@ export const QuizRenderer = ({ children }: { children: any }) => {
       return;
     }
     if (Object.keys(quiz.current.groups).length === liChildren.length) {
-      const hash = await asyncHashText(
-        Object.values(quiz.current.groups)
-          .map((group) => group.title)
-          .join(" ")
-      );
-      quiz.current.hash = hash;
-
       const currentStep = await getTelemetryStep(
         Number(currentExercisePosition)
       );
@@ -286,7 +248,7 @@ export const QuizRenderer = ({ children }: { children: any }) => {
         {
           type: "quiz",
           hash: quiz.current.hash,
-          is_completed: true,
+          is_completed: submission.status === "SUCCESS",
           searchString: quiz.current.renderedGroups[0] || "",
         }
       );

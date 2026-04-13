@@ -109,9 +109,8 @@ const LessonInspector = () => {
     intervalRef.current = setTimeout(async () => {
       const katexErrors = document.querySelectorAll("span.katex-error");
       const errorTexts = document.querySelectorAll("text.error-text");
-      const taskListItems = document.querySelectorAll("li.task-list-item");
 
-      if (katexErrors.length > 0 || errorTexts.length > 0 || taskListItems.length > 0) {
+      if (katexErrors.length > 0 || errorTexts.length > 0) {
         let foundErrors = "There are\n";
         
         if (katexErrors.length > 0) {
@@ -129,15 +128,6 @@ const LessonInspector = () => {
           });
           foundErrors += `</MERMAID_ERRORS>\n`;
         }
-        
-        if (taskListItems.length > 0) {
-          foundErrors += `<TASK_LIST_ITEMS> ${taskListItems.length} task list items that are not properly formatted as quizzes:\n`;
-          taskListItems.forEach((item) => {
-            foundErrors += `  - ${item.textContent || ""}\n`;
-          });
-          foundErrors += `</TASK_LIST_ITEMS>\n`;
-        }
-
 
         if (environment !== "creatorWeb") {
           console.log("not creator web, skipping fix lesson");

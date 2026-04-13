@@ -1,7 +1,47 @@
+.tabs-scroll-container {
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  flex: 1;
+}
+
 .tabs {
   display: flex;
   align-items: center;
   gap: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  cursor: grab;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tabs.dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.tabs-fade-left,
+.tabs-fade-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 128px;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.tabs-fade-left {
+  left: 0;
+  background: linear-gradient(to right, var(--bg-color, #fff), transparent);
+}
+
+.tabs-fade-right {
+  right: 0;
+  background: linear-gradient(to left, var(--bg-color, #fff), transparent);
 }
 .tab {
   display: flex;

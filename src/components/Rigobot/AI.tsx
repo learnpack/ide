@@ -46,10 +46,10 @@ type TRigoTemplateParams = {
 };
 
 const rigoTemplateDefaults = {
-  apiHost: import.meta.env.VITE_API_HOST,
   pusherKey: import.meta.env.VITE_SOKETI_KEY,
   pusherHost: import.meta.env.VITE_SOKETI_HOST,
   pusherPort: import.meta.env.VITE_SOKETI_PORT,
+  apiHost: import.meta.env.VITE_RIGOBOT_HOST || "https://rigobot.herokuapp.com",
 };
 
 const rigoTemplateState = {
