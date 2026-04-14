@@ -41,20 +41,22 @@ type TRigoTemplateParams = {
   userToken: string;
   apiHost?: string;
   pusherKey?: string;
-  pusherCluster?: string;
+  pusherHost?: string;
+  pusherPort?: string;
 };
 
 const rigoTemplateDefaults = {
+  pusherKey: import.meta.env.VITE_SOKETI_KEY,
+  pusherHost: import.meta.env.VITE_SOKETI_HOST,
+  pusherPort: import.meta.env.VITE_SOKETI_PORT,
   apiHost: import.meta.env.VITE_RIGOBOT_HOST || "https://rigobot.herokuapp.com",
-  pusherKey: "085fabde5864ef790a61",
-  pusherCluster: "mt1",
 };
 
 const rigoTemplateState = {
   userToken: "",
   apiHost: rigoTemplateDefaults.apiHost,
   pusherKey: rigoTemplateDefaults.pusherKey,
-  pusherCluster: rigoTemplateDefaults.pusherCluster,
+  pusherHost: rigoTemplateDefaults.pusherHost,
 };
 
 export const RigoTemplate = {
@@ -68,7 +70,8 @@ export const RigoTemplate = {
     userToken,
     apiHost,
     pusherKey,
-    pusherCluster,
+    pusherHost,
+    pusherPort,
   }: TRigoTemplateParams): TAgentJob | undefined => {
     if (!templateSlug) {
       onComplete?.(false, { error: "No template slug provided" });
@@ -94,8 +97,9 @@ export const RigoTemplate = {
     let channel: any = null;
     let started = false;
     const resolvedApiHost = apiHost ?? rigoTemplateDefaults.apiHost;
-    const resolvedPusherKey = pusherKey ?? rigoTemplateDefaults.pusherKey;
-    const resolvedPusherCluster = pusherCluster ?? rigoTemplateDefaults.pusherCluster;
+    const resolvedSoketiKey = pusherKey ?? rigoTemplateDefaults.pusherKey;
+    const resolvedPusherHost = pusherHost ?? rigoTemplateDefaults.pusherHost;
+    const resolvedPusherPort = pusherPort ?? rigoTemplateDefaults.pusherPort;
     return {
       stop: () => {
         if (channel) {
@@ -109,8 +113,13 @@ export const RigoTemplate = {
       run: async () => {
         try {
           const { default: Pusher } = await import("pusher-js");
-          pusherClient = new Pusher(resolvedPusherKey, {
-            cluster: resolvedPusherCluster,
+          pusherClient = new Pusher(resolvedSoketiKey, {
+            wsHost: resolvedPusherHost,
+            wsPort: resolvedPusherPort,
+            forceTLS: true,
+            encrypted: true,
+            disableStats: true,
+            enabledTransports: ["ws", "wss"],
           });
           const response = await fetch(
             `${resolvedApiHost}/v1/prompting/use-template/${templateSlug}/`,
@@ -306,7 +315,7 @@ export const RigoAI = {
       apiHost: rigoTemplateState.apiHost,
       // apiHost: "https://rigobot-test-cca7d841c9d8.herokuapp.com",
       pusherKey: rigoTemplateState.pusherKey,
-      pusherCluster: rigoTemplateState.pusherCluster,
+      pusherHost: rigoTemplateState.pusherHost,
     });
 
     if (job) {
