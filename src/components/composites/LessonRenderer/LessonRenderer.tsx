@@ -130,7 +130,6 @@ const LessonInspector = () => {
         }
 
         if (environment !== "creatorWeb") {
-          console.log("not creator web, skipping fix lesson");
           return;
         }
 
@@ -182,14 +181,17 @@ export const LessonRenderer = memo(() => {
   const isTesteable = useStore((s) => s.isTesteable);
   const lastTestResult = useStore((s) => s.lastTestResult);
   const isBuildable = useStore((s) => s.isBuildable);
+  const currentExercisePosition = useStore((s) => s.currentExercisePosition);
 
-  console.log("Rendering LessonRenderer", {
-    currentContent,
-    editingContent,
-    agent,
-    environment,
-    lastState,
-  });
+  // Notify telemetry that the lesson content has rendered, so it can
+  // determine (after a debounce window) whether the step is read-only.
+  useEffect(() => {
+    if (currentContent && currentExercisePosition != null) {
+      eventBus.emit("lesson_rendered", {
+        stepPosition: Number(currentExercisePosition),
+      });
+    }
+  }, [currentContent, currentExercisePosition]);
 
   const onReset = () => {
     setOpenedModals({ reset: true });

@@ -7,7 +7,6 @@ import toast from "react-hot-toast";
 import {
   createStep,
   deleteExercise,
-  markLessonAsDone,
   renameExercise,
   synchronizeSyllabus,
 } from "../../../utils/creator";
@@ -114,7 +113,6 @@ const AddExerciseButton = ({
     }
     catch (error) {
       toast.error(t("errorGeneratingExercise"), { id: toastId });
-      console.log(error);
     }
   };
 
@@ -236,7 +234,6 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
       setSelectedExercises([]);
     } catch (error) {
       toast.error(t("errorTranslatingExercises"), { id: toastId });
-      console.log(error, "Error");
     }
   };
 
@@ -271,11 +268,9 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
       
       // Refresh sidebar
       await getSidebar();
-      
-      console.log("Sync result:", result);
+    
     } catch (error) {
       toast.error("Error synchronizing syllabus", { id: toastId });
-      console.error(error);
     }
   };
 
@@ -417,7 +412,6 @@ function ExerciseCard({
         await fetchExercises();
       } catch (e) {
         toast.error(t("errorRenamingExercise"), { id: toastId });
-        console.log(e);
       }
     } else {
       setIsEditing(true);
@@ -436,9 +430,8 @@ function ExerciseCard({
   const current = getCurrentExercise();
   const isCurrent = current.slug === slug;
 
-  const isDone = TelemetryManager.isTesteable(position) && !TelemetryManager.hasPendingTasks(position);
+  const isDone = TelemetryManager.isTesteable(position) && TelemetryManager.isStepCompleted(position);
   const isTesteable = TelemetryManager.isTesteable(position);
-  console.table({ graded, done, isDone, isTesteable });
 
 
   return (
@@ -509,37 +502,8 @@ function ExerciseCard({
           foundInSyllabus.status === "GENERATING" && (
             <>
               <Loader color="gray" extraClass="svg-blue" />
-              {DEV_MODE && (
-                <button
-                  onClick={() => {
-                    toast.success("Marking as done...");
-                    markLessonAsDone(
-                      config.config.slug,
-                      slug,
-                      token
-                    );
-                  }}
-                >
-                  IS DONE
-                </button>
-              )}
             </>
           )}
-        {foundInSyllabus && DEV_MODE && (
-          <button
-            onClick={() => {
-              toast.success("Marking as done...");
-              markLessonAsDone(
-                config.config.slug,
-                slug,
-                token
-              );
-            }}
-          >
-
-            {foundInSyllabus.status}
-          </button>
-        )}
         {foundInSyllabus &&
           !foundInSyllabus.generated &&
           foundInSyllabus.status === "PENDING" && (
@@ -591,7 +555,6 @@ function ExerciseCard({
                     toast.error(t("errorDeletingExercise"), {
                       id: toastId,
                     });
-                    console.log(error);
                   }
                 }}
                 confirmationMessage={isEditing ? undefined : t("sure?")}

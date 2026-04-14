@@ -1059,6 +1059,7 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
     recordConsumable,
     toastFromStatus,
     reportEnrichDataLayer,
+    language,
   } = useStore((state) => ({
     token: state.token,
     setOpenedModals: state.setOpenedModals,
@@ -1070,6 +1071,7 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
     recordConsumable: state.useConsumable,
     toastFromStatus: state.toastFromStatus,
     reportEnrichDataLayer: state.reportEnrichDataLayer,
+    language: state.language,
   }));
 
   // Extract correct answers from metadata
@@ -1097,7 +1099,7 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
       type: "quiz",
       hash: hashRef.current,
       searchString: code.slice(0, 200) || "",
-    });
+    }, language);
   };
 
   const debouncedRegisterFitb = debounce(registerFitb, 2000);
@@ -1268,7 +1270,7 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
       hash: hashRef.current,
       is_completed: submission.status === "SUCCESS",
       searchString: code.slice(0, 200) || "",
-    });
+    }, language);
 
     if (submission.status === "SUCCESS") {
       toastFromStatus("quiz-success");

@@ -1037,6 +1037,7 @@ The user's set up the application in "${language}" language, give your feedback 
       setFeedbackButtonProps,
       checkParams,
       registerTelemetryEvent,
+      telemetryReady,
       updateDBSession,
     } = get();
 
@@ -1058,9 +1059,17 @@ The user's set up the application in "${language}" language, give your feedback 
       }
     });
 
-    registerTelemetryEvent("open_step", {
-      step_position: newPosition,
-    });
+    // Only register open_step if telemetry is already initialized. When setPosition
+    // is called during app init (e.g. from checkParams before startTelemetry runs),
+    // TelemetryManager.current is null and the event would be queued as a retry.
+    // That retry fires ~2s later with prevStep already set, incorrectly marking the
+    // step as is_completed=true. startTelemetry() registers the initial open_step
+    // itself once the manager is ready.
+    if (telemetryReady) {
+      registerTelemetryEvent("open_step", {
+        step_position: newPosition,
+      });
+    }
     fetchReadme();
     setTimeout(updateDBSession, 5000);
   },
