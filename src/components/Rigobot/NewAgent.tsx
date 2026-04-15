@@ -33,8 +33,6 @@ import { Icon } from "../Icon";
 export const DIFF_SEPARATOR = "---SEPARATOR---";
 
 // Pusher configuration - adjust these values
-const PUSHER_KEY = process.env.NEXT_PUBLIC_PUSHER_KEY || "609743b48b8ed073d67f";
-const PUSHER_CLUSTER = process.env.NEXT_PUBLIC_PUSHER_CLUSTER || "us2";
 const API_HOST = import.meta.env.VITE_RIGOBOT_HOST || "https://rigobot.herokuapp.com";
 
 // Types
@@ -182,7 +180,6 @@ function setupPusherSubscription(
       wsHost: resolvedSoketiHost,
       wsPort: resolvedSoketiPort,
       forceTLS: true,
-      encrypted: true,
       disableStats: true,
       enabledTransports: ["ws", "wss"],
     });

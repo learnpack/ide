@@ -352,8 +352,6 @@ function ExerciseCard({
   slug,
   position,
   closeSidebar,
-  graded,
-  done,
   mode,
   handleSelect,
   selected,
@@ -367,16 +365,12 @@ function ExerciseCard({
     getCurrentExercise,
     sidebar,
     language,
-    token,
-    config,
   } = useStore((state) => ({
     handlePositionChange: state.handlePositionChange,
     fetchExercises: state.fetchExercises,
     getCurrentExercise: state.getCurrentExercise,
     sidebar: state.sidebar,
     language: state.language,
-    token: state.token,
-    config: state.configObject,
   }));
 
   const [isEditing, setIsEditing] = useState(false);

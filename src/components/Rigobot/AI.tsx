@@ -117,7 +117,6 @@ export const RigoTemplate = {
             wsHost: resolvedPusherHost,
             wsPort: resolvedPusherPort,
             forceTLS: true,
-            encrypted: true,
             disableStats: true,
             enabledTransports: ["ws", "wss"],
           });
