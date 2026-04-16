@@ -6,7 +6,7 @@ import { svgs } from "../../assets/svgs";
 import { Modal } from "../mockups/Modal";
 import ProgressBar from "../composites/ProgressBar/ProgressBar";
 import useStore from "../../utils/store";
-import { publishTutorial, changeSlug, getUserAcademies, getPackageAcademy, PackageAcademyInfo } from "../../utils/creator";
+import { publishTutorial, changeSlug, getUserAcademies, getPackageAcademy } from "../../utils/creator";
 import { toast } from "react-hot-toast";
 import { playEffect, getSlugFromPath, slugify } from "../../utils/lib";
 import { Notifier } from "../../managers/Notifier";
@@ -38,7 +38,8 @@ const PublishConfirmationModal: FC<{
   const [academies, setAcademies] = useState<Academy[]>([]);
   const [selectedAcademyId, setSelectedAcademyId] = useState<number | undefined>(undefined);
   const [loadingAcademies, setLoadingAcademies] = useState(false);
-  const [packageAcademyInfo, setPackageAcademyInfo] = useState<PackageAcademyInfo | null>(null);
+  const [packageAcademyId, setPackageAcademyId] = useState<number | null>(null);
+  const [isPublished, setIsPublished] = useState(false);
   const [loadingPackageInfo, setLoadingPackageInfo] = useState(false);
 
   useEffect(() => {
@@ -61,20 +62,22 @@ const PublishConfirmationModal: FC<{
     if (!bcToken) return;
     const currentSlug = getSlugFromPath();
     if (!currentSlug) return;
-
+    
     try {
       setLoadingPackageInfo(true);
       const packageInfo = await getPackageAcademy(bcToken, currentSlug);
-      setPackageAcademyInfo(packageInfo);
-
-      // For locked mode, pre-set the academy so it's sent on publish
-      if (packageInfo.mode === "locked" && packageInfo.lockedAcademyId !== undefined) {
-        setSelectedAcademyId(packageInfo.lockedAcademyId);
+      setPackageAcademyId(packageInfo.academyId);
+      setIsPublished(packageInfo.isPublished);
+      
+      // If package has an academy, use it automatically
+      if (packageInfo.academyId !== null) {
+        setSelectedAcademyId(packageInfo.academyId);
       }
     } catch (error) {
       console.error("Error fetching package academy:", error);
-      // On error, fall back to select mode so the user can still proceed
-      setPackageAcademyInfo({ isPublished: false, mode: "select" });
+      // On error, assume not published so user can still select academy
+      setPackageAcademyId(null);
+      setIsPublished(false);
     } finally {
       setLoadingPackageInfo(false);
     }
@@ -129,8 +132,8 @@ const PublishConfirmationModal: FC<{
       setLoadingAcademies(true);
       const academiesList = await getUserAcademies(bcToken);
       setAcademies(academiesList);
-      // Auto-select only in select mode (no existing academy association)
-      if (academiesList.length === 1 && packageAcademyInfo?.mode !== "locked") {
+      // Auto-select if only one academy
+      if (academiesList.length === 1) {
         setSelectedAcademyId(academiesList[0].id);
       }
     } catch (error) {
@@ -210,14 +213,14 @@ const PublishConfirmationModal: FC<{
 
             <div className="flex-y gap-small padding-small">
               <label className="text-blue font-medium">{t("tutorial-slug")}</label>
-              <input
+              <input 
                 className="padding-small rounded border"
                 maxLength={47}
                 value={editableSlug}
                 onClick={(e) => e.stopPropagation()}
                 onChange={handleSlugChange}
                 placeholder={t("tutorial-slug")}
-                disabled={packageAcademyInfo?.isPublished}
+                disabled={isPublished}
               />
               <div className="flex-x justify-between align-center">
                 <span className="text-small text-gray-600">{editableSlug.length}/47</span>
@@ -231,14 +234,14 @@ const PublishConfirmationModal: FC<{
                   <span className="text-small text-danger">{t("slug-taken")}</span>
                 )}
               </div>
-              {packageAcademyInfo?.isPublished && (
+              {isPublished && (
                 <p className="text-small text-gray-600 m-0">
                   You can't change the slug in published packages
                 </p>
               )}
             </div>
 
-            {!loadingPackageInfo && packageAcademyInfo?.mode === "select" && academies.length > 0 && (
+            {academies.length > 0 && !loadingPackageInfo && packageAcademyId === null && (
               <div className="flex-y gap-small padding-small">
                 <label className="text-blue font-medium">Academy</label>
                 <select
@@ -255,30 +258,6 @@ const PublishConfirmationModal: FC<{
                     </option>
                   ))}
                 </select>
-              </div>
-            )}
-
-            {!loadingPackageInfo && packageAcademyInfo?.mode === "locked" && (
-              <div className="flex-y gap-small padding-small">
-                <label className="text-blue font-medium">Academy</label>
-                <p className="padding-small rounded border bg-soft-blue text-blue m-0">
-                  {academies.find((a) => a.id === packageAcademyInfo.lockedAcademyId)?.name
-                    ?? `Academy #${packageAcademyInfo.lockedAcademyId}`}
-                </p>
-                <p className="text-small text-gray-600 m-0">
-                  The academy cannot be changed for published packages.
-                </p>
-              </div>
-            )}
-
-            {!loadingPackageInfo && packageAcademyInfo?.mode === "conflict" && (
-              <div className="flex-y gap-small padding-small bg-soft-yellow rounded">
-                <p className="text-yellow font-medium m-0">⚠ Academy conflict</p>
-                <p className="text-small text-yellow m-0">
-                  Your assets are associated with different academies
-                  ({packageAcademyInfo.conflictAcademies?.join(", ")}).
-                  Academy assignment will be skipped.
-                </p>
               </div>
             )}
 
