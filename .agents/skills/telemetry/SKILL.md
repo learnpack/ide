@@ -33,8 +33,16 @@ TelemetryManager (singleton)       ← src/managers/telemetry.ts
     │  accumulates in .current (in memory)
     ├─ save() → localStorage["TELEMETRY"]   (cloud agent)
     ├─ save() → POST /telemetry             (os/vscode agents)
-    └─ submit() → POST Rigobot + Breathecode
+    └─ submit() → POST Breathecode (batch URL) then POST Rigobot (same JSON body)
 ```
+
+### Batch vs streaming
+
+**Student progress is carried by the batch blob**, not by the streaming channel.
+
+- Every `registerStepEvent()` updates `TelemetryManager.current`, then **`save()`** (localStorage or CLI file).
+- **`submit()`** sends the **full blob** to **`config.telemetry.batch`** (Breathecode) and to **Rigobot** (`/v1/learnpack/telemetry`).
+- **`config.telemetry.streaming`** is **optional**. Default LearnPack templates often define only `telemetry.batch`. If `streaming` is missing, `streamEvent()` returns immediately and **no** per-event HTTP firehose runs — the student’s work is still recorded via **`save()`** and **batch `submit()`**.
 
 ### The IDE as source of truth for step structure (cloud)
 
@@ -86,39 +94,45 @@ signal used by `onLessonRendered` to detect read-only steps (see below).
 
 ## How to register a new event
 
-1. Call `TelemetryManager.registerStepEvent(eventType, data)` from the component/store
+1. Call `TelemetryManager.registerStepEvent(stepPosition, eventType, data)` from the component/store (via `registerTelemetryEvent` in the store)
 2. The event is appended to the corresponding array in `TelemetryManager.current.steps[n]`
 3. `save()` is called automatically after each registration
 4. Add the new type to `TStep` (see `references/schema.md`)
 
-For compilation/test events, data must be base64-encoded:
-```typescript
-// telemetry.ts:386-391
-const encode = (s: string) => btoa(encodeURIComponent(s))
-```
+For compilation/test events, data must be base64-encoded (see `stringToBase64` / `fixStepData` in `src/managers/telemetry.ts`).
 
 ## Lifecycle and submission triggers
 
-**Bootstrap** (on IDE startup):
-1. Resolve `package_id` from slug — 5s timeout
-2. `GET ${RIGOBOT_HOST}/v1/learnpack/telemetry?include_buffer=true` — 5s timeout
-3. Load from `localStorage`
-4. Reconcile (see Reconciliation section)
-5. If source is `"local"`, submit immediately
+**Bootstrap** (cloud agent — `TelemetryManager.start`):
+1. Load prior blob from `localStorage` (same tutorial slug only)
+2. `GET ${RIGOBOT_HOST}/v1/learnpack/telemetry?...` with `user_ids`, `package_slug`, `include_buffer=true`, `include_steps=true` — 5s timeout (`FETCH_TELEMETRY_TIMEOUT_MS`)
+3. `reconcileTelemetry()` (see Reconciliation section)
+4. Apply session fields (`user_id`, `fullname`, `cohort_id`, `academy_id`), `save()`, then if reconciliation source is `"local"`, **`submit()`** immediately
 
-**Automatic submissions** (`submit()` → Rigobot + Breathecode):
-- Test completes with `exit_code === 0`
-- Quiz submitted
-- Step opened
-- Tab hidden
-- Page closed — beacon with `keepalive: true`
+There is **no separate “resolve package_id” HTTP step** in this bootstrap path; `package_id` may appear inside stored or server blobs and is preserved when whitelisted.
+
+**`submit()` — dual batch POST (same body, strict order):**
+1. `POST` **`config.telemetry.batch`** with **Breathecode** token (`Authorization: Token <breathecode_token>`).
+2. If that succeeds, `POST` **`${RIGOBOT_HOST}/v1/learnpack/telemetry`** with **Rigobot** token.
+
+If the Breathecode POST **throws**, the Rigobot POST is **not** attempted (single `try` / sequential `await`).
+
+**When `submit()` runs** (non-exhaustive):
+- After **`test`** when `exit_code === 0` (and related completion logic)
+- After **`quiz_submission`**
+- After **`open_step`**
+- Cloud: when the tab becomes **hidden** (`visibilitychange` → `TelemetryManager.submit()`)
+
+**Page unload — Rigobot-only beacon:**
+
+On `beforeunload` / `pagehide` (cloud), `submitTelemetryToRigobotViaBeacon()` sends **one** `fetch` with **`keepalive: true`** to **Rigobot only**. It does **not** call the Breathecode batch URL. This is a best-effort last send when the page is tearing down; the hidden-tab `submit()` path is what reliably hits **both** backends during normal navigation.
 
 **Server refresh:**
-- On tab focus if idle > 5 minutes (`TELEMETRY_VISIBILITY_REFRESH_IDLE_MS`)
+- On tab focus if idle > 5 minutes (`TELEMETRY_VISIBILITY_REFRESH_IDLE_MS`) — refetch Rigobot telemetry and merge via `normalizeTelemetrySchema` when server `last_interaction_at` is newer
 
 ## Local ↔ server reconciliation
 
-Function: `reconcileTelemetry()` — `telemetry.ts:214-314`
+Function: `reconcileTelemetry()` — `src/managers/telemetry.ts` (`export function reconcileTelemetry`)
 
 Strategy: **"most recent `last_interaction_at` wins"**
 
@@ -389,7 +403,7 @@ last_interaction_at` if no `ended_at`) and opens a new one. Handled by
   of 3 attempts with 2s delay. Note: `open_step` is excluded from this retry mechanism
   via the `telemetryReady` guard in `setPosition`.
 
-- **Keys persisted in localStorage have a strict whitelist** (`telemetry.ts:539-555`) —
+- **Keys persisted in localStorage have a strict whitelist** (`TELEMETRY_WHITELIST_KEYS` in `src/managers/telemetry.ts`) —
   fields outside the whitelist are discarded during normalization.
 
 - **No HTTP retry**: if a POST fails, it is logged and discarded.
