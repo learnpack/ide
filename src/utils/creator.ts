@@ -80,10 +80,19 @@ export const getUserAcademies = async (breathecodeToken: string) => {
   }
 };
 
+export type PackageAcademyMode = "select" | "locked" | "conflict";
+
+export type PackageAcademyInfo = {
+  isPublished: boolean;
+  mode: PackageAcademyMode;
+  lockedAcademyId?: number;
+  conflictAcademies?: number[];
+};
+
 export const getPackageAcademy = async (
   breathecodeToken: string,
   slug: string
-): Promise<{ academyId: number | null; isPublished: boolean }> => {
+): Promise<PackageAcademyInfo> => {
   try {
     const headers = {
       "x-breathecode-token": breathecodeToken,
