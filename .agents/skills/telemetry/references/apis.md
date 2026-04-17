@@ -7,21 +7,24 @@ VITE_RIGOBOT_HOST     → https://rigobot.herokuapp.com  (default)
 VITE_BREATHECODE_HOST → https://breathecode.herokuapp.com  (default)
 ```
 
-The auth token comes from the user's session (Rigobot token).
+Batch requests use **two** tokens: Breathecode token on `telemetry.batch`, Rigobot token on `/v1/learnpack/telemetry`.
 
 ---
 
-## Rigobot — Primary endpoint
+## Rigobot — Primary read/write for the telemetry blob
 
 ### GET /v1/learnpack/telemetry
-**Purpose:** Fetch telemetry from the server on startup or refresh.
-**File:** `telemetry.ts:154`
+
+**Purpose:** Fetch the latest stored telemetry blob for reconciliation (cloud bootstrap and stale refresh).
+
+**Implementation:** `fetchTelemetryFromServer()` in `src/managers/telemetry.ts`.
+
+**Query string sent by the IDE** (no other params are added by this client today):
 
 ```
 GET ${RIGOBOT_HOST}/v1/learnpack/telemetry
   ?user_ids=<user_id>
   &package_slug=<slug>
-  &package_ids=<package_id>
   &include_buffer=true
   &include_steps=true
 
@@ -29,14 +32,17 @@ Headers:
   Authorization: Token <rigobot_token>
 ```
 
-Timeout: `FETCH_TELEMETRY_TIMEOUT_MS = 5000ms`
-Response: `ITelemetryJSONSchema | null`
+Timeout: `FETCH_TELEMETRY_TIMEOUT_MS` (5000ms). On failure or non-OK response, returns `null` and reconciliation falls back to local/new blob as appropriate.
+
+Response shape: JSON with a `results` array; the IDE uses `results[0]` as `ITelemetryJSONSchema | null`.
 
 ---
 
 ### POST /v1/learnpack/telemetry
-**Purpose:** Batch submission of the full blob.
-**File:** `telemetry.ts:59`
+
+**Purpose:** Batch submission of the full telemetry payload (same JSON as Breathecode batch).
+
+**Implementation:** `sendBatchTelemetryRigobot()` in `src/managers/telemetry.ts`.
 
 ```
 POST ${RIGOBOT_HOST}/v1/learnpack/telemetry
@@ -48,13 +54,17 @@ Headers:
 Body: ITelemetryJSONSchema (full blob with computed metrics)
 ```
 
-Also called with `keepalive: true` on `pagehide`/`beforeunload` (beacon).
+**Order relative to Breathecode:** Inside `TelemetryManager.submit()`, **Breathecode batch runs first**. Rigobot POST runs only if Breathecode does not throw.
+
+**Beacon on page unload:** `submitTelemetryToRigobotViaBeacon()` issues a **separate** `POST` with `fetch(..., { keepalive: true })` to this same path. It is **Rigobot only** — it does **not** POST to the Breathecode batch URL.
 
 ---
 
 ### GET /v1/learnpack/package/${slug}/
-**Purpose:** Resolve `package_id` from the package slug.
-**File:** `telemetry.ts:89`
+
+**Purpose:** Package metadata on Rigobot (e.g. existence check for authors).
+
+**Used in:** `src/utils/apiCalls.ts` (`isPackageAuthor` — status 200 vs 404).
 
 ```
 GET ${RIGOBOT_HOST}/v1/learnpack/package/${packageSlug}/
@@ -63,35 +73,39 @@ Headers:
   Authorization: Token <rigobot_token>
 ```
 
-Timeout: `RESOLVE_PACKAGE_ID_TIMEOUT_MS = 5000ms`
-Response: `{ id: number, ... }`
+Not part of the telemetry manager bootstrap; other features may call it as needed.
 
 ---
 
-## Breathecode — Secondary endpoint
+## Breathecode — Batch mirror
 
-### POST (URL configured in the package)
-**Purpose:** Alternate batch submission, complementary to Rigobot.
-**File:** `telemetry.ts:23-56`
+### POST (URL from package config)
+
+**Purpose:** Second destination for the **same** batch body as Rigobot (when `submit()` completes the Breathecode call).
+
+**Implementation:** `sendBatchTelemetryBreathecode()` in `src/managers/telemetry.ts`.
 
 ```
-POST <config.batch_url>
+POST <config.telemetry.batch>
 
 Headers:
   Authorization: Token <breathecode_token>
   Content-Type: application/json
 
-Body: ITelemetryJSONSchema (same payload as Rigobot)
+Body: ITelemetryJSONSchema (same payload as Rigobot batch)
 ```
 
-The URL comes from `config.telemetry.batch` in the LearnPack package config.
+The base URL comes from `config.telemetry.batch` in the loaded LearnPack config (`learn.json` / cloud `config.json`). Local templates often set this to `https://breathecode.herokuapp.com/v1/assignment/me/telemetry` (exact string may vary by environment).
 
 ---
 
-## Streaming — Individual real-time events
+## Streaming — Optional per-event POSTs
 
-**Purpose:** Send individual events during the session (not batch).
-**File:** `telemetry.ts:1342-1362`
+**Purpose:** Fire **individual** step events (`compile`, `test`, `open_step`, etc.) to a separate endpoint **in addition to** the batch blob. **Not required** for progress: the batch path + `save()` holds authoritative step state.
+
+**Implementation:** `streamEvent()` → `sendStreamTelemetry()` in `src/managers/telemetry.ts`.
+
+If `config.telemetry.streaming` is **undefined**, `streamEvent()` returns immediately.
 
 ```
 POST <config.telemetry.streaming>
@@ -106,11 +120,13 @@ Body: {
 }
 ```
 
+**Auth note:** `sendStreamTelemetry` requires a non-empty token to run, but the current `fetch` call does **not** attach `Authorization` or embed the token in the body. If the streaming endpoint requires auth, that may need to be aligned in code.
+
 ---
 
 ## CLI — Local bridge (os/vscode agents)
 
-**File:** `telemetry.ts:361-384`
+**File:** `src/managers/telemetry.ts` (CLI URL helpers)
 
 ```
 GET http://localhost:<PORT>/telemetry
@@ -126,7 +142,7 @@ POST http://localhost:<PORT>/telemetry
 
 ## Error behavior
 
-- **Timeout** (package resolve or fetch): returns `null`, continues with local data
-- **4xx/5xx HTTP**: error is logged, Promise is rejected, **no retry**
-- **Tab closed**: beacon with `keepalive: true` — one-way, no delivery confirmation
-- **TelemetryManager not initialized**: retry loop of 3 attempts with 2s delay
+- **GET telemetry timeout / abort:** returns `null`, reconciliation continues with local or new state
+- **4xx/5xx on batch POST:** logged, `submit()` fails as a whole; Rigobot is skipped if Breathecode failed first
+- **Page close:** Rigobot `keepalive` beacon only — no delivery guarantee; Breathecode is not called on that path
+- **TelemetryManager not initialized** on first event: retry loop (3 attempts, 2s delay) for `registerStepEvent`; `open_step` is gated by `telemetryReady` separately
