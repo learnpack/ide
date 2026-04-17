@@ -7,23 +7,24 @@ The heart of all telemetry logic in the IDE.
 
 | Lines (approx.) | Contents |
 |-----------------|----------|
-| 24-57 | `sendBatchTelemetryBreathecode()` |
-| 59-76 | `sendBatchTelemetryRigobot()` |
-| 91-143 | `fetchTelemetryFromServer()` |
-| 164-262 | `reconcileTelemetry()` |
-| 267-280 | `submitViaBeacon()` — used for Rigobot keepalive POSTs |
-| 283-306 | `sendStreamTelemetry()` |
-| 339+ | `stringToBase64` / encoding helpers used by `fixStepData` |
-| 424+ | `fixStepData()` — normalizes step event payloads |
-| 487+ | `TELEMETRY_WHITELIST_KEYS` — persisted blob whitelist |
-| 580+ | `normalizeTelemetrySchema()` |
-| 632+ | `buildSubmitPayload()` |
-| 757+ | `TelemetryManager.start()` — cloud vs os/vscode bootstrap |
-| 908+ | `refreshFromServerIfStale()` |
-| 1112+ | `registerStepEvent()` — mutates `current`, `submit()` / `save()` / `streamEvent()` |
-| 1323+ | `submit()` — Breathecode batch then Rigobot batch |
-| 1369+ | `streamEvent()` — optional streaming URL |
-| 1395+ | `submitTelemetryToRigobotViaBeacon()` — unload hook (Rigobot only) |
+| 25-31 | `withAssetIdQuery()` — appends `asset_id` to Breathecode batch URL |
+| 33+ | `sendBatchTelemetryBreathecode()` — optional `packageAssetIds` for Breathecode query |
+| (next) | `sendBatchTelemetryRigobot()` |
+| 103+ | `fetchTelemetryFromServer()` |
+| (next) | `reconcileTelemetry()` |
+| (next) | `submitViaBeacon()` — used for Rigobot keepalive POSTs |
+| (next) | `sendStreamTelemetry()` |
+| (next) | `stringToBase64` / encoding helpers used by `fixStepData` |
+| (next) | `fixStepData()` — normalizes step event payloads |
+| (next) | `TELEMETRY_WHITELIST_KEYS` — persisted blob whitelist |
+| (next) | `normalizeTelemetrySchema()` |
+| (next) | `buildSubmitPayload()` |
+| 772+ | `TelemetryManager.start()` — cloud vs os/vscode bootstrap; loads `packageAssetIds` |
+| (next) | `refreshFromServerIfStale()` |
+| (next) | `registerStepEvent()` — mutates `current`, `submit()` / `save()` / `streamEvent()` |
+| 1358+ | `submit()` — Breathecode batch (with `asset_id` query when set) then Rigobot batch |
+| (next) | `streamEvent()` — optional streaming URL |
+| (next) | `submitTelemetryToRigobotViaBeacon()` — unload hook (Rigobot only) |
 
 ---
 
@@ -86,6 +87,14 @@ The heart of all telemetry logic in the IDE.
 ### `src/managers/localStorage.ts`
 - `LocalStorage.set()` — sanitizer interception point
 - Telemetry key: `"TELEMETRY"`
+
+---
+
+## API helpers
+
+### `src/utils/apiCalls.ts`
+
+- `fetchLearnpackPackageAssetIds()` — GET Rigobot package, returns `asset_ids` as `number[]` for Breathecode batch URL (telemetry bootstrap).
 
 ---
 

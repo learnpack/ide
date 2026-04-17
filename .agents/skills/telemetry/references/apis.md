@@ -62,9 +62,11 @@ Body: ITelemetryJSONSchema (full blob with computed metrics)
 
 ### GET /v1/learnpack/package/${slug}/
 
-**Purpose:** Package metadata on Rigobot (e.g. existence check for authors).
+**Purpose:** Package metadata on Rigobot (e.g. `asset_ids`, existence check for authors).
 
-**Used in:** `src/utils/apiCalls.ts` (`isPackageAuthor` — status 200 vs 404).
+**Used in:**
+
+- `src/utils/apiCalls.ts` — `isPackageAuthor` (status 200 vs 404); `fetchLearnpackPackageAssetIds()` parses `asset_ids` for telemetry batch (Breathecode query param only).
 
 ```
 GET ${RIGOBOT_HOST}/v1/learnpack/package/${packageSlug}/
@@ -73,7 +75,7 @@ Headers:
   Authorization: Token <rigobot_token>
 ```
 
-Not part of the telemetry manager bootstrap; other features may call it as needed.
+During `TelemetryManager.start()` (cloud and local agents), the IDE loads `asset_ids` **once** via `fetchLearnpackPackageAssetIds` when `rigo_token` and package slug are present. IDs are kept in memory (`TelemetryManager.packageAssetIds`), not in the persisted telemetry blob.
 
 ---
 
@@ -83,7 +85,15 @@ Not part of the telemetry manager bootstrap; other features may call it as neede
 
 **Purpose:** Second destination for the **same** batch body as Rigobot (when `submit()` completes the Breathecode call).
 
-**Implementation:** `sendBatchTelemetryBreathecode()` in `src/managers/telemetry.ts`.
+**Implementation:** `sendBatchTelemetryBreathecode()` in `src/managers/telemetry.ts` (builds the final URL with `withAssetIdQuery()` when IDs are present).
+
+**Optional query string** (Breathecode only — not sent on Rigobot batch or on GET telemetry):
+
+```
+POST <config.telemetry.batch>?asset_id=<id>[,<id>...]
+```
+
+When `TelemetryManager.packageAssetIds` is non-empty (from Rigobot package `asset_ids`), the client appends `asset_id` as a comma-separated list. If the batch URL already contains a `?`, the param is joined with `&`. Empty or missing package record → no `asset_id` param (URL unchanged).
 
 ```
 POST <config.telemetry.batch>
