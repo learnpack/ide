@@ -283,6 +283,10 @@ export interface IStore {
   user: TUser;
   token: string;
   bc_token: string;
+  /** Rigobot Learnpack package id for the current course slug; null until resolved. */
+  packageId: number | string | null;
+  /** Slug for which `packageId` is valid; used to skip refetch and to invalidate on course change. */
+  packageIdSlug: string | null;
   assessmentConfig: TAssessmentConfig;
   configObject: IConfigObject;
   videoTutorial: string;
@@ -374,6 +378,8 @@ export interface IStore {
   fetchSingleExerciseInfo: (index: number) => Promise<TExercise>;
   toggleFeedback: () => void;
   fetchExercises: () => void;
+  /** GET package metadata from Rigobot when token and config slug exist; merges package_id into telemetry if missing. */
+  fetchPackageMetadata: () => Promise<void>;
   updateEditorTabs: () => void;
   setFileLoadNotFound: (lessonSlug: string, filename: string, notFound: boolean) => void;
   clearFileLoadNotFoundForLesson: (lessonSlug: string) => void;

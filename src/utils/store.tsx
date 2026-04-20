@@ -55,6 +55,7 @@ import {
   getSession,
   updateSession,
   isPackageAuthor,
+  getPackageBySlug,
 } from "./apiCalls";
 import TelemetryManager, {
   TStep,
@@ -262,6 +263,8 @@ const useStore = create<IStore>((set, get) => ({
   showFeedback: false,
   token: "",
   bc_token: "",
+  packageId: null as number | string | null,
+  packageIdSlug: null as string | null,
   buildbuttonText: {
     text: "see-terminal-output",
     className: "",
@@ -866,6 +869,12 @@ The user's set up the application in "${language}" language, give your feedback 
 
       if (config.config.title.us) set({ lessonTitle: config.config.title.us });
 
+      const prevSlug = (get().configObject?.config?.slug ?? "").trim();
+      const newSlug = (config.config.slug ?? "").trim();
+      if (prevSlug !== "" && prevSlug !== newSlug) {
+        set({ packageId: null, packageIdSlug: null });
+      }
+
       set({ configObject: config });
 
       if (
@@ -882,6 +891,22 @@ The user's set up the application in "${language}" language, give your feedback 
       disconnected();
       return false;
     }
+  },
+  fetchPackageMetadata: async () => {
+    const { token, configObject, packageId, packageIdSlug } = get();
+    const slug = (configObject?.config?.slug ?? "").trim();
+    if (!token?.trim() || !slug) {
+      return;
+    }
+    if (slug === packageIdSlug && packageId != null) {
+      return;
+    }
+    const result = await getPackageBySlug(token, slug);
+    if (!result) {
+      return;
+    }
+    set({ packageId: result.id, packageIdSlug: slug });
+    TelemetryManager.mergePackageIdIfMissing(result.id);
   },
   checkParams: ({ justReturn }) => {
     const { setLanguage, setPosition, language, setOpenedModals } = get();
@@ -2608,6 +2633,10 @@ The user's set up the application in "${language}" language, give your feedback 
           cohort_id: params.cohort_id || "",
           academy_id: params.academy_id || "",
         });
+        const pkgId = get().packageId;
+        if (pkgId != null) {
+          TelemetryManager.mergePackageIdIfMissing(pkgId);
+        }
       } finally {
         set({ telemetryReady: true });
       }
