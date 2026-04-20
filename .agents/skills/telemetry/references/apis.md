@@ -62,11 +62,12 @@ Body: ITelemetryJSONSchema (full blob with computed metrics)
 
 ### GET /v1/learnpack/package/${slug}/
 
-**Purpose:** Package metadata on Rigobot (e.g. `asset_ids`, existence check for authors).
+**Purpose:** Package metadata on Rigobot — `asset_ids`, **`id`** (LearnPack package id), author checks, etc.
 
 **Used in:**
 
 - `src/utils/apiCalls.ts` — `isPackageAuthor` (status 200 vs 404); `fetchLearnpackPackageAssetIds()` parses `asset_ids` for telemetry batch (Breathecode query param only).
+- **`getPackageBySlug()`** — reads **`id`** from the JSON body for Zustand (`packageId` / `packageIdSlug`) and for **`TelemetryManager.mergePackageIdIfMissing`**. Does **not** throw on failure; returns `null` on errors or missing `id`.
 
 ```
 GET ${RIGOBOT_HOST}/v1/learnpack/package/${packageSlug}/
@@ -76,6 +77,8 @@ Headers:
 ```
 
 During `TelemetryManager.start()` (cloud and local agents), the IDE loads `asset_ids` **once** via `fetchLearnpackPackageAssetIds` when `rigo_token` and package slug are present. IDs are kept in memory (`TelemetryManager.packageAssetIds`), not in the persisted telemetry blob.
+
+**Package id for the telemetry blob** is filled separately: **`PackageMetadataListener`** → **`fetchPackageMetadata()`** → **`getPackageBySlug()`** → **`mergePackageIdIfMissing`**. Same URL as above; independent of the `asset_ids` fetch used for Breathecode `asset_id` query params.
 
 ---
 
