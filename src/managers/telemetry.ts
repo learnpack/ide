@@ -14,6 +14,7 @@ import { TAgent } from "../utils/storeTypes";
 import { LEARNPACK_LOCAL_URL } from "../utils/creator";
 import { debounce, RIGOBOT_HOST } from "../utils/lib";
 import { eventBus } from "./eventBus";
+import { fetchLearnpackPackageAssetIds } from "../utils/apiCalls";
 
 export interface IFile {
   path: string;
@@ -21,10 +22,19 @@ export interface IFile {
   hidden: boolean;
 }
 
+function withAssetIdQuery(batchUrl: string, assetIds: number[]): string {
+  if (assetIds.length === 0) {
+    return batchUrl;
+  }
+  const sep = batchUrl.includes("?") ? "&" : "?";
+  return `${batchUrl}${sep}asset_id=${assetIds.join(",")}`;
+}
+
 const sendBatchTelemetryBreathecode = async function (
   url: string,
   body: object,
-  token: string
+  token: string,
+  packageAssetIds?: number[]
 ): Promise<AxiosResponse<any> | void> {
   if (!url || !token) {
     console.error("URL and token are required");
@@ -38,8 +48,10 @@ const sendBatchTelemetryBreathecode = async function (
     Authorization: `Token ${token}`,
   };
 
+  const postUrl = withAssetIdQuery(url, packageAssetIds ?? []);
+
   try {
-    const response: AxiosResponse<any> = await axios.post(url, body, {
+    const response: AxiosResponse<any> = await axios.post(postUrl, body, {
       headers,
     });
 
@@ -728,12 +740,15 @@ interface ITelemetryManager {
   save: () => void;
   retrieve: () => Promise<ITelemetryJSONSchema | null>;
   getStep: (stepPosition: number) => TStep | null;
+  /** Breathecode registry asset IDs from Rigobot package; not persisted in telemetry blob. */
+  packageAssetIds: number[];
 }
 
 const TelemetryManager: ITelemetryManager = {
   current: null,
   urls: {},
   telemetryKey: "",
+  packageAssetIds: [],
   listeners: {},
   agent: "cloud",
   prevStep: undefined,
@@ -756,6 +771,7 @@ const TelemetryManager: ITelemetryManager = {
 
   start: function (agent, steps, tutorialSlug, storageKey, student) {
     this.activeHashes = new Map<string, Set<string>>();
+    this.packageAssetIds = [];
     this.telemetryKey = storageKey;
     this.tutorialSlug = tutorialSlug;
     this.agent = agent;
@@ -772,19 +788,29 @@ const TelemetryManager: ITelemetryManager = {
     if (agent === "cloud") {
       this.reconciling = true;
       return (async () => {
+        let submitLocalIfNewer = false;
         try {
           const localRaw = LocalStorage.get(this.telemetryKey);
           const localTelemetry =
             localRaw && localRaw.slug === tutorialSlug ? localRaw : null;
 
-          let serverTelemetry: ITelemetryJSONSchema | null = null;
-          if (student.rigo_token && student.user_id) {
-            serverTelemetry = await fetchTelemetryFromServer({
-              userId: student.user_id,
-              packageSlug: tutorialSlug,
-              rigoToken: student.rigo_token,
-            });
-          }
+          const [serverTelemetry, packageAssetIds] = await Promise.all([
+            student.rigo_token && student.user_id
+              ? fetchTelemetryFromServer({
+                  userId: student.user_id,
+                  packageSlug: tutorialSlug,
+                  rigoToken: student.rigo_token,
+                })
+              : Promise.resolve(null as ITelemetryJSONSchema | null),
+            student.rigo_token?.trim() && tutorialSlug
+              ? fetchLearnpackPackageAssetIds(
+                  student.rigo_token,
+                  tutorialSlug
+                )
+              : Promise.resolve([] as number[]),
+          ]);
+
+          this.packageAssetIds = packageAssetIds;
 
           const { telemetry, source } = reconcileTelemetry(
             serverTelemetry,
@@ -816,9 +842,7 @@ const TelemetryManager: ITelemetryManager = {
             return;
           }
 
-          if (source === "local") {
-            await this.submit();
-          }
+          submitLocalIfNewer = source === "local";
         } catch (error) {
           console.log("ERROR: There was a problem starting the Telemetry");
           console.error(error);
@@ -828,11 +852,15 @@ const TelemetryManager: ITelemetryManager = {
         } finally {
           this.reconciling = false;
         }
+
+        if (submitLocalIfNewer && student.user_id) {
+          await this.submit();
+        }
       })();
     }
 
     return this.retrieve()
-      .then((prevTelemetry) => {
+      .then(async (prevTelemetry) => {
         if (prevTelemetry) {
           this.current = normalizeTelemetrySchema(
             prevTelemetry,
@@ -893,7 +921,14 @@ const TelemetryManager: ITelemetryManager = {
           return;
         }
 
-        this.submit();
+        if (this.user.rigo_token?.trim() && tutorialSlug) {
+          this.packageAssetIds = await fetchLearnpackPackageAssetIds(
+            this.user.rigo_token,
+            tutorialSlug
+          );
+        }
+
+        await this.submit();
       })
       .catch((error) => {
         console.log("ERROR: There was a problem starting the Telemetry");
@@ -1343,7 +1378,12 @@ const TelemetryManager: ITelemetryManager = {
     const body = buildSubmitPayload(this.current, this.user.id);
 
     try {
-      await sendBatchTelemetryBreathecode(url, body, this.user.token);
+      await sendBatchTelemetryBreathecode(
+        url,
+        body,
+        this.user.token,
+        this.packageAssetIds
+      );
       await sendBatchTelemetryRigobot(body, this.user.rigo_token);
     } catch (error) {
       console.error("Error submitting telemetry", error);

@@ -126,6 +126,49 @@ export async function useConsumableCall(
   }
 }
 
+function normalizeLearnpackPackageAssetIds(raw: unknown): number[] {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  const out: number[] = [];
+  for (const item of raw) {
+    const n = typeof item === "number" ? item : Number(item);
+    if (Number.isFinite(n)) {
+      out.push(n);
+    }
+  }
+  return out;
+}
+
+/**
+ * Breathecode asset IDs for telemetry batch query param; sourced from Rigobot package record.
+ */
+export async function fetchLearnpackPackageAssetIds(
+  rigoToken: string,
+  packageSlug: string
+): Promise<number[]> {
+  if (!rigoToken?.trim() || !packageSlug) {
+    return [];
+  }
+
+  const url = `${RIGOBOT_HOST}/v1/learnpack/package/${encodeURIComponent(packageSlug)}/`;
+
+  try {
+    const response = await axios.get<{ asset_ids?: unknown }>(url, {
+      headers: {
+        Authorization: `Token ${rigoToken.trim()}`,
+      },
+    });
+    return normalizeLearnpackPackageAssetIds(response.data?.asset_ids);
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      return [];
+    }
+    console.warn("fetchLearnpackPackageAssetIds failed:", error);
+    return [];
+  }
+}
+
 export const isPackageAuthor = async (
   token: string,
   packageSlug: string
