@@ -377,7 +377,12 @@ export interface IStore {
   setFeedbackButtonProps: (t: string, c: string) => void;
   fetchSingleExerciseInfo: (index: number) => Promise<TExercise>;
   toggleFeedback: () => void;
-  fetchExercises: () => void;
+  fetchExercises: () => Promise<boolean | void>;
+  /**
+   * creatorWeb: after loginToRigo succeeds, mirrors start() post-fetch (see store implementation comment).
+   * Do not call from other environments.
+   */
+  bootstrapCreatorWebAfterAuth: () => Promise<void>;
   /** GET package metadata from Rigobot when token and config slug exist; merges package_id into telemetry if missing. */
   fetchPackageMetadata: () => Promise<void>;
   updateEditorTabs: () => void;
