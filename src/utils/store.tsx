@@ -263,7 +263,7 @@ const useStore = create<IStore>((set, get) => ({
   showFeedback: false,
   token: "",
   bc_token: "",
-  packageId: null as number | string | null,
+  packageId: null as string | null,
   packageIdSlug: null as string | null,
   buildbuttonText: {
     text: "see-terminal-output",
@@ -905,8 +905,9 @@ The user's set up the application in "${language}" language, give your feedback 
     if (!result) {
       return;
     }
-    set({ packageId: result.id, packageIdSlug: slug });
-    TelemetryManager.mergePackageIdIfMissing(result.id);
+    const idStr = String(result.id);
+    set({ packageId: idStr, packageIdSlug: slug });
+    TelemetryManager.mergePackageIdIfMissing(idStr);
   },
   checkParams: ({ justReturn }) => {
     const { setLanguage, setPosition, language, setOpenedModals } = get();

@@ -283,8 +283,8 @@ export interface IStore {
   user: TUser;
   token: string;
   bc_token: string;
-  /** Rigobot Learnpack package id for the current course slug; null until resolved. */
-  packageId: number | string | null;
+  /** Rigobot Learnpack package id for the current course slug; null until resolved. Always string when set. */
+  packageId: string | null;
   /** Slug for which `packageId` is valid; used to skip refetch and to invalidate on course change. */
   packageIdSlug: string | null;
   assessmentConfig: TAssessmentConfig;

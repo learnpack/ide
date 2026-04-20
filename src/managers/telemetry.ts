@@ -1429,7 +1429,7 @@ const TelemetryManager: ITelemetryManager = {
     ) {
       return;
     }
-    this.current.package_id = packageId;
+    this.current.package_id = String(packageId);
     this.save();
   },
 
