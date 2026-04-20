@@ -1146,6 +1146,7 @@ The user's set up the application in "${language}" language, give your feedback 
       language,
       reportEnrichDataLayer,
       getOrCreateActiveSession,
+      ensureTelemetryStarted,
       getUserConsumables,
       initRigoAI,
     } = get();
@@ -1190,7 +1191,8 @@ The user's set up the application in "${language}" language, give your feedback 
 
     startConversation(Number(currentExercisePosition));
     setOpenedModals({ login: false });
-    getOrCreateActiveSession();
+    await getOrCreateActiveSession();
+    await ensureTelemetryStarted();
     return true;
   },
 
@@ -1237,6 +1239,18 @@ The user's set up the application in "${language}" language, give your feedback 
         };
         await fetch(`${HOST}/set-rigobot-token`, config);
       }
+
+      const {
+        token: rigoToken,
+        configObject,
+        getOrCreateActiveSession,
+        ensureTelemetryStarted,
+      } = get();
+      if (rigoToken && configObject) {
+        await getOrCreateActiveSession();
+        await ensureTelemetryStarted();
+      }
+
       return data.key;
     } catch (error) {
       console.log(error, "ERROR");
@@ -2501,8 +2515,15 @@ The user's set up the application in "${language}" language, give your feedback 
     }
   },
 
-  refreshDataFromAnotherTab: ({ newToken, newTabHash, newBCToken }) => {
-    const { token, bc_token, tabHash, getOrCreateActiveSession, initRigoAI } = get();
+  refreshDataFromAnotherTab: async ({ newToken, newTabHash, newBCToken }) => {
+    const {
+      token,
+      bc_token,
+      tabHash,
+      getOrCreateActiveSession,
+      initRigoAI,
+      ensureTelemetryStarted,
+    } = get();
 
     if (!(token === newToken)) {
       set({ token: newToken });
@@ -2513,8 +2534,9 @@ The user's set up the application in "${language}" language, give your feedback 
     if (!(tabHash === newTabHash)) {
       set({ tabHash: newTabHash });
     }
-    getOrCreateActiveSession();
+    await getOrCreateActiveSession();
     initRigoAI();
+    await ensureTelemetryStarted();
   },
   toggleTheme: () => {
     const { theme, checkParams } = get();
@@ -2625,6 +2647,9 @@ The user's set up the application in "${language}" language, give your feedback 
 
       const params = checkParams({ justReturn: true });
 
+      const skipDuplicateBootstrap =
+        TelemetryManager.started && TelemetryManager.current != null;
+
       try {
         await TelemetryManager.start(agent, steps, tutorialSlug, STORAGE_KEY, {
           token: bc_token,
@@ -2638,8 +2663,11 @@ The user's set up the application in "${language}" language, give your feedback 
         if (pkgId != null) {
           TelemetryManager.mergePackageIdIfMissing(pkgId);
         }
-      } finally {
         set({ telemetryReady: true });
+      } catch (error) {
+        console.error("Failed to start telemetry", error);
+        set({ telemetryReady: false });
+        return;
       }
 
       if (agent === "cloud" && !telemetryLifecycleListenersRegistered) {
@@ -2665,34 +2693,39 @@ The user's set up the application in "${language}" language, give your feedback 
         window.addEventListener("pagehide", onUnload);
       }
 
-      TelemetryManager.registerListener(
-        "compile_struggles",
-        (stepIndicators) => {
-          console.log(stepIndicators, "In compile struggles");
-        }
-      );
-      TelemetryManager.registerListener("test_struggles", (stepIndicators) => {
-        if (
-          stepIndicators.metrics.streak_test_struggle === 3 ||
-          stepIndicators.metrics.streak_test_struggle === 9 ||
-          stepIndicators.metrics.streak_test_struggle >= 15
-        ) {
-          setOpenedModals({ testStruggles: true });
-        }
-      });
-
-      const openingPosition = Number(currentExercisePosition);
-      if (typeof openingPosition === "number" && !isNaN(openingPosition)) {
-        registerTelemetryEvent("open_step", {
-          step_slug: steps[openingPosition].slug,
-          step_position: steps[openingPosition].position,
-        });
-      } else {
-        console.error(
-          "Current exercise position is not a number, telemetry won't start, open step not registered"
+      if (!skipDuplicateBootstrap) {
+        TelemetryManager.registerListener(
+          "compile_struggles",
+          (stepIndicators) => {
+            console.log(stepIndicators, "In compile struggles");
+          }
         );
+        TelemetryManager.registerListener("test_struggles", (stepIndicators) => {
+          if (
+            stepIndicators.metrics.streak_test_struggle === 3 ||
+            stepIndicators.metrics.streak_test_struggle === 9 ||
+            stepIndicators.metrics.streak_test_struggle >= 15
+          ) {
+            setOpenedModals({ testStruggles: true });
+          }
+        });
+
+        const openingPosition = Number(currentExercisePosition);
+        if (typeof openingPosition === "number" && !isNaN(openingPosition)) {
+          registerTelemetryEvent("open_step", {
+            step_slug: steps[openingPosition].slug,
+            step_position: steps[openingPosition].position,
+          });
+        } else {
+          console.error(
+            "Current exercise position is not a number, telemetry won't start, open step not registered"
+          );
+        }
       }
     }
+  },
+  ensureTelemetryStarted: () => {
+    return get().startTelemetry();
   },
   setRigoContext: (context) => {
     const { rigoContext } = get();

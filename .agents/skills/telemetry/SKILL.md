@@ -12,7 +12,7 @@ description: >
   reconcileTelemetry, normalizeTelemetrySchema, workout_session, lesson_rendered,
   completeStepIfReadOnly, onLessonRendered, activeHashes, package_id,
   mergePackageIdIfMissing, fetchPackageMetadata, getPackageBySlug,
-  PackageMetadataListener, global_metrics, global_indicators, or anything related to
+  PackageMetadataListener, ensureTelemetryStarted, global_metrics, global_indicators, or anything related to
   completion_rate, step tracking, or telemetry submission/persistence.
 ---
 
@@ -391,6 +391,22 @@ Each `TelemetryManager.start()` call closes the previous session (sets `ended_at
 last_interaction_at` if no `ended_at`) and opens a new one. Handled by
 `normalizeWorkoutSession()` inside `normalizeTelemetrySchema`.
 
+## Post-login / late session (second chance after bootstrap)
+
+`App` calls `start()` once. That chain runs `startTelemetry()` after `fetchExercises` / `checkParams`. If the user is **not** logged in yet, `startTelemetry` returns early (no `user` / `bc_token`) and telemetry never starts until something calls **`ensureTelemetryStarted()`**, which delegates to **`startTelemetry()`**.
+
+**Call sites that wire late session:**
+
+| Flow | `src/utils/store.tsx` |
+|------|------------------------|
+| Successful **`loginToRigo`** | `await getOrCreateActiveSession()` then `await ensureTelemetryStarted()` |
+| **`refreshDataFromAnotherTab`** (e.g. socket `session-refreshed`) | `await getOrCreateActiveSession()`, `initRigoAI()`, `await ensureTelemetryStarted()` |
+| **`checkRigobotInvitation`** (Rigobot token after invite) | If Rigobot `token` and `configObject` exist: `await getOrCreateActiveSession()` then `await ensureTelemetryStarted()` |
+
+**`skipDuplicateBootstrap`:** before `await TelemetryManager.start`, the store sets `skipDuplicateBootstrap = TelemetryManager.started && TelemetryManager.current != null`. `TelemetryManager.start` always runs (it refreshes `this.user` / tokens). When `skipDuplicateBootstrap` is true, the store **does not** register the struggle listeners again or emit the **initial** `open_step` from `startTelemetry` (avoids duplicates after a successful first bootstrap). Document lifecycle listeners (`visibilitychange`, unload beacon) remain guarded by `telemetryLifecycleListenersRegistered`.
+
+**`telemetryReady`:** set to **`true` only when `TelemetryManager.start` completes without throwing**; on failure it is set to **`false`**.
+
 ## Important gotchas
 
 - **`open_step` is guarded by `telemetryReady`** — `setPosition` only fires
@@ -398,11 +414,7 @@ last_interaction_at` if no `ended_at`) and opens a new one. Handled by
   enqueued before `TelemetryManager.start()` completes, which could trigger completion
   logic with stale state. `startTelemetry()` registers the initial `open_step` itself.
 
-- **Race condition: `startTelemetry` + `getOrCreateActiveSession`** — both are called
-  concurrently on startup. If `getOrCreateActiveSession` resolves after telemetry is
-  ready and calls `setPosition(N)` for the same step that's already open, `open_step(N)`
-  fires with `prevStep === N === stepPosition`. The guard `this.prevStep !== stepPosition`
-  prevents this from triggering auto-completion.
+- **Race condition: `startTelemetry` + `getOrCreateActiveSession`** — on **startup** they are still invoked back-to-back without awaiting `getOrCreateActiveSession` in the initial chain. After **login**, the store **`await`s `getOrCreateActiveSession()` before `ensureTelemetryStarted()`** to align session before the first real `open_step`. If `getOrCreateActiveSession` resolves after telemetry is ready and calls `setPosition(N)` for the same step that's already open, `open_step(N)` fires with `prevStep === N === stepPosition`. The guard `this.prevStep !== stepPosition` prevents this from triggering auto-completion.
 
 - **`open_step` never completes steps with empty `testeable_elements`** — read-only step
   completion relies on `onLessonRendered` (7s debounce). Never add completion logic to

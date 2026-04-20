@@ -41,10 +41,10 @@ The heart of all telemetry logic in the IDE.
 | 1069, 2656 | `registerTelemetryEvent("open_step", ...)` |
 | ~872–876 | `fetchExercises` — if config **slug** changes from a previous non-empty value, clears `packageId` / `packageIdSlug` |
 | ~895–911 | `fetchPackageMetadata` — `getPackageBySlug`, cache by slug, `mergePackageIdIfMissing` |
-| 2539+ | `startTelemetry` — assigns `TelemetryManager.urls`, calls `TelemetryManager.start()`, then `mergePackageIdIfMissing` if store `packageId` set |
-| 2620 | Tab hidden → `TelemetryManager.submit()` (Breathecode + Rigobot) |
-| 2630 | `pagehide` / `beforeunload` → `submitTelemetryToRigobotViaBeacon()` (Rigobot only) |
-| 2633 | `visibilitychange` listener registration |
+| `startTelemetry` | Assigns `TelemetryManager.urls`, `skipDuplicateBootstrap` guard, `await TelemetryManager.start()`, `mergePackageIdIfMissing` if store `packageId` set; `telemetryReady` only on success; initial struggle listeners + `open_step` only when not skipping duplicate bootstrap |
+| `ensureTelemetryStarted` | Delegates to `startTelemetry()` — call after **`loginToRigo`**, **`refreshDataFromAnotherTab`**, **`checkRigobotInvitation`** when session arrives after bootstrap |
+| `loginToRigo` / `refreshDataFromAnotherTab` / `checkRigobotInvitation` | Late session: `await getOrCreateActiveSession()` then `await ensureTelemetryStarted()` (plus `initRigoAI` in `refreshDataFromAnotherTab`) |
+| (in `startTelemetry`) | Tab hidden → `TelemetryManager.submit()`; `pagehide` / `beforeunload` → `submitTelemetryToRigobotViaBeacon()`; `visibilitychange` listener — guarded by `telemetryLifecycleListenersRegistered` |
 
 ---
 
