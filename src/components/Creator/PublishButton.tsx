@@ -20,6 +20,76 @@ type Academy = {
   timezone: string;
 };
 
+/** keep in sync with learnpack-cli/src/utils/api.ts AssetSyncError */
+type AssetSyncError =
+  | { kind: "lang_error"; lang: string; error: { detail: string } }
+  | { kind: "package_error"; error: { detail: string } };
+
+function normalizePublishErrors(raw: unknown): AssetSyncError[] {
+  if (!Array.isArray(raw)) return [];
+  const out: AssetSyncError[] = [];
+  for (const item of raw as Record<string, unknown>[]) {
+    if (item?.kind === "package_error" && item.error && typeof (item.error as { detail?: string }).detail === "string") {
+      out.push({
+        kind: "package_error",
+        error: { detail: (item.error as { detail: string }).detail },
+      });
+    } else if (
+      item?.kind === "lang_error" &&
+      typeof item.lang === "string" &&
+      item.error
+    ) {
+      const er = item.error as { detail?: string; message?: string };
+      out.push({
+        kind: "lang_error",
+        lang: item.lang,
+        error: {
+          detail: String(er.detail ?? er.message ?? JSON.stringify(item.error)),
+        },
+      });
+    } else if (item?.lang != null && item?.error != null) {
+      const er = item.error as { detail?: string; message?: string };
+      out.push({
+        kind: "lang_error",
+        lang: String(item.lang),
+        error: {
+          detail: String(er.detail ?? er.message ?? JSON.stringify(item.error)),
+        },
+      });
+    } else {
+      out.push({
+        kind: "package_error",
+        error: { detail: String((item as { detail?: string })?.detail ?? JSON.stringify(item)) },
+      });
+    }
+  }
+  return out;
+}
+
+function countLangErrors(errors: AssetSyncError[]): number {
+  return errors.filter((e) => e.kind === "lang_error").length;
+}
+
+function publishErrorToastMessage(errors: AssetSyncError[]): string {
+  const onlyPackage =
+    errors.length > 0 && errors.every((e) => e.kind === "package_error");
+  if (onlyPackage) {
+    return errors.map((e) => e.error.detail).join(" ");
+  }
+  const n = countLangErrors(errors);
+  const parts: string[] = [];
+  if (n > 0) {
+    parts.push(`${n} language(s) failed to publish`);
+  }
+  const pkgDetails = errors
+    .filter((e): e is Extract<AssetSyncError, { kind: "package_error" }> => e.kind === "package_error")
+    .map((e) => e.error.detail);
+  if (pkgDetails.length) {
+    parts.push(pkgDetails.join(" "));
+  }
+  return parts.join(". ") || "Publishing completed with issues";
+}
+
 const PublishConfirmationModal: FC<{
   onClose: () => void;
   onPublish: (slug: string, academyId?: number) => Promise<void>;
@@ -392,7 +462,7 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
   // const getSyllabus = useStore((state) => state.getSyllabus);
   const currentSlug = useStore((state) => state.configObject.config.slug);
   const [deployedUrl, setDeployedUrl] = useState("");
-  const [publishErrors, setPublishErrors] = useState<Array<{ lang: string; error: any }>>([]);
+  const [publishErrors, setPublishErrors] = useState<AssetSyncError[]>([]);
 
   const handlePublish = async (slug: string, academyId?: number) => {
     try {
@@ -421,18 +491,21 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
         }
       }
       const res = await publishTutorial(bctoken, token, academyId);
-      
-      // Check for errors in the response
-      if (res.errors && res.errors.length > 0) {
-        setPublishErrors(res.errors);
-        // Show warning toast if there are errors
-        toast.error(`${res.errors.length} language(s) failed to publish`);
-      } else {
+      const errs = normalizePublishErrors(res.errors);
+
+      if (res.url) {
         toast.success(t("tutorial-published-successfully"));
         Notifier.confetti();
         playEffect("success");
       }
-      
+
+      if (errs.length > 0) {
+        setPublishErrors(errs);
+        toast.error(publishErrorToastMessage(errs));
+      } else {
+        setPublishErrors([]);
+      }
+
       setDeployedUrl(res.url);
       setPublishing(false);
       await fetchExercises();
@@ -489,12 +562,41 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
             {publishErrors.length > 0 && (
               <div className="flex-y gap-small padding-small bg-yellow-50 border border-yellow-200 rounded">
                 <p className="text-yellow-800 font-medium m-0">
-                  Warning: {publishErrors.length} language(s) failed to publish:
+                  {(() => {
+                    const langErrs = publishErrors.filter(
+                      (e): e is Extract<AssetSyncError, { kind: "lang_error" }> =>
+                        e.kind === "lang_error"
+                    );
+                    const pkgErrs = publishErrors.filter(
+                      (e): e is Extract<AssetSyncError, { kind: "package_error" }> =>
+                        e.kind === "package_error"
+                    );
+                    if (pkgErrs.length > 0 && langErrs.length > 0) {
+                      return t("publish-mixed-notices-heading", {
+                        defaultValue: "Publishing notices:",
+                      });
+                    }
+                    if (pkgErrs.length > 0 && langErrs.length === 0) {
+                      return t("publish-breathecode-sync-heading", {
+                        defaultValue: "Breathecode asset sync:",
+                      });
+                    }
+                    return t("publish-lang-failures-heading", {
+                      count: langErrs.length,
+                      defaultValue: `Warning: ${langErrs.length} language(s) failed to publish:`,
+                    });
+                  })()}
                 </p>
                 <ul className="text-yellow-700 text-small m-0 pl-4">
                   {publishErrors.map((err, index) => (
                     <li key={index}>
-                      <strong>{err.lang}:</strong> {err.error?.detail || err.error?.message || JSON.stringify(err.error)}
+                      {err.kind === "package_error" ? (
+                        <span>{err.error.detail}</span>
+                      ) : (
+                        <>
+                          <strong>{err.lang}:</strong> {err.error.detail}
+                        </>
+                      )}
                     </li>
                   ))}
                 </ul>
