@@ -141,70 +141,38 @@ function normalizeLearnpackPackageAssetIds(raw: unknown): number[] {
 }
 
 /**
- * Breathecode asset IDs for telemetry batch query param; sourced from Rigobot package record.
+ * Package id and Breathecode asset_ids for telemetry; accessible to any authenticated Rigobot user
+ * (unlike GET /v1/learnpack/package/{slug}/, which is owner-only).
  */
-export async function fetchLearnpackPackageAssetIds(
+export async function fetchLearnpackPackageInfo(
   rigoToken: string,
   packageSlug: string
-): Promise<number[]> {
+): Promise<{ id: string | null; assetIds: number[] }> {
+  const empty = { id: null, assetIds: [] as number[] };
   if (!rigoToken?.trim() || !packageSlug) {
-    return [];
+    return empty;
   }
 
-  const url = `${RIGOBOT_HOST}/v1/learnpack/package/${encodeURIComponent(packageSlug)}/`;
+  const url = `${RIGOBOT_HOST}/v1/learnpack/package/${encodeURIComponent(packageSlug)}/assets/`;
 
   try {
-    const response = await axios.get<{ asset_ids?: unknown }>(url, {
+    const response = await axios.get<{
+      id?: unknown;
+      asset_ids?: unknown;
+    }>(url, {
       headers: {
         Authorization: `Token ${rigoToken.trim()}`,
       },
     });
-    return normalizeLearnpackPackageAssetIds(response.data?.asset_ids);
+    const raw = response.data;
+    const id = raw?.id != null ? String(raw.id) : null;
+    return { id, assetIds: normalizeLearnpackPackageAssetIds(raw?.asset_ids) };
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 404) {
-      return [];
+      return empty;
     }
-    console.warn("fetchLearnpackPackageAssetIds failed:", error);
-    return [];
-  }
-}
-
-/**
- * Rigobot package record for a slug; `id` is the Learnpack package id.
- * Returns null on network errors or non-success (does not throw).
- */
-export async function getPackageBySlug(
-  rigoToken: string,
-  packageSlug: string
-): Promise<{ id: number | string } | null> {
-  if (!rigoToken?.trim() || !packageSlug) {
-    return null;
-  }
-
-  const url = `${RIGOBOT_HOST}/v1/learnpack/package/${encodeURIComponent(packageSlug)}/`;
-
-  try {
-    const response = await axios.get<{ id?: unknown }>(url, {
-      headers: {
-        Authorization: `Token ${rigoToken.trim()}`,
-      },
-    });
-
-    const raw = response.data?.id;
-    if (raw === undefined || raw === null) {
-      return null;
-    }
-    const id =
-      typeof raw === "number" || typeof raw === "string"
-        ? raw
-        : Number(raw);
-    if (typeof id === "number" && !Number.isFinite(id)) {
-      return null;
-    }
-    return { id };
-  } catch (error) {
-    console.warn("getPackageBySlug failed:", error);
-    return null;
+    console.warn("fetchLearnpackPackageInfo failed:", error);
+    return empty;
   }
 }
 

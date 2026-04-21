@@ -14,7 +14,7 @@ import { TAgent } from "../utils/storeTypes";
 import { LEARNPACK_LOCAL_URL } from "../utils/creator";
 import { debounce, RIGOBOT_HOST } from "../utils/lib";
 import { eventBus } from "./eventBus";
-import { fetchLearnpackPackageAssetIds } from "../utils/apiCalls";
+import { fetchLearnpackPackageInfo } from "../utils/apiCalls";
 
 export interface IFile {
   path: string;
@@ -771,14 +771,6 @@ const TelemetryManager: ITelemetryManager = {
   },
 
   start: function (agent, steps, tutorialSlug, storageKey, student) {
-    console.log("[TEL_DEBUG] start() called", {
-      alreadyStarted: this.started,
-      hasCurrent: !!this.current,
-      hasRigoToken: !!student.rigo_token?.trim(),
-      tutorialSlug,
-      agent,
-    });
-
     this.activeHashes = new Map<string, Set<string>>();
     this.packageAssetIds = [];
     this.telemetryKey = storageKey;
@@ -791,7 +783,6 @@ const TelemetryManager: ITelemetryManager = {
     // Email removed for security - not stored in telemetry
 
     if (this.current) {
-      console.warn("[TEL_DEBUG] start() EARLY RETURN — this.current already set, packageAssetIds reset to []");
       return Promise.resolve();
     }
 
@@ -804,10 +795,9 @@ const TelemetryManager: ITelemetryManager = {
           const localTelemetry =
             localRaw && localRaw.slug === tutorialSlug ? localRaw : null;
 
-          const willFetchAssetIds = !!(student.rigo_token?.trim() && tutorialSlug);
-          console.log("[TEL_DEBUG] cloud Promise.all — willFetchAssetIds:", willFetchAssetIds, "slug:", tutorialSlug);
+          const willFetchPackage = !!(student.rigo_token?.trim() && tutorialSlug);
 
-          const [serverTelemetry, packageAssetIds] = await Promise.all([
+          const [serverTelemetry, packageInfo] = await Promise.all([
             student.rigo_token && student.user_id
               ? fetchTelemetryFromServer({
                   userId: student.user_id,
@@ -815,16 +805,15 @@ const TelemetryManager: ITelemetryManager = {
                   rigoToken: student.rigo_token,
                 })
               : Promise.resolve(null as ITelemetryJSONSchema | null),
-            willFetchAssetIds
-              ? fetchLearnpackPackageAssetIds(
+            willFetchPackage
+              ? fetchLearnpackPackageInfo(
                   student.rigo_token,
                   tutorialSlug
                 )
-              : Promise.resolve([] as number[]),
+              : Promise.resolve({ id: null, assetIds: [] as number[] }),
           ]);
 
-          console.log("[TEL_DEBUG] cloud Promise.all resolved — packageAssetIds:", packageAssetIds);
-          this.packageAssetIds = packageAssetIds;
+          this.packageAssetIds = packageInfo.assetIds;
 
           const { telemetry, source } = reconcileTelemetry(
             serverTelemetry,
@@ -843,6 +832,10 @@ const TelemetryManager: ITelemetryManager = {
 
           if (!this.current.version) {
             this.current.version = `CLOUD:${this.version}`;
+          }
+
+          if (packageInfo.id != null) {
+            this.mergePackageIdIfMissing(packageInfo.id);
           }
 
           this.finishWorkoutSession();
@@ -936,10 +929,14 @@ const TelemetryManager: ITelemetryManager = {
         }
 
         if (this.user.rigo_token?.trim() && tutorialSlug) {
-          this.packageAssetIds = await fetchLearnpackPackageAssetIds(
+          const packageInfo = await fetchLearnpackPackageInfo(
             this.user.rigo_token,
             tutorialSlug
           );
+          this.packageAssetIds = packageInfo.assetIds;
+          if (packageInfo.id != null) {
+            this.mergePackageIdIfMissing(packageInfo.id);
+          }
         }
 
         await this.submit();
@@ -1388,8 +1385,6 @@ const TelemetryManager: ITelemetryManager = {
       console.error("Batch URL is required to send telemetry");
       return;
     }
-
-    console.log("[TEL_DEBUG] submit() — packageAssetIds:", this.packageAssetIds, "package_id:", this.current.package_id, "batchUrl:", url);
 
     const body = buildSubmitPayload(this.current, this.user.id);
 

@@ -40,7 +40,7 @@ The heart of all telemetry logic in the IDE.
 | 530, 547 | Compile handlers → `registerTelemetryEvent("compile", ...)` |
 | 1069, 2656 | `registerTelemetryEvent("open_step", ...)` |
 | ~872–876 | `fetchExercises` — if config **slug** changes from a previous non-empty value, clears `packageId` / `packageIdSlug` |
-| ~895–911 | `fetchPackageMetadata` — `getPackageBySlug`, cache by slug, `mergePackageIdIfMissing` |
+| ~895–911 | `fetchPackageMetadata` — `fetchLearnpackPackageInfo`, cache by slug, `mergePackageIdIfMissing` |
 | `startTelemetry` | Assigns `TelemetryManager.urls`, `skipDuplicateBootstrap` guard, `await TelemetryManager.start()`, `mergePackageIdIfMissing` if store `packageId` set; `telemetryReady` only on success; initial struggle listeners + `open_step` only when not skipping duplicate bootstrap |
 | `ensureTelemetryStarted` | Delegates to `startTelemetry()` — call after **`loginToRigo`**, **`refreshDataFromAnotherTab`**, **`checkRigobotInvitation`** when session arrives after bootstrap |
 | `loginToRigo` / `refreshDataFromAnotherTab` / `checkRigobotInvitation` | Late session: `await getOrCreateActiveSession()` then `await ensureTelemetryStarted()` (plus `initRigoAI` in `refreshDataFromAnotherTab`) |
@@ -105,8 +105,7 @@ The heart of all telemetry logic in the IDE.
 
 ### `src/utils/apiCalls.ts`
 
-- `fetchLearnpackPackageAssetIds()` — GET Rigobot package, returns `asset_ids` as `number[]` for Breathecode batch URL (telemetry bootstrap).
-- `getPackageBySlug()` — GET same package URL; returns `{ id }` or `null` (no throw); used for `package_id` merge path.
+- `fetchLearnpackPackageInfo()` — GET `.../package/<slug>/assets/`; returns `{ id, assetIds }` for Breathecode batch query param and `package_id` merge (telemetry bootstrap and `PackageMetadataListener`).
 
 ### `src/App.tsx`
 - Renders `<PackageMetadataListener />` next to other global listeners.

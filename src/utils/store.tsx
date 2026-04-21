@@ -55,7 +55,7 @@ import {
   getSession,
   updateSession,
   isPackageAuthor,
-  getPackageBySlug,
+  fetchLearnpackPackageInfo,
 } from "./apiCalls";
 import TelemetryManager, {
   TStep,
@@ -901,11 +901,11 @@ The user's set up the application in "${language}" language, give your feedback 
     if (slug === packageIdSlug && packageId != null) {
       return;
     }
-    const result = await getPackageBySlug(token, slug);
-    if (!result) {
+    const result = await fetchLearnpackPackageInfo(token, slug);
+    if (!result.id) {
       return;
     }
-    const idStr = String(result.id);
+    const idStr = result.id;
     set({ packageId: idStr, packageIdSlug: slug });
     TelemetryManager.mergePackageIdIfMissing(idStr);
   },
@@ -2708,7 +2708,6 @@ The user's set up the application in "${language}" language, give your feedback 
           academy_id: params.academy_id || "",
         });
         const pkgId = get().packageId;
-        console.log("[TEL_DEBUG] startTelemetry after start() — packageId in store:", pkgId, "TM.packageAssetIds:", TelemetryManager.packageAssetIds);
         if (pkgId != null) {
           TelemetryManager.mergePackageIdIfMissing(pkgId);
         }
