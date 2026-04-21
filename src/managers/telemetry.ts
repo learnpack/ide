@@ -771,6 +771,14 @@ const TelemetryManager: ITelemetryManager = {
   },
 
   start: function (agent, steps, tutorialSlug, storageKey, student) {
+    console.log("[TEL_DEBUG] start() called", {
+      alreadyStarted: this.started,
+      hasCurrent: !!this.current,
+      hasRigoToken: !!student.rigo_token?.trim(),
+      tutorialSlug,
+      agent,
+    });
+
     this.activeHashes = new Map<string, Set<string>>();
     this.packageAssetIds = [];
     this.telemetryKey = storageKey;
@@ -783,6 +791,7 @@ const TelemetryManager: ITelemetryManager = {
     // Email removed for security - not stored in telemetry
 
     if (this.current) {
+      console.warn("[TEL_DEBUG] start() EARLY RETURN — this.current already set, packageAssetIds reset to []");
       return Promise.resolve();
     }
 
@@ -795,6 +804,9 @@ const TelemetryManager: ITelemetryManager = {
           const localTelemetry =
             localRaw && localRaw.slug === tutorialSlug ? localRaw : null;
 
+          const willFetchAssetIds = !!(student.rigo_token?.trim() && tutorialSlug);
+          console.log("[TEL_DEBUG] cloud Promise.all — willFetchAssetIds:", willFetchAssetIds, "slug:", tutorialSlug);
+
           const [serverTelemetry, packageAssetIds] = await Promise.all([
             student.rigo_token && student.user_id
               ? fetchTelemetryFromServer({
@@ -803,7 +815,7 @@ const TelemetryManager: ITelemetryManager = {
                   rigoToken: student.rigo_token,
                 })
               : Promise.resolve(null as ITelemetryJSONSchema | null),
-            student.rigo_token?.trim() && tutorialSlug
+            willFetchAssetIds
               ? fetchLearnpackPackageAssetIds(
                   student.rigo_token,
                   tutorialSlug
@@ -811,6 +823,7 @@ const TelemetryManager: ITelemetryManager = {
               : Promise.resolve([] as number[]),
           ]);
 
+          console.log("[TEL_DEBUG] cloud Promise.all resolved — packageAssetIds:", packageAssetIds);
           this.packageAssetIds = packageAssetIds;
 
           const { telemetry, source } = reconcileTelemetry(
@@ -1375,6 +1388,8 @@ const TelemetryManager: ITelemetryManager = {
       console.error("Batch URL is required to send telemetry");
       return;
     }
+
+    console.log("[TEL_DEBUG] submit() — packageAssetIds:", this.packageAssetIds, "package_id:", this.current.package_id, "batchUrl:", url);
 
     const body = buildSubmitPayload(this.current, this.user.id);
 

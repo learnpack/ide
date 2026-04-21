@@ -2708,6 +2708,7 @@ The user's set up the application in "${language}" language, give your feedback 
           academy_id: params.academy_id || "",
         });
         const pkgId = get().packageId;
+        console.log("[TEL_DEBUG] startTelemetry after start() — packageId in store:", pkgId, "TM.packageAssetIds:", TelemetryManager.packageAssetIds);
         if (pkgId != null) {
           TelemetryManager.mergePackageIdIfMissing(pkgId);
         }
