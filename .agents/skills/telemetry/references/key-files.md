@@ -19,6 +19,8 @@ The heart of all telemetry logic in the IDE.
 | (next) | `TELEMETRY_WHITELIST_KEYS` — persisted blob whitelist |
 | (next) | `normalizeTelemetrySchema()` |
 | (next) | `buildSubmitPayload()` |
+| ~1359–1399 | `submit()` — dual batch POST; on success copies `global_metrics` / `global_indicators` from payload to `current` + `save()` |
+| ~1421–1434 | `mergePackageIdIfMissing()` — fills `package_id` string when absent |
 | 772+ | `TelemetryManager.start()` — cloud vs os/vscode bootstrap; loads `packageAssetIds` |
 | (next) | `refreshFromServerIfStale()` |
 | (next) | `registerStepEvent()` — mutates `current`, `submit()` / `save()` / `streamEvent()` |
@@ -37,10 +39,19 @@ The heart of all telemetry logic in the IDE.
 | 454, 493 | Test handlers → `registerTelemetryEvent("test", ...)` |
 | 530, 547 | Compile handlers → `registerTelemetryEvent("compile", ...)` |
 | 1069, 2656 | `registerTelemetryEvent("open_step", ...)` |
-| 2539+ | `startTelemetry` — assigns `TelemetryManager.urls`, calls `TelemetryManager.start()` |
-| 2620 | Tab hidden → `TelemetryManager.submit()` (Breathecode + Rigobot) |
-| 2630 | `pagehide` / `beforeunload` → `submitTelemetryToRigobotViaBeacon()` (Rigobot only) |
-| 2633 | `visibilitychange` listener registration |
+| ~872–876 | `fetchExercises` — if config **slug** changes from a previous non-empty value, clears `packageId` / `packageIdSlug` |
+| ~895–911 | `fetchPackageMetadata` — `getPackageBySlug`, cache by slug, `mergePackageIdIfMissing` |
+| `startTelemetry` | Assigns `TelemetryManager.urls`, `skipDuplicateBootstrap` guard, `await TelemetryManager.start()`, `mergePackageIdIfMissing` if store `packageId` set; `telemetryReady` only on success; initial struggle listeners + `open_step` only when not skipping duplicate bootstrap |
+| `ensureTelemetryStarted` | Delegates to `startTelemetry()` — call after **`loginToRigo`**, **`refreshDataFromAnotherTab`**, **`checkRigobotInvitation`** when session arrives after bootstrap |
+| `loginToRigo` / `refreshDataFromAnotherTab` / `checkRigobotInvitation` | Late session: `await getOrCreateActiveSession()` then `await ensureTelemetryStarted()` (plus `initRigoAI` in `refreshDataFromAnotherTab`) |
+| (in `startTelemetry`) | Tab hidden → `TelemetryManager.submit()`; `pagehide` / `beforeunload` → `submitTelemetryToRigobotViaBeacon()`; `visibilitychange` listener — guarded by `telemetryLifecycleListenersRegistered` |
+
+---
+
+## Package id wiring
+
+### `src/components/PackageMetadataListener.tsx`
+- `useEffect` on **Rigobot token** + **config slug**; calls `fetchPackageMetadata()` when both are non-empty (no UI).
 
 ---
 
@@ -95,6 +106,10 @@ The heart of all telemetry logic in the IDE.
 ### `src/utils/apiCalls.ts`
 
 - `fetchLearnpackPackageAssetIds()` — GET Rigobot package, returns `asset_ids` as `number[]` for Breathecode batch URL (telemetry bootstrap).
+- `getPackageBySlug()` — GET same package URL; returns `{ id }` or `null` (no throw); used for `package_id` merge path.
+
+### `src/App.tsx`
+- Renders `<PackageMetadataListener />` next to other global listeners.
 
 ---
 

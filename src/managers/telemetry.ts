@@ -740,6 +740,7 @@ interface ITelemetryManager {
   save: () => void;
   retrieve: () => Promise<ITelemetryJSONSchema | null>;
   getStep: (stepPosition: number) => TStep | null;
+  mergePackageIdIfMissing: (packageId: number | string) => void;
   /** Breathecode registry asset IDs from Rigobot package; not persisted in telemetry blob. */
   packageAssetIds: number[];
 }
@@ -1385,6 +1386,17 @@ const TelemetryManager: ITelemetryManager = {
         this.packageAssetIds
       );
       await sendBatchTelemetryRigobot(body, this.user.rigo_token);
+      const payload = body as {
+        global_metrics?: ITelemetryJSONSchema["global_metrics"];
+        global_indicators?: ITelemetryJSONSchema["global_indicators"];
+      };
+      if (payload.global_metrics !== undefined) {
+        this.current.global_metrics = payload.global_metrics;
+      }
+      if (payload.global_indicators !== undefined) {
+        this.current.global_indicators = payload.global_indicators;
+      }
+      this.save();
     } catch (error) {
       console.error("Error submitting telemetry", error);
     }
@@ -1404,6 +1416,21 @@ const TelemetryManager: ITelemetryManager = {
 
   getStep: function (stepPosition: number) {
     return this.current?.steps[stepPosition] || null;
+  },
+
+  mergePackageIdIfMissing: function (packageId: number | string) {
+    if (!this.current) {
+      return;
+    }
+    if (
+      this.current.package_id !== undefined &&
+      this.current.package_id !== null &&
+      this.current.package_id !== ""
+    ) {
+      return;
+    }
+    this.current.package_id = String(packageId);
+    this.save();
   },
 
   streamEvent: async function (stepPosition, event, data) {

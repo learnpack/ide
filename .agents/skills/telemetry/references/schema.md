@@ -10,7 +10,7 @@ interface ITelemetryJSONSchema {
   user_id: string
   fullname: string               // "[REDACTED]" in localStorage
   slug: string                   // package/course slug
-  package_id?: number | string   // Rigobot ID
+  package_id?: number | string   // Rigobot LearnPack package id (merge fills via String())
   version: string                // e.g. "CLOUD:0.46.0"
   cohort_id: string | null
   academy_id: string | null

@@ -283,6 +283,10 @@ export interface IStore {
   user: TUser;
   token: string;
   bc_token: string;
+  /** Rigobot Learnpack package id for the current course slug; null until resolved. Always string when set. */
+  packageId: string | null;
+  /** Slug for which `packageId` is valid; used to skip refetch and to invalidate on course change. */
+  packageIdSlug: string | null;
   assessmentConfig: TAssessmentConfig;
   configObject: IConfigObject;
   videoTutorial: string;
@@ -360,7 +364,7 @@ export interface IStore {
   getContextFilesContent: () => Promise<string>;
   loginToRigo: (loginInfo: TLoginInfo) => Promise<void | false>;
   getCurrentExercise: () => TExercise;
-  refreshDataFromAnotherTab: (data: TRefreshData) => void;
+  refreshDataFromAnotherTab: (data: TRefreshData) => Promise<void>;
   setExerciseMessages: (messages: IMessage[], position: number) => void;
   setShowVideoTutorial: (show: boolean) => void;
   registerTelemetryEvent: (event: TStepEvent, data: object) => void;
@@ -374,12 +378,16 @@ export interface IStore {
   fetchSingleExerciseInfo: (index: number) => Promise<TExercise>;
   toggleFeedback: () => void;
   fetchExercises: () => void;
+  /** GET package metadata from Rigobot when token and config slug exist; merges package_id into telemetry if missing. */
+  fetchPackageMetadata: () => Promise<void>;
   updateEditorTabs: () => void;
   setFileLoadNotFound: (lessonSlug: string, filename: string, notFound: boolean) => void;
   clearFileLoadNotFoundForLesson: (lessonSlug: string) => void;
   setLessonSyncInProgress: (slug: string | null) => void;
   syncLessonFilesFromEditor: (lessonSlug: string) => Promise<void>;
   startTelemetry: () => Promise<void>;
+  /** Idempotent wrapper; call after login or late session sync when bootstrap skipped telemetry. */
+  ensureTelemetryStarted: () => Promise<void>;
   build: (buildText: string, submittedInputs?: string[]) => void;
   setPosition: (position: number) => void;
   fetchReadme: () => void;
@@ -409,7 +417,7 @@ export interface IStore {
   // registerAIInteraction: (setPosition: number, interaction: object) => void;
   sessionActions: (opts: TSessionActionsOpts) => void;
   displayTestButton: boolean;
-  /** True after TelemetryManager.start() has finished (cloud reconciliation included). */
+  /** True after TelemetryManager.start() completes without throwing (cloud reconciliation included). */
   telemetryReady: boolean;
   getOrCreateActiveSession: () => void;
   updateDBSession: () => void;

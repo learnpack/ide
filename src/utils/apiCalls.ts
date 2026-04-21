@@ -169,6 +169,45 @@ export async function fetchLearnpackPackageAssetIds(
   }
 }
 
+/**
+ * Rigobot package record for a slug; `id` is the Learnpack package id.
+ * Returns null on network errors or non-success (does not throw).
+ */
+export async function getPackageBySlug(
+  rigoToken: string,
+  packageSlug: string
+): Promise<{ id: number | string } | null> {
+  if (!rigoToken?.trim() || !packageSlug) {
+    return null;
+  }
+
+  const url = `${RIGOBOT_HOST}/v1/learnpack/package/${encodeURIComponent(packageSlug)}/`;
+
+  try {
+    const response = await axios.get<{ id?: unknown }>(url, {
+      headers: {
+        Authorization: `Token ${rigoToken.trim()}`,
+      },
+    });
+
+    const raw = response.data?.id;
+    if (raw === undefined || raw === null) {
+      return null;
+    }
+    const id =
+      typeof raw === "number" || typeof raw === "string"
+        ? raw
+        : Number(raw);
+    if (typeof id === "number" && !Number.isFinite(id)) {
+      return null;
+    }
+    return { id };
+  } catch (error) {
+    console.warn("getPackageBySlug failed:", error);
+    return null;
+  }
+}
+
 export const isPackageAuthor = async (
   token: string,
   packageSlug: string

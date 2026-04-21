@@ -15,6 +15,7 @@ import PreviewGenerator from "./components/composites/PreviewImageGenerator/Prev
 import { PositionHandler } from "./components/composites/PositionHandler/PositionHandler";
 import TranslationListener from "./components/Creator/TranslationListener";
 import SyncNotificationListener from "./components/SyncNotifications/SyncNotificationListener";
+import PackageMetadataListener from "./components/PackageMetadataListener";
 import EventListener from "./managers/eventListener";
 export default function Home() {
   const start = useStore((s) => s.start);
@@ -52,6 +53,7 @@ export default function Home() {
       className={`${theme} ${isIframe ? "iframe-mode" : ""}`}
     >
       <ModalsContainer />
+      <PackageMetadataListener />
       <PublishNavbar />
       <PositionHandler />
       {environment === "creatorWeb" && <PreviewGenerator />}
