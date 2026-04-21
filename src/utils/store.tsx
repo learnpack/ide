@@ -1136,6 +1136,47 @@ The user's set up the application in "${language}" language, give your feedback 
     //   conversationId: conversationId,
     // });
   },
+
+  /**
+   * creatorWeb: run after successful loginToRigo (token set). Mirrors start() from
+   * fetchExercises through getSyncNotifications, except initRigoAI is NOT called here —
+   * loginToRigo already calls initRigoAI() in its try block before this. In start(), initRigoAI
+   * runs between startTelemetry and getSyllabus; omitting it here avoids a duplicate call.
+   */
+  bootstrapCreatorWebAfterAuth: async () => {
+    const {
+      fetchExercises,
+      checkParams,
+      fetchReadme,
+      initCompilerSocket,
+      startConversation,
+      setOpenedModals,
+      getOrCreateActiveSession,
+      ensureTelemetryStarted,
+      getSyllabus,
+      getSyncNotifications,
+    } = get();
+
+    const fetchOk = await fetchExercises();
+    if (fetchOk !== true) {
+      setOpenedModals({ login: false, mustLogin: false });
+      return;
+    }
+
+    const params = checkParams({ justReturn: false });
+    if (!params.currentExercise) {
+      await fetchReadme();
+    }
+    initCompilerSocket();
+    RigoAI.load();
+    startConversation(Number(get().currentExercisePosition));
+    setOpenedModals({ login: false, mustLogin: false });
+    await getOrCreateActiveSession();
+    await ensureTelemetryStarted();
+    await getSyllabus();
+    await getSyncNotifications();
+  },
+
   // @ts-ignore
   loginToRigo: async (loginInfo) => {
     const {
@@ -1149,6 +1190,8 @@ The user's set up the application in "${language}" language, give your feedback 
       ensureTelemetryStarted,
       getUserConsumables,
       initRigoAI,
+      environment,
+      bootstrapCreatorWebAfterAuth,
     } = get();
 
     try {
@@ -1189,8 +1232,13 @@ The user's set up the application in "${language}" language, give your feedback 
       }
     }
 
+    if (environment === "creatorWeb") {
+      await bootstrapCreatorWebAfterAuth();
+      return true;
+    }
+
     startConversation(Number(currentExercisePosition));
-    setOpenedModals({ login: false });
+    setOpenedModals({ login: false, mustLogin: false });
     await getOrCreateActiveSession();
     await ensureTelemetryStarted();
     return true;
