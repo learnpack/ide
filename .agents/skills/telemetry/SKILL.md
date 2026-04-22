@@ -11,7 +11,7 @@ description: >
   hasPendingTasks, is_completed, testeable_elements, quiz_submission, open_step,
   reconcileTelemetry, normalizeTelemetrySchema, workout_session, lesson_rendered,
   completeStepIfReadOnly, onLessonRendered, activeHashes, package_id,
-  mergePackageIdIfMissing, fetchPackageMetadata, getPackageBySlug,
+  mergePackageIdIfMissing, fetchPackageMetadata, fetchLearnpackPackageInfo,
   PackageMetadataListener, ensureTelemetryStarted, global_metrics, global_indicators, or anything related to
   completion_rate, step tracking, or telemetry submission/persistence.
 ---
@@ -113,8 +113,8 @@ For compilation/test events, data must be base64-encoded (see `stringToBase64` /
 
 **`package_id` — optional Rigobot lookup and merge (not part of `start()` itself):**
 - The persisted blob may already contain `package_id` (localStorage, server GET, or prior sessions). It is **whitelisted** (`TELEMETRY_WHITELIST_KEYS`).
-- When missing or empty, the IDE resolves the LearnPack package record **via HTTP**: `getPackageBySlug()` → `GET ${RIGOBOT_HOST}/v1/learnpack/package/<slug>/` (same path used for `asset_ids`; see `references/apis.md`). The response `id` is stored in Zustand as **`packageId` + `packageIdSlug`** (`src/utils/store.tsx` / `storeTypes.ts`).
-- **`PackageMetadataListener`** (`src/components/PackageMetadataListener.tsx`, mounted in `App.tsx`) runs when **Rigobot token + config slug** are set; it calls **`fetchPackageMetadata()`**, which skips the network if the slug still matches the cached `packageIdSlug` with a non-null `packageId`, otherwise fetches and calls **`TelemetryManager.mergePackageIdIfMissing(idStr)`**.
+- When missing or empty, `TelemetryManager.start()` calls **`fetchLearnpackPackageInfo()`** → `GET ${RIGOBOT_HOST}/v1/learnpack/package/<slug>/assets/` and **`mergePackageIdIfMissing(id)`** after reconciliation (see `references/apis.md`). The `id` can also be stored in Zustand as **`packageId` + `packageIdSlug`** via **`fetchPackageMetadata()`** (`src/utils/store.tsx` / `storeTypes.ts`).
+- **`PackageMetadataListener`** (`src/components/PackageMetadataListener.tsx`, mounted in `App.tsx`) runs when **Rigobot token + config slug** are set; it calls **`fetchPackageMetadata()`**, which skips the network if the slug still matches the cached `packageIdSlug` with a non-null `packageId`, otherwise fetches and calls **`TelemetryManager.mergePackageIdIfMissing(idStr)`** (same HTTP helper as `start()`; idempotent if `package_id` already set).
 - **`startTelemetry()`** after `await TelemetryManager.start(...)` calls **`mergePackageIdIfMissing(pkgId)`** again if the store already has `packageId` — this covers ordering where metadata resolved before telemetry finished bootstrapping.
 - **`mergePackageIdIfMissing`** only writes when `current.package_id` is missing/empty; it always stores a **string** (`String(packageId)`). The schema allows `number | string`; the IDE normalizes new fills to **string**.
 - **Course change:** inside **`fetchExercises`**, if the incoming config slug **differs** from the previous non-empty slug, the store clears **`packageId` / `packageIdSlug`** so the next listener/metadata pass targets the new package.
