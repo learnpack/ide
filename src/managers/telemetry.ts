@@ -688,7 +688,7 @@ type TUser = {
   fullname: string;
 };
 
-type TAlerts = "test_struggles" | "compile_struggles";
+type TAlerts = "test_struggles" | "compile_struggles" | "quiz_struggles";
 
 interface ITelemetryManager {
   current: ITelemetryJSONSchema | null;
@@ -1307,6 +1307,17 @@ const TelemetryManager: ITelemetryManager = {
       const stepIndicators = indicators.steps[stepPosition];
       if (stepIndicators.metrics.streak_test_struggle >= 3) {
         this.listeners["test_struggles"](stepIndicators);
+      }
+    }
+
+    if (
+      event === "quiz_submission" &&
+      typeof this.listeners["quiz_struggles"] === "function"
+    ) {
+      const indicators = calculateIndicators(this.current);
+      const stepIndicators = indicators.steps[stepPosition];
+      if (stepIndicators.metrics.streak_quiz_struggles >= 3) {
+        this.listeners["quiz_struggles"](stepIndicators);
       }
     }
   },

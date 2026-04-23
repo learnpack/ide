@@ -106,3 +106,87 @@ export const TestStrugglesModal = () => {
     </Modal>
   );
 };
+
+export const QuizStrugglesModal = () => {
+  const { t } = useTranslation();
+  const [failures, setFailures] = useState(0);
+  const {
+    setOpenedModals,
+    currentExercisePosition,
+    setRigoContext,
+    toggleRigo,
+  } = useStore(
+    useShallow((state) => {
+      return {
+        setOpenedModals: state.setOpenedModals,
+        currentExercisePosition: state.currentExercisePosition,
+        setRigoContext: state.setRigoContext,
+        toggleRigo: state.toggleRigo,
+      };
+    })
+  );
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    const stepIndicators = TelemetryManager.getStepIndicators(
+      Number(currentExercisePosition)
+    );
+    if (stepIndicators?.metrics.streak_quiz_struggles === 3) {
+      setMessage(`${t("threeStrugglesAlert." + randomFrom0to10())}`);
+    }
+    if (stepIndicators?.metrics.streak_quiz_struggles === 9) {
+      setMessage(`${t("nineStrugglesAlert." + randomFrom0to10())}`);
+    }
+    if (stepIndicators && stepIndicators?.metrics.streak_quiz_struggles >= 15) {
+      setMessage(t("helpIsNowMandatory"));
+    }
+    setFailures(stepIndicators?.metrics.streak_quiz_struggles ?? 0);
+  }, [currentExercisePosition, t]);
+
+  const outsideClickHandler = () => {
+    const stepIndicators = TelemetryManager.getStepIndicators(
+      Number(currentExercisePosition)
+    );
+    if (
+      stepIndicators?.metrics.streak_quiz_struggles &&
+      stepIndicators?.metrics.streak_quiz_struggles < 15
+    ) {
+      setOpenedModals({ quizStruggles: false });
+    } else {
+      console.log("help is now mandatory, you can't close the modal");
+    }
+  };
+
+  return (
+    <Modal outsideClickHandler={outsideClickHandler}>
+      <h2 className="m-0">{t("rigoWantsToHelpYou")}</h2>
+      <p>{message}</p>
+      <div className="flex-x gap-small justify-center">
+        {failures < 15 && (
+          <SimpleButton
+            extraClass="bg-gray padding-small rounded"
+            text={t("continueOnMyOwn")}
+            action={() => setOpenedModals({ quizStruggles: false })}
+          />
+        )}
+        <SimpleButton
+          extraClass="active-on-hover padding-small bg-rigo text-white rounded"
+          text={t("yesHelpMe")}
+          svg={svgs.rigoSvg}
+          action={() => {
+            toggleRigo({ ensure: "open" });
+            setRigoContext({
+              context:
+                "The student is struggling with a quiz, has failed " +
+                String(failures) +
+                " times in a row, please give a hint on how to solve it.",
+              userMessage: t("whatImDoingWrong"),
+              performTests: false,
+            });
+            setOpenedModals({ quizStruggles: false });
+          }}
+        />
+      </div>
+    </Modal>
+  );
+};

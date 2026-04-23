@@ -2757,6 +2757,15 @@ The user's set up the application in "${language}" language, give your feedback 
             setOpenedModals({ testStruggles: true });
           }
         });
+        TelemetryManager.registerListener("quiz_struggles", (stepIndicators) => {
+          if (
+            stepIndicators.metrics.streak_quiz_struggles === 3 ||
+            stepIndicators.metrics.streak_quiz_struggles === 9 ||
+            stepIndicators.metrics.streak_quiz_struggles >= 15
+          ) {
+            setOpenedModals({ quizStruggles: true });
+          }
+        });
 
         const openingPosition = Number(currentExercisePosition);
         if (typeof openingPosition === "number" && !isNaN(openingPosition)) {
