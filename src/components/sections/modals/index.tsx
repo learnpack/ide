@@ -12,7 +12,7 @@ import "./modals.css";
 import { SessionModal } from "./ContinueSession";
 import { MustLoginModal } from "./MustLogin";
 import { CloseWindow } from "./CloseWindow";
-import { TestStrugglesModal } from "./StreakStruggles";
+import { TestStrugglesModal, QuizStrugglesModal } from "./StreakStruggles";
 import { LimitAiCompilations } from "./LimitAiCompilations";
 import { AddVideoTutorial } from "./AddVideoTutorial";
 import { NotAuthorModal } from "./NotAuthorModal";
@@ -59,6 +59,7 @@ export const ModalsContainer = () => {
       {openedModals.closeWindow && <CloseWindow />}
       {openedModals.limitReached && <LimitAiCompilations />}
       {openedModals.testStruggles && <TestStrugglesModal />}
+      {openedModals.quizStruggles && <QuizStrugglesModal />}
       {openedModals.addVideoTutorial && <AddVideoTutorial />}
       {openedModals.notAuthor && <NotAuthorModal />}
       {openedModals.packageNotFound && <PackageNotFoundModal />}

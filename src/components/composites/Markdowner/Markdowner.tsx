@@ -1055,7 +1055,6 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
     getTelemetryStep,
     currentExercisePosition,
     telemetryReady,
-    maxQuizRetries,
     recordConsumable,
     toastFromStatus,
     reportEnrichDataLayer,
@@ -1067,7 +1066,6 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
     getTelemetryStep: state.getTelemetryStep,
     currentExercisePosition: state.currentExercisePosition,
     telemetryReady: state.telemetryReady,
-    maxQuizRetries: state.maxQuizRetries,
     recordConsumable: state.useConsumable,
     toastFromStatus: state.toastFromStatus,
     reportEnrichDataLayer: state.reportEnrichDataLayer,
@@ -1230,16 +1228,6 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
       return;
     }
     if (!hashRef.current || uniqueBlanks.length === 0) {
-      return;
-    }
-
-    const currentStep = await getTelemetryStep(Number(currentExercisePosition));
-    const priorSubmissions =
-      currentStep?.quiz_submissions?.filter(
-        (s) => s.quiz_hash === hashRef.current
-      ) ?? [];
-    if (priorSubmissions.length >= maxQuizRetries) {
-      toast.error(t("max-quiz-retries-reached"));
       return;
     }
 

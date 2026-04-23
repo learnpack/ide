@@ -34,7 +34,6 @@ export const QuizRenderer = ({ children }: { children: any }) => {
 
   const {
     registerTelemetryEvent,
-    maxQuizRetries,
     toastFromStatus,
     getTelemetryStep,
     currentExercisePosition,
@@ -46,7 +45,6 @@ export const QuizRenderer = ({ children }: { children: any }) => {
     language,
   } = useStore((state) => ({
     registerTelemetryEvent: state.registerTelemetryEvent,
-    maxQuizRetries: state.maxQuizRetries,
     toastFromStatus: state.toastFromStatus,
     getTelemetryStep: state.getTelemetryStep,
     currentExercisePosition: state.currentExercisePosition,
@@ -214,11 +212,6 @@ export const QuizRenderer = ({ children }: { children: any }) => {
         if (submissions.length > 0) {
           quiz.current.attempts = submissions;
         }
-      }
-
-      if (quiz.current.attempts.length >= maxQuizRetries) {
-        toast.error(t("max-quiz-retries-reached"));
-        return;
       }
 
       const submission = makeQuizSubmission(
