@@ -1088,7 +1088,7 @@ const TelemetryManager: ITelemetryManager = {
 
   /**
    * Called (via eventBus "lesson_rendered") after the markdown content has
-   * rendered in the browser.  A debounce of 3 seconds gives quiz/FITB/OQ
+   * rendered in the browser.  A debounce of 5 seconds gives quiz/FITB/OQ
    * components time to mount and register their testeable_elements.  If
    * after the debounce the step still has no testeable_elements and is not
    * a code-test step, it is genuinely read-only and can be completed.
@@ -1104,7 +1104,7 @@ const TelemetryManager: ITelemetryManager = {
       this._lessonRenderedDebounce.cancel();
     }
 
-    const READOLY_COMPLETION_DELAY_MS = 7000;
+    const READOLY_COMPLETION_DELAY_MS = 5000;
 
     this._lessonRenderedDebounce = debounce(() => {
       this.completeStepIfReadOnly(stepPosition);
