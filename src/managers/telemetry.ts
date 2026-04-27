@@ -1011,6 +1011,7 @@ const TelemetryManager: ITelemetryManager = {
     if (!this.current) {
       return
     }
+    console.log("➡️registerTesteableElement language: ", language);
 
     // Chequea si el elemento ya existe en otro step
     const existsInOtherStep = this.current.steps.findIndex(
@@ -1348,15 +1349,19 @@ const TelemetryManager: ITelemetryManager = {
     const quizElements = step.testeable_elements.filter((e) => e.type === "quiz");
     if (quizElements.length === 0) return false;
 
+    console.log("➡️activeHashes: ", this.activeHashes);
+    console.log("➡️quizElements: ", quizElements);
     for (const [, hashes] of this.activeHashes) {
       const relevantHashes = [...hashes].filter((h) =>
         quizElements.some((e) => e.hash === h)
       );
+      console.log("➡️relevantHashes: ", relevantHashes);
       if (relevantHashes.length === 0) continue;
 
       const allDone = relevantHashes.every(
         (hash) => quizElements.find((e) => e.hash === hash)?.is_completed === true
       );
+      console.log("➡️allDone: ", allDone);
       if (allDone) return false;
     }
 
