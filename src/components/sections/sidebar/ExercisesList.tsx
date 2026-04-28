@@ -506,7 +506,7 @@ function ExerciseCard({
               svg={svgs.pause}
             />
           )}
-        {mode === "student" && (
+        {mode === "student" && TelemetryManager.current !== null && (
           <SimpleButton
             svg={isDone ? <Icon className="text-green-500" size={20} name="Check" /> : <Icon className="text-gray-500" size={15} name="Circle" />}
             text=""
