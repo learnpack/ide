@@ -1430,6 +1430,11 @@ const TelemetryManager: ITelemetryManager = {
       return;
     }
 
+    // Recalculate aggregated metrics/indicators derived from steps before persisting.
+    const indicators = calculateIndicators(this.current);
+    this.current.global_metrics = indicators.global.metrics;
+    this.current.global_indicators = indicators.global.indicators;
+
     if (this.agent === "os" || this.agent === "vscode") {
       saveInCLI(this.current);
     } else {
