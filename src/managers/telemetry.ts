@@ -1011,7 +1011,6 @@ const TelemetryManager: ITelemetryManager = {
     if (!this.current) {
       return
     }
-    console.log("➡️registerTesteableElement language: ", language);
 
     // Chequea si el elemento ya existe en otro step
     const existsInOtherStep = this.current.steps.findIndex(
@@ -1089,7 +1088,7 @@ const TelemetryManager: ITelemetryManager = {
 
   /**
    * Called (via eventBus "lesson_rendered") after the markdown content has
-   * rendered in the browser.  A debounce of 3 seconds gives quiz/FITB/OQ
+   * rendered in the browser.  A debounce of 5 seconds gives quiz/FITB/OQ
    * components time to mount and register their testeable_elements.  If
    * after the debounce the step still has no testeable_elements and is not
    * a code-test step, it is genuinely read-only and can be completed.
@@ -1105,7 +1104,7 @@ const TelemetryManager: ITelemetryManager = {
       this._lessonRenderedDebounce.cancel();
     }
 
-    const READOLY_COMPLETION_DELAY_MS = 7000;
+    const READOLY_COMPLETION_DELAY_MS = 5000;
 
     this._lessonRenderedDebounce = debounce(() => {
       this.completeStepIfReadOnly(stepPosition);
@@ -1339,6 +1338,11 @@ const TelemetryManager: ITelemetryManager = {
     const step = this.current?.steps[stepPosition];
     if (!step?.testeable_elements?.length) return false;
 
+    // Persisted completion wins over activeHashes (session-only). Without this,
+    // revisiting a completed step in another language after telemetry restart
+    // wrongly reports pending tasks because the new locale's quiz hash is not complete.
+    if (step.is_completed) return false;
+
     // Tests are language-independent: if any is incomplete, the step is not done
     const hasIncompleteTests = step.testeable_elements.some(
       (e) => e.type === "test" && !e.is_completed
@@ -1349,19 +1353,15 @@ const TelemetryManager: ITelemetryManager = {
     const quizElements = step.testeable_elements.filter((e) => e.type === "quiz");
     if (quizElements.length === 0) return false;
 
-    console.log("➡️activeHashes: ", this.activeHashes);
-    console.log("➡️quizElements: ", quizElements);
     for (const [, hashes] of this.activeHashes) {
       const relevantHashes = [...hashes].filter((h) =>
         quizElements.some((e) => e.hash === h)
       );
-      console.log("➡️relevantHashes: ", relevantHashes);
       if (relevantHashes.length === 0) continue;
 
       const allDone = relevantHashes.every(
         (hash) => quizElements.find((e) => e.hash === hash)?.is_completed === true
       );
-      console.log("➡️allDone: ", allDone);
       if (allDone) return false;
     }
 
