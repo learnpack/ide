@@ -1376,10 +1376,7 @@ const TelemetryManager: ITelemetryManager = {
     if (!this.current || !this.current.steps) {
       return false;
     }
-    return this.current.steps.some(
-      (step) =>
-        (step.is_testeable || step.testeable_elements?.length) && !step.is_completed
-    );
+    return this.current.steps.some((step) => !step.is_completed);
   },
 
   submit: async function () {
