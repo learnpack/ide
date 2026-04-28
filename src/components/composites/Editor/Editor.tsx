@@ -22,6 +22,7 @@ import { Loader } from "../Loader/Loader";
 import { TEditorTab } from "../../../utils/storeTypes";
 import { Markdowner } from "../Markdowner/Markdowner";
 import { eventBus } from "../../../managers/eventBus";
+import TelemetryManager from "../../../managers/telemetry";
 import { Modal } from "../../mockups/Modal";
 import { deleteFile } from "../../../utils/creator";
 import { Icon } from "../../Icon";
@@ -1174,9 +1175,26 @@ const NextButton = () => {
     exercises: state.exercises,
   }));
 
+  const isLastExercise = currentExercisePosition === exercises.length - 1;
+
+  if (isLastExercise) {
+    const hasPendingTasksInAnyLesson = TelemetryManager.hasPendingTasksInAnyLesson();
+    return (
+      <SimpleButton
+        disabled={hasPendingTasksInAnyLesson}
+        action={() => {
+          if (!hasPendingTasksInAnyLesson) {
+            eventBus.emit("last_lesson_finished", {});
+          }
+        }}
+        text={"Finish"}
+        extraClass="w-100 bg-success text-white big"
+      />
+    );
+  }
+
   return (
     <SimpleButton
-      disabled={currentExercisePosition === exercises.length - 1}
       action={() =>
         eventBus.emit("position_change", {
           position: Number(currentExercisePosition) + 1,
