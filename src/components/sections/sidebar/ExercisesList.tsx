@@ -424,8 +424,7 @@ function ExerciseCard({
   const current = getCurrentExercise();
   const isCurrent = current.slug === slug;
 
-  const isDone = TelemetryManager.isTesteable(position) && TelemetryManager.isStepCompleted(position);
-  const isTesteable = TelemetryManager.isTesteable(position);
+  const isDone = TelemetryManager.isStepCompleted(position);
 
 
   return (
@@ -507,7 +506,7 @@ function ExerciseCard({
               svg={svgs.pause}
             />
           )}
-        {mode === "student" && isTesteable && (
+        {mode === "student" && (
           <SimpleButton
             svg={isDone ? <Icon className="text-green-500" size={20} name="Check" /> : <Icon className="text-gray-500" size={15} name="Circle" />}
             text=""
