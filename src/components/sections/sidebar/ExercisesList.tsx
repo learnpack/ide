@@ -425,6 +425,7 @@ function ExerciseCard({
   const isCurrent = current.slug === slug;
 
   const isDone = TelemetryManager.isStepCompleted(position);
+  const isTesteableAndDone = isDone && TelemetryManager.isTesteable(position);
 
 
   return (
@@ -481,7 +482,7 @@ function ExerciseCard({
               }
             }}
           >
-            <button className={`exercise-circle ${isDone ? "done" : ""}`}>
+            <button className={`exercise-circle ${isTesteableAndDone ? "done" : ""}`}>
               <span>{id}</span>
             </button>
             <span>{formattedTitle}</span>
