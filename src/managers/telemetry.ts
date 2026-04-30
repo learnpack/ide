@@ -792,10 +792,7 @@ const TelemetryManager: ITelemetryManager = {
         let submitLocalIfNewer = false;
         try {
           const localRaw = LocalStorage.get(this.telemetryKey);
-          const localBelongsToCurrentUser =
-            localRaw?.user_id ||
-            student.user_id ||
-            String(localRaw.user_id) === String(student.user_id);
+          const localBelongsToCurrentUser = String(localRaw?.user_id) === String(student?.user_id);
           const localTelemetry =
             localRaw && localRaw.slug === tutorialSlug && localBelongsToCurrentUser
               ? localRaw
