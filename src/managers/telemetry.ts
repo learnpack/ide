@@ -171,6 +171,104 @@ function createUUID(): string {
 }
 
 /**
+ * After winner/loser selection, merges activity data from the loser's steps
+ * into the winner's already-normalized steps where the winner has no data.
+ * Matching is done by slug.
+ *
+ * Note on test element hashes: type="test" elements use exercise.slug as their
+ * hash, so they are never orphaned and the by-hash merge is always safe for them.
+ */
+function mergeStepActivityFromLoser(
+  winnerSteps: TStep[],
+  loserRawSteps: TStep[]
+): TStep[] {
+  const loserBySlug = new Map<string, TStep>();
+  for (const s of loserRawSteps) {
+    if (s.slug) loserBySlug.set(s.slug, s);
+  }
+
+  return winnerSteps.map((winner) => {
+    const loser = loserBySlug.get(winner.slug);
+    if (!loser) return winner;
+    const merged: TStep = { ...winner };
+
+    // 1. completed_at / is_completed: handled independently so that a blob
+    //    with one field set but not the other (edge case) is still covered.
+    if (!merged.completed_at && loser.completed_at) {
+      merged.completed_at = loser.completed_at;
+    }
+    if (!merged.is_completed && loser.is_completed) {
+      merged.is_completed = true;
+    }
+
+    // 2. opened_at: affects step status ("unread" vs "attempted") and
+    //    time_spent in metrics — preserve if winner has none.
+    if (!merged.opened_at && loser.opened_at) {
+      merged.opened_at = loser.opened_at;
+    }
+
+    // 3. testeable_elements: by hash
+    //    - elements absent in winner → add from loser
+    //    - elements present in both → upgrade is_completed to true if loser has it
+    if (loser.testeable_elements?.length) {
+      const winnerByHash = new Map(
+        (merged.testeable_elements ?? []).map((e) => [e.hash, e])
+      );
+      const result = [...(merged.testeable_elements ?? [])];
+      for (const loserEl of loser.testeable_elements) {
+        const winnerEl = winnerByHash.get(loserEl.hash);
+        if (!winnerEl) {
+          result.push(loserEl);
+        } else if (loserEl.is_completed && !winnerEl.is_completed) {
+          const idx = result.findIndex((e) => e.hash === loserEl.hash);
+          if (idx !== -1) {
+            result[idx] = {
+              ...winnerEl,
+              is_completed: true,
+              metrics: winnerEl.metrics ?? loserEl.metrics,
+            };
+          }
+        }
+      }
+      merged.testeable_elements = result;
+    }
+
+    // 4. quiz_submissions: by quiz_hash, additive only when winner has none for that hash
+    if (loser.quiz_submissions?.length) {
+      const winnerHashes = new Set(
+        (merged.quiz_submissions ?? []).map((q) => q.quiz_hash)
+      );
+      const toAdd = loser.quiz_submissions.filter(
+        (q) => !winnerHashes.has(q.quiz_hash)
+      );
+      if (toAdd.length > 0) {
+        merged.quiz_submissions = [
+          ...(merged.quiz_submissions ?? []),
+          ...toAdd,
+        ];
+      }
+    }
+
+    // 5. tests / compilations / ai_interactions / sessions: conservative —
+    //    only when winner has none for this step (avoids double-counting)
+    if (!merged.tests?.length && loser.tests?.length) {
+      merged.tests = [...loser.tests];
+    }
+    if (!merged.compilations?.length && loser.compilations?.length) {
+      merged.compilations = [...loser.compilations];
+    }
+    if (!merged.ai_interactions?.length && loser.ai_interactions?.length) {
+      merged.ai_interactions = [...loser.ai_interactions];
+    }
+    if (!merged.sessions?.length && loser.sessions?.length) {
+      merged.sessions = [...loser.sessions];
+    }
+
+    return merged;
+  });
+}
+
+/**
  * Chooses the canonical telemetry blob: server vs local vs new empty state (MVP: whole-blob comparison by last_interaction_at).
  */
 export function reconcileTelemetry(
@@ -212,40 +310,28 @@ export function reconcileTelemetry(
   if (hasServer && hasLocal) {
     const serverTs = telemetryTimestamp(serverTelemetry!);
     const localTs = telemetryTimestamp(localTelemetry!);
-    if (serverTs > localTs) {
-      return {
-        telemetry: normalizeTelemetrySchema(
-          { ...serverTelemetry! },
-          freshSteps,
-          tutorialSlug,
-          agent,
-          appVersion
-        ),
-        source: "server",
-      };
-    }
-    if (localTs > serverTs) {
-      return {
-        telemetry: normalizeTelemetrySchema(
-          { ...localTelemetry! },
-          freshSteps,
-          tutorialSlug,
-          agent,
-          appVersion
-        ),
-        source: "local",
-      };
-    }
-    return {
-      telemetry: normalizeTelemetrySchema(
-        { ...serverTelemetry! },
-        freshSteps,
-        tutorialSlug,
-        agent,
-        appVersion
-      ),
-      source: "server",
-    };
+
+    const [winner, loser, source]: [
+      ITelemetryJSONSchema,
+      ITelemetryJSONSchema,
+      TReconcileSource,
+    ] =
+      localTs > serverTs
+        ? [localTelemetry!, serverTelemetry!, "local"]
+        : [serverTelemetry!, localTelemetry!, "server"]; // tie → server
+
+    const normalized = normalizeTelemetrySchema(
+      { ...winner },
+      freshSteps,
+      tutorialSlug,
+      agent,
+      appVersion
+    );
+    normalized.steps = mergeStepActivityFromLoser(
+      normalized.steps,
+      loser.steps ?? []
+    );
+    return { telemetry: normalized, source };
   }
 
   const now = Date.now();
