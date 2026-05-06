@@ -12,7 +12,8 @@ description: >
   reconcileTelemetry, normalizeTelemetrySchema, workout_session, lesson_rendered,
   completeStepIfReadOnly, onLessonRendered, activeHashes, package_id,
   mergePackageIdIfMissing, fetchPackageMetadata, fetchLearnpackPackageInfo,
-  PackageMetadataListener, ensureTelemetryStarted, global_metrics, global_indicators, or anything related to
+  PackageMetadataListener, ensureTelemetryStarted, global_metrics, global_indicators,
+  mergeStepActivityFromLoser, or anything related to
   completion_rate, step tracking, or telemetry submission/persistence.
 ---
 
@@ -144,13 +145,13 @@ On `beforeunload` / `pagehide` (cloud), `submitTelemetryToRigobotViaBeacon()` se
 
 Function: `reconcileTelemetry()` — `src/managers/telemetry.ts` (`export function reconcileTelemetry`)
 
-Strategy: **"most recent `last_interaction_at` wins"**
+Strategy: **"most recent `last_interaction_at` wins, with loser-blob activity merge"**
 
 | Scenario | Result |
 |----------|--------|
 | Server only | Use server data |
 | Local only | Use local + auto-submit to server |
-| Both have data | Most recent wins; tie → server |
+| Both have data | Most recent wins; tie → server. Loser's step activity is then merged into the winner for any fields the winner lacks (see `mergeStepActivityFromLoser`). |
 | Neither | Create new blob with UUID |
 
 ### Step merge on reconciliation (`normalizeTelemetrySchema`)
@@ -165,6 +166,23 @@ After choosing a winner blob, steps are **not** used as-is. They are merged into
   are preserved from the stored blob when present.
 - Steps in the stored blob that have no matching slug in `freshSteps` are discarded.
 - Steps in `freshSteps` with no match in the stored blob get blank defaults.
+
+### Loser-blob activity merge (`mergeStepActivityFromLoser`)
+
+**Only runs in the `hasServer && hasLocal` case.** After the winner is normalized, a second pass merges missing activity from the loser blob into the winner's steps, matching by `slug`. For each step:
+
+| Field | Merge rule |
+|-------|-----------|
+| `completed_at` | Copy from loser if winner has none |
+| `is_completed` | Set `true` if loser has it (handled independently from `completed_at`) |
+| `opened_at` | Copy from loser if winner has none (affects `"attempted"` vs `"unread"` in metrics) |
+| `testeable_elements` | By `hash`: add elements absent in winner; upgrade `is_completed` to `true` if loser has it completed |
+| `quiz_submissions` | By `quiz_hash`: add entries for hashes with zero submissions in winner |
+| `tests`, `compilations`, `ai_interactions`, `sessions` | Copy entire array if winner's array is empty for this step |
+
+**Orphan safety:** loser steps whose slug is not in `freshSteps` are never inserted — iteration is always over `winnerSteps` (already normalized to current tutorial structure).
+
+**Motivation:** prevents progress loss when the winning blob is more recent but emptier (e.g., the student opens the package from a new browser where the GET telemetry failed and the session started from an empty state).
 
 ## Local storage
 
