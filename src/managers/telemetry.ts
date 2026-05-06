@@ -1065,7 +1065,8 @@ const TelemetryManager: ITelemetryManager = {
       return;
     }
 
-    this.current = normalizeTelemetrySchema(
+    const localStepsBeforeRefresh = this.current.steps;
+    const normalized = normalizeTelemetrySchema(
       {
         ...server,
         user_id: this.user.id,
@@ -1073,11 +1074,20 @@ const TelemetryManager: ITelemetryManager = {
         cohort_id: server.cohort_id ?? this.current.cohort_id,
         academy_id: server.academy_id ?? this.current.academy_id,
       },
-      this.current.steps,
+      localStepsBeforeRefresh,
       this.tutorialSlug,
       this.agent,
       this.version
     );
+    // Preserve any local activity the server blob doesn't have (e.g. a
+    // completed_at that was saved locally but whose submit() failed before
+    // the server received it, while a beacon from another tab updated the
+    // server's last_interaction_at to a newer timestamp).
+    normalized.steps = mergeStepActivityFromLoser(
+      normalized.steps,
+      localStepsBeforeRefresh
+    );
+    this.current = normalized;
     this.save();
   },
 
