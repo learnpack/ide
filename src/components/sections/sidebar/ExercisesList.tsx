@@ -245,7 +245,8 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
       const totalChanges =
         (result.removedLessons || 0) +
         (result.duplicatesResolved || 0) +
-        (result.addedLessons || 0);
+        (result.addedLessons || 0) +
+        (result.fixedLessons || 0);
 
       if (totalChanges > 0) {
         const messages = [];
@@ -257,6 +258,9 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
         }
         if (result.addedLessons > 0) {
           messages.push(`${result.addedLessons} added from bucket`);
+        }
+        if (result.fixedLessons > 0) {
+          messages.push(`${result.fixedLessons} status fixed`);
         }
         toast.success(
           `Syllabus synchronized: ${messages.join(", ")}`,
