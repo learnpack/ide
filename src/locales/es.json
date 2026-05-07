@@ -627,5 +627,24 @@
                 "description": "Únete a nuestra comunidad de habla inglesa en WhatsApp"
             }
         }
-    }
+    },
+    "telemetry-loading-title": "Recuperando tu progreso...",
+    "telemetry-loading-subtitle": "Por favor espera mientras cargamos tu progreso. Esto solo tomará un momento.",
+    "telemetry-timeout-title": "Está tardando más de lo esperado",
+    "telemetry-timeout-description": "No pudimos cargar tu progreso todavía. Puedes recargar la página para volver a intentarlo, o continuar — pero ten en cuenta que el progreso anterior en este dispositivo puede no estar disponible hasta que se restaure la conexión.",
+    "telemetry-server-error-title": "No pudimos cargar tu progreso",
+    "telemetry-server-error-description": "Nuestros servidores devolvieron un error y no se pudo recuperar tu progreso. Te sugerimos intentarlo más tarde. También puedes continuar ahora, pero el progreso anterior puede no mostrarse hasta que el problema sea resuelto.",
+    "telemetry-reload": "Reintentar",
+    "telemetry-continue-anyway": "Continuar de todas formas",
+    "telemetry-continue-risk-tooltip": "Tu progreso anterior puede no mostrarse hasta que se restaure la conexión. Cualquier actividad nueva se guardará normalmente.",
+    "telemetry-loading-tips_0": "Consejo: Usa la terminal de LearnPack para practicar comandos reales — igual que un desarrollador profesional.",
+    "telemetry-loading-tips_1": "Consejo: Lee las instrucciones con atención antes de escribir tu primera línea de código. ¡Ahorra tiempo!",
+    "telemetry-loading-tips_2": "Consejo: ¿Atascado en un ejercicio? Pregúntale a Rigobot — puede darte pistas precisas sin revelar la solución.",
+    "telemetry-loading-tips_3": "Consejo: Sesiones cortas de estudio cada día son más efectivas que una sola sesión larga. La constancia es clave.",
+    "telemetry-loading-tips_4": "Consejo: Cuando un test falla, lee el mensaje de error primero — casi siempre te dice exactamente qué corregir.",
+    "telemetry-loading-tips_5": "Consejo: Intenta entender *por qué* funciona tu código, no solo que pase el test.",
+    "telemetry-loading-tips_6": "Consejo: Si te bloqueas, toma un descanso breve. Volver con ojos frescos suele revelar la solución.",
+    "telemetry-loading-tips_7": "Consejo: Repasa los ejercicios que ya completaste — la repetición construye una comprensión real.",
+    "telemetry-loading-tips_8": "Consejo: Los ejercicios de LearnPack están diseñados para resolverse paso a paso. ¡No te saltes ninguno!",
+    "telemetry-loading-tips_9": "Consejo: Cada error que corriges te hace mejor programador. Abraza los bugs."
 }

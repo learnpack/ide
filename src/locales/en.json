@@ -619,5 +619,24 @@
                 "description": "Join our English-speaking community on WhatsApp"
             }
         }
-    }
+    },
+    "telemetry-loading-title": "Recovering your progress...",
+    "telemetry-loading-subtitle": "Please wait while we load your progress. This should only take a moment.",
+    "telemetry-timeout-title": "Taking longer than expected",
+    "telemetry-timeout-description": "We haven't been able to load your progress yet. You can reload the page to try again, or continue — but keep in mind that any earlier progress on this device may not be available until the connection is restored.",
+    "telemetry-server-error-title": "We couldn't load your progress",
+    "telemetry-server-error-description": "Our servers returned an error and your progress data couldn't be retrieved. We suggest trying again later. You can also continue now, but earlier progress may not be shown until the issue is resolved.",
+    "telemetry-reload": "Try again",
+    "telemetry-continue-anyway": "Continue anyway",
+    "telemetry-continue-risk-tooltip": "Your earlier progress may not be shown until the connection is restored. Any new activity will still be saved normally.",
+    "telemetry-loading-tips_0": "Tip: Use the terminal in LearnPack to practice real commands — just like a professional developer.",
+    "telemetry-loading-tips_1": "Tip: Read the instructions carefully before writing your first line of code. It saves time!",
+    "telemetry-loading-tips_2": "Tip: Stuck on an exercise? Ask Rigobot — it can give you targeted hints without spoiling the solution.",
+    "telemetry-loading-tips_3": "Tip: Short study sessions every day beat long sessions once a week. Consistency is key.",
+    "telemetry-loading-tips_4": "Tip: When a test fails, read the error message first — it usually tells you exactly what to fix.",
+    "telemetry-loading-tips_5": "Tip: Try to understand *why* your code works, not just that it passes the test.",
+    "telemetry-loading-tips_6": "Tip: If you get stuck, take a short break. Coming back with fresh eyes often reveals the solution.",
+    "telemetry-loading-tips_7": "Tip: Review the exercises you've already completed — repetition builds real understanding.",
+    "telemetry-loading-tips_8": "Tip: LearnPack exercises are designed to be solved step by step. Don't skip ahead!",
+    "telemetry-loading-tips_9": "Tip: Every error you fix makes you a better programmer. Embrace the bugs."
 }

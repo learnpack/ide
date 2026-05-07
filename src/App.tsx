@@ -17,12 +17,14 @@ import TranslationListener from "./components/Creator/TranslationListener";
 import SyncNotificationListener from "./components/SyncNotifications/SyncNotificationListener";
 import PackageMetadataListener from "./components/PackageMetadataListener";
 import EventListener from "./managers/eventListener";
+import TelemetryLoadingScreen from "./components/sections/TelemetryLoadingScreen";
 export default function Home() {
   const start = useStore((s) => s.start);
   const handleEnvironmentChange = useStore((s) => s.handleEnvironmentChange);
   const theme = useStore((s) => s.theme);
   const isIframe = useStore((s) => s.isIframe);
   const environment = useStore((s) => s.environment);
+  const telemetryFetchStatus = useStore((s) => s.telemetryFetchStatus);
 
   useEffect(() => {
     console.log("Starting app");
@@ -52,6 +54,9 @@ export default function Home() {
       id="main-container"
       className={`${theme} ${isIframe ? "iframe-mode" : ""}`}
     >
+      {["loading", "timeout", "server_error"].includes(telemetryFetchStatus) && (
+        <TelemetryLoadingScreen status={telemetryFetchStatus as "loading" | "timeout" | "server_error"} />
+      )}
       <ModalsContainer />
       <PackageMetadataListener />
       <PublishNavbar />
