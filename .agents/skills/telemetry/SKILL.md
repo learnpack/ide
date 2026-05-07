@@ -74,6 +74,79 @@ Concretely:
 - `registerTelemetryEvent()` → uses `currentExercisePosition` (array index) ✓
 - `registerTesteableElement()` → **must use `currentExercisePosition`** (array index), not `exercise.position`. Using `.position` causes testeable elements to land in a different step slot, breaking `hasPendingTasks` checks.
 
+## Environments and Agents
+
+These are **two independent concepts**. Confusing them is a common source of bugs when
+modifying telemetry storage or data-fetch paths.
+
+### `TEnvironment` — where the app runs
+
+Defined in `src/managers/EventProxy.ts:19-23`:
+
+| Value | When active | Key effect |
+|-------|-------------|------------|
+| `"localhost"` | CLI server reachable (`GET /config` returns JSON) | Socket.io for compilation; agent comes from `config.editor.agent` |
+| `"creatorWeb"` | CLI reachable AND `X-Creator-Web` response header present | Creator/instructor mode; same socket routing as localhost |
+| `"localStorage"` | CLI unreachable; `config.json` served as static file | In-browser emitter; agent is always forced to `"cloud"` |
+| `"scorm"` | CLI unreachable; `.learn/config.json` reachable | SCORM-compliant mode; same in-browser emitter as localStorage |
+
+**Detection flow** (`src/utils/lib.tsx:63-129`, invoked at module load time):
+1. `GET /config?slug=...` → if JSON → `"localhost"` (or `"creatorWeb"` if `X-Creator-Web` header)
+2. If that throws → `GET /config.json` → `"localStorage"`
+3. If that also throws → `GET /.learn/config.json` → `"scorm"` (or `"localStorage"` as final fallback)
+
+The module-level `ENVIRONMENT` variable is set once at boot. Changes are broadcast via
+`CustomEvent("environment-change")` on `document` and stored in Zustand as `store.environment`.
+
+### `TAgent` — how telemetry is persisted
+
+Defined in `src/utils/storeTypes.ts:197`:
+
+| Value | Telemetry storage | When used |
+|-------|-------------------|-----------|
+| `"cloud"` | Browser `localStorage["TELEMETRY"]` | `"localStorage"`, `"scorm"`, `"creatorWeb"` environments — always; `"localhost"` if config doesn't override |
+| `"os"` | `POST /telemetry` → CLI writes `telemetry.json` | `"localhost"` with `config.editor.agent = "os"` |
+| `"vscode"` | `POST /telemetry` → CLI writes `telemetry.json` | `"localhost"` with `config.editor.agent = "vscode"` |
+
+**Derivation logic (strict order):**
+1. Zustand initial state: `"cloud"` (`store.tsx:337`)
+2. After `figureEnvironment()`: if `env === "localStorage"`, force `agent = "cloud"` (`store.tsx:663`)
+3. After `fetchExercises()`: if `config.config.editor.agent` is set **and** `environment !== "localStorage"`, set agent from config (`store.tsx:955-961`)
+
+In practice: **only `"localhost"` and `"creatorWeb"` environments can produce a non-cloud
+agent**, and only when the CLI config explicitly sets `editor.agent`.
+
+### Relationship between environment and agent
+
+```
+environment === "localStorage" | "scorm"   →  agent always "cloud"
+environment === "creatorWeb"               →  agent always "cloud"  (figureEnvironment doesn't override)
+environment === "localhost"                →  agent from config.editor.agent
+                                              (defaults to "cloud" if config omits it)
+```
+
+### `testingEnvironment` — where compiler output is routed
+
+A third, independent concept. Values: `"auto" | "cloud" | "local"` (`storeTypes.ts:54`).
+
+| Value | Compiler socket used |
+|-------|----------------------|
+| `"auto"` | Follows `ENVIRONMENT` (localhost → Socket.io, others → in-browser emitter) |
+| `"cloud"` | Forces in-browser `localStorageEventEmitter` regardless of environment |
+| `"local"` | Forces Socket.io regardless of environment |
+
+Defaults to `"auto"`. Set from `configObject.config.testingEnvironment` or via
+`initCompilerSocket(testingEnvironment)`.
+
+### How environment drives FetchManager
+
+`FetchManager` (`src/managers/fetchManager.ts`) is initialized once via `FetchManager.init(env, HOST, ...)`.
+Every file-read operation (exercises, READMEs, translations, etc.) dispatches to the correct
+implementation via a `methods[FetchManager.ENVIRONMENT]` key, where each environment has its own
+variant (Socket.io call for localhost vs. HTTP/static fetch for others).
+
+---
+
 ## Main file
 
 **`src/managers/telemetry.ts`** — contains almost all the logic:
