@@ -204,7 +204,14 @@ export const Markdowner = ({
                 return <CommunityLink />;
               }
               return (
-                <a onClick={() => openLink(href)} target="_blank" href={href}>
+                <a
+                  className="link"
+                  href={href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    openLink(href);
+                  }}
+                >
                   {children}
                 </a>
               );
