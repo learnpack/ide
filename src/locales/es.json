@@ -628,15 +628,12 @@
             }
         }
     },
-    "telemetry-loading-title": "Recuperando tu progreso...",
-    "telemetry-loading-subtitle": "Por favor espera mientras cargamos tu progreso. Esto solo tomará un momento.",
     "telemetry-timeout-title": "Está tardando más de lo esperado",
     "telemetry-timeout-description": "Tu progreso no pudo cargarse a tiempo. Recarga la página para volver a intentarlo, o continúa — pero podrías perder el progreso anterior.",
     "telemetry-server-error-title": "No pudimos cargar tu progreso",
     "telemetry-server-error-description": "No pudimos recuperar tus datos de progreso. Te sugerimos intentarlo más tarde. Si continúas ahora, podrías perder tu progreso.",
     "telemetry-reload": "Reintentar",
     "telemetry-continue-anyway": "Continuar de todas formas",
-    "telemetry-continue-risk-tooltip": "Tu progreso anterior puede no mostrarse hasta que se restaure la conexión. Cualquier actividad nueva se guardará normalmente.",
     "student-loading-tips_0": "¿Atascado? Pídele una pista a Rigobot — conoce tu ejercicio y no te da la solución. ¡Tú puedes!",
     "student-loading-tips_1": "Lee las instrucciones antes de escribir una sola línea. ¡Dos minutos de lectura te ahorran una hora de debugging!",
     "student-loading-tips_2": "¿Test fallando? El mensaje de error es tu mejor pista — léelo con atención y te lleva directo a la solución.",

@@ -451,7 +451,7 @@ export interface IStore {
   displayTestButton: boolean;
   /** True after TelemetryManager.start() completes without throwing (cloud reconciliation included). */
   telemetryReady: boolean;
-  /** Status of the initial telemetry GET at boot (cloud only). Drives the TelemetryLoadingScreen. */
+  /** Status of the initial telemetry GET at boot (cloud only). */
   telemetryFetchStatus: TTelemetryFetchStatus;
   /** False while the app is initializing; true once it's ready to show content. Controls AppLoadingScreen. */
   appReady: boolean;

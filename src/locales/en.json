@@ -620,15 +620,12 @@
             }
         }
     },
-    "telemetry-loading-title": "Recovering your progress...",
-    "telemetry-loading-subtitle": "Please wait while we load your progress. This should only take a moment.",
     "telemetry-timeout-title": "Taking longer than expected",
     "telemetry-timeout-description": "Your progress couldn't be loaded in time. Refresh the page to try again, or continue — but you may lose earlier progress.",
     "telemetry-server-error-title": "We couldn't load your progress",
     "telemetry-server-error-description": "Your progress data couldn't be retrieved. We suggest trying again later. If you continue now, you may lose your progress.",
     "telemetry-reload": "Try again",
     "telemetry-continue-anyway": "Continue anyway",
-    "telemetry-continue-risk-tooltip": "Your earlier progress may not be shown until the connection is restored. Any new activity will still be saved normally.",
     "student-loading-tips_0": "Stuck? Ask Rigobot for a hint — it knows your exercise and won't spoil the answer. You've got this!",
     "student-loading-tips_1": "Read the instructions before writing a single line. Two minutes of reading saves an hour of debugging!",
     "student-loading-tips_2": "Test failing? The error message is your best clue — read it closely and it'll point you right to the fix.",
