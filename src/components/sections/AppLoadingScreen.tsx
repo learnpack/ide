@@ -84,7 +84,7 @@ export default function AppLoadingScreen({ error }: AppLoadingScreenProps) {
       ) : (
         <>
           <div className="app-loading-rigo">
-            <img src="/rigo-float.gif" alt="rigo" />
+            <img src="https://raw.githubusercontent.com/learnpack/ide/20ed3f4c3ead9b33d5d6acb20154dcd93a0ec4af/public/rigo-float.gif" alt="rigo" />
           </div>
           <div className={`app-loading-tip-block${tipFading ? " fade-out" : ""}`}>
             <span className="app-loading-eyebrow">{t(eyebrowKey)}</span>
