@@ -2818,19 +2818,22 @@ The user's set up the application in "${language}" language, give your feedback 
         });
 
         if (fetchResult.status === "timeout" || fetchResult.status === "server_error") {
-          const isTimeout = fetchResult.status === "timeout";
-          set({
-            telemetryFetchStatus: fetchResult.status,
-            appLoadingError: {
-              titleKey: isTimeout ? "telemetry-timeout-title" : "telemetry-server-error-title",
-              descriptionKey: isTimeout ? "telemetry-timeout-description" : "telemetry-server-error-description",
-              actions: [
-                { label: "telemetry-reload", action: () => window.location.reload(), style: "primary" as const },
-                { label: "telemetry-continue-anyway", action: () => void get().proceedWithTelemetry(), style: "ghost" as const },
-              ],
-            },
-          });
-          return;
+          if (environment !== "creatorWeb") {
+            const isTimeout = fetchResult.status === "timeout";
+            set({
+              telemetryFetchStatus: fetchResult.status,
+              appLoadingError: {
+                titleKey: isTimeout ? "telemetry-timeout-title" : "telemetry-server-error-title",
+                descriptionKey: isTimeout ? "telemetry-timeout-description" : "telemetry-server-error-description",
+                actions: [
+                  { label: "telemetry-reload", action: () => window.location.reload(), style: "primary" as const },
+                  { label: "telemetry-continue-anyway", action: () => void get().proceedWithTelemetry(), style: "ghost" as const },
+                ],
+              },
+            });
+            return;
+          }
+          set({ telemetryFetchStatus: fetchResult.status });
         }
 
         prefetchedServerTelemetry = fetchResult.status === "ok" ? fetchResult.data : null;
