@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { svgs } from "../../assets/svgs";
-import SimpleButton from "../mockups/SimpleButton";
 import useStore from "../../utils/store";
 import { TAppLoadingError } from "../../utils/storeTypes";
 import "./AppLoadingScreen.css";
@@ -64,21 +63,24 @@ export default function AppLoadingScreen({ error }: AppLoadingScreenProps) {
   const content = (
     <div className="app-loading-overlay">
       {error ? (
-        <>
-          <div className="app-loading-rigo">{svgs.sadRigo}</div>
-          <p className="app-loading-error-title">{t(error.titleKey)}</p>
-          <p className="app-loading-error-description">{t(error.descriptionKey)}</p>
+        <div className="app-loading-error-card">
+          <div className="app-loading-rigo app-loading-rigo--error">{svgs.sadRigo}</div>
+          <div className="app-loading-error-text">
+            <p className="app-loading-error-title">{t(error.titleKey)}</p>
+            <p className="app-loading-error-description">{t(error.descriptionKey)}</p>
+          </div>
           <div className="app-loading-actions">
             {error.actions.map((a) => (
-              <SimpleButton
+              <button
                 key={a.label}
-                text={t(a.label)}
-                action={a.action}
-                extraClass={a.style === "primary" ? "bc-btn" : "bc-btn-ghost"}
-              />
+                className={a.style === "primary" ? "app-loading-btn-primary" : "app-loading-btn-ghost"}
+                onClick={a.action}
+              >
+                {t(a.label)}
+              </button>
             ))}
           </div>
-        </>
+        </div>
       ) : (
         <>
           <div className="app-loading-rigo">

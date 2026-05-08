@@ -19,9 +19,14 @@
 }
 
 .app-loading-rigo svg {
-  width: 80px;
   height: 80px;
+  width: auto;
   animation: app-loading-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.app-loading-rigo--error svg {
+  animation: none;
+  height: 64px;
 }
 
 .app-loading-rigo img {
@@ -64,28 +69,93 @@
   text-align: center;
 }
 
+.app-loading-error-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  background: var(--bg-secondary, #ffffff);
+  border: 1px solid var(--border-color, #e2e6f0);
+  border-radius: 16px;
+  padding: 40px 48px;
+  max-width: 460px;
+  width: 100%;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+  animation: app-loading-card-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes app-loading-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.app-loading-error-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .app-loading-error-title {
-  font-size: 1.3rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: var(--read-font-color, #1d3156);
-  max-width: 480px;
   margin: 0;
+  text-align: center;
 }
 
 .app-loading-error-description {
-  font-size: 0.9rem;
-  color: var(--font-color-secondary, #1d3156);
-  max-width: 460px;
+  font-size: 0.875rem;
+  color: var(--font-color-secondary, #6b7a99);
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.55;
+  text-align: center;
 }
 
 .app-loading-actions {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  margin-top: 8px;
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+}
+
+.app-loading-btn-primary {
+  padding: 11px 24px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background-color: var(--color-blue-rigo, #0084ff);
+  color: #ffffff;
+  transition: opacity 0.2s ease;
+}
+
+.app-loading-btn-primary:hover {
+  opacity: 0.88;
+}
+
+.app-loading-btn-ghost {
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  background: transparent;
+  border: 1.5px solid var(--border-color, #d1d5db);
+  color: var(--read-font-color, #1d3156);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.app-loading-btn-ghost:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+  border-color: #9ca3af;
 }
 
 .app-loading-dot-row {
