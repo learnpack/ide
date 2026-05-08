@@ -1061,7 +1061,7 @@ The user's set up the application in "${language}" language, give your feedback 
   },
 
   fetchSingleExerciseInfo: async (index) => {
-    const { exercises, updateEditorTabs, initCompilerSocket } = get();
+    const { exercises, updateEditorTabs, initCompilerSocket, environment } = get();
 
     if (exercises.length <= 0) {
       return;
@@ -1133,7 +1133,9 @@ The user's set up the application in "${language}" language, give your feedback 
       hasSolution: hasSolution,
     });
 
-    if (isTesteable && !TelemetryManager.hasTesteableElementByHash(index, slug)) {
+    const isWebEnv =
+      environment === "localStorage" || environment === "creatorWeb";
+    if (isTesteable && isWebEnv && !TelemetryManager.hasTesteableElementByHash(index, slug)) {
       TelemetryManager.registerTesteableElement(index, {
         hash: slug,
         searchString: slug,
