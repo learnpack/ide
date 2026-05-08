@@ -88,6 +88,8 @@ const sendBatchTelemetryRigobot = async function (body: object, token: string) {
 };
 
 const FETCH_TELEMETRY_TIMEOUT_MS = 5000;
+/** Longer timeout used only for the initial telemetry fetch at boot (where the UI blocks on the result). */
+const FETCH_TELEMETRY_INITIAL_TIMEOUT_MS = 60000;
 /** Idle threshold for refreshing telemetry from server when tab becomes visible again */
 export const TELEMETRY_VISIBILITY_REFRESH_IDLE_MS = 5 * 60 * 1000;
 
@@ -96,6 +98,16 @@ export type TTelemetryFetchResponse = {
   sources?: string;
   warning?: string;
 };
+
+/**
+ * Discriminated result for the initial boot fetch, where each failure mode
+ * is surfaced to the UI so the student can make an informed decision.
+ */
+export type TFetchTelemetryResult =
+  | { status: "ok"; data: ITelemetryJSONSchema }
+  | { status: "empty" }                        // 200 with results:[] — first-time user, no risk
+  | { status: "timeout" }                      // AbortError or network error
+  | { status: "server_error"; code: number };  // 5xx response
 
 /**
  * GET latest telemetry from Rigobot (BigQuery + optional Redis buffer when include_buffer=true).
@@ -149,6 +161,70 @@ export async function fetchTelemetryFromServer(params: {
       console.warn("fetchTelemetryFromServer: failed", error);
     }
     return null;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+/**
+ * Variant of fetchTelemetryFromServer used at boot time.
+ * Returns a discriminated result instead of null so the caller can surface
+ * the exact failure mode (timeout vs server error vs empty) to the UI.
+ * Uses FETCH_TELEMETRY_INITIAL_TIMEOUT_MS (60 s) so slow connections have
+ * enough time to respond without silently creating a blank telemetry blob.
+ */
+export async function fetchTelemetryWithStatus(params: {
+  userId: string;
+  packageSlug: string;
+  rigoToken: string;
+}): Promise<TFetchTelemetryResult> {
+  const { userId, packageSlug, rigoToken } = params;
+  if (!userId || !rigoToken || !packageSlug) {
+    return { status: "empty" };
+  }
+
+  const cleanToken = rigoToken.trim();
+  const search = new URLSearchParams();
+  search.set("user_ids", String(userId));
+  search.set("include_buffer", "true");
+  search.set("include_steps", "true");
+  search.set("package_slug", packageSlug);
+
+  const url = `${RIGOBOT_HOST}/v1/learnpack/telemetry?${search.toString()}`;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(
+    () => controller.abort(),
+    FETCH_TELEMETRY_INITIAL_TIMEOUT_MS
+  );
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Token ${cleanToken}`,
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      console.warn("fetchTelemetryWithStatus: non-OK response", response.status);
+      return { status: "server_error", code: response.status };
+    }
+
+    const data = (await response.json()) as TTelemetryFetchResponse;
+    const first = data?.results?.[0] as ITelemetryJSONSchema | undefined;
+    if (!first || typeof first !== "object") {
+      return { status: "empty" };
+    }
+    return { status: "ok", data: first };
+  } catch (error) {
+    if ((error as Error).name === "AbortError") {
+      console.warn("fetchTelemetryWithStatus: timeout");
+      return { status: "timeout" };
+    }
+    console.warn("fetchTelemetryWithStatus: network error", error);
+    return { status: "timeout" };
   } finally {
     clearTimeout(timeoutId);
   }
@@ -791,7 +867,8 @@ interface ITelemetryManager {
     steps: TStep[],
     tutorialSlug: string,
     storageKey: string,
-    student: TStudent
+    student: TStudent,
+    prefetchedServerTelemetry?: ITelemetryJSONSchema | null
   ) => Promise<void>;
   refreshFromServerIfStale: () => Promise<void>;
   tutorialSlug: string;
@@ -856,7 +933,7 @@ const TelemetryManager: ITelemetryManager = {
     console.log(message);
   },
 
-  start: function (agent, steps, tutorialSlug, storageKey, student) {
+  start: function (agent, steps, tutorialSlug, storageKey, student, prefetchedServerTelemetry?) {
     this.activeHashes = new Map<string, Set<string>>();
     this.packageAssetIds = [];
     this.telemetryKey = storageKey;
@@ -886,8 +963,15 @@ const TelemetryManager: ITelemetryManager = {
 
           const willFetchPackage = !!(student.rigo_token?.trim() && tutorialSlug);
 
+          // When a prefetched result is provided by the store (already waited on
+          // by the loading screen), skip the internal telemetry GET and only
+          // fetch the package info. This avoids a double network round-trip.
+          const usePrefetched = prefetchedServerTelemetry !== undefined;
+
           const [serverTelemetry, packageInfo] = await Promise.all([
-            student.rigo_token && student.user_id
+            usePrefetched
+              ? Promise.resolve(prefetchedServerTelemetry as ITelemetryJSONSchema | null)
+              : student.rigo_token && student.user_id
               ? fetchTelemetryFromServer({
                   userId: student.user_id,
                   packageSlug: tutorialSlug,

@@ -17,12 +17,15 @@ import TranslationListener from "./components/Creator/TranslationListener";
 import SyncNotificationListener from "./components/SyncNotifications/SyncNotificationListener";
 import PackageMetadataListener from "./components/PackageMetadataListener";
 import EventListener from "./managers/eventListener";
+import AppLoadingScreen from "./components/sections/AppLoadingScreen";
 export default function Home() {
   const start = useStore((s) => s.start);
   const handleEnvironmentChange = useStore((s) => s.handleEnvironmentChange);
   const theme = useStore((s) => s.theme);
   const isIframe = useStore((s) => s.isIframe);
   const environment = useStore((s) => s.environment);
+  const appReady = useStore((s) => s.appReady);
+  const appLoadingError = useStore((s) => s.appLoadingError);
 
   useEffect(() => {
     console.log("Starting app");
@@ -52,6 +55,9 @@ export default function Home() {
       id="main-container"
       className={`${theme} ${isIframe ? "iframe-mode" : ""}`}
     >
+      {(!appReady || appLoadingError !== null) && (
+        <AppLoadingScreen error={appLoadingError} />
+      )}
       <ModalsContainer />
       <PackageMetadataListener />
       <PublishNavbar />

@@ -1,4 +1,31 @@
 import { TStep, TStepEvent } from "../managers/telemetry";
+
+/**
+ * Tracks the progress of the initial telemetry GET at boot time.
+ * "idle"         — fetch has not started yet (non-cloud agents stay here)
+ * "loading"      — fetch in flight; UI shows blocking loading screen
+ * "ready"        — fetch succeeded (ok or empty) and TelemetryManager is initialized
+ * "timeout"      — network error or 60 s timeout; student must decide to reload or proceed
+ * "server_error" — 5xx response; student must decide to reload or proceed
+ */
+export type TTelemetryFetchStatus =
+  | "idle"
+  | "loading"
+  | "ready"
+  | "timeout"
+  | "server_error";
+
+type TLoadingAction = {
+  label: string;
+  action: () => void;
+  style: "primary" | "ghost";
+};
+
+export type TAppLoadingError = {
+  titleKey: string;
+  descriptionKey: string;
+  actions: TLoadingAction[];
+};
 import { Tab } from "../types/editor";
 import { Point } from "unist";
 
@@ -424,6 +451,20 @@ export interface IStore {
   displayTestButton: boolean;
   /** True after TelemetryManager.start() completes without throwing (cloud reconciliation included). */
   telemetryReady: boolean;
+  /** Status of the initial telemetry GET at boot (cloud only). */
+  telemetryFetchStatus: TTelemetryFetchStatus;
+  /** False while the app is initializing; true once it's ready to show content. Controls AppLoadingScreen. */
+  appReady: boolean;
+  /** Non-null when the loading screen should display an error state. */
+  appLoadingError: TAppLoadingError | null;
+  /** Timestamp (Date.now()) when the current loading sequence started; used for ensureMinDuration. */
+  appLoadStartTime: number;
+  /**
+   * Called when the student chooses to continue after a timeout or server error.
+   * Initializes TelemetryManager with a blank slate (null server data) and runs
+   * the full post-start setup (lifecycle listeners, struggle listeners, open_step).
+   */
+  proceedWithTelemetry: () => Promise<void>;
   getOrCreateActiveSession: () => void;
   updateDBSession: () => void;
   test: () => void;

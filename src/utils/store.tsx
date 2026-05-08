@@ -28,11 +28,13 @@ import {
   // FASTAPI_HOST,
   removeFrontMatter,
   getSlugFromPath,
+  ensureMinDuration,
   // getMainIndex,
 } from "./lib";
 import {
   IStore,
   TAgent,
+  TAppLoadingError,
   TApprovedSolutionFile,
   TExercise,
   TMode,
@@ -60,7 +62,9 @@ import {
 import TelemetryManager, {
   TStep,
   submitTelemetryToRigobotViaBeacon,
+  fetchTelemetryWithStatus,
 } from "../managers/telemetry";
+import { TTelemetryFetchStatus } from "./storeTypes";
 
 let telemetryLifecycleListenersRegistered = false;
 import { RigoAI } from "../components/Rigobot/AI";
@@ -223,6 +227,79 @@ const removeCodeChallengeProposalsFromBackend = async (
   }
 };
 
+/**
+ * Post-start setup shared between startTelemetry (happy path) and proceedWithTelemetry
+ * (student continues after timeout / server error). Registers lifecycle and struggle
+ * listeners and emits the initial open_step event.
+ */
+function _afterTelemetryStarted(
+  agent: TAgent,
+  steps: TStep[],
+  skipDuplicateBootstrap: boolean,
+  setOpenedModals: IStore["setOpenedModals"],
+  registerTelemetryEvent: IStore["registerTelemetryEvent"],
+  currentExercisePosition: IStore["currentExercisePosition"]
+) {
+  if (agent === "cloud" && !telemetryLifecycleListenersRegistered) {
+    telemetryLifecycleListenersRegistered = true;
+
+    const onVisibility = () => {
+      if (document.hidden) {
+        void TelemetryManager.submit();
+      } else {
+        void TelemetryManager.refreshFromServerIfStale();
+      }
+    };
+
+    let unloadBeaconSent = false;
+    const onUnload = () => {
+      if (unloadBeaconSent) return;
+      unloadBeaconSent = true;
+      submitTelemetryToRigobotViaBeacon();
+    };
+
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("beforeunload", onUnload);
+    window.addEventListener("pagehide", onUnload);
+  }
+
+  if (!skipDuplicateBootstrap) {
+    TelemetryManager.registerListener("compile_struggles", (stepIndicators) => {
+      console.log(stepIndicators, "In compile struggles");
+    });
+    TelemetryManager.registerListener("test_struggles", (stepIndicators) => {
+      if (
+        stepIndicators.metrics.streak_test_struggle === 3 ||
+        stepIndicators.metrics.streak_test_struggle === 9 ||
+        stepIndicators.metrics.streak_test_struggle >= 15
+      ) {
+        setOpenedModals({ testStruggles: true });
+      }
+    });
+    TelemetryManager.registerListener("quiz_struggles", (stepIndicators) => {
+      if (
+        stepIndicators.metrics.streak_quiz_struggles === 3 ||
+        stepIndicators.metrics.streak_quiz_struggles === 9 ||
+        stepIndicators.metrics.streak_quiz_struggles >= 15
+      ) {
+        setOpenedModals({ quizStruggles: true });
+      }
+    });
+
+    const openingPosition = Number(currentExercisePosition);
+    if (typeof openingPosition === "number" && !isNaN(openingPosition)) {
+      registerTelemetryEvent("open_step", {
+        step_slug: steps[openingPosition].slug,
+        step_position: steps[openingPosition].position,
+      });
+    } else {
+      console.error(
+        "Current exercise position is not a number, telemetry won't start, open_step not registered"
+      );
+    }
+  }
+}
+
 const useStore = create<IStore>((set, get) => ({
   language: defaultParams.language || "en",
   mustLoginMessageKey: "you-must-login-message",
@@ -363,6 +440,8 @@ const useStore = create<IStore>((set, get) => ({
       }
     }
 
+    set({ appReady: false, appLoadingError: null, appLoadStartTime: Date.now() });
+
     const {
       fetchExercises,
       fetchReadme,
@@ -382,6 +461,10 @@ const useStore = create<IStore>((set, get) => ({
         return checkLoggedStatus({ startConversation: true });
       })
       .then(() => {
+        const { environment: env, token: rigobotToken } = get();
+        if (env === "creatorWeb" && !rigobotToken) {
+          void ensureMinDuration(get().appLoadStartTime).then(() => set({ appReady: true }));
+        }
         return fetchExercises();
       })
       .then(() => checkParams({ justReturn: false }))
@@ -407,6 +490,17 @@ const useStore = create<IStore>((set, get) => ({
         if (currentEnvironment === "creatorWeb") {
           getSyncNotifications();
         }
+      })
+      .catch((error) => {
+        console.error("start(): unhandled error in boot chain", error);
+        set({
+          appReady: false,
+          appLoadingError: {
+            titleKey: "app-loading-error-title",
+            descriptionKey: "app-loading-error-description",
+            actions: [{ label: "app-loading-retry", action: () => get().start(), style: "primary" as const }],
+          },
+        });
       });
   },
 
@@ -781,6 +875,7 @@ The user's set up the application in "${language}" language, give your feedback 
         } else {
           setOpenedModals({ packageNotFound: true });
         }
+        void ensureMinDuration(get().appLoadStartTime).then(() => set({ appReady: true }));
         return;
       }
     }
@@ -1240,6 +1335,9 @@ The user's set up the application in "${language}" language, give your feedback 
     startConversation(Number(currentExercisePosition));
     setOpenedModals({ login: false, mustLogin: false });
     await getOrCreateActiveSession();
+    if (environment !== "localhost") {
+      set({ appReady: false, appLoadingError: null, appLoadStartTime: Date.now() });
+    }
     await ensureTelemetryStarted();
     return true;
   },
@@ -1291,11 +1389,15 @@ The user's set up the application in "${language}" language, give your feedback 
       const {
         token: rigoToken,
         configObject,
+        environment: currentEnv,
         getOrCreateActiveSession,
         ensureTelemetryStarted,
       } = get();
       if (rigoToken && configObject) {
         await getOrCreateActiveSession();
+        if (currentEnv !== "localhost") {
+          set({ appReady: false, appLoadingError: null, appLoadStartTime: Date.now() });
+        }
         await ensureTelemetryStarted();
       }
 
@@ -2648,12 +2750,16 @@ The user's set up the application in "${language}" language, give your feedback 
     } = get();
     if (!bc_token || !configObject) {
       console.error("No token or config found, impossible to start telemetry");
+      await ensureMinDuration(get().appLoadStartTime);
+      set({ appReady: true });
       return;
     }
 
     if (!user || !user.id) {
       console.error("No user found, impossible to start telemetry");
       console.log(user, "User");
+      await ensureMinDuration(get().appLoadStartTime);
+      set({ appReady: true });
       return;
     }
 
@@ -2683,17 +2789,55 @@ The user's set up the application in "${language}" language, give your feedback 
 
       if (!configObject.config.telemetry) {
         console.error("No telemetry urls found in config");
+        await ensureMinDuration(get().appLoadStartTime);
+        set({ appReady: true });
         return;
       }
 
       if (!steps || steps.length === 0) {
         console.error("No steps found in config, telemetry won't start");
+        await ensureMinDuration(get().appLoadStartTime);
+        set({ appReady: true });
         return;
       }
 
       TelemetryManager.urls = configObject.config.telemetry;
 
       const params = checkParams({ justReturn: true });
+
+      // For cloud agent: pre-fetch telemetry with discriminated status so the
+      // UI can show a blocking loading screen instead of silently creating a
+      // blank blob when the GET fails.
+      let prefetchedServerTelemetry: Parameters<typeof TelemetryManager.start>[5] = undefined;
+      if (agent === "cloud" && token && user.id) {
+        set({ telemetryFetchStatus: "loading" });
+        const fetchResult = await fetchTelemetryWithStatus({
+          userId: String(user.id),
+          packageSlug: tutorialSlug,
+          rigoToken: token,
+        });
+
+        if (fetchResult.status === "timeout" || fetchResult.status === "server_error") {
+          if (environment !== "creatorWeb") {
+            const isTimeout = fetchResult.status === "timeout";
+            set({
+              telemetryFetchStatus: fetchResult.status,
+              appLoadingError: {
+                titleKey: isTimeout ? "telemetry-timeout-title" : "telemetry-server-error-title",
+                descriptionKey: isTimeout ? "telemetry-timeout-description" : "telemetry-server-error-description",
+                actions: [
+                  { label: "telemetry-reload", action: () => window.location.reload(), style: "primary" as const },
+                  { label: "telemetry-continue-anyway", action: () => void get().proceedWithTelemetry(), style: "ghost" as const },
+                ],
+              },
+            });
+            return;
+          }
+          set({ telemetryFetchStatus: fetchResult.status });
+        }
+
+        prefetchedServerTelemetry = fetchResult.status === "ok" ? fetchResult.data : null;
+      }
 
       const skipDuplicateBootstrap =
         TelemetryManager.started && TelemetryManager.current != null;
@@ -2706,81 +2850,126 @@ The user's set up the application in "${language}" language, give your feedback 
           rigo_token: token,
           cohort_id: params.cohort_id || "",
           academy_id: params.academy_id || "",
-        });
+        }, prefetchedServerTelemetry);
         const pkgId = get().packageId;
         if (pkgId != null) {
           TelemetryManager.mergePackageIdIfMissing(pkgId);
         }
-        set({ telemetryReady: true });
+        set({ telemetryReady: true, telemetryFetchStatus: "ready" });
+        await ensureMinDuration(get().appLoadStartTime);
+        set({ appReady: true });
       } catch (error) {
         console.error("Failed to start telemetry", error);
-        set({ telemetryReady: false });
+        set({
+          telemetryReady: false,
+          appLoadingError: {
+            titleKey: "telemetry-generic-error-title",
+            descriptionKey: "telemetry-generic-error-description",
+            actions: [
+              { label: "app-loading-retry", action: () => get().startTelemetry(), style: "primary" as const },
+              { label: "telemetry-continue-anyway", action: () => void get().proceedWithTelemetry(), style: "ghost" as const },
+            ],
+          },
+        });
         return;
       }
 
-      if (agent === "cloud" && !telemetryLifecycleListenersRegistered) {
-        telemetryLifecycleListenersRegistered = true;
-
-        const onVisibility = () => {
-          if (document.hidden) {
-            void TelemetryManager.submit();
-          } else {
-            void TelemetryManager.refreshFromServerIfStale();
-          }
-        };
-
-        let unloadBeaconSent = false;
-        const onUnload = () => {
-          if (unloadBeaconSent) return;
-          unloadBeaconSent = true;
-          submitTelemetryToRigobotViaBeacon();
-        };
-
-        document.addEventListener("visibilitychange", onVisibility);
-        window.addEventListener("beforeunload", onUnload);
-        window.addEventListener("pagehide", onUnload);
-      }
-
-      if (!skipDuplicateBootstrap) {
-        TelemetryManager.registerListener(
-          "compile_struggles",
-          (stepIndicators) => {
-            console.log(stepIndicators, "In compile struggles");
-          }
-        );
-        TelemetryManager.registerListener("test_struggles", (stepIndicators) => {
-          if (
-            stepIndicators.metrics.streak_test_struggle === 3 ||
-            stepIndicators.metrics.streak_test_struggle === 9 ||
-            stepIndicators.metrics.streak_test_struggle >= 15
-          ) {
-            setOpenedModals({ testStruggles: true });
-          }
-        });
-        TelemetryManager.registerListener("quiz_struggles", (stepIndicators) => {
-          if (
-            stepIndicators.metrics.streak_quiz_struggles === 3 ||
-            stepIndicators.metrics.streak_quiz_struggles === 9 ||
-            stepIndicators.metrics.streak_quiz_struggles >= 15
-          ) {
-            setOpenedModals({ quizStruggles: true });
-          }
-        });
-
-        const openingPosition = Number(currentExercisePosition);
-        if (typeof openingPosition === "number" && !isNaN(openingPosition)) {
-          registerTelemetryEvent("open_step", {
-            step_slug: steps[openingPosition].slug,
-            step_position: steps[openingPosition].position,
-          });
-        } else {
-          console.error(
-            "Current exercise position is not a number, telemetry won't start, open step not registered"
-          );
-        }
-      }
+      _afterTelemetryStarted(agent, steps, skipDuplicateBootstrap, setOpenedModals, registerTelemetryEvent, currentExercisePosition);
+    } else {
+      await ensureMinDuration(get().appLoadStartTime);
+      set({ appReady: true });
     }
   },
+
+  proceedWithTelemetry: async () => {
+    const {
+      configObject,
+      bc_token,
+      user,
+      registerTelemetryEvent,
+      environment,
+      setOpenedModals,
+      currentExercisePosition,
+      token,
+      checkParams,
+    } = get();
+
+    if (!bc_token || !configObject || !user?.id) {
+      console.error("proceedWithTelemetry: missing required store values");
+      set({ appReady: true });
+      return;
+    }
+
+    if (!configObject.exercises || configObject.exercises.length === 0) {
+      set({ appReady: true });
+      return;
+    }
+    if (!configObject.config.telemetry) {
+      set({ appReady: true });
+      return;
+    }
+
+    const steps: TStep[] = configObject.exercises.map((e, index) => ({
+      slug: e.slug,
+      position: e.position || index,
+      files: e.files,
+      ai_interactions: [],
+      compilations: [],
+      tests: [],
+      is_testeable: e.graded || false,
+      testeable_elements: [],
+      is_completed: false,
+      sessions: [],
+      quiz_submissions: [],
+      user_skipped: false,
+    }));
+    const agent =
+      environment === "localhost"
+        ? configObject.config?.editor.agent
+        : "cloud";
+    const tutorialSlug = configObject.config?.slug || "";
+    const STORAGE_KEY = "TELEMETRY";
+
+    TelemetryManager.urls = configObject.config.telemetry;
+    const params = checkParams({ justReturn: true });
+    const skipDuplicateBootstrap =
+      TelemetryManager.started && TelemetryManager.current != null;
+
+    try {
+      // null as prefetched: server data is unavailable, reconcile from localStorage only.
+      await TelemetryManager.start(agent, steps, tutorialSlug, STORAGE_KEY, {
+        token: bc_token,
+        user_id: String(user.id),
+        fullname: user.first_name + " " + user.last_name,
+        rigo_token: token,
+        cohort_id: params.cohort_id || "",
+        academy_id: params.academy_id || "",
+      }, null);
+      const pkgId = get().packageId;
+      if (pkgId != null) {
+        TelemetryManager.mergePackageIdIfMissing(pkgId);
+      }
+      set({ telemetryReady: true, telemetryFetchStatus: "ready" });
+      await ensureMinDuration(get().appLoadStartTime);
+      set({ appReady: true, appLoadingError: null });
+    } catch (error) {
+      console.error("proceedWithTelemetry: failed to start telemetry", error);
+      set({
+        telemetryReady: false,
+        appLoadingError: {
+          titleKey: "telemetry-generic-error-title",
+          descriptionKey: "telemetry-generic-error-description",
+          actions: [
+            { label: "telemetry-reload", action: () => window.location.reload(), style: "primary" as const },
+          ],
+        },
+      });
+      return;
+    }
+
+    _afterTelemetryStarted(agent, steps, skipDuplicateBootstrap, setOpenedModals, registerTelemetryEvent, currentExercisePosition);
+  },
+
   ensureTelemetryStarted: () => {
     return get().startTelemetry();
   },
@@ -2915,6 +3104,10 @@ The user's set up the application in "${language}" language, give your feedback 
   },
   displayTestButton: DEV_MODE,
   telemetryReady: false,
+  telemetryFetchStatus: "idle" as TTelemetryFetchStatus,
+  appReady: false,
+  appLoadingError: null as TAppLoadingError | null,
+  appLoadStartTime: 0,
   getTelemetryStep: async (stepPosition: number) => {
     return await FetchManager.getTelemetryStep(stepPosition);
   },
