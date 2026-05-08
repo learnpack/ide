@@ -369,7 +369,7 @@ export const asyncHashText = async (text: string) => {
   return hashHex;
 };
 
-export async function ensureMinDuration(startTime: number, minMs = 1200): Promise<void> {
+export async function ensureMinDuration(startTime: number, minMs = 2000): Promise<void> {
   const elapsed = Date.now() - startTime;
   if (elapsed < minMs) await new Promise(r => setTimeout(r, minMs - elapsed));
 }
