@@ -1,0 +1,123 @@
+.app-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-color, #f9f9f9);
+  gap: 24px;
+  padding: 32px;
+  text-align: center;
+}
+
+.app-loading-rigo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-loading-rigo svg {
+  width: 80px;
+  height: 80px;
+  animation: app-loading-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.app-loading-rigo img {
+  width: 80px;
+  height: 80px;
+}
+
+@keyframes app-loading-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.app-loading-tip-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  max-width: 480px;
+  transition: opacity 0.4s ease;
+}
+
+.app-loading-tip-block.fade-out {
+  opacity: 0;
+}
+
+.app-loading-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--read-font-color, #1d3156);
+  opacity: 0.45;
+}
+
+.app-loading-tip {
+  font-size: 1rem;
+  color: var(--read-font-color, #1d3156);
+  margin: 0;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.app-loading-error-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--read-font-color, #1d3156);
+  max-width: 480px;
+  margin: 0;
+}
+
+.app-loading-error-description {
+  font-size: 0.9rem;
+  color: var(--font-color-secondary, #1d3156);
+  max-width: 460px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.app-loading-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.app-loading-dot-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.app-loading-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-blue-rigo, #0084ff);
+  opacity: 0.3;
+  animation: app-loading-dot-pulse 1.2s ease-in-out infinite;
+}
+
+.app-loading-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.app-loading-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes app-loading-dot-pulse {
+  0%, 80%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.4);
+  }
+}

@@ -14,6 +14,18 @@ export type TTelemetryFetchStatus =
   | "ready"
   | "timeout"
   | "server_error";
+
+type TLoadingAction = {
+  label: string;
+  action: () => void;
+  style: "primary" | "ghost";
+};
+
+export type TAppLoadingError = {
+  titleKey: string;
+  descriptionKey: string;
+  actions: TLoadingAction[];
+};
 import { Tab } from "../types/editor";
 import { Point } from "unist";
 
@@ -441,6 +453,12 @@ export interface IStore {
   telemetryReady: boolean;
   /** Status of the initial telemetry GET at boot (cloud only). Drives the TelemetryLoadingScreen. */
   telemetryFetchStatus: TTelemetryFetchStatus;
+  /** False while the app is initializing; true once it's ready to show content. Controls AppLoadingScreen. */
+  appReady: boolean;
+  /** Non-null when the loading screen should display an error state. */
+  appLoadingError: TAppLoadingError | null;
+  /** Timestamp (Date.now()) when the current loading sequence started; used for ensureMinDuration. */
+  appLoadStartTime: number;
   /**
    * Called when the student chooses to continue after a timeout or server error.
    * Initializes TelemetryManager with a blank slate (null server data) and runs

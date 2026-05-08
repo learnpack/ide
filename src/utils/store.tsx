@@ -28,11 +28,13 @@ import {
   // FASTAPI_HOST,
   removeFrontMatter,
   getSlugFromPath,
+  ensureMinDuration,
   // getMainIndex,
 } from "./lib";
 import {
   IStore,
   TAgent,
+  TAppLoadingError,
   TApprovedSolutionFile,
   TExercise,
   TMode,
@@ -438,6 +440,8 @@ const useStore = create<IStore>((set, get) => ({
       }
     }
 
+    set({ appReady: false, appLoadingError: null, appLoadStartTime: Date.now() });
+
     const {
       fetchExercises,
       fetchReadme,
@@ -457,6 +461,10 @@ const useStore = create<IStore>((set, get) => ({
         return checkLoggedStatus({ startConversation: true });
       })
       .then(() => {
+        const { environment: env, token: rigobotToken } = get();
+        if (env === "creatorWeb" && !rigobotToken) {
+          void ensureMinDuration(get().appLoadStartTime).then(() => set({ appReady: true }));
+        }
         return fetchExercises();
       })
       .then(() => checkParams({ justReturn: false }))
@@ -482,6 +490,17 @@ const useStore = create<IStore>((set, get) => ({
         if (currentEnvironment === "creatorWeb") {
           getSyncNotifications();
         }
+      })
+      .catch((error) => {
+        console.error("start(): unhandled error in boot chain", error);
+        set({
+          appReady: false,
+          appLoadingError: {
+            titleKey: "app-loading-error-title",
+            descriptionKey: "app-loading-error-description",
+            actions: [{ label: "app-loading-retry", action: () => get().start(), style: "primary" as const }],
+          },
+        });
       });
   },
 
@@ -856,6 +875,7 @@ The user's set up the application in "${language}" language, give your feedback 
         } else {
           setOpenedModals({ packageNotFound: true });
         }
+        void ensureMinDuration(get().appLoadStartTime).then(() => set({ appReady: true }));
         return;
       }
     }
@@ -1315,6 +1335,9 @@ The user's set up the application in "${language}" language, give your feedback 
     startConversation(Number(currentExercisePosition));
     setOpenedModals({ login: false, mustLogin: false });
     await getOrCreateActiveSession();
+    if (environment !== "localhost") {
+      set({ appReady: false, appLoadingError: null, appLoadStartTime: Date.now() });
+    }
     await ensureTelemetryStarted();
     return true;
   },
@@ -1366,11 +1389,15 @@ The user's set up the application in "${language}" language, give your feedback 
       const {
         token: rigoToken,
         configObject,
+        environment: currentEnv,
         getOrCreateActiveSession,
         ensureTelemetryStarted,
       } = get();
       if (rigoToken && configObject) {
         await getOrCreateActiveSession();
+        if (currentEnv !== "localhost") {
+          set({ appReady: false, appLoadingError: null, appLoadStartTime: Date.now() });
+        }
         await ensureTelemetryStarted();
       }
 
@@ -2723,12 +2750,16 @@ The user's set up the application in "${language}" language, give your feedback 
     } = get();
     if (!bc_token || !configObject) {
       console.error("No token or config found, impossible to start telemetry");
+      await ensureMinDuration(get().appLoadStartTime);
+      set({ appReady: true });
       return;
     }
 
     if (!user || !user.id) {
       console.error("No user found, impossible to start telemetry");
       console.log(user, "User");
+      await ensureMinDuration(get().appLoadStartTime);
+      set({ appReady: true });
       return;
     }
 
@@ -2758,11 +2789,15 @@ The user's set up the application in "${language}" language, give your feedback 
 
       if (!configObject.config.telemetry) {
         console.error("No telemetry urls found in config");
+        await ensureMinDuration(get().appLoadStartTime);
+        set({ appReady: true });
         return;
       }
 
       if (!steps || steps.length === 0) {
         console.error("No steps found in config, telemetry won't start");
+        await ensureMinDuration(get().appLoadStartTime);
+        set({ appReady: true });
         return;
       }
 
@@ -2783,8 +2818,18 @@ The user's set up the application in "${language}" language, give your feedback 
         });
 
         if (fetchResult.status === "timeout" || fetchResult.status === "server_error") {
-          set({ telemetryFetchStatus: fetchResult.status });
-          // Stop here — proceedWithTelemetry() resumes when student clicks "Continue anyway".
+          const isTimeout = fetchResult.status === "timeout";
+          set({
+            telemetryFetchStatus: fetchResult.status,
+            appLoadingError: {
+              titleKey: isTimeout ? "telemetry-timeout-title" : "telemetry-server-error-title",
+              descriptionKey: isTimeout ? "telemetry-timeout-description" : "telemetry-server-error-description",
+              actions: [
+                { label: "telemetry-reload", action: () => window.location.reload(), style: "primary" as const },
+                { label: "telemetry-continue-anyway", action: () => void get().proceedWithTelemetry(), style: "ghost" as const },
+              ],
+            },
+          });
           return;
         }
 
@@ -2808,13 +2853,28 @@ The user's set up the application in "${language}" language, give your feedback 
           TelemetryManager.mergePackageIdIfMissing(pkgId);
         }
         set({ telemetryReady: true, telemetryFetchStatus: "ready" });
+        await ensureMinDuration(get().appLoadStartTime);
+        set({ appReady: true });
       } catch (error) {
         console.error("Failed to start telemetry", error);
-        set({ telemetryReady: false });
+        set({
+          telemetryReady: false,
+          appLoadingError: {
+            titleKey: "telemetry-generic-error-title",
+            descriptionKey: "telemetry-generic-error-description",
+            actions: [
+              { label: "app-loading-retry", action: () => get().startTelemetry(), style: "primary" as const },
+              { label: "telemetry-continue-anyway", action: () => void get().proceedWithTelemetry(), style: "ghost" as const },
+            ],
+          },
+        });
         return;
       }
 
       _afterTelemetryStarted(agent, steps, skipDuplicateBootstrap, setOpenedModals, registerTelemetryEvent, currentExercisePosition);
+    } else {
+      await ensureMinDuration(get().appLoadStartTime);
+      set({ appReady: true });
     }
   },
 
@@ -2833,11 +2893,18 @@ The user's set up the application in "${language}" language, give your feedback 
 
     if (!bc_token || !configObject || !user?.id) {
       console.error("proceedWithTelemetry: missing required store values");
+      set({ appReady: true });
       return;
     }
 
-    if (!configObject.exercises || configObject.exercises.length === 0) return;
-    if (!configObject.config.telemetry) return;
+    if (!configObject.exercises || configObject.exercises.length === 0) {
+      set({ appReady: true });
+      return;
+    }
+    if (!configObject.config.telemetry) {
+      set({ appReady: true });
+      return;
+    }
 
     const steps: TStep[] = configObject.exercises.map((e, index) => ({
       slug: e.slug,
@@ -2880,9 +2947,20 @@ The user's set up the application in "${language}" language, give your feedback 
         TelemetryManager.mergePackageIdIfMissing(pkgId);
       }
       set({ telemetryReady: true, telemetryFetchStatus: "ready" });
+      await ensureMinDuration(get().appLoadStartTime);
+      set({ appReady: true, appLoadingError: null });
     } catch (error) {
       console.error("proceedWithTelemetry: failed to start telemetry", error);
-      set({ telemetryReady: false });
+      set({
+        telemetryReady: false,
+        appLoadingError: {
+          titleKey: "telemetry-generic-error-title",
+          descriptionKey: "telemetry-generic-error-description",
+          actions: [
+            { label: "telemetry-reload", action: () => window.location.reload(), style: "primary" as const },
+          ],
+        },
+      });
       return;
     }
 
@@ -3024,6 +3102,9 @@ The user's set up the application in "${language}" language, give your feedback 
   displayTestButton: DEV_MODE,
   telemetryReady: false,
   telemetryFetchStatus: "idle" as TTelemetryFetchStatus,
+  appReady: false,
+  appLoadingError: null as TAppLoadingError | null,
+  appLoadStartTime: 0,
   getTelemetryStep: async (stepPosition: number) => {
     return await FetchManager.getTelemetryStep(stepPosition);
   },
