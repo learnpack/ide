@@ -1376,6 +1376,12 @@ const TelemetryManager: ITelemetryManager = {
 
         step.tests.push(data);
 
+        if (step.testeable_elements?.length) {
+          step.testeable_elements = step.testeable_elements.map((e) =>
+            e.type === "test" ? { ...e, is_completed: data.exit_code === 0 } : e
+          );
+        }
+
         const now = Date.now();
         const hasPendingTasks = this.hasPendingTasks(stepPosition);
 
