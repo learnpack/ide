@@ -11,8 +11,7 @@ import packageInfo from "../../package.json";
 import { LocalStorage } from "./localStorage";
 import axios, { AxiosResponse } from "axios";
 import { TAgent } from "../utils/storeTypes";
-import { LEARNPACK_LOCAL_URL } from "../utils/creator";
-import { debounce, RIGOBOT_HOST } from "../utils/lib";
+import { debounce, LEARNPACK_LOCAL_URL, RIGOBOT_HOST } from "../utils/lib";
 import { eventBus } from "./eventBus";
 import { fetchLearnpackPackageInfo } from "../utils/apiCalls";
 
