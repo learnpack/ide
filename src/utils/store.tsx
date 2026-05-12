@@ -2230,8 +2230,12 @@ The user's set up the application in "${language}" language, give your feedback 
         setOpenedModals({ session: true });
         return;
       } else if (session.tab_hash && session.tab_hash === storedTabHash) {
+        const freshConfig = get().configObject;
         set({
-          configObject: session.config_json,
+          configObject: {
+            ...session.config_json,
+            config: freshConfig.config,
+          },
         });
         set({ sessionKey: session.key });
 
