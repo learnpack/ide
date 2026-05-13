@@ -11,6 +11,7 @@ import explanatoryComponentsRaw from "../../docs/explanatory_components.yml?raw"
 // import toast from "react-hot-toast";
 export const DEV_MODE =false;
 export const DEV_URL = import.meta.env.VITE_DEV_URL || "https://1gm40gnb-3000.use2.devtunnels.ms";
+export const LEARNPACK_LOCAL_URL = DEV_MODE ? "http://localhost:3000" : "";
 
 export const FASTAPI_HOST = "https://ai.4geeks.com";
 // export const FASTAPI_HOST = "http://localhost:8003";

@@ -1,7 +1,5 @@
 import axios from "axios";
-import { DEV_MODE, getSlugFromPath } from "./lib";
-
-export const LEARNPACK_LOCAL_URL = "http://localhost:3000";
+import { getSlugFromPath, LEARNPACK_LOCAL_URL } from "./lib";
 
 export const createStep = async (
   token: string,
@@ -15,7 +13,7 @@ export const createStep = async (
     };
     const response = await axios.post(
       `${
-        DEV_MODE ? "http://localhost:3000" : ""
+        LEARNPACK_LOCAL_URL
       }/course/${courseSlug}/create-step`,
       {
         description,
@@ -35,7 +33,7 @@ export const deleteExercise = async (slug: string) => {
     const courseSlug = getSlugFromPath();
     const response = await axios.delete(
       `${
-        DEV_MODE ? "http://localhost:3000" : ""
+        LEARNPACK_LOCAL_URL
       }/exercise/${slug}/delete?slug=${courseSlug}`
     );
     return response.data;
@@ -50,7 +48,7 @@ export const renameExercise = async (slug: string, newSlug: string) => {
     const courseSlug = getSlugFromPath();
     const response = await axios.put(
       `${
-        DEV_MODE ? "http://localhost:3000" : ""
+        LEARNPACK_LOCAL_URL
       }/actions/rename?slug=${courseSlug}`,
       {
         slug,
@@ -70,7 +68,7 @@ export const getUserAcademies = async (breathecodeToken: string) => {
       "x-breathecode-token": breathecodeToken,
     };
     const response = await axios.get(
-      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/academies`,
+      `${LEARNPACK_LOCAL_URL}/actions/academies`,
       { headers }
     );
     return response.data;
@@ -98,7 +96,7 @@ export const getPackageAcademy = async (
       "x-breathecode-token": breathecodeToken,
     };
     const response = await axios.get(
-      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/package-academy/${slug}`,
+      `${LEARNPACK_LOCAL_URL}/actions/package-academy/${slug}`,
       { headers }
     );
     return response.data;
@@ -124,7 +122,7 @@ export const publishTutorial = async (
       body.academyId = academyId;
     }
     const response = await axios.post(
-      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/publish/${slug}`,
+      `${LEARNPACK_LOCAL_URL}/actions/publish/${slug}`,
       body,
       { headers }
     );
@@ -146,7 +144,7 @@ export const deleteTutorial = async (
       "x-rigo-token": rigoToken,
     };
     const response = await axios.delete(
-      `${DEV_MODE ? "http://localhost:3000" : ""}/packages/${slug}`,
+      `${LEARNPACK_LOCAL_URL}/packages/${slug}`,
       { headers }
     );
     return response.data;
@@ -167,7 +165,7 @@ export const updateCourseTitle = async (
       "x-rigo-token": rigoToken,
     };
     const response = await axios.post(
-      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/update-title?slug=${courseSlug}`,
+      `${LEARNPACK_LOCAL_URL}/actions/update-title?slug=${courseSlug}`,
       {
         language,
         title,
@@ -185,7 +183,7 @@ export const synchronizeSyllabus = async () => {
   try {
     const courseSlug = getSlugFromPath();
     const response = await axios.post(
-      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/synchronize-syllabus?slug=${courseSlug}`
+      `${LEARNPACK_LOCAL_URL}/actions/synchronize-syllabus?slug=${courseSlug}`
     );
     return response.data;
   } catch (error) {
@@ -204,7 +202,7 @@ export const synchronizeLessonFiles = async (
       keptCount: number;
       movedCount?: number;
     }>(
-      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/synchronize-lesson-files?slug=${courseSlug}`,
+      `${LEARNPACK_LOCAL_URL}/actions/synchronize-lesson-files?slug=${courseSlug}`,
       { lessonSlug }
     );
     return response.data as {
@@ -289,7 +287,7 @@ export const continueGenerating = async (
   
   const response = await axios.post(
     `${
-      DEV_MODE ? "http://localhost:3000" : ""
+      LEARNPACK_LOCAL_URL
     }/actions/continue-generating/${courseSlug}/${lessonId}`,
     { lessonId, feedback: feedbackWithCacheEvict, mode },
     { headers }
@@ -307,7 +305,7 @@ export const markLessonAsDone = async (
   };
   const response = await axios.put(
     `${
-      DEV_MODE ? "http://localhost:3000" : ""
+      LEARNPACK_LOCAL_URL
     }/courses/${courseSlug}/lessons/${lessonSlug}/status`,
     {},
     { headers }
@@ -328,7 +326,7 @@ export const generateCodeChallenge = async (
   };
 
   const response = await axios.post(
-    `${DEV_MODE ? "http://localhost:3000" : ""}/actions/generate-code-challenge`,
+    `${LEARNPACK_LOCAL_URL}/actions/generate-code-challenge`,
     {
       code_challenge: codeChallenge,
       lesson_content: lessonContent,
@@ -352,7 +350,7 @@ export const generateImageLearnPack = async (
   };
   const response = await axios.post(
     `${
-      DEV_MODE ? "http://localhost:3000" : ""
+      LEARNPACK_LOCAL_URL
     }/actions/generate-image/${courseSlug}`,
     { image },
     { headers }
@@ -365,7 +363,7 @@ export const createFile = async (exerciseSlug: string, filename: string, content
     const courseSlug = getSlugFromPath();
     const response = await axios.put(
       `${
-        DEV_MODE ? "http://localhost:3000" : ""
+        LEARNPACK_LOCAL_URL
       }/exercise/${exerciseSlug}/file/${filename}?slug=${courseSlug}`,
       { content: content ?? "" },
       {
@@ -386,7 +384,7 @@ export const deleteFile = async (exerciseSlug: string, filename: string) => {
     const courseSlug = getSlugFromPath();
     const response = await axios.delete(
       `${
-        DEV_MODE ? "http://localhost:3000" : ""
+        LEARNPACK_LOCAL_URL
       }/courses/${courseSlug}/exercises/${exerciseSlug}/file/${filename}`
     );
     return response.data;
@@ -405,7 +403,7 @@ export const renameFile = async (
     const courseSlug = getSlugFromPath();
     const response = await axios.put(
       `${
-        DEV_MODE ? "http://localhost:3000" : ""
+        LEARNPACK_LOCAL_URL
       }/courses/${courseSlug}/exercises/${exerciseSlug}/file/${oldFilename}/rename`,
       {
         oldFilename,
@@ -429,7 +427,7 @@ export const changeSlug = async (
       "x-rigo-token": rigoToken,
     };
     const response = await axios.post(
-      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/change-slug`,
+      `${LEARNPACK_LOCAL_URL}/actions/change-slug`,
       { currentSlug, newSlug },
       { headers }
     );
@@ -443,7 +441,7 @@ export const changeSlug = async (
 export const getGithubStatus = async (courseSlug: string) => {
   try {
     const response = await axios.get(
-      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/github/status?slug=${courseSlug}`
+      `${LEARNPACK_LOCAL_URL}/actions/github/status?slug=${courseSlug}`
     );
     return response.data;
   } catch (error) {
@@ -464,7 +462,7 @@ export const createGithubRepo = async (
     const body: Record<string, unknown> = { courseSlug, repoName, isPrivate };
     if (description !== undefined) body.description = description;
     const response = await axios.post(
-      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/github/create-repo`,
+      `${LEARNPACK_LOCAL_URL}/actions/github/create-repo`,
       body,
       { headers }
     );
@@ -515,7 +513,7 @@ export const createGithubRepo = async (
 export const checkGithubChanges = async (courseSlug: string) => {
   try {
     const response = await axios.get(
-      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/github/check-changes?slug=${courseSlug}`
+      `${LEARNPACK_LOCAL_URL}/actions/github/check-changes?slug=${courseSlug}`
     );
     return response.data;
   } catch (error) {
@@ -533,7 +531,7 @@ export const pullFromGithub = async (
     const body: Record<string, unknown> = { courseSlug, targetSHA };
     if (lessons !== undefined && Array.isArray(lessons)) body.lessons = lessons;
     const response = await axios.post(
-      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/github/pull`,
+      `${LEARNPACK_LOCAL_URL}/actions/github/pull`,
       body
     );
     return response.data;
@@ -546,7 +544,7 @@ export const pullFromGithub = async (
 export const pushToGithub = async (courseSlug: string) => {
   try {
     const response = await axios.post(
-      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/github/push`,
+      `${LEARNPACK_LOCAL_URL}/actions/github/push`,
       { courseSlug }
     );
     return response.data;
