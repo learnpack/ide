@@ -506,7 +506,7 @@ export const Markdowner = ({
               />
             );
           },
-  }), [openLink, mode, isCreator, config, getPortion, allowCreate, markdown]);
+  }), [openLink, mode, isCreator, config, getPortion, allowCreate, markdown, creatorModeActivated]);
 
   return (
     <>
