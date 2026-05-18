@@ -5,6 +5,7 @@ import { TMetadata } from "./types";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import useStore from "../../../utils/store";
+import { useShallow } from "zustand/react/shallow";
 import emoji from "remark-emoji";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark as prismStyle } from "react-syntax-highlighter/dist/esm/styles/prism";
@@ -165,13 +166,13 @@ export const Markdowner = ({
   markdown: string;
   allowCreate?: boolean;
 }) => {
-  const { openLink, mode, isCreator, config, getPortion } = useStore((state) => ({
+  const { openLink, mode, isCreator, config, getPortion } = useStore(useShallow((state) => ({
     openLink: state.openLink,
     mode: state.mode,
     isCreator: state.isCreator,
     config: state.configObject,
     getPortion: state.getPortion,
-  }));
+  })));
 
   const creatorModeActivated = isCreator && mode === "creator" && allowCreate;
 

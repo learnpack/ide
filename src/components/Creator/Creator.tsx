@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import useStore from "../../utils/store";
+import { useShallow } from "zustand/react/shallow";
 import { useTranslation } from "react-i18next";
 import { RigoAI } from "../Rigobot/AI";
 import { Element } from "hast";
@@ -68,7 +69,7 @@ export const CreatorWrapper = ({
     token,
     configObject,
     currentExercisePosition,
-  } = useStore((state) => ({
+  } = useStore(useShallow((state) => ({
     replaceInReadme: state.replaceInReadme,
     insertBeforeOrAfter: state.insertBeforeOrAfter,
     currentContent: state.currentContent,
@@ -79,7 +80,7 @@ export const CreatorWrapper = ({
     token: state.token,
     configObject: state.configObject,
     currentExercisePosition: state.currentExercisePosition,
-  }));
+  })));
 
   const [isOpen, setIsOpen] = useState(false);
   const [replacementValue, setReplacementValue] = useState("");
