@@ -1,10 +1,11 @@
-import Markdown from "react-markdown";
+import Markdown, { type Components } from "react-markdown";
 import { Element } from "hast";
 import remarkGfm from "remark-gfm";
 import { TMetadata } from "./types";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import useStore from "../../../utils/store";
+import { useShallow } from "zustand/react/shallow";
 import emoji from "remark-emoji";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark as prismStyle } from "react-syntax-highlighter/dist/esm/styles/prism";
@@ -26,7 +27,7 @@ import {
 } from "@/components/ui/tooltip";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { useState, useEffect, useId, useRef } from "react";
+import { useState, useEffect, useId, useRef, useMemo } from "react";
 import { DEV_MODE, asyncHashText, debounce, playEffect } from "../../../utils/lib";
 
 
@@ -155,6 +156,9 @@ const generateHeadingID = (md: string) => {
   return md.toLowerCase().replace(/ /g, "-").replace(/[^a-z0-9-]/g, "");
 }
 
+const REMARK_PLUGINS = [remarkGfm, remarkMath, emoji];
+const REHYPE_PLUGINS = [rehypeKatex];
+
 export const Markdowner = ({
   markdown,
   allowCreate = false,
@@ -162,13 +166,13 @@ export const Markdowner = ({
   markdown: string;
   allowCreate?: boolean;
 }) => {
-  const { openLink, mode, isCreator, config, getPortion } = useStore((state) => ({
+  const { openLink, mode, isCreator, config, getPortion } = useStore(useShallow((state) => ({
     openLink: state.openLink,
     mode: state.mode,
     isCreator: state.isCreator,
     config: state.configObject,
     getPortion: state.getPortion,
-  }));
+  })));
 
   const creatorModeActivated = isCreator && mode === "creator" && allowCreate;
 
@@ -188,13 +192,7 @@ export const Markdowner = ({
     }
   }, [markdown]);
 
-  return (
-    <>
-      <Markdown
-        skipHtml={true}
-        remarkPlugins={[remarkGfm, remarkMath, emoji]}
-        rehypePlugins={[rehypeKatex]}
-        components={{
+  const components = useMemo((): Partial<Components> => ({
           a: ({ href, children }) => {
             if (href) {
               if (isRigoQuestion(href)) {
@@ -509,7 +507,15 @@ export const Markdowner = ({
               />
             );
           },
-        }}
+  }), [openLink, mode, isCreator, config, getPortion, allowCreate, markdown, creatorModeActivated]);
+
+  return (
+    <>
+      <Markdown
+        skipHtml={true}
+        remarkPlugins={REMARK_PLUGINS}
+        rehypePlugins={REHYPE_PLUGINS}
+        components={components}
       >
         {markdown}
       </Markdown>
