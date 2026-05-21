@@ -428,7 +428,16 @@ function ExerciseCard({
   const current = getCurrentExercise();
   const isCurrent = current.slug === slug;
 
-  const isDone = TelemetryManager.isStepCompleted(position);
+  const [isDone, setIsDone] = useState(() => TelemetryManager.isStepCompleted(position));
+
+  useEffect(() => {
+    const handler = (completedPosition: number) => {
+      if (completedPosition === position) setIsDone(true);
+    };
+    eventBus.on("step_completed", handler);
+    return () => eventBus.off("step_completed", handler);
+  }, [position]);
+
   const isTesteableAndDone = isDone && TelemetryManager.isTesteable(position);
 
 

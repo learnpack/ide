@@ -18,15 +18,14 @@ const ContinueButton = () => {
   const agent = useStore((s) => s.agent);
   const exercises = useStore((s) => s.exercises);
   const [loading, setLoading] = useState(false);
+  const [, setCompletionTick] = useState(0);
   const isLastExercise = currentExercisePosition === exercises.length - 1;
 
-  // Check if the current step still has pending tasks (tests/quizzes not completed)
   const hasPendingTasks =
     typeof currentExercisePosition === "number" || typeof currentExercisePosition === "string"
       ? TelemetryManager.hasPendingTasks(Number(currentExercisePosition))
       : false;
 
-  // Check if there are pending tasks in any lesson
   const hasPendingTasksInAnyLesson = TelemetryManager.hasPendingTasksInAnyLesson();
 
   const isFinishDisabled = isLastExercise && (hasPendingTasks || hasPendingTasksInAnyLesson);
@@ -42,17 +41,23 @@ const ContinueButton = () => {
     const handlePositionChanged = () => {
       setLoading(false);
     };
-    
+
     const handleLastLessonFinished = () => {
       setLoading(false);
     };
 
+    const handleStepCompleted = () => {
+      setCompletionTick((t) => t + 1);
+    };
+
     eventBus.on("position_changed", handlePositionChanged);
     eventBus.on("last_lesson_finished", handleLastLessonFinished);
+    eventBus.on("step_completed", handleStepCompleted);
 
     return () => {
       eventBus.off("position_changed", handlePositionChanged);
       eventBus.off("last_lesson_finished", handleLastLessonFinished);
+      eventBus.off("step_completed", handleStepCompleted);
     };
   }, []);
 
