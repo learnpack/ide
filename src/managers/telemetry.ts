@@ -1280,8 +1280,6 @@ const TelemetryManager: ITelemetryManager = {
    * the user navigated to another step), so stale completions are avoided.
    */
   onLessonRendered: function (stepPosition: number) {
-    if (!this.current) return;
-
     // Cancel any pending debounce from a previous step/render.
     if (this._lessonRenderedDebounce) {
       this._lessonRenderedDebounce.cancel();
