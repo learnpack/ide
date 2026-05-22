@@ -1266,6 +1266,7 @@ const TelemetryManager: ITelemetryManager = {
     step.is_completed = true;
     this.current.steps[stepPosition] = step;
     this.save();
+    eventBus.emit("step_completed", stepPosition);
   },
 
   /**
@@ -1279,8 +1280,6 @@ const TelemetryManager: ITelemetryManager = {
    * the user navigated to another step), so stale completions are avoided.
    */
   onLessonRendered: function (stepPosition: number) {
-    if (!this.current) return;
-
     // Cancel any pending debounce from a previous step/render.
     if (this._lessonRenderedDebounce) {
       this._lessonRenderedDebounce.cancel();
@@ -1388,6 +1387,7 @@ const TelemetryManager: ITelemetryManager = {
         if (!hasPendingTasks && !step.completed_at && data.exit_code === 0) {
           step.completed_at = now;
           step.is_completed = true;
+          eventBus.emit("step_completed", stepPosition);
         }
 
         this.current.steps[stepPosition] = step;
@@ -1408,16 +1408,23 @@ const TelemetryManager: ITelemetryManager = {
 
         step.quiz_submissions.push(data);
 
+        const isSuccessfulSubmission = data?.status === "SUCCESS";
+
+        // registerTesteableElement (which marks the element is_completed) always
+        // runs after registerStepEvent, so hasPendingTasks would see the current
+        // element as still incomplete. Pre-update it here so the check is accurate.
+        if (isSuccessfulSubmission && step.testeable_elements) {
+          step.testeable_elements = step.testeable_elements.map((e) =>
+            e.hash === data.quiz_hash ? { ...e, is_completed: true } : e
+          );
+        }
+
         const now = Date.now();
         const hasPendingTasks = this.hasPendingTasks(stepPosition);
-        const isSuccessfulSubmission = data?.status === "SUCCESS";
-        if (
-          isSuccessfulSubmission &&
-          !hasPendingTasks &&
-          !step.completed_at
-        ) {
+        if (isSuccessfulSubmission && !hasPendingTasks && !step.completed_at) {
           step.completed_at = now;
           step.is_completed = true;
+          eventBus.emit("step_completed", stepPosition);
         }
 
         this.current.steps[stepPosition] = step;
@@ -1464,6 +1471,7 @@ const TelemetryManager: ITelemetryManager = {
             prev.is_completed = true;
             prev.completed_at = now;
             this.current.steps[this.prevStep] = prev;
+            eventBus.emit("step_completed", this.prevStep);
           }
         }
 

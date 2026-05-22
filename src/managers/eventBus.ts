@@ -12,6 +12,7 @@ type Events = {
   };
   last_lesson_finished: {};
   lesson_rendered: { stepPosition: number };
+  step_completed: number;
 };
 
 export const eventBus: Emitter<Events> = mitt<Events>();
