@@ -325,6 +325,8 @@ export interface IStore {
   setPendingTranslations: (translations: TLanguageTranslation[] | ((prev: TLanguageTranslation[]) => TLanguageTranslation[])) => void;
   updateTranslationStatus: (languageCode: string, status: TTranslationStatus, error?: string) => void;
   setMode: (mode: TMode) => void;
+  markdownEditorEnabled: boolean;
+  setMarkdownEditorEnabled: (enabled: boolean) => void;
   addVideoTutorial: (videoTutorial: string) => Promise<void>;
   removeVideoTutorial: () => Promise<void>;
   useConsumable: (consumableSlug: TConsumableSlug) => Promise<boolean>;
