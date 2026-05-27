@@ -3205,6 +3205,8 @@ The user's set up the application in "${language}" language, give your feedback 
   setMode: (mode) => {
     set({ mode });
   },
+  markdownEditorEnabled: false,
+  setMarkdownEditorEnabled: (enabled: boolean) => set({ markdownEditorEnabled: enabled }),
 
   getSidebar: async () => {
     const { token } = get();
