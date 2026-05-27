@@ -13,6 +13,8 @@ export const PublishNavbar = () => {
   const bctoken = useStore((state) => state.bc_token);
   const mode = useStore((state) => state.mode);
   const setMode = useStore((state) => state.setMode);
+  const markdownEditorEnabled = useStore((state) => state.markdownEditorEnabled);
+  const setMarkdownEditorEnabled = useStore((state) => state.setMarkdownEditorEnabled);
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -43,11 +45,20 @@ export const PublishNavbar = () => {
       <div className="flex-x align-center gap-big">
 
         <MiniLessonListener />
+        {mode === "creator" && (
+          <SwitchComponent
+            checked={markdownEditorEnabled}
+            onChange={setMarkdownEditorEnabled}
+            label="Markdown"
+            id="markdown-editor"
+          />
+        )}
         <SwitchComponent checked={mode === "creator"} onChange={(checked) => {
           if (checked) {
             setMode("creator");
           } else {
             setMode("student");
+            setMarkdownEditorEnabled(false);
           }
         }} label={t("edit-mode")} id="edit-mode" />
 
