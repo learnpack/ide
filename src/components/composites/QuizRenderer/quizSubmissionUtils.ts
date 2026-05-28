@@ -92,6 +92,19 @@ export const buildFillInTheBlankIdentityString = (
   return `fitb:${code.trim()}:${metaPart}`;
 };
 
+/** Normalizes user input for fill-in-the-blank comparison (trim + lowercase). */
+export const normalizeFillInTheBlankAnswer = (answer: string): string =>
+  (answer ?? "").trim().toLowerCase();
+
+export const isFillInTheBlankAnswerCorrect = (
+  userAnswer: string | undefined,
+  correctOptions: string[] | undefined
+): boolean => {
+  const normalized = normalizeFillInTheBlankAnswer(userAnswer ?? "");
+  if (!normalized) return false;
+  return Boolean(correctOptions?.includes(normalized));
+};
+
 export const makeFillInTheBlankSubmission = (
   uniqueBlanks: string[],
   answers: Record<string, string>,
@@ -101,8 +114,10 @@ export const makeFillInTheBlankSubmission = (
 ): TQuizSubmission => {
   const selections = uniqueBlanks.map((blankNum) => {
     const raw = (answers[blankNum] ?? "").trim();
-    const userLower = raw.toLowerCase();
-    const isCorrect = Boolean(correctAnswers[blankNum]?.includes(userLower));
+    const isCorrect = isFillInTheBlankAnswerCorrect(
+      answers[blankNum],
+      correctAnswers[blankNum]
+    );
     return {
       question: `blank_${blankNum}`,
       answer: raw,
