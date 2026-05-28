@@ -1255,6 +1255,24 @@ const TelemetryManager: ITelemetryManager = {
     const step = this.current.steps[stepPosition];
     if (!step || step.completed_at) return;
 
+    // If the step is not a code-test step and none of its persisted
+    // quiz elements appear in activeHashes (no quiz component mounted
+    // during the debounce window), the content no longer exists. Prune
+    // those orphaned elements so the read-only path can proceed.
+    if (!step.is_testeable && step.testeable_elements?.length) {
+      const hasActiveHash = step.testeable_elements.some((e) => {
+        for (const [, hashes] of this.activeHashes) {
+          if (hashes.has(e.hash)) return true;
+        }
+        return false;
+      });
+
+      if (!hasActiveHash) {
+        step.testeable_elements = [];
+        this.current.steps[stepPosition] = step;
+      }
+    }
+
     // If the step has any testeable_elements at this point (e.g. quiz elements
     // restored from a previous session), it is NOT read-only.
     if (step.testeable_elements?.length) return;
@@ -1273,8 +1291,9 @@ const TelemetryManager: ITelemetryManager = {
    * Called (via eventBus "lesson_rendered") after the markdown content has
    * rendered in the browser.  A debounce of 5 seconds gives quiz/FITB/OQ
    * components time to mount and register their testeable_elements.  If
-   * after the debounce the step still has no testeable_elements and is not
-   * a code-test step, it is genuinely read-only and can be completed.
+   * after the debounce the step has no active testeable content (and is not
+   * a code-test step), orphaned persisted elements are cleared and the step
+   * can be auto-completed as read-only.
    *
    * The debounce is cancelled every time a new lesson_rendered fires (e.g.
    * the user navigated to another step), so stale completions are avoided.
