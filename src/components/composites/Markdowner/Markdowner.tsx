@@ -13,6 +13,7 @@ import { QuizRenderer } from "../QuizRenderer/QuizRenderer";
 import {
   buildFillInTheBlankIdentityString,
   getLatestQuizSubmission,
+  isFillInTheBlankAnswerCorrect,
   makeFillInTheBlankSubmission,
 } from "../QuizRenderer/quizSubmissionUtils";
 import { RigoQuestion } from "../RigoQuestion/RigoQuestion";
@@ -1183,8 +1184,13 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
       }
 
       const blankNum = match[1];
-      const isCorrect = submitted && correctAnswers[blankNum]?.includes(answers[blankNum]?.toLowerCase());
-      const isIncorrect = submitted && answers[blankNum] && !correctAnswers[blankNum]?.includes(answers[blankNum]?.toLowerCase());
+      const isCorrect =
+        submitted &&
+        isFillInTheBlankAnswerCorrect(answers[blankNum], correctAnswers[blankNum]);
+      const isIncorrect =
+        submitted &&
+        answers[blankNum]?.trim() &&
+        !isFillInTheBlankAnswerCorrect(answers[blankNum], correctAnswers[blankNum]);
 
       let inputClassName = "fill-blank-input";
       if (submitted) {
@@ -1229,8 +1235,8 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
   const allFilled = uniqueBlanks.every(blankNum => answers[blankNum]?.trim());
 
   // Calculate score
-  const correctCount = uniqueBlanks.filter(blankNum =>
-    correctAnswers[blankNum]?.includes(answers[blankNum]?.toLowerCase())
+  const correctCount = uniqueBlanks.filter((blankNum) =>
+    isFillInTheBlankAnswerCorrect(answers[blankNum], correctAnswers[blankNum])
   ).length;
   const totalCount = uniqueBlanks.length;
 
