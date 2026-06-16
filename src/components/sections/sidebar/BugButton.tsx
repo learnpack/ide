@@ -4,14 +4,15 @@ import useStore from "../../../utils/store";
 import { useTranslation } from "react-i18next";
 import SimpleButton from "../../mockups/SimpleButton";
 import { svgs } from "../../../assets/svgs";
-import { resolveCourseTitle } from "../../../utils/lib";
+import { getLessonDisplayInfo, resolveCourseTitle } from "../../../utils/lib";
 export default function BugButton() {
   const { t } = useTranslation();
-  const { language, openLink, getCurrentExercise, configObject } = useStore((state) => ({
+  const { language, openLink, getCurrentExercise, configObject, sidebar } = useStore((state) => ({
     getCurrentExercise: state.getCurrentExercise,
     language: state.language,
     openLink: state.openLink,
     configObject: state.configObject,
+    sidebar: state.sidebar,
   }));
 
   const courseTitle =
@@ -23,9 +24,20 @@ export default function BugButton() {
 
   const currentExercise = getCurrentExercise();
   const exerciseSlug = currentExercise?.slug || "";
+  const lessonDisplay = exerciseSlug
+    ? getLessonDisplayInfo(
+        exerciseSlug,
+        sidebar,
+        language,
+        currentExercise?.title || exerciseSlug
+      )
+    : null;
+  const lessonLabel = lessonDisplay
+    ? `${lessonDisplay.id} ${lessonDisplay.formattedTitle}`
+    : "";
 
-  let body = exerciseSlug 
-    ? `**Lesson**: ${exerciseSlug}\n\nExplain the problem\n\nProvide an image or example of the problem`
+  let body = lessonLabel
+    ? `**Lesson**: ${lessonLabel}\n\nExplain the problem\n\nProvide an image or example of the problem`
     : `**Course**: ${courseTitle}\n\nExplain the problem\n\nProvide an image or example of the problem`;
 
   const repository = configObject?.config?.repository || null;
