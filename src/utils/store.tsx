@@ -1677,8 +1677,13 @@ The user's set up the application in "${language}" language, give your feedback 
   },
 
   setLanguage: (language, fetchExercise = true) => {
-    const { fetchReadme, checkParams } = get();
-    set({ language: language });
+    const { fetchReadme, checkParams, configObject } = get();
+    const courseTitle = resolveCourseTitle(configObject?.config?.title, language);
+
+    set({
+      language,
+      ...(courseTitle ? { lessonTitle: courseTitle } : {}),
+    });
 
     let params = checkParams({ justReturn: true });
     setQueryParams({ ...params, language: language });

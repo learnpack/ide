@@ -7,16 +7,14 @@ import { svgs } from "../../../assets/svgs";
 import { resolveCourseTitle } from "../../../utils/lib";
 export default function BugButton() {
   const { t } = useTranslation();
-  const { lessonTitle, language, openLink, getCurrentExercise, configObject } = useStore((state) => ({
+  const { language, openLink, getCurrentExercise, configObject } = useStore((state) => ({
     getCurrentExercise: state.getCurrentExercise,
-    lessonTitle: state.lessonTitle,
     language: state.language,
     openLink: state.openLink,
     configObject: state.configObject,
   }));
 
   const courseTitle =
-    lessonTitle ||
     resolveCourseTitle(configObject?.config?.title, language) ||
     configObject?.config?.slug ||
     "";
