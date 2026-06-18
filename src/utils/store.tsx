@@ -29,6 +29,7 @@ import {
   removeFrontMatter,
   getSlugFromPath,
   ensureMinDuration,
+  resolveCourseTitle,
   // getMainIndex,
 } from "./lib";
 import {
@@ -962,7 +963,11 @@ The user's set up the application in "${language}" language, give your feedback 
         }
       }
 
-      if (config.config.title.us) set({ lessonTitle: config.config.title.us });
+      const courseTitle = resolveCourseTitle(
+        config.config.title,
+        get().language
+      );
+      if (courseTitle) set({ lessonTitle: courseTitle });
 
       const prevSlug = (get().configObject?.config?.slug ?? "").trim();
       const newSlug = (config.config.slug ?? "").trim();
@@ -1672,8 +1677,13 @@ The user's set up the application in "${language}" language, give your feedback 
   },
 
   setLanguage: (language, fetchExercise = true) => {
-    const { fetchReadme, checkParams } = get();
-    set({ language: language });
+    const { fetchReadme, checkParams, configObject } = get();
+    const courseTitle = resolveCourseTitle(configObject?.config?.title, language);
+
+    set({
+      language,
+      ...(courseTitle ? { lessonTitle: courseTitle } : {}),
+    });
 
     let params = checkParams({ justReturn: true });
     setQueryParams({ ...params, language: language });
@@ -1697,9 +1707,8 @@ The user's set up the application in "${language}" language, give your feedback 
       },
     };
     set({ configObject: nextConfig });
-    if (language === "us") {
-      set({ lessonTitle: title });
-    }
+    const courseTitle = resolveCourseTitle(nextTitle, get().language);
+    if (courseTitle) set({ lessonTitle: courseTitle });
   },
 
   getSyllabus: async () => {

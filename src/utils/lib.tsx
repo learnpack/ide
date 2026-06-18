@@ -504,6 +504,27 @@ export function cleanFloatString(input: string): string {
   return parts.join(".");
 }
 
+type TCourseTitle = Record<string, string> | string | undefined | null;
+
+/**
+ * Resolves the display title for a course/package from learn.json title fields.
+ */
+export function resolveCourseTitle(
+  title: TCourseTitle,
+  language = "en"
+): string {
+  if (!title) return "";
+  if (typeof title === "string") return title.trim();
+
+  return (
+    title[language]?.trim() ||
+    title.en?.trim() ||
+    title.us?.trim() ||
+    Object.values(title).find((value) => typeof value === "string" && value.trim())?.trim() ||
+    ""
+  );
+}
+
 /**
  * Formats a lesson title by removing the numeric prefix and capitalizing
  * @param str - The title string (e.g., "00.0-bienvenido-al-ciclo-de-vida-de-react")
