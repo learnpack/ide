@@ -105,6 +105,64 @@ export const isFillInTheBlankAnswerCorrect = (
   return Boolean(correctOptions?.includes(normalized));
 };
 
+/** Stable identity string for select-the-blank blocks (code + ordered numeric metadata). */
+export const buildSelectTheBlankIdentityString = (
+  code: string,
+  metadata: Record<string, unknown>
+) => {
+  const numericKeys = Object.keys(metadata)
+    .filter((k) => /^\d+$/.test(k))
+    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+  const metaPart = numericKeys
+    .map((k) => `${k}=${String(metadata[k])}`)
+    .join("|");
+  return `stb:${code.trim()}:${metaPart}`;
+};
+
+/**
+ * Exact-match comparison for select-the-blank. The student picks a verbatim option
+ * from a list, so grading is fully deterministic — no normalization or fuzzy logic.
+ */
+export const isSelectTheBlankAnswerCorrect = (
+  userAnswer: string | undefined,
+  correctAnswer: string | undefined
+): boolean => {
+  if (userAnswer == null || correctAnswer == null) return false;
+  return userAnswer.trim() === correctAnswer.trim();
+};
+
+export const makeSelectTheBlankSubmission = (
+  uniqueBlanks: string[],
+  answers: Record<string, string>,
+  correctAnswers: Record<string, string>,
+  quizHash: string,
+  started_at: number
+): TQuizSubmission => {
+  const selections = uniqueBlanks.map((blankNum) => {
+    const raw = (answers[blankNum] ?? "").trim();
+    const isCorrect = isSelectTheBlankAnswerCorrect(
+      answers[blankNum],
+      correctAnswers[blankNum]
+    );
+    return {
+      question: `blank_${blankNum}`,
+      answer: raw,
+      isCorrect,
+    };
+  });
+  const correctCount = selections.filter((s) => s.isCorrect).length;
+  const total = uniqueBlanks.length;
+  const percentage = total > 0 ? (correctCount / total) * 100 : 0;
+  return {
+    started_at,
+    ended_at: Date.now(),
+    status: percentage === 100 ? "SUCCESS" : "ERROR",
+    percentage,
+    quiz_hash: quizHash,
+    selections,
+  };
+};
+
 export const makeFillInTheBlankSubmission = (
   uniqueBlanks: string[],
   answers: Record<string, string>,

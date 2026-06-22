@@ -7,7 +7,7 @@ type Events = {
   assessment_completed: {
     status: "SUCCESS" | "ERROR";
     ended_at: number;
-    type: "code" | "open-question" | "fill-in-the-blank" | "multiple-choice"
+    type: "code" | "open-question" | "fill-in-the-blank" | "select-the-blank" | "multiple-choice"
     score: number;
   };
   last_lesson_finished: {};

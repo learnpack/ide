@@ -234,6 +234,148 @@
   color: var(--font-color-secondary);
 }
 
+/* ===== Select the blank ===== */
+
+/* Wrapper stacks hidden sizers + the trigger in one grid cell, so the cell sizes
+   to the widest option (no truncation, no layout shift when the student picks). */
+.stb-select-wrap {
+  display: inline-grid;
+  vertical-align: middle;
+  margin: 2px 4px;
+  max-width: 100%;
+}
+
+.stb-select-wrap > * {
+  grid-area: 1 / 1;
+}
+
+.stb-sizer {
+  box-sizing: border-box;
+  /* must mirror the trigger box: same font + padding + border, plus room on the
+     right for the chevron (12px) and its gap (6px) added to the base padding. */
+  padding: 5px 28px 5px 12px;
+  border: 1px solid transparent;
+  font-size: var(--font-size-small);
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  visibility: hidden;
+  height: 0;
+  pointer-events: none;
+}
+
+.stb-trigger {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+  padding: 5px 12px;
+  border: 1px solid var(--light-grey);
+  border-radius: var(--standard-border-radius);
+  background-color: var(--white);
+  color: var(--font-color-secondary);
+  font-size: var(--font-size-small);
+  font-weight: 500;
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.stb-trigger:hover:not(:disabled) {
+  border-color: var(--color-active);
+}
+
+.stb-trigger:focus-visible,
+.stb-trigger[data-state="open"] {
+  outline: none;
+  border-color: var(--color-active);
+  box-shadow: 0 0 0 3px var(--color-blue-opaque);
+}
+
+.stb-trigger[data-placeholder] {
+  color: var(--font-color-secondary);
+  opacity: 0.7;
+}
+
+.stb-trigger:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.stb-trigger.correct-answer {
+  border-color: var(--color-success);
+  background-color: var(--soft-green);
+  color: var(--color-success);
+}
+
+.stb-trigger.incorrect-answer {
+  border-color: var(--color-fail);
+  background-color: var(--soft-red);
+  color: var(--color-fail);
+}
+
+.stb-chevron {
+  display: inline-flex;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.stb-trigger[data-state="open"] .stb-chevron {
+  transform: rotate(180deg);
+}
+
+.stb-content {
+  z-index: 9999;
+  min-width: var(--radix-select-trigger-width);
+  max-width: min(360px, 90vw);
+  max-height: var(--radix-select-content-available-height);
+  background-color: var(--white);
+  border: 1px solid var(--light-grey);
+  border-radius: var(--standard-border-radius);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.stb-viewport {
+  padding: 4px;
+  max-height: inherit;
+  overflow-y: auto;
+}
+
+.stb-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: var(--font-size-small);
+  color: var(--font-color-secondary);
+  line-height: 1.35;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+}
+
+.stb-item[data-highlighted] {
+  background-color: var(--color-blue-opaque);
+  color: var(--color-active);
+}
+
+.stb-item[data-state="checked"] {
+  font-weight: 600;
+}
+
+.stb-item-indicator {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--color-active);
+}
+
 .video-modal .modal-content {
   position: relative;
   background-color: transparent;

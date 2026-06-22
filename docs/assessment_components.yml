@@ -135,6 +135,42 @@ components:
       The square root of 16 is _3_
       ```
 
+  - name: select_the_blank
+    measures:
+      - rubric: content_mastery
+        weight: 0.70
+      - rubric: communication
+        weight: 0.15
+      - rubric: application_problem_solving
+        weight: 0.15
+    description: >-
+      A select the blank is a component where the user completes a sentence by choosing the correct option from a dropdown for each blank, instead of typing free text. Because the user picks from a predefined list, grading is fully deterministic: the user can never fail due to typos, punctuation, casing or incomplete answers, and the available options give the learner guidance. It consists in a markdown code block with the language set to `select_the_blank`. Inside the code block, you must write the question with the blank (or blanks) to be filled. Each blank consists in _1_, _2_, _3_, etc. In the metadata section, for each blank you must provide the list of options separated by the pipe character `|`. IMPORTANT: the FIRST option of each blank is the correct one. You MUST provide at least 3 options per blank: 1 correct answer and at least 2 plausible distractors. You can also use select the blank for numerical questions.
+    rules:
+      - The FIRST option of each blank is always the correct answer; the rest are distractors.
+      - Each blank MUST have at least 3 options (1 correct + at least 2 distractors).
+      - Options are separated by the pipe character `|`, NOT by commas (commas can be part of an option's text).
+      - Distractors must be plausible and related to the topic, never obviously wrong.
+      - Keep options reasonably short so they read well inside a dropdown.
+    avoid:
+      - free text answers (use open_text_question for those)
+      - blanks with fewer than 3 options
+      - never use for visual questions
+    example: |
+      ### Let's recall!
+
+      ```select_the_blank 1="Paris|Madrid|Rome" 2="Berlin|Lisbon|Vienna"
+      The capital of France is _1_, the capital of Germany is _2_.
+      ```
+
+      --- Second Example ---
+
+      ### Are you really learning? Let's check it!
+
+      ```select_the_blank 1="401 Unauthorized|403 Forbidden|404 Not Found" 2="GET|POST|DELETE" 3="POST|GET|PUT"
+      If the user is not authenticated, the server responds with _1_.
+      To retrieve a resource you use _2_, and to create a new one you use _3_.
+      ```
+
   - name: code_challenge_proposal
     intendedUse:
       - hands-on learning
