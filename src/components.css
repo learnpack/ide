@@ -376,6 +376,106 @@
   color: var(--color-active);
 }
 
+/* ===== Ordering ===== */
+
+.ordering-list {
+  list-style: none;
+  margin: 0 0 15px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  counter-reset: ordering;
+}
+
+.ordering-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background-color: var(--white);
+  border: 1px solid var(--light-grey);
+  border-radius: var(--standard-border-radius);
+  font-size: var(--font-size-small);
+  color: var(--font-color-secondary);
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ordering-item.correct-answer {
+  border-color: var(--color-success);
+  background-color: var(--soft-green);
+  color: var(--color-success);
+}
+
+.ordering-item.incorrect-answer {
+  border-color: var(--color-fail);
+  background-color: var(--soft-red);
+  color: var(--color-fail);
+}
+
+.ordering-position {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--color-blue-opaque);
+  color: var(--color-active);
+  font-size: var(--font-size-small);
+  font-weight: 600;
+}
+
+.ordering-item.correct-answer .ordering-position {
+  background-color: var(--color-success);
+  color: var(--white);
+}
+
+.ordering-item.incorrect-answer .ordering-position {
+  background-color: var(--color-fail);
+  color: var(--white);
+}
+
+.ordering-text {
+  flex: 1;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.ordering-controls {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.ordering-move-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--light-grey);
+  border-radius: 6px;
+  background-color: var(--bg-color);
+  color: var(--font-color-secondary);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.ordering-move-btn:hover:not(:disabled) {
+  border-color: var(--color-active);
+  color: var(--color-active);
+  background-color: var(--color-blue-opaque);
+}
+
+.ordering-move-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .video-modal .modal-content {
   position: relative;
   background-color: transparent;

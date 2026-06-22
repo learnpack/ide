@@ -12,12 +12,15 @@ import { atomDark as prismStyle } from "react-syntax-highlighter/dist/esm/styles
 import { QuizRenderer } from "../QuizRenderer/QuizRenderer";
 import {
   buildFillInTheBlankIdentityString,
+  buildOrderingIdentityString,
   buildSelectTheBlankIdentityString,
   getLatestQuizSubmission,
   isFillInTheBlankAnswerCorrect,
   isSelectTheBlankAnswerCorrect,
   makeFillInTheBlankSubmission,
+  makeOrderingSubmission,
   makeSelectTheBlankSubmission,
+  parseOrderingItems,
 } from "../QuizRenderer/quizSubmissionUtils";
 import { Select } from "radix-ui";
 import { RigoQuestion } from "../RigoQuestion/RigoQuestion";
@@ -787,6 +790,9 @@ const CustomCodeBlock = ({
   if (language === "select_the_blank" || language === "select") {
     return <SelectTheBlankRenderer node={node} code={code} metadata={metadata} />;
   }
+  if (language === "ordering" || language === "order") {
+    return <OrderingRenderer node={node} code={code} metadata={metadata} />;
+  }
 
 
   const isHtml = language.toLowerCase() === "html";
@@ -1370,8 +1376,8 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
 };
 
 
-// Deterministic string hash used to seed a stable per-blank option shuffle.
-const stbHash = (s: string) => {
+// Deterministic string hash used to seed stable shuffles (no reshuffle on re-render).
+const seededHash = (s: string) => {
   let h = 0;
   for (let i = 0; i < s.length; i++) {
     h = (Math.imul(h, 31) + s.charCodeAt(i)) >>> 0;
@@ -1379,10 +1385,10 @@ const stbHash = (s: string) => {
   return h;
 };
 
-// Stable shuffle: same input + seed always yields the same order (no reshuffle on re-render).
-const stbStableShuffle = (items: string[], seed: string): string[] =>
+// Stable shuffle: same input + seed always yields the same order.
+const seededShuffle = (items: string[], seed: string): string[] =>
   [...items]
-    .map((item) => ({ item, k: stbHash(`${seed}:${item}`) }))
+    .map((item) => ({ item, k: seededHash(`${seed}:${item}`) }))
     .sort((a, b) => a.k - b.k)
     .map((x) => x.item);
 
@@ -1498,7 +1504,7 @@ const SelectTheBlankRenderer = ({ code, metadata }: { code: string, node: Elemen
   const displayOptions = useMemo(() => {
     const shuffled: Record<string, string[]> = {};
     Object.keys(options).forEach((blankNum) => {
-      shuffled[blankNum] = stbStableShuffle(options[blankNum], `${quizHash}:${blankNum}`);
+      shuffled[blankNum] = seededShuffle(options[blankNum], `${quizHash}:${blankNum}`);
     });
     return shuffled;
   }, [options, quizHash]);
@@ -1722,6 +1728,313 @@ const SelectTheBlankRenderer = ({ code, metadata }: { code: string, node: Elemen
           <button
             onClick={handleSubmit}
             disabled={!allFilled}
+            className="check-answers-btn"
+          >
+            {t("Check Answers")}
+          </button>
+        ) : (
+          <button
+            onClick={handleReset}
+            className="try-again-btn"
+          >
+            {t("Try again")}
+          </button>
+        )}
+      </div>
+
+      {showResults && (
+        <div className="fill-blank-results">
+          <div className="results-header">
+            <div className="results-title">{t("Results")}</div>
+            <div className="score-badge">{correctCount}/{totalCount}</div>
+          </div>
+
+          <div className="results-content">
+            <div className={`result-message ${correctCount === totalCount ? "perfect" : correctCount > totalCount / 2 ? "good" : "needs-improvement"}`}>
+              {correctCount === totalCount ? (
+                <>
+                  <div className="celebration">🎉</div>
+                  <div className="message-text">{t(`perfectSuccess.${randomFrom0to9()}`)}</div>
+                </>
+              ) : correctCount > totalCount / 2 ? (
+                <>
+                  <div className="celebration">👍</div>
+                  <div className="message-text">{t(`goodSuccess.${randomFrom0to9()}`)}</div>
+                </>
+              ) : (
+                <>
+                  <div className="celebration">💪</div>
+                  <div className="message-text">{t(`encouragement.${randomFrom0to9()}`)}</div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+
+const OrderingRenderer = ({ code, metadata }: { code: string, node: Element, metadata: TMetadata }) => {
+  const [order, setOrder] = useState<string[]>([]);
+  const [submitted, setSubmitted] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [quizHash, setQuizHash] = useState("");
+  const hashRef = useRef("");
+  const startedAtRef = useRef(0);
+  const hasRestoredData = useRef(false);
+
+  const { t } = useTranslation();
+  const {
+    token,
+    setOpenedModals,
+    registerTelemetryEvent,
+    getTelemetryStep,
+    currentExercisePosition,
+    telemetryReady,
+    recordConsumable,
+    toastFromStatus,
+    reportEnrichDataLayer,
+    language,
+  } = useStore((state) => ({
+    token: state.token,
+    setOpenedModals: state.setOpenedModals,
+    registerTelemetryEvent: state.registerTelemetryEvent,
+    getTelemetryStep: state.getTelemetryStep,
+    currentExercisePosition: state.currentExercisePosition,
+    telemetryReady: state.telemetryReady,
+    recordConsumable: state.useConsumable,
+    toastFromStatus: state.toastFromStatus,
+    reportEnrichDataLayer: state.reportEnrichDataLayer,
+    language: state.language,
+  }));
+
+  const title = typeof metadata.title === "string" ? metadata.title : "";
+
+  // Canonical items: the lines of the code block, in the correct order.
+  const canonicalItems = useMemo(() => parseOrderingItems(code), [code]);
+
+  // Stable initial order shown to the student (shuffled). Guards against showing the
+  // already-correct order as a freebie.
+  const initialOrder = useMemo(() => {
+    if (canonicalItems.length <= 1) return canonicalItems;
+    let shuffled = seededShuffle(canonicalItems, `${quizHash}:ordering`);
+    const sameAsCanonical = shuffled.every((it, i) => it === canonicalItems[i]);
+    if (sameAsCanonical) {
+      shuffled = [...shuffled];
+      [shuffled[0], shuffled[1]] = [shuffled[1], shuffled[0]];
+    }
+    return shuffled;
+  }, [canonicalItems, quizHash]);
+
+  useEffect(() => {
+    const run = async () => {
+      const id = buildOrderingIdentityString(code, metadata as Record<string, unknown>);
+      const h = await asyncHashText(id);
+      hashRef.current = h;
+      setQuizHash(h);
+    };
+    run();
+  }, [code, metadata]);
+
+  // Seed the working order once the hash is known (unless restored from telemetry).
+  useEffect(() => {
+    if (!quizHash || hasRestoredData.current) return;
+    setOrder((prev) => (prev.length ? prev : initialOrder));
+  }, [quizHash, initialOrder]);
+
+  const registerOrdering = async () => {
+    if (!hashRef.current) return;
+    TelemetryManager.registerTesteableElement(Number(currentExercisePosition), {
+      type: "quiz",
+      hash: hashRef.current,
+      searchString: code.slice(0, 200) || "",
+    }, language);
+  };
+
+  const debouncedRegisterOrdering = debounce(registerOrdering, 2000);
+
+  useEffect(() => {
+    if (quizHash) {
+      debouncedRegisterOrdering();
+    }
+    return () => {
+      debouncedRegisterOrdering.cancel();
+    };
+  }, [quizHash]);
+
+  useEffect(() => {
+    if (!quizHash || !telemetryReady) return;
+
+    const recoverState = async () => {
+      try {
+        const currentStep = await getTelemetryStep(Number(currentExercisePosition));
+        if (!currentStep?.quiz_submissions) return;
+
+        const submissions = currentStep.quiz_submissions.filter(
+          (s) => s.quiz_hash === quizHash
+        );
+        if (submissions.length === 0) return;
+
+        const latestSubmission = getLatestQuizSubmission(submissions);
+        if (!latestSubmission?.selections?.length) return;
+
+        const restored = [...latestSubmission.selections]
+          .sort((a, b) => {
+            const pa = parseInt(/^position_(\d+)$/.exec(a.question)?.[1] ?? "0", 10);
+            const pb = parseInt(/^position_(\d+)$/.exec(b.question)?.[1] ?? "0", 10);
+            return pa - pb;
+          })
+          .map((sel) => sel.answer);
+
+        if (restored.length) {
+          setOrder(restored);
+          setSubmitted(true);
+          setShowResults(true);
+          hasRestoredData.current = true;
+        }
+      } catch (error) {
+        console.error("Error recovering ordering from telemetry:", error);
+      }
+    };
+
+    recoverState();
+  }, [quizHash, telemetryReady, getTelemetryStep, currentExercisePosition]);
+
+  const move = (index: number, direction: -1 | 1) => {
+    if (submitted && !hasRestoredData.current) return;
+    if (startedAtRef.current === 0) {
+      startedAtRef.current = Date.now();
+    }
+    if (hasRestoredData.current) {
+      setSubmitted(false);
+      setShowResults(false);
+      hasRestoredData.current = false;
+    }
+    setOrder((prev) => {
+      const target = index + direction;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
+  };
+
+  const correctCount = order.filter((item, index) => item === canonicalItems[index]).length;
+  const totalCount = canonicalItems.length;
+
+  const handleSubmit = async () => {
+    if (!token) {
+      toast.error(t("youMustLoginFirst"));
+      setOpenedModals({ mustLogin: true });
+      return;
+    }
+    if (!hashRef.current || order.length === 0) {
+      return;
+    }
+
+    const startedAt = startedAtRef.current || Date.now();
+    const submission = makeOrderingSubmission(
+      canonicalItems,
+      order,
+      hashRef.current,
+      startedAt
+    );
+
+    registerTelemetryEvent("quiz_submission", submission);
+
+    setSubmitted(true);
+    setShowResults(true);
+    startedAtRef.current = 0;
+
+    eventBus.emit("assessment_completed", {
+      status: submission.status,
+      ended_at: submission.ended_at,
+      type: "ordering",
+      score: submission.percentage,
+    });
+
+    TelemetryManager.registerTesteableElement(Number(currentExercisePosition), {
+      type: "quiz",
+      hash: hashRef.current,
+      is_completed: submission.status === "SUCCESS",
+      searchString: code.slice(0, 200) || "",
+    }, language);
+
+    if (submission.status === "SUCCESS") {
+      toastFromStatus("quiz-success");
+      Notifier.confetti();
+      playEffect("success");
+      reportEnrichDataLayer("quiz_success", {});
+    } else {
+      toastFromStatus("quiz-error");
+      playEffect("error");
+      reportEnrichDataLayer("quiz_error", {});
+    }
+
+    recordConsumable("ai-compilation");
+  };
+
+  const handleReset = () => {
+    setOrder(initialOrder);
+    setSubmitted(false);
+    setShowResults(false);
+    hasRestoredData.current = false;
+    startedAtRef.current = 0;
+  };
+
+  return (
+    <div className="fill-in-the-blank-container ordering-container">
+      <h4 className="fill-blank-title">{title || t("Put the steps in the correct order")}</h4>
+      <p className="fill-blank-help">{t("Use the up and down arrows to arrange the items in the correct order, then click 'Check Answers' when you're done.")}</p>
+
+      <ol className="ordering-list">
+        {order.map((item, index) => {
+          const isCorrect = submitted && item === canonicalItems[index];
+          const isIncorrect = submitted && item !== canonicalItems[index];
+          let stateClass = "";
+          if (isCorrect) stateClass = "correct-answer";
+          else if (isIncorrect) stateClass = "incorrect-answer";
+
+          return (
+            <li key={item} className={`ordering-item ${stateClass}`}>
+              <span className="ordering-position">{index + 1}</span>
+              <span className="ordering-text">{item}</span>
+              <span className="ordering-controls">
+                <button
+                  type="button"
+                  className="ordering-move-btn"
+                  aria-label={t("Move up")}
+                  onClick={() => move(index, -1)}
+                  disabled={submitted || index === 0}
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path d="M7 10.5V3.5M7 3.5L3.5 7M7 3.5l3.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  className="ordering-move-btn"
+                  aria-label={t("Move down")}
+                  onClick={() => move(index, 1)}
+                  disabled={submitted || index === order.length - 1}
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path d="M7 3.5v7M7 10.5L3.5 7M7 10.5l3.5-3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+
+      <div className="fill-blank-buttons">
+        {!submitted ? (
+          <button
+            onClick={handleSubmit}
+            disabled={order.length === 0}
             className="check-answers-btn"
           >
             {t("Check Answers")}

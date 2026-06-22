@@ -171,6 +171,47 @@ components:
       To retrieve a resource you use _2_, and to create a new one you use _3_.
       ```
 
+  - name: ordering
+    measures:
+      - rubric: content_mastery
+        weight: 0.60
+      - rubric: application_problem_solving
+        weight: 0.25
+      - rubric: critical_thinking
+        weight: 0.15
+    description: >-
+      An ordering component asks the user to arrange a set of items into the correct sequence. It is ideal for processes, step-by-step procedures, chronological events, or ranking things (for example: the lifecycle of an HTTP request, the steps of a git workflow, or ordering numbers from smallest to largest). Grading is fully deterministic: the user's order is compared position by position with the correct one. It consists in a markdown code block with the language set to `ordering`. Inside the code block, write one item per line, IN THE CORRECT ORDER (the renderer shuffles them before showing them to the user, and the user reorders them with up/down arrows). You can optionally add a `title` in the metadata to describe what must be ordered.
+    rules:
+      - Write the items in the CORRECT order inside the code block; the renderer shuffles them automatically.
+      - Write exactly one item per line. Items may optionally start with a number or a list marker (it is stripped automatically).
+      - Use between 3 and 6 items; fewer than 3 makes the exercise trivial, more than 6 becomes tedious.
+      - There must be a single, unambiguous correct order. Do not use it when several orders could be valid.
+      - Keep each item short and self-contained.
+    avoid:
+      - sets where more than one order is acceptable
+      - fewer than 3 items
+      - never use for visual questions
+    example: |
+      ### Let's order the process!
+
+      ```ordering title="Order the lifecycle of an HTTP request"
+      The client opens a TCP connection
+      The client sends the request
+      The server processes the request and responds
+      The connection is closed
+      ```
+
+      --- Second Example ---
+
+      ### Can you sort these numbers?
+
+      ```ordering title="Sort the numbers from smallest to largest"
+      2
+      7
+      15
+      42
+      ```
+
   - name: code_challenge_proposal
     intendedUse:
       - hands-on learning
