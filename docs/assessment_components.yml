@@ -151,10 +151,16 @@ components:
       - Options are separated by the pipe character `|`, NOT by commas (commas can be part of an option's text).
       - Distractors must be plausible and related to the topic, never obviously wrong.
       - Keep options reasonably short so they read well inside a dropdown.
+      - READ-BACK CHECK - When the correct option is inserted into its blank, the WHOLE sentence MUST be grammatically correct and factually true. Re-read each completed sentence to verify before finalizing.
+      - UNIQUENESS - Each blank must have exactly ONE correct option given the surrounding text, and that text must contain enough information to identify it unambiguously. NEVER write two blanks whose surrounding text is identical or interchangeable (e.g. the same description reused for two different answers).
+      - DISTRACTORS MUST BE WRONG IN CONTEXT - Each distractor, if placed in the blank, MUST make the sentence false or wrong in that specific context. If a distractor would also be a valid answer, the sentence is missing disambiguating information; add it.
+      - CONSISTENT FRAMING - What the learner selects (the blank) must be exactly what the instruction asks them to identify. Do not place the blank where a different part of speech belongs (e.g. asking to pick a method but leaving the blank where a position noun like "end"/"beginning" should go).
     avoid:
       - free text answers (use open_text_question for those)
       - blanks with fewer than 3 options
       - never use for visual questions
+      - blanks where two or more options would be equally valid given the surrounding text
+      - sentences that read incorrectly once the correct option is inserted
     example: |
       ### Let's recall!
 
@@ -169,6 +175,19 @@ components:
       ```select_the_blank 1="401 Unauthorized|403 Forbidden|404 Not Found" 2="GET|POST|DELETE" 3="POST|GET|PUT"
       If the user is not authenticated, the server responds with _1_.
       To retrieve a resource you use _2_, and to create a new one you use _3_.
+      ```
+
+      --- Third Example (note how every sentence is unambiguous and reads correctly once filled) ---
+
+      ### Match each array method to what it does!
+
+      ```select_the_blank 1="push|pop|unshift" 2="pop|push|shift" 3="shift|unshift|pop" 4="unshift|shift|push"
+      Pick the array method that matches each description:
+
+      1. _1_ adds one or more elements to the end of the array.
+      2. _2_ removes the last element of the array and returns it.
+      3. _3_ removes the first element of the array and returns it.
+      4. _4_ adds one or more elements to the beginning of the array.
       ```
 
   - name: ordering
