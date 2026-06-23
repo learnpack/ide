@@ -1324,7 +1324,8 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
   };
 
   const handleReset = () => {
-    setAnswers({});
+    // Unlock the fields for editing while keeping the previous answers,
+    // so the student only has to fix what was wrong (not redo the correct ones).
     setSubmitted(false);
     setShowResults(false);
     hasRestoredData.current = false;
@@ -1724,7 +1725,8 @@ const SelectTheBlankRenderer = ({ code, metadata }: { code: string, node: Elemen
   };
 
   const handleReset = () => {
-    setAnswers({});
+    // Unlock the fields for editing while keeping the previous answers,
+    // so the student only has to fix what was wrong (not redo the correct ones).
     setSubmitted(false);
     setShowResults(false);
     hasRestoredData.current = false;
@@ -2093,7 +2095,8 @@ const OrderingRenderer = ({ code, metadata }: { code: string, node: Element, met
   };
 
   const handleReset = () => {
-    setOrder(initialOrder);
+    // Unlock for editing while keeping the student's current arrangement
+    // (do NOT reshuffle), so they only have to swap the items that were wrong.
     setSubmitted(false);
     setShowResults(false);
     hasRestoredData.current = false;
