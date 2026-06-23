@@ -12,6 +12,9 @@
     "compile-command": "tsc src/utils/development.ts && node src/utils/development.js --turn on"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@monaco-editor/react": "^4.6.0",
     "@radix-ui/react-tooltip": "^1.2.8",
     "axios": "^1.7.7",

@@ -36,6 +36,23 @@ import {
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useState, useEffect, useId, useRef, useMemo } from "react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { DEV_MODE, asyncHashText, debounce, playEffect } from "../../../utils/lib";
 
 
@@ -1776,6 +1793,81 @@ const SelectTheBlankRenderer = ({ code, metadata }: { code: string, node: Elemen
 };
 
 
+const SortableOrderingItem = ({
+  id,
+  index,
+  isLast,
+  stateClass,
+  disabled,
+  onMoveUp,
+  onMoveDown,
+  moveUpLabel,
+  moveDownLabel,
+}: {
+  id: string;
+  index: number;
+  isLast: boolean;
+  stateClass: string;
+  disabled: boolean;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  moveUpLabel: string;
+  moveDownLabel: string;
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id, disabled });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      className={`ordering-item ${stateClass} ${isDragging ? "ordering-item-dragging" : ""} ${disabled ? "" : "ordering-item-draggable"}`}
+      {...attributes}
+      {...listeners}
+    >
+      <span className="ordering-position">{index + 1}</span>
+      <span className="ordering-text">{id}</span>
+      <span className="ordering-controls">
+        <button
+          type="button"
+          className="ordering-move-btn"
+          aria-label={moveUpLabel}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={onMoveUp}
+          disabled={disabled || index === 0}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M7 10.5V3.5M7 3.5L3.5 7M7 3.5l3.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          className="ordering-move-btn"
+          aria-label={moveDownLabel}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={onMoveDown}
+          disabled={disabled || isLast}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M7 3.5v7M7 10.5L3.5 7M7 10.5l3.5-3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </span>
+    </li>
+  );
+};
+
 const OrderingRenderer = ({ code, metadata }: { code: string, node: Element, metadata: TMetadata }) => {
   const [order, setOrder] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
@@ -1811,6 +1903,13 @@ const OrderingRenderer = ({ code, metadata }: { code: string, node: Element, met
   }));
 
   const title = typeof metadata.title === "string" ? metadata.title : "";
+
+  // Drag-and-drop sensors: pointer (with a small activation distance so button
+  // clicks aren't swallowed) and keyboard (accessible reordering with arrow keys).
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   // Canonical items: the lines of the code block, in the correct order.
   const canonicalItems = useMemo(() => parseOrderingItems(code), [code]);
@@ -1904,6 +2003,18 @@ const OrderingRenderer = ({ code, metadata }: { code: string, node: Element, met
 
   const move = (index: number, direction: -1 | 1) => {
     if (submitted && !hasRestoredData.current) return;
+    registerInteraction();
+    setOrder((prev) => {
+      const target = index + direction;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
+  };
+
+  // Mark the exercise as started and clear a restored "submitted" state on first edit.
+  const registerInteraction = () => {
     if (startedAtRef.current === 0) {
       startedAtRef.current = Date.now();
     }
@@ -1912,12 +2023,17 @@ const OrderingRenderer = ({ code, metadata }: { code: string, node: Element, met
       setShowResults(false);
       hasRestoredData.current = false;
     }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    registerInteraction();
     setOrder((prev) => {
-      const target = index + direction;
-      if (target < 0 || target >= prev.length) return prev;
-      const next = [...prev];
-      [next[index], next[target]] = [next[target], next[index]];
-      return next;
+      const oldIndex = prev.indexOf(String(active.id));
+      const newIndex = prev.indexOf(String(over.id));
+      if (oldIndex === -1 || newIndex === -1) return prev;
+      return arrayMove(prev, oldIndex, newIndex);
     });
   };
 
@@ -1989,46 +2105,34 @@ const OrderingRenderer = ({ code, metadata }: { code: string, node: Element, met
       <h4 className="fill-blank-title">{title || t("Put the steps in the correct order")}</h4>
       <p className="fill-blank-help">{t("Use the up and down arrows to arrange the items in the correct order, then click 'Check Answers' when you're done.")}</p>
 
-      <ol className="ordering-list">
-        {order.map((item, index) => {
-          const isCorrect = submitted && item === canonicalItems[index];
-          const isIncorrect = submitted && item !== canonicalItems[index];
-          let stateClass = "";
-          if (isCorrect) stateClass = "correct-answer";
-          else if (isIncorrect) stateClass = "incorrect-answer";
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={order} strategy={verticalListSortingStrategy}>
+          <ol className="ordering-list">
+            {order.map((item, index) => {
+              const isCorrect = submitted && item === canonicalItems[index];
+              const isIncorrect = submitted && item !== canonicalItems[index];
+              let stateClass = "";
+              if (isCorrect) stateClass = "correct-answer";
+              else if (isIncorrect) stateClass = "incorrect-answer";
 
-          return (
-            <li key={item} className={`ordering-item ${stateClass}`}>
-              <span className="ordering-position">{index + 1}</span>
-              <span className="ordering-text">{item}</span>
-              <span className="ordering-controls">
-                <button
-                  type="button"
-                  className="ordering-move-btn"
-                  aria-label={t("Move up")}
-                  onClick={() => move(index, -1)}
-                  disabled={submitted || index === 0}
-                >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                    <path d="M7 10.5V3.5M7 3.5L3.5 7M7 3.5l3.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  className="ordering-move-btn"
-                  aria-label={t("Move down")}
-                  onClick={() => move(index, 1)}
-                  disabled={submitted || index === order.length - 1}
-                >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                    <path d="M7 3.5v7M7 10.5L3.5 7M7 10.5l3.5-3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
-              </span>
-            </li>
-          );
-        })}
-      </ol>
+              return (
+                <SortableOrderingItem
+                  key={item}
+                  id={item}
+                  index={index}
+                  isLast={index === order.length - 1}
+                  stateClass={stateClass}
+                  disabled={submitted}
+                  onMoveUp={() => move(index, -1)}
+                  onMoveDown={() => move(index, 1)}
+                  moveUpLabel={t("Move up")}
+                  moveDownLabel={t("Move down")}
+                />
+              );
+            })}
+          </ol>
+        </SortableContext>
+      </DndContext>
 
       <div className="fill-blank-buttons">
         {!submitted ? (

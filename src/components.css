@@ -392,7 +392,11 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 12px;
+  padding: 10px 14px;
+  /* override the global `li` reset (padding-left:0 / margin-left:20px !important) */
+  padding-left: 14px !important;
+  margin-left: 0 !important;
+  list-style: none !important;
   background-color: var(--white);
   border: 1px solid var(--light-grey);
   border-radius: var(--standard-border-radius);
@@ -445,8 +449,8 @@
 
 .ordering-controls {
   display: inline-flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-direction: row;
+  gap: 6px;
   flex-shrink: 0;
 }
 
@@ -454,8 +458,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   padding: 0;
   border: 1px solid var(--light-grey);
   border-radius: 6px;
@@ -474,6 +478,20 @@
 .ordering-move-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.ordering-item-draggable {
+  cursor: grab;
+  /* prevent the browser from scrolling/selecting while dragging on touch devices */
+  touch-action: none;
+  user-select: none;
+}
+
+.ordering-item-dragging {
+  cursor: grabbing;
+  z-index: 2;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  border-color: var(--color-active);
 }
 
 .video-modal .modal-content {
