@@ -23,7 +23,7 @@ components:
       - MUST only require a textual answer that can be evaluated without images.
       - MUST NOT ask the learner to draw, sketch, diagram, circle, shade, underline, point, annotate, mark on paper, or `visualize and show`
       - MUST NOT include phrases such as `draw…`, `sketch…`, `diagram…`, `divide the shape and show…`, `mark the figure…`.
-      - If the task is visual, convert to an explanatory `image` component or a numeric/text question (`fill_in_the_blank`, `multiple_choice_question`) instead.
+      - If the task is visual, convert to an explanatory `image` component or a numeric/text question (`select_the_blank`, `multiple_choice_question`) instead.
       - Answers can be as short as 1 word or as long as a full paragraph.
       - Only use for textual easy to evaluate questions
       - Never use this component for reflection questions, only for knowledge assessment questions.
@@ -93,48 +93,7 @@ components:
         - [ ] Incorrect option
         - [x] Correct option
         - [ ] Incorrect option
-
-  - name: fill_in_the_blank
-    measures:
-      - rubric: content_mastery
-        weight: 0.70
-      - rubric: communication
-        weight: 0.15
-      - rubric: application_problem_solving
-        weight: 0.15
-    description: >-
-      A fill in the blank is a component that allows the user to fill in the blank with the correct answer. It consists in a markdown code block with the language set to `fill_in_the_blank`. Inside the code block, you must write the question with the blank (or blanks) to be filled. Each blank consist in _1_, _2_, _3_, etc. In the metadata section, you must include the valid answers for each blank. The blanks are numbered starting from 1. Case insensitive answers are allowed. If multiple answer are allowed for a blank, you must include them separated by a comma in the proper metadata property. You can also use fill in the blank for numerical questions.
-    avoid:
-      - open text question
-      - this component is intended only for fill in the blank answers
-      - never use for visual questions
-      - only for textual easy to evaluate questions
-    example: |
-      ### Let's recall!
-
-      ```fill_in_the_blank 1="Paris" 2="Berlin"
-      The capital of France is _1_, the capital of Germany is _2_.
-      ```
-      --- Second Example ---
-
-      ### Are you really learning? Let's check it!
-
-      Complete the sentence with number of hours of sleep per day that are recommended based on the lesson.
-
-      ```fill_in_the_blank 1="7,8,9,10" 
-      I need to sleep at least _1_ hours a day to be healthy.
-      ```
-
-      --- Third Example ---
-
-      ### Let's check your math skills!
-
-      ```fill_in_the_blank 1="12" 2="5" 3="4"
-      Calculate the result of 2 * 6 = _1_
-      If we divide 20 by 4, the result is _2_
-      The square root of 16 is _3_
-      ```
-
+  
   - name: select_the_blank
     measures:
       - rubric: content_mastery
@@ -199,7 +158,7 @@ components:
       - rubric: critical_thinking
         weight: 0.15
     description: >-
-      An ordering component asks the user to arrange a set of items into the correct sequence. It is ideal for processes, step-by-step procedures, chronological events, or ranking things (for example: the lifecycle of an HTTP request, the steps of a git workflow, or ordering numbers from smallest to largest). Grading is fully deterministic: the user's order is compared position by position with the correct one. It consists in a markdown code block with the language set to `ordering`. Inside the code block, write one item per line, IN THE CORRECT ORDER (the renderer shuffles them before showing them to the user, and the user reorders them with up/down arrows). You can optionally add a `title` in the metadata to describe what must be ordered.
+      An ordering component asks the user to arrange a set of items into the correct sequence. It is ideal for processes, step-by-step procedures, chronological events, or ranking things (for example: the lifecycle of an HTTP request, the steps of a git workflow, the steps of a installation process, etc). Grading is fully deterministic: the user's order is compared position by position with the correct one. It consists in a markdown code block with the language set to `ordering`. Inside the code block, write one item per line, IN THE CORRECT ORDER (the renderer shuffles them before showing them to the user, and the user reorders them with up/down arrows). You can optionally add a `title` in the metadata to describe what must be ordered.
     rules:
       - Write the items in the CORRECT order inside the code block; the renderer shuffles them automatically.
       - Write exactly one item per line. Items may optionally start with a number or a list marker (it is stripped automatically).
@@ -222,13 +181,12 @@ components:
 
       --- Second Example ---
 
-      ### Can you sort these numbers?
+      ### Don't lose that awesome feature you created!
 
-      ```ordering title="Sort the numbers from smallest to largest"
-      2
-      7
-      15
-      42
+      ```ordering title="Order the commands to save your changes in git"
+      git add .
+      git commit -m "Save changes"
+      git push
       ```
 
   - name: code_challenge_proposal
