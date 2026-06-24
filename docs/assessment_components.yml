@@ -23,7 +23,7 @@ components:
       - MUST only require a textual answer that can be evaluated without images.
       - MUST NOT ask the learner to draw, sketch, diagram, circle, shade, underline, point, annotate, mark on paper, or `visualize and show`
       - MUST NOT include phrases such as `draw…`, `sketch…`, `diagram…`, `divide the shape and show…`, `mark the figure…`.
-      - If the task is visual, convert to an explanatory `image` component or a numeric/text question (`fill_in_the_blank`, `multiple_choice_question`) instead.
+      - If the task is visual, convert to an explanatory `image` component or a numeric/text question (`select_the_blank`, `multiple_choice_question`) instead.
       - Answers can be as short as 1 word or as long as a full paragraph.
       - Only use for textual easy to evaluate questions
       - Never use this component for reflection questions, only for knowledge assessment questions.
@@ -93,8 +93,8 @@ components:
         - [ ] Incorrect option
         - [x] Correct option
         - [ ] Incorrect option
-
-  - name: fill_in_the_blank
+  
+  - name: select_the_blank
     measures:
       - rubric: content_mastery
         weight: 0.70
@@ -103,36 +103,90 @@ components:
       - rubric: application_problem_solving
         weight: 0.15
     description: >-
-      A fill in the blank is a component that allows the user to fill in the blank with the correct answer. It consists in a markdown code block with the language set to `fill_in_the_blank`. Inside the code block, you must write the question with the blank (or blanks) to be filled. Each blank consist in _1_, _2_, _3_, etc. In the metadata section, you must include the valid answers for each blank. The blanks are numbered starting from 1. Case insensitive answers are allowed. If multiple answer are allowed for a blank, you must include them separated by a comma in the proper metadata property. You can also use fill in the blank for numerical questions.
+      A select the blank is a component where the user completes a sentence by choosing the correct option from a dropdown for each blank, instead of typing free text. Because the user picks from a predefined list, grading is fully deterministic: the user can never fail due to typos, punctuation, casing or incomplete answers, and the available options give the learner guidance. It consists in a markdown code block with the language set to `select_the_blank`. Inside the code block, you must write the question with the blank (or blanks) to be filled. Each blank consists in _1_, _2_, _3_, etc. In the metadata section, for each blank you must provide the list of options separated by the pipe character `|`. IMPORTANT: the FIRST option of each blank is the correct one. You MUST provide at least 3 options per blank: 1 correct answer and at least 2 plausible distractors. You can also use select the blank for numerical questions.
+    rules:
+      - The FIRST option of each blank is always the correct answer; the rest are distractors.
+      - Each blank MUST have at least 3 options (1 correct + at least 2 distractors).
+      - Options are separated by the pipe character `|`, NOT by commas (commas can be part of an option's text).
+      - Distractors must be plausible and related to the topic, never obviously wrong.
+      - Keep options reasonably short so they read well inside a dropdown.
+      - READ-BACK CHECK - When the correct option is inserted into its blank, the WHOLE sentence MUST be grammatically correct and factually true. Re-read each completed sentence to verify before finalizing.
+      - UNIQUENESS - Each blank must have exactly ONE correct option given the surrounding text, and that text must contain enough information to identify it unambiguously. NEVER write two blanks whose surrounding text is identical or interchangeable (e.g. the same description reused for two different answers).
+      - DISTRACTORS MUST BE WRONG IN CONTEXT - Each distractor, if placed in the blank, MUST make the sentence false or wrong in that specific context. If a distractor would also be a valid answer, the sentence is missing disambiguating information; add it.
+      - CONSISTENT FRAMING - What the learner selects (the blank) must be exactly what the instruction asks them to identify. Do not place the blank where a different part of speech belongs (e.g. asking to pick a method but leaving the blank where a position noun like "end"/"beginning" should go).
     avoid:
-      - open text question
-      - this component is intended only for fill in the blank answers
+      - free text answers (use open_text_question for those)
+      - blanks with fewer than 3 options
       - never use for visual questions
-      - only for textual easy to evaluate questions
+      - blanks where two or more options would be equally valid given the surrounding text
+      - sentences that read incorrectly once the correct option is inserted
     example: |
       ### Let's recall!
 
-      ```fill_in_the_blank 1="Paris" 2="Berlin"
+      ```select_the_blank 1="Paris|Madrid|Rome" 2="Berlin|Lisbon|Vienna"
       The capital of France is _1_, the capital of Germany is _2_.
       ```
+
       --- Second Example ---
 
       ### Are you really learning? Let's check it!
 
-      Complete the sentence with number of hours of sleep per day that are recommended based on the lesson.
-
-      ```fill_in_the_blank 1="7,8,9,10" 
-      I need to sleep at least _1_ hours a day to be healthy.
+      ```select_the_blank 1="401 Unauthorized|403 Forbidden|404 Not Found" 2="GET|POST|DELETE" 3="POST|GET|PUT"
+      If the user is not authenticated, the server responds with _1_.
+      To retrieve a resource you use _2_, and to create a new one you use _3_.
       ```
 
-      --- Third Example ---
+      --- Third Example (note how every sentence is unambiguous and reads correctly once filled) ---
 
-      ### Let's check your math skills!
+      ### Match each array method to what it does!
 
-      ```fill_in_the_blank 1="12" 2="5" 3="4"
-      Calculate the result of 2 * 6 = _1_
-      If we divide 20 by 4, the result is _2_
-      The square root of 16 is _3_
+      ```select_the_blank 1="push|pop|unshift" 2="pop|push|shift" 3="shift|unshift|pop" 4="unshift|shift|push"
+      Pick the array method that matches each description:
+
+      1. _1_ adds one or more elements to the end of the array.
+      2. _2_ removes the last element of the array and returns it.
+      3. _3_ removes the first element of the array and returns it.
+      4. _4_ adds one or more elements to the beginning of the array.
+      ```
+
+  - name: ordering
+    measures:
+      - rubric: content_mastery
+        weight: 0.60
+      - rubric: application_problem_solving
+        weight: 0.25
+      - rubric: critical_thinking
+        weight: 0.15
+    description: >-
+      An ordering component asks the user to arrange a set of items into the correct sequence. It is ideal for processes, step-by-step procedures, chronological events, or ranking things (for example: the lifecycle of an HTTP request, the steps of a git workflow, the steps of a installation process, etc). Grading is fully deterministic: the user's order is compared position by position with the correct one. It consists in a markdown code block with the language set to `ordering`. Inside the code block, write one item per line, IN THE CORRECT ORDER (the renderer shuffles them before showing them to the user, and the user reorders them with up/down arrows). You can optionally add a `title` in the metadata to describe what must be ordered.
+    rules:
+      - Write the items in the CORRECT order inside the code block; the renderer shuffles them automatically.
+      - Write exactly one item per line. Items may optionally start with a number or a list marker (it is stripped automatically).
+      - Use between 3 and 6 items; fewer than 3 makes the exercise trivial, more than 6 becomes tedious.
+      - There must be a single, unambiguous correct order. Do not use it when several orders could be valid.
+      - Keep each item short and self-contained.
+    avoid:
+      - sets where more than one order is acceptable
+      - fewer than 3 items
+      - never use for visual questions
+    example: |
+      ### Let's order the process!
+
+      ```ordering title="Order the lifecycle of an HTTP request"
+      The client opens a TCP connection
+      The client sends the request
+      The server processes the request and responds
+      The connection is closed
+      ```
+
+      --- Second Example ---
+
+      ### Don't lose that awesome feature you created!
+
+      ```ordering title="Order the commands to save your changes in git"
+      git add .
+      git commit -m "Save changes"
+      git push
       ```
 
   - name: code_challenge_proposal

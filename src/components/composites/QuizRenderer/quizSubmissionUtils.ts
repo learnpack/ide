@@ -105,6 +105,108 @@ export const isFillInTheBlankAnswerCorrect = (
   return Boolean(correctOptions?.includes(normalized));
 };
 
+/** Stable identity string for select-the-blank blocks (code + ordered numeric metadata). */
+export const buildSelectTheBlankIdentityString = (
+  code: string,
+  metadata: Record<string, unknown>
+) => {
+  const numericKeys = Object.keys(metadata)
+    .filter((k) => /^\d+$/.test(k))
+    .sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+  const metaPart = numericKeys
+    .map((k) => `${k}=${String(metadata[k])}`)
+    .join("|");
+  return `stb:${code.trim()}:${metaPart}`;
+};
+
+/**
+ * Exact-match comparison for select-the-blank. The student picks a verbatim option
+ * from a list, so grading is fully deterministic — no normalization or fuzzy logic.
+ */
+export const isSelectTheBlankAnswerCorrect = (
+  userAnswer: string | undefined,
+  correctAnswer: string | undefined
+): boolean => {
+  if (userAnswer == null || correctAnswer == null) return false;
+  return userAnswer.trim() === correctAnswer.trim();
+};
+
+export const makeSelectTheBlankSubmission = (
+  uniqueBlanks: string[],
+  answers: Record<string, string>,
+  correctAnswers: Record<string, string>,
+  quizHash: string,
+  started_at: number
+): TQuizSubmission => {
+  const selections = uniqueBlanks.map((blankNum) => {
+    const raw = (answers[blankNum] ?? "").trim();
+    const isCorrect = isSelectTheBlankAnswerCorrect(
+      answers[blankNum],
+      correctAnswers[blankNum]
+    );
+    return {
+      question: `blank_${blankNum}`,
+      answer: raw,
+      isCorrect,
+    };
+  });
+  const correctCount = selections.filter((s) => s.isCorrect).length;
+  const total = uniqueBlanks.length;
+  const percentage = total > 0 ? (correctCount / total) * 100 : 0;
+  return {
+    started_at,
+    ended_at: Date.now(),
+    status: percentage === 100 ? "SUCCESS" : "ERROR",
+    percentage,
+    quiz_hash: quizHash,
+    selections,
+  };
+};
+
+/** Stable identity string for ordering blocks (title + ordered canonical items). */
+export const buildOrderingIdentityString = (
+  code: string,
+  metadata: Record<string, unknown>
+) => {
+  const title = typeof metadata.title === "string" ? metadata.title : "";
+  return `ord:${title}:${code.trim()}`;
+};
+
+/**
+ * Parses ordering items from the code block. Items are written one per line, in the
+ * correct order; this strips optional list markers (`1.`, `2)`, `-`, `*`), trims and
+ * drops blank lines.
+ */
+export const parseOrderingItems = (code: string): string[] =>
+  code
+    .split("\n")
+    .map((line) => line.replace(/^\s*(?:\d+[.)]|[-*])\s+/, "").trim())
+    .filter((line) => line.length > 0);
+
+export const makeOrderingSubmission = (
+  canonicalItems: string[],
+  currentOrder: string[],
+  quizHash: string,
+  started_at: number
+): TQuizSubmission => {
+  const selections = currentOrder.map((item, index) => ({
+    question: `position_${index + 1}`,
+    answer: item,
+    isCorrect: item === canonicalItems[index],
+  }));
+  const correctCount = selections.filter((s) => s.isCorrect).length;
+  const total = canonicalItems.length;
+  const percentage = total > 0 ? (correctCount / total) * 100 : 0;
+  return {
+    started_at,
+    ended_at: Date.now(),
+    status: percentage === 100 ? "SUCCESS" : "ERROR",
+    percentage,
+    quiz_hash: quizHash,
+    selections,
+  };
+};
+
 export const makeFillInTheBlankSubmission = (
   uniqueBlanks: string[],
   answers: Record<string, string>,
