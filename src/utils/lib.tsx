@@ -761,3 +761,86 @@ export const getComponentsInfo = (has_coding_challenges: boolean = false): strin
   `
   return componentsInfoString;
 };
+
+/**
+ * How a menu entry produces its content:
+ * - "image": dedicated image generation flow (generateImage), with style selector.
+ * - "code-challenge": dedicated code challenge flow (generateCodeChallenge).
+ * - "ai-template": generated via Rigobot (request-changes-in-lesson-v2) with preview.
+ */
+export type TComponentGeneration = "ai-template" | "image" | "code-challenge";
+
+export type TMenuComponent = {
+  id: string;
+  group: "explanatory" | "assessment";
+  generation: TComponentGeneration;
+};
+
+export type TImageStyle = {
+  id: string;
+  visualStyle: string;
+};
+
+// Synthetic "image" entry: the 3 explanatory image components (those with a
+// `visualStyle`) collapse into this single entry plus a style selector.
+const IMAGE_COMPONENT_ID = "image";
+
+type TYamlComponent = {
+  name: string;
+  visualStyle?: string;
+  [key: string]: unknown;
+};
+
+const parseYamlComponents = (raw: string): TYamlComponent[] => {
+  try {
+    const parsed = yaml.load(raw) as { components?: TYamlComponent[] };
+    return parsed?.components ?? [];
+  } catch (error) {
+    console.error("Error parsing components YAML:", error);
+    return [];
+  }
+};
+
+/**
+ * Image styles for the "Generate image" sub-input. Derived from the explanatory
+ * components that define a `visualStyle`, prepended with a "free" (no style)
+ * default. Keeps explanatory_components.yml as the single source of truth.
+ */
+export const getImageStyles = (): TImageStyle[] => {
+  const explanatory = parseYamlComponents(explanatoryComponentsRaw);
+  const styled = explanatory
+    .filter((c) => typeof c.visualStyle === "string" && c.visualStyle.trim())
+    .map((c) => ({ id: c.name, visualStyle: c.visualStyle as string }));
+
+  return [{ id: "free", visualStyle: "" }, ...styled];
+};
+
+/**
+ * Menu entries for the "Add" menu, grouped into explanatory and assessment.
+ * Components with a `visualStyle` are NOT listed here (they are image styles);
+ * a single synthetic "image" entry represents image generation instead.
+ */
+export const getMenuComponents = (): TMenuComponent[] => {
+  const toEntry = (
+    c: TYamlComponent,
+    group: "explanatory" | "assessment"
+  ): TMenuComponent => ({
+    id: c.name,
+    group,
+    generation:
+      c.name === "code_challenge_proposal" ? "code-challenge" : "ai-template",
+  });
+
+  const explanatory: TMenuComponent[] = [
+    { id: IMAGE_COMPONENT_ID, group: "explanatory", generation: "image" },
+    ...parseYamlComponents(explanatoryComponentsRaw)
+      .filter((c) => !(typeof c.visualStyle === "string" && c.visualStyle.trim()))
+      .map((c) => toEntry(c, "explanatory")),
+  ];
+
+  const assessment: TMenuComponent[] = parseYamlComponents(
+    assessmentComponentsRaw
+  ).map((c) => toEntry(c, "assessment"));
+
+  return [...explanatory, ...assessment];
+};

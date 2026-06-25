@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import useStore from "../../utils/store";
 import { useShallow } from "zustand/react/shallow";
 import { useTranslation } from "react-i18next";
+import { TFunction } from "i18next";
 import { RigoAI } from "../Rigobot/AI";
 import { Element } from "hast";
 import SimpleButton from "../mockups/SimpleButton";
@@ -10,7 +11,7 @@ import { Markdowner } from "../composites/Markdowner/Markdowner";
 import { Loader } from "../composites/Loader/Loader";
 import { AutoResizeTextarea } from "../composites/AutoResizeTextarea/AutoResizeTextarea";
 import toast from "react-hot-toast";
-import { Icon } from "../Icon";
+import { Icon, IconName } from "../Icon";
 import {
   Tooltip,
   TooltipContent,
@@ -22,13 +23,17 @@ import {
   DEV_URL,
   generateImage,
   getComponentsInfo,
+  getImageStyles,
+  getMenuComponents,
   slugify,
+  TImageStyle,
+  TMenuComponent,
   uploadBlobToBucket,
 } from "../../utils/lib";
 import { generateCodeChallenge } from "../../utils/creator";
 
 type TPromp = {
-  type: "button" | "select" | "input" | "image-generate" | "code-challenge";
+  type: "button" | "select";
   text?: string;
   title?: string;
   options?: string[];
@@ -37,6 +42,18 @@ type TPromp = {
   placeholder?: string;
   svg?: React.ReactNode;
   allowedElements?: string[];
+};
+
+// Lucide icon per menu component id (see getMenuComponents in utils/lib).
+const COMPONENT_ICONS: Record<string, IconName> = {
+  image: "Image",
+  mermaid_diagram: "Workflow",
+  ask_rigo_button: "Sparkles",
+  multiple_choice_question: "ListChecks",
+  select_the_blank: "SquareChevronDown",
+  ordering: "ArrowUpDown",
+  open_text_question: "MessageSquare",
+  code_challenge_proposal: "Code",
 };
 
 const getPortionFromText = (text: string, start: number, end: number) => {
@@ -96,6 +113,10 @@ export const CreatorWrapper = ({
   const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const { t } = useTranslation();
+
+  // Component catalog and image styles are derived from the YAML files (parsed once).
+  const menuComponents = useMemo(() => getMenuComponents(), []);
+  const imageStyles = useMemo(() => getImageStyles(), []);
 
   const simplifyLanguage = () => {
     let text = elemRef.current?.innerHTML;
@@ -354,12 +375,18 @@ export const CreatorWrapper = ({
     reportEnrichDataLayer("creator_result_rejected", {});
   };
 
-  const handleImageGenerate = async (prompt: string) => {
+  const handleImageGenerate = async (prompt: string, styleId?: string) => {
     if (!prompt.trim()) return;
+
+    // The style only shapes the generated image; it must NOT pollute the alt text.
+    const visualStyle = getImageStyles().find((s) => s.id === styleId)?.visualStyle;
+    const generationPrompt = visualStyle
+      ? `${prompt}\n\nVisual style: ${visualStyle}`
+      : prompt;
 
     const randomID = Math.random().toString(36).substring(2, 15);
     await generateImage(token, {
-      prompt,
+      prompt: generationPrompt,
       context: `The image to generate is part of a lesson in a tutorial, this is the content of the lesson: ${currentContent}`,
       callbackUrl: `${DEV_MODE
         ? DEV_URL
@@ -378,6 +405,7 @@ export const CreatorWrapper = ({
     reportEnrichDataLayer("creator_image_generation_started", {
       prompt,
       image_id: randomID,
+      style: styleId || "free",
     });
     try {
       await useConsumable("ai-generation");
@@ -455,6 +483,8 @@ export const CreatorWrapper = ({
     setIsOpen(false);
   };
 
+  // Transform actions for the "Edit" menu. Content-adding actions live in the
+  // "Add" menu and are driven by getMenuComponents() instead.
   const promps: TPromp[] = [
     {
       type: "button",
@@ -515,38 +545,17 @@ export const CreatorWrapper = ({
       svg: svgs.play,
       allowedElements: ["p", "h1", "h2", "h3", "h4", "h5", "h6"],
     },
-
-    {
-      type: "button",
-      text: t("removeThis"),
-      title: t("remove-element-tooltip"),
-      action: () => removeThis(),
-      extraClass:
-        "text-secondary  rounded padding-small danger-on-hover svg-blue",
-      svg: svgs.trash,
-      allowedElements: ["all"],
-    },
-    {
-      type: "image-generate",
-      text: t("generateImage"),
-      title: t("generate-image-tooltip"),
-      action: () => {},
-      extraClass: "text-secondary  rounded padding-small active-on-hover svg-blue",
-      svg: <Icon name="Image" color="var(--read-font-color)" />,
-      allowedElements: ["all"],
-      placeholder: t("describeImage"),
-    },
-    {
-      type: "code-challenge",
-      text: t("add-code-challenge"),
-      title: isBuildable ? t("add-code-challenge-disabled-tooltip") : t("add-code-challenge-tooltip"),
-      action: () => {},
-      extraClass: "text-secondary  rounded padding-small active-on-hover svg-blue ",
-      svg: <Icon name="Code" color="var(--read-font-color)" />,
-      allowedElements: ["new"],
-      placeholder: t("code-challenge-prompt-placeholder"),
-    },
   ];
+
+  // Generate a component (assessment/explanatory) via the AI template, routing
+  // the result through the existing preview/accept flow (same path as askAIAnything).
+  const generateComponent = (componentId: string, instruction: string) => {
+    const question = `Add a new "${componentId}" component to the lesson, strictly following its required format and rules. ${instruction
+      ? `Topic / requirement from the author: ${instruction}`
+      : "Infer an appropriate topic from the lesson context."
+      }`;
+    askAIAnything(question);
+  };
 
   const getPortion = () => {
     console.log(node?.position?.start?.offset && node?.position?.end?.offset);
@@ -742,15 +751,20 @@ export const CreatorWrapper = ({
       />
       {isOpen && tagName !== "new" && (
         <RigoInput
+          menuContext="edit"
           onClose={() => setIsOpen(false)}
           inside={true}
           onEditAsMarkdown={handleEditAsMarkdown}
           tagName={tagName}
           node={node}
           promps={promps}
+          menuComponents={menuComponents}
+          imageStyles={imageStyles}
           onSubmit={askAIAnything}
           onImageGenerate={handleImageGenerate}
           onCodeChallenge={handleCodeChallenge}
+          onGenerateComponent={generateComponent}
+          onRemove={removeThis}
           isBuildable={isBuildable}
         />
       )}
@@ -774,15 +788,20 @@ export const CreatorWrapper = ({
       <div className="text-in-editor" ref={elemRef}>
         {tagName === "new" && (
           <RigoInput
+            menuContext="add"
             onClose={() => setIsOpen(false)}
             inside={false}
             onSubmit={askAIAnything}
             promps={promps}
+            menuComponents={menuComponents}
+            imageStyles={imageStyles}
             tagName={tagName}
             node={node}
             onEditAsMarkdown={handleEditAsMarkdown}
             onImageGenerate={handleImageGenerate}
             onCodeChallenge={handleCodeChallenge}
+            onGenerateComponent={generateComponent}
+            onRemove={removeThis}
             isBuildable={isBuildable}
           />
         )}
@@ -1070,10 +1089,27 @@ export const makeReplacement = (imgID: string, alt: string) => {
   return `![GENERATING: ${alt}](/.learn/assets/${imgID})`;
 };
 
+// Label/description/placeholder resolvers for a menu component. The "image"
+// entry reuses the legacy keys; the rest come from the menuComponents.* namespace.
+const componentLabel = (t: TFunction, id: string) =>
+  id === "image" ? t("generateImage") : t(`menuComponents.${id}.label`);
+
+const componentDescription = (t: TFunction, id: string) =>
+  id === "image" ? t("generate-image-tooltip") : t(`menuComponents.${id}.description`);
+
+const componentPlaceholder = (t: TFunction, id: string) => {
+  if (id === "image") return t("describeImage");
+  if (id === "code_challenge_proposal") return t("code-challenge-prompt-placeholder");
+  return t(`menuComponents.${id}.placeholder`);
+};
+
 const RigoInput = ({
+  menuContext,
   onSubmit,
   inside,
   promps,
+  menuComponents,
+  imageStyles,
   tagName,
   node,
   onEditAsMarkdown,
@@ -1081,20 +1117,29 @@ const RigoInput = ({
   isBuildable,
   onImageGenerate,
   onCodeChallenge,
+  onGenerateComponent,
+  onRemove,
 }: {
+  menuContext: "add" | "edit";
   onSubmit: (prompt: string) => void;
   inside: boolean;
   promps: TPromp[];
+  menuComponents: TMenuComponent[];
+  imageStyles: TImageStyle[];
   tagName: string;
   node: Element | undefined;
   onEditAsMarkdown: () => void;
   onClose: () => void;
   isBuildable: boolean;
-  onImageGenerate?: (prompt: string) => void;
+  onImageGenerate?: (prompt: string, styleId?: string) => void;
   onCodeChallenge?: (prompt: string) => void;
+  onGenerateComponent?: (componentId: string, prompt: string) => void;
+  onRemove?: () => void;
 }) => {
   const [prompt, setPrompt] = useState("");
-  const [mode, setMode] = useState<"default" | "image-generate" | "code-challenge">("default");
+  // When a component is selected from the "Add" menu we enter its sub-input.
+  const [activeComponent, setActiveComponent] = useState<TMenuComponent | null>(null);
+  const [imageStyle, setImageStyle] = useState("free");
   const replaceInReadme = useStore((state) => state.replaceInReadme);
   const [showPrompts, setShowPrompts] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -1111,60 +1156,96 @@ const RigoInput = ({
       }
     };
 
-    // Add event listener
     document.addEventListener("mousedown", handleClickOutside);
-
-    // Cleanup event listener on component unmount
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [containerRef]);
 
-  // Function to get the icon for the mode
+  // Icon for the circular submit button: the active component's icon, else Rigo.
   const getIconForMode = () => {
-    let icon;
-    
-    if (mode === "default") {
-      icon = svgs.rigoSoftBlue;
-    } else {
-      const promptForMode = promps.find((p) => p.type === mode);
-      icon = promptForMode?.svg || svgs.rigoSoftBlue;
-    }
-    
-    // If the icon is a Lucide Icon component, clone it and apply white color
-    if (React.isValidElement(icon) && icon.type === Icon) {
-      return React.cloneElement(icon as React.ReactElement<{ color?: string }>, {
-        color: "var(--white)",
-      });
-    }
-    
-    // If it's the Rigo SVG or another SVG, return it as is
-    return icon;
+    if (!activeComponent) return svgs.rigoSoftBlue;
+    const iconName = COMPONENT_ICONS[activeComponent.id];
+    if (iconName) return <Icon name={iconName} color="var(--white)" />;
+    return svgs.rigoSoftBlue;
+  };
+
+  const resetSubInput = () => {
+    setActiveComponent(null);
+    setPrompt("");
+    setImageStyle("free");
+  };
+
+  const selectComponent = (component: TMenuComponent) => {
+    if (component.id === "code_challenge_proposal" && isBuildable) return;
+    setActiveComponent(component);
+    setPrompt("");
+    setImageStyle("free");
   };
 
   const handleSubmit = () => {
-    if (mode === "image-generate" && onImageGenerate) {
-      onImageGenerate(prompt);
-      setPrompt("");
-      setMode("default");
-    } else if (mode === "code-challenge" && onCodeChallenge) {
-      onCodeChallenge(prompt);
-      setPrompt("");
-      setMode("default");
-    } else {
-      onSubmit(prompt);
-      setPrompt("");
+    if (activeComponent) {
+      if (activeComponent.generation === "image" && onImageGenerate) {
+        onImageGenerate(prompt, imageStyle);
+      } else if (activeComponent.generation === "code-challenge" && onCodeChallenge) {
+        onCodeChallenge(prompt);
+      } else if (onGenerateComponent) {
+        onGenerateComponent(activeComponent.id, prompt);
+      }
+      resetSubInput();
+      return;
     }
+    onSubmit(prompt);
+    setPrompt("");
   };
 
-  const currentPlaceholder = mode === "image-generate" 
-    ? t("describeImage")
-    : mode === "code-challenge"
-    ? t("code-challenge-prompt-placeholder")
+  const currentPlaceholder = activeComponent
+    ? componentPlaceholder(t, activeComponent.id)
     : t("editWithRigobotPlaceholder");
+
+  const explanatory = menuComponents.filter((c) => c.group === "explanatory");
+  const assessment = menuComponents.filter((c) => c.group === "assessment");
+
+  const renderComponentEntry = (component: TMenuComponent) => {
+    const isDisabled = component.id === "code_challenge_proposal" && isBuildable;
+    const iconName = COMPONENT_ICONS[component.id] || "Plus";
+    return (
+      <SimpleButton
+        key={component.id}
+        svg={<Icon name={iconName} color="var(--read-font-color)" />}
+        title={isDisabled ? t("add-code-challenge-disabled-tooltip") : componentDescription(t, component.id)}
+        text={componentLabel(t, component.id)}
+        disabled={isDisabled}
+        extraClass="text-secondary rounded padding-small active-on-hover svg-blue menu-component-entry"
+        action={() => selectComponent(component)}
+      />
+    );
+  };
+
+  const removeButton = onRemove && (
+    <SimpleButton
+      svg={svgs.trash}
+      text={menuContext === "add" ? t("discardElement") : t("removeThis")}
+      title={t("remove-element-tooltip")}
+      confirmationMessage={t("confirmRemove")}
+      action={onRemove}
+      extraClass="text-secondary rounded padding-small danger-on-hover svg-blue menu-destructive-btn"
+    />
+  );
 
   return (
     <div ref={containerRef} className={` ${inside ? "creator-options" : ""}`}>
+      {activeComponent && (
+        <div className="sub-input-header flex-x align-center gap-small">
+          <SimpleButton
+            svg={<Icon name="ArrowLeft" size={16} />}
+            title={t("back")}
+            action={resetSubInput}
+            extraClass="text-secondary rounded padding-small active-on-hover svg-blue"
+          />
+          <span className="text-bold">{componentLabel(t, activeComponent.id)}</span>
+        </div>
+      )}
       <div className={`rigo-input ${inside ? "" : "w-100"}`}>
         <SimpleButton
           svg={getIconForMode()}
@@ -1172,7 +1253,7 @@ const RigoInput = ({
           extraClass={"big-circle rigo-button mr-12"}
         />
         <AutoResizeTextarea
-          key={mode}
+          key={activeComponent?.id || "default"}
           onFocus={() => setShowPrompts(true)}
           onBlur={() => {
             setTimeout(() => {
@@ -1190,90 +1271,60 @@ const RigoInput = ({
               handleSubmit();
             }
           }}
-          minHeight={mode === "code-challenge" ? 120 : 60}
+          minHeight={activeComponent?.id === "code_challenge_proposal" ? 120 : 60}
           defaultValue=""
           onChange={(e) => {
             setPrompt(e.target.value);
           }}
         />
       </div>
-      {showPrompts && (
+
+      {activeComponent?.generation === "image" && (
+        <div className="image-style-select flex-x align-center gap-small">
+          <label className="text-secondary">{t("imageStyle.label")}</label>
+          <select
+            className="rounded"
+            value={imageStyle}
+            onChange={(e) => setImageStyle(e.target.value)}
+          >
+            {imageStyles.map((style) => (
+              <option key={style.id} value={style.id}>
+                {t(`imageStyle.${style.id}`)}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {showPrompts && !activeComponent && menuContext === "edit" && (
         <div className="flex-y gap-small creator-options-buttons">
           {promps
-            .filter((prompt) => {
-              if (prompt.allowedElements?.includes("all")) return true;
-              if (prompt.allowedElements?.includes(tagName)) return true;
+            .filter((p) => {
+              if (p.allowedElements?.includes("all")) return true;
+              if (p.allowedElements?.includes(tagName)) return true;
               return false;
             })
-            .map((prompt, index) => {
-              const isCodeChallengeButton = prompt.type === "code-challenge";
-              const isDisabled = isCodeChallengeButton && isBuildable === true;
-              const tooltipTitle = isDisabled ? t("add-code-challenge-disabled-tooltip") : prompt.title;
-
-              if (prompt.type === "image-generate") {
-                return (
-                  <SimpleButton
-                    svg={prompt.svg}
-                    key={`${prompt.text}-${index}`}
-                    title={tooltipTitle}
-                    action={() => {
-                      setMode("image-generate");
-                      setPrompt("");
-                    }}
-                    extraClass={prompt.extraClass}
-                    text={prompt.text}
-                    disabled={isDisabled}
-                  />
-                );
-              }
-              
-              if (prompt.type === "code-challenge") {
-                return (
-                  <SimpleButton
-                    svg={prompt.svg}
-                    key={`${prompt.text}-${index}`}
-                    title={tooltipTitle}
-                    action={() => {
-                      setMode("code-challenge");
-                      setPrompt("");
-                    }}
-                    extraClass={prompt.extraClass}
-                    text={prompt.text}
-                    disabled={isDisabled}
-                  />
-                );
-              }
-
-              return prompt.type === "button" ? (
+            .map((p, index) =>
+              p.type === "button" ? (
                 <SimpleButton
-                  svg={prompt.svg}
-                  key={`${prompt.text}-${index}`}
-                  title={tooltipTitle}
-                  action={prompt.action}
-                  extraClass={prompt.extraClass}
-                  text={prompt.text}
-                  disabled={isDisabled}
+                  svg={p.svg}
+                  key={`${p.text}-${index}`}
+                  title={p.title}
+                  action={p.action}
+                  extraClass={p.extraClass}
+                  text={p.text}
                 />
-              ) : prompt.type === "select" ? (
-                <div
-                  className={`flex-x gap-small `}
-                  key={`${prompt.text}-${index}`}
-                >
+              ) : p.type === "select" ? (
+                <div className="flex-x gap-small" key={`${p.text}-${index}`}>
                   <SimpleButton
-                    key={`${prompt.text}-${index}`}
-                    svg={prompt.svg}
-                    title={prompt.title}
-                    action={() => prompt.action(toneRef.current?.value || "")}
-                    extraClass={prompt.extraClass}
-                    text={prompt.text}
+                    svg={p.svg}
+                    title={p.title}
+                    action={() => p.action(toneRef.current?.value || "")}
+                    extraClass={p.extraClass}
+                    text={p.text}
                   />
-                  <select
-                    ref={toneRef}
-                    key={prompt.text}
-                    className={`rounded `}
-                  // onChange={(e) => prompt.action(e.target.value)}
-                  >
-                    {prompt.options?.map((option) => (
+                  <select ref={toneRef} className="rounded">
+                    {p.options?.map((option) => (
                       <option key={option} value={option}>
                         {t(option)}
                       </option>
@@ -1281,7 +1332,7 @@ const RigoInput = ({
                   </select>
                 </div>
               ) : null
-            })}
+            )}
           {tagName !== "new" && (
             <SimpleButton
               extraClass=" text-secondary  rounded padding-small active-on-hover svg-blue"
@@ -1290,17 +1341,32 @@ const RigoInput = ({
               text={t("editAsMarkdown")}
             />
           )}
-          <ImageUploader
-            onFinish={async (imgRelPath) => {
-              if (node?.position?.start && node?.position?.end) {
-                await replaceInReadme(
-                  `![${imgRelPath}](${imgRelPath})`,
-                  node?.position?.start,
-                  node?.position?.end
-                );
-              }
-            }}
-          />
+          {removeButton && <div className="menu-destructive">{removeButton}</div>}
+        </div>
+      )}
+
+      {showPrompts && !activeComponent && menuContext === "add" && (
+        <div className="flex-y gap-small creator-options-buttons">
+          <div className="menu-section flex-y gap-small">
+            <span className="menu-section-header">{t("menu.explanatory")}</span>
+            {explanatory.map(renderComponentEntry)}
+            <ImageUploader
+              onFinish={async (imgRelPath) => {
+                if (node?.position?.start && node?.position?.end) {
+                  await replaceInReadme(
+                    `![${imgRelPath}](${imgRelPath})`,
+                    node?.position?.start,
+                    node?.position?.end
+                  );
+                }
+              }}
+            />
+          </div>
+          <div className="menu-section flex-y gap-small">
+            <span className="menu-section-header">{t("menu.assessment")}</span>
+            {assessment.map(renderComponentEntry)}
+          </div>
+          {removeButton && <div className="menu-destructive">{removeButton}</div>}
         </div>
       )}
     </div>
