@@ -16,6 +16,7 @@ const messages = {
     testingError: "Check the terminal for more detailed info.",
     testingSuccess: "Everything as expected.",
     internalError: "Woops! There has been an internal error",
+    serviceError: "The evaluation service is unavailable. Please try again in a few seconds.",
     prettifying: "Making code prettier",
     prettifySuccess: "Look how beautiful your code is now",
     completed: "Excellent!",
@@ -61,6 +62,7 @@ const messages = {
     testingError: "Check the terminal for more detailed info.",
     testingSuccess: "Everything as expected.",
     internalError: "Woops! There has been an internal error",
+    serviceError: "The evaluation service is unavailable. Please try again in a few seconds.",
     prettifying: "Making code prettier",
     prettifySuccess: "Look how beautiful your code is now",
     completed: "Excellent!",
@@ -106,6 +108,7 @@ const messages = {
     testingError: "Consulta la terminal para más información detallada.",
     testingSuccess: "Todo como se esperaba.",
     internalError: "¡Ups! Ha habido un error interno",
+    serviceError: "El servicio de evaluacion no esta disponible. Intentalo de nuevo en unos segundos.",
     prettifying: "Haciendo el código más bonito",
     prettifySuccess: "Mira qué bonito está tu código ahora",
     completed: "¡Excelente!",
@@ -207,6 +210,8 @@ export const getStatus = function (status = "initializing", language = "en") {
       return [getGoodIcon(), messages[language].testingSuccess];
     case "internal-error":
       return ["🔥💻", messages[language].internalError];
+    case "service-error":
+      return ["🛜", messages[language].serviceError];
     case "prettifying":
       return ["✨", messages[language].prettifying];
     case "prettify-success":

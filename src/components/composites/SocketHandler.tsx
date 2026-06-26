@@ -19,6 +19,7 @@ export function SocketHandler() {
     build,
     runExerciseTests,
     setUser,
+    clearCompilationWatchdog,
   } = useStore((state) => ({
     compilerSocket: state.compilerSocket,
     exercises: state.exercises,
@@ -31,6 +32,7 @@ export function SocketHandler() {
     build: state.build,
     runExerciseTests: state.runExerciseTests,
     setUser: state.setUser,
+    clearCompilationWatchdog: state.clearCompilationWatchdog,
   }));
 
   const [inputsResponses, setInputsResponses] = useState([] as string[]);
@@ -81,6 +83,7 @@ export function SocketHandler() {
     });
 
     compilerSocket.on("ask", async ({ inputs, nextAction }: any) => {
+      clearCompilationWatchdog();
       setInputs(inputs);
       if (nextAction) {
         setNextAction(nextAction);

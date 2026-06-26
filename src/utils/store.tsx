@@ -332,6 +332,8 @@ const useStore = create<IStore>((set, get) => ({
     aiMessage: "",
   },
   isCompiling: false,
+  compilationWatchdog: null as ReturnType<typeof setTimeout> | null,
+  serviceError: false,
   showSidebar: false,
   user_id: null,
   hasSolution: false,
@@ -535,10 +537,11 @@ const useStore = create<IStore>((set, get) => ({
     } = get();
 
     const debounceTestingSuccess = debounce((data: any) => {
+      get().clearCompilationWatchdog();
       const stdout = removeSpecialCharacters(data.logs[0]);
 
       setTestResult("successful", stdout);
-      set({ isCompiling: false });
+      set({ isCompiling: false, serviceError: false });
       set({ lastState: "success", terminalShouldShow: true });
       toastFromStatus("testing-success");
       eventBus.emit("assessment_completed", {
@@ -576,8 +579,9 @@ const useStore = create<IStore>((set, get) => ({
     }, 100);
 
     const debounceTestingError = debounce((data: any) => {
+      get().clearCompilationWatchdog();
       const stdout = removeSpecialCharacters(data.logs[0]);
-      set({ isCompiling: false });
+      set({ isCompiling: false, serviceError: false });
       setTestResult("failed", stdout);
       set({ lastState: "error", terminalShouldShow: true });
       toastFromStatus("testing-error");
@@ -617,9 +621,10 @@ const useStore = create<IStore>((set, get) => ({
 
     let compilerErrorHandler = debounce(async (data: any) => {
       data;
+      get().clearCompilationWatchdog();
 
       set({ lastState: "error", terminalShouldShow: true });
-      set({ isCompiling: false });
+      set({ isCompiling: false, serviceError: false });
 
       setBuildButtonPrompt("try-again", "bg-fail text-white");
 
@@ -635,8 +640,9 @@ const useStore = create<IStore>((set, get) => ({
 
     let compilerSuccessHandler = debounce(async (data: any) => {
       data;
+      get().clearCompilationWatchdog();
       set({ lastState: "success", terminalShouldShow: true });
-      set({ isCompiling: false });
+      set({ isCompiling: false, serviceError: false });
 
       toastFromStatus("compiler-success");
 
@@ -658,6 +664,19 @@ const useStore = create<IStore>((set, get) => ({
     compilerSocket.onStatus("testing-error", debounceTestingError);
     compilerSocket.onStatus("compiler-error", compilerErrorHandler);
     compilerSocket.onStatus("compiler-success", compilerSuccessHandler);
+
+    compilerSocket.onStatus("service-error", () => {
+      get().failCompilation();
+    });
+
+    compilerSocket.onStatus("retrying", (data: any) => {
+      const text = "Retrying...";
+      if (data?.targetButton === "feedback") {
+        setFeedbackButtonProps(text, "palpitate");
+      } else {
+        setBuildButtonPrompt(text, "palpitate");
+      }
+    });
 
     compilerSocket.onStatus("open_window", () => {
       toastFromStatus("open_window");
@@ -717,6 +736,39 @@ const useStore = create<IStore>((set, get) => ({
 
   setFeedbackButtonProps: (t, c = "") => {
     set({ feedbackbuttonProps: { text: t, className: c } });
+  },
+
+  startCompilationWatchdog: () => {
+    get().clearCompilationWatchdog();
+    const id = setTimeout(() => {
+      if (get().isCompiling) get().failCompilation();
+    }, 60000);
+    set({ compilationWatchdog: id });
+  },
+
+  clearCompilationWatchdog: () => {
+    const { compilationWatchdog } = get();
+    if (compilationWatchdog) clearTimeout(compilationWatchdog);
+    set({ compilationWatchdog: null });
+  },
+
+  failCompilation: () => {
+    const {
+      setFeedbackButtonProps,
+      setBuildButtonPrompt,
+      language,
+      targetButtonForFeedback,
+      clearCompilationWatchdog,
+    } = get();
+    clearCompilationWatchdog();
+    set({ isCompiling: false, lastState: "error", serviceError: true });
+    if (targetButtonForFeedback === "feedback") {
+      setFeedbackButtonProps("retry", "bg-fail text-white");
+    } else {
+      setBuildButtonPrompt("retry", "bg-fail text-white");
+    }
+    const [icon, message] = getStatus("service-error", language);
+    toast.error(message, { icon, duration: 6000 });
   },
 
   setOpenedModals: (modals) => {
@@ -2091,6 +2143,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
     setBuildButtonPrompt(buildText, "");
     toastFromStatus("compiling");
+    set({ targetButtonForFeedback: "build" });
 
     const data = {
       exerciseSlug: getCurrentExercise().slug,
@@ -2104,6 +2157,7 @@ The user's set up the application in "${language}" language, give your feedback 
     set({ lastStartedAt: new Date() });
     reportEnrichDataLayer("learnpack_run", {});
     set({ isCompiling: true });
+    get().startCompilationWatchdog();
   },
   setEditorTabs: (tabs) => {
     set({ editorTabs: tabs });
@@ -2179,6 +2233,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
     if (opts && opts.toast) toastFromStatus("testing");
     set({ isCompiling: true });
+    get().startCompilationWatchdog();
   },
 
   getOrCreateActiveSession: async () => {
@@ -3059,7 +3114,7 @@ The user's set up the application in "${language}" language, give your feedback 
     );
     const ai_generation = countConsumables(consumables, "ai-generation");
 
-    //const ai_generation = 0;
+    //const ai_generation = -1;
 
     set({
       userConsumables: {

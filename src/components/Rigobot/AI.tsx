@@ -111,6 +111,15 @@ export const RigoTemplate = {
         }
       },
       run: async () => {
+        // TEMP LOCAL: simulate Rigobot 503 to test error UX.
+        // const SIMULATE_503 = true;
+        // if (SIMULATE_503) {
+        //   onComplete?.(false, {
+        //     error: "Simulated 503 Service Unavailable",
+        //     status: 503,
+        //   });
+        //   return;
+        // }
         try {
           const { default: Pusher } = await import("pusher-js");
           pusherClient = new Pusher(resolvedSoketiKey, {
@@ -139,7 +148,8 @@ export const RigoTemplate = {
             console.log("Error using template errorData", errorData);
             onComplete?.(false, {
               error: errorData.detail || `HTTP error! status: ${response.status}`,
-          });
+              status: response.status,
+            });
             return;
           }
           const data = await response.json();
