@@ -139,6 +139,64 @@ function expandRepeatTags(text: string): string {
   });
 }
 
+const RETRYABLE_STATUSES = [502, 503, 504];
+const MAX_RETRIES = 2;
+const BACKOFF_MS = [1000, 2000];
+
+function runTemplateWithRetry(
+  {
+    slug,
+    inputs,
+    target,
+    targetButton,
+  }: {
+    slug: string;
+    inputs: Record<string, string>;
+    target?: HTMLElement;
+    targetButton: "feedback" | "build";
+  },
+  onSuccess: (json: any) => void,
+  attempt = 0
+) {
+  RigoAI.useTemplate({
+    slug,
+    inputs,
+    target,
+    onComplete: (success, rigoData) => {
+      const parsed = rigoData?.data?.parsed;
+      if (success && parsed) {
+        onSuccess(parsed);
+        return;
+      }
+
+      const status = rigoData?.status ?? rigoData?.error?.status;
+      const isRetryable =
+        status === undefined || RETRYABLE_STATUSES.includes(status);
+      if (isRetryable && attempt < MAX_RETRIES) {
+        localStorageEventEmitter.emitStatus("retrying", {
+          targetButton,
+          attempt: attempt + 1,
+        });
+        setTimeout(
+          () =>
+            runTemplateWithRetry(
+              { slug, inputs, target, targetButton },
+              onSuccess,
+              attempt + 1
+            ),
+          BACKOFF_MS[attempt]
+        );
+        return;
+      }
+      localStorageEventEmitter.emitStatus("service-error", {
+        targetButton,
+        error: rigoData?.error,
+        status,
+      });
+    },
+  });
+}
+
 localStorageEventEmitter.on("build", async (data) => {
   try {
     const cachedEditorTabs =
@@ -247,14 +305,15 @@ localStorageEventEmitter.on("build", async (data) => {
       inputs: JSON.stringify(inputsObject),
     };
     
-    RigoAI.useTemplate({
-      slug: "structured-build-learnpack",
-      inputs,
-      // target: ,
-      onComplete: (success, rigoData) => {
-        console.log("RIGOBOT AI COMPLETE the build", success, rigoData);
+    runTemplateWithRetry(
+      {
+        slug: "structured-build-learnpack",
+        inputs,
+        targetButton: "build",
+      },
+      (json) => {
+        console.log("RIGOBOT AI COMPLETE the build", json);
 
-        const json = rigoData.data.parsed;
         json.ai_required = true;
         json.started_at = started_at;
         const ended_at = new Date().getTime();
@@ -272,7 +331,6 @@ localStorageEventEmitter.on("build", async (data) => {
         }
 
         if (logs !== null) {
-          // toast.success("RIGOBOT AI SUCCESS IN THE BUILD EVENT");
           let terminalContent = ``;
           logs.forEach((log: any) => {
             terminalContent += `\`\`\`stdout\n${log.stdout}\n\`\`\`\n`;
@@ -293,8 +351,8 @@ localStorageEventEmitter.on("build", async (data) => {
 
           data.updateEditorTabs(terminalTab);
         }
-      },
-    });
+      }
+    );
   } catch (error) {
     if (error instanceof TokenExpired) {
       console.warn("Token expired. Logging out...");
@@ -306,6 +364,9 @@ localStorageEventEmitter.on("build", async (data) => {
         "Something unexpected happened in the build event": error,
       });
       toast.error("Something unexpected happened in the build event");
+      localStorageEventEmitter.emitStatus("service-error", {
+        targetButton: "build",
+      });
       reportDataLayer({
         dataLayer: {
           event: "learnpack_unexpected_error",
@@ -416,15 +477,16 @@ localStorageEventEmitter.on("test", async (data) => {
     // console.log(inputs, "INPUTS SENT TO RIGOBOT");
 
     const starting_at = new Date().getTime();
-    RigoAI.useTemplate({
-      slug: "test-instructions-learnpack",
-      inputs,
-      onComplete: (success, rigoData) => {
-        console.log("RIGOBOT AI COMPLETE the test", success, rigoData);
-        const json = rigoData.data.parsed;
+    runTemplateWithRetry(
+      {
+        slug: "test-instructions-learnpack",
+        inputs,
+        targetButton: "feedback",
+      },
+      (json) => {
+        console.log("RIGOBOT AI COMPLETE the test", json);
         const ended_at = new Date().getTime();
         json.ended_at = ended_at;
-        // const json = extractAndParseResult(dataRigobotReturns);
         json.source_code = JSON.stringify(inputs);
         json.started_at = starting_at;
 
@@ -467,8 +529,8 @@ localStorageEventEmitter.on("test", async (data) => {
             logs: [JSON.stringify(json)],
           });
         }
-      },
-    });
+      }
+    );
   } catch (error) {
     if (error instanceof TokenExpired) {
       console.warn("Token expired. Logging out...");
@@ -477,7 +539,9 @@ localStorageEventEmitter.on("test", async (data) => {
       await FetchManager.logout();
     } else {
       console.log(error);
-
+      localStorageEventEmitter.emitStatus("service-error", {
+        targetButton: "feedback",
+      });
       return;
     }
   }

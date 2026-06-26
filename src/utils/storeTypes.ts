@@ -347,6 +347,9 @@ export interface IStore {
   terminalShouldShow: boolean;
   rigoContext: TRigoContext;
   isCompiling: boolean;
+  compilationWatchdog: ReturnType<typeof setTimeout> | null;
+  /** True only when the last run failed due to a service/infrastructure error (e.g. Rigobot 503), not the student's code. */
+  serviceError: boolean;
   showSidebar: boolean;
   userConsumables: TUserConsumables;
   maxQuizRetries: number;
@@ -402,6 +405,9 @@ export interface IStore {
   setToken: (newToken: string) => void;
   setBuildButtonPrompt: (t: string, c: string) => void;
   setFeedbackButtonProps: (t: string, c: string) => void;
+  startCompilationWatchdog: () => void;
+  clearCompilationWatchdog: () => void;
+  failCompilation: () => void;
   fetchSingleExerciseInfo: (index: number) => Promise<TExercise>;
   toggleFeedback: () => void;
   fetchExercises: () => Promise<boolean | void>;

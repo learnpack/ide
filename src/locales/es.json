@@ -456,6 +456,7 @@
     "imageUploadedSuccessfully": "Imagen subida exitosamente",
     "theCourseIsNotSaved": "El curso no está guardado",
     "retry": "Reintentar",
+    "Retrying...": "Reintentando...",
     "lesson-generation-started": "La lección está siendo generada",
     "give-feedback-on-the-course-so-far": "Dale tu opinión sobre el curso hasta ahora",
     "give-feedback-to-rigobot": "Dale tu opinión a Rigobot, explica lo que quieres cambiar o lo que te gusta del curso hasta ahora",
