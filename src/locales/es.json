@@ -291,6 +291,7 @@
     "yourAnswerHere": "Tu respuesta aquí",
     "submitForReview": "Enviar para revisión",
     "evaluating": "Evaluando...",
+    "evaluationServiceError": "No pudimos evaluar tu respuesta. Inténtalo de nuevo.",
     "summarize": "Resumir",
     "removeThis": "Eliminar este",
     "sure?": "¿Seguro?",

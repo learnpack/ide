@@ -285,6 +285,7 @@
     "yourAnswerHere": "Your answer here",
     "submitForReview": "Send for review",
     "evaluating": "Evaluating...",
+    "evaluationServiceError": "We couldn't evaluate your answer. Please try again.",
     "summarize": "Summarize",
     "removeThis": "Remove this",
     "sure?": "Sure?",

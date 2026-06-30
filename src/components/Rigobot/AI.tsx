@@ -302,7 +302,7 @@ export const RigoAI = {
     inputs: Record<string, string>;
     target?: HTMLElement;
     onComplete?: (success: boolean, data: any) => void;
-  }) => {
+  }): TAgentJob | undefined => {
     // @ts-ignore
     if (!window.rigo) {
       console.error("RIGOBOT AI NOT LOADED");
@@ -329,7 +329,9 @@ export const RigoAI = {
 
     if (job) {
       job.run();
+      return job;
     }
+    return undefined;
   },
 
   ask: (
