@@ -65,6 +65,34 @@ export const getEnvironment = async () => {
   const host = getHost();
 
   console.log("DETECTED HOST", host);
+
+  // SCORM SCO: el config vive en `${host}/.learn/config.json`. Se detecta de forma
+  // explícita y primero, porque algunos LMS devuelven un 404 con cuerpo JSON parseable
+  // en otras rutas, lo que haría que la detección legacy se quedara en "localStorage".
+  const includeScormPath = window.location.pathname.endsWith("/config/index.html");
+  if (includeScormPath) {
+    try {
+      const scormConfig = await fetch(`${host}/.learn/config.json`);
+      if (scormConfig.ok) {
+        await scormConfig.json();
+        ENVIRONMENT = "scorm";
+        document.dispatchEvent(
+          new CustomEvent("environment-change", {
+            detail: { environment: "scorm" },
+          })
+        );
+        console.log("The environment will be scorm");
+        return "scorm";
+      }
+    } catch (e) {
+      console.error(
+        "SCORM config fetch failed, falling back to legacy detection",
+        e
+      );
+    }
+    // si no se encontró, continúa con la detección legacy de abajo
+  }
+
   try {
     const slug = getSlugFromPath();
     const response = await fetch(`${host}/config?slug=${slug}`);
@@ -96,6 +124,7 @@ export const getEnvironment = async () => {
     // Fetch config,jsonhandleEnvironmentChange
     try {
       const config = await fetch(`${host}/config.json`);
+      if (!config.ok) throw new Error("config.json not found");
       await config.json();
 
       console.log("The environment will be localStorage");
@@ -112,8 +141,10 @@ export const getEnvironment = async () => {
       try {
         const scormConfig = await fetch(`${host}/.learn/config.json`);
         console.log("SCORM CONFIG PATH", scormConfig);
+        if (!scormConfig.ok) throw new Error(".learn/config.json not found");
         await scormConfig.json();
 
+        ENVIRONMENT = "scorm";
         const myEvent = new CustomEvent("environment-change", {
           detail: { environment: "scorm" },
         });

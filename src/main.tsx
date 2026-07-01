@@ -37,6 +37,13 @@ const router = createBrowserRouter([
         path: "/preview/:slug/webview",
         element: <PreviewHTMLPage />,
       },
+      {
+        // Catch-all: el LMS sirve el SCO en una ruta base anidada (ej.
+        // /scorm/file/<hash>/config/index.html) que no matchea las rutas fijas.
+        // Renderiza <App/> dentro del <Layout> (TooltipProvider) para cualquier ruta.
+        path: "*",
+        element: <App />,
+      },
     ],
   },
 ]);
@@ -47,7 +54,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   </React.StrictMode>
 );
 
-if ("serviceWorker" in navigator) {
+// sw.js no se incluye en el paquete SCORM y su scope absoluto "/sw.js" falla bajo
+// la ruta anidada del LMS, así que se omite el registro cuando corremos como SCO.
+const isScormPath = window.location.pathname.endsWith("/config/index.html");
+if ("serviceWorker" in navigator && !isScormPath) {
   navigator.serviceWorker
     .register("/sw.js")
     .then((reg) => console.log("Service Worker registrado:", reg))
