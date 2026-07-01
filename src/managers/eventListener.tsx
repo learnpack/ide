@@ -3,6 +3,7 @@ import { eventBus } from "./eventBus";
 import { useEffect } from "react";
 import TelemetryManager from "./telemetry";
 import { Notifier } from "./Notifier";
+import { reportScormCompletion } from "./scormBridge";
 
 
 export default function EventListener() {
@@ -33,6 +34,9 @@ export default function EventListener() {
                 TelemetryManager.completeStepIfReadOnly(lastPos);
                 Notifier.confetti();
                 setOpenedModals({ lastLessonFinished: true });
+                // If running inside a SCORM package, tell the LMS the course is
+                // complete. No-op in every other environment.
+                reportScormCompletion(100);
             } else {
                 console.debug("Modal not opened: there are pending tasks in other lessons");
             }
