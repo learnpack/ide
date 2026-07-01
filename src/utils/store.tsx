@@ -48,7 +48,11 @@ import {
 } from "./storeTypes";
 import toast from "react-hot-toast";
 import { getStatus } from "../managers/socket";
-import { DEV_MODE, RIGOBOT_HOST } from "./lib";
+import {
+  DEV_MODE,
+  RIGOBOT_EVALUATION_TIMEOUT_MS,
+  RIGOBOT_HOST,
+} from "./lib";
 import { EventProxy } from "../managers/EventProxy";
 import { FetchManager } from "../managers/fetchManager";
 import {
@@ -742,7 +746,7 @@ const useStore = create<IStore>((set, get) => ({
     get().clearCompilationWatchdog();
     const id = setTimeout(() => {
       if (get().isCompiling) get().failCompilation();
-    }, 60000);
+    }, RIGOBOT_EVALUATION_TIMEOUT_MS);
     set({ compilationWatchdog: id });
   },
 

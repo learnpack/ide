@@ -4,7 +4,12 @@ import { useTranslation } from "react-i18next";
 import { suggestExamples } from "../../../managers/EventProxy";
 import { Element } from "hast";
 import { useEffect, useRef, useState } from "react";
-import { asyncHashText, debounce, playEffect } from "../../../utils/lib";
+import {
+  asyncHashText,
+  debounce,
+  playEffect,
+  RIGOBOT_EVALUATION_TIMEOUT_MS,
+} from "../../../utils/lib";
 
 import { SpeechToTextButton } from "../SpeechRecognitionButton/SpeechRecognitionButton";
 
@@ -30,10 +35,6 @@ type TFeedback = {
   exit_code: number;
   feedback: string;
 };
-
-// If Rigobot doesn't respond within this window (e.g. H12 timeout where the
-// completion webhook never arrives), we stop waiting and offer a retry.
-const EVALUATION_TIMEOUT_MS = 60000;
 
 export const Question = ({
   metadata,
@@ -241,7 +242,7 @@ export const Question = ({
     clearWatchdog();
     watchdogRef.current = setTimeout(
       () => handleEvaluationFailure("timeout"),
-      EVALUATION_TIMEOUT_MS
+      RIGOBOT_EVALUATION_TIMEOUT_MS
     );
 
     jobRef.current = RigoAI.useTemplate({

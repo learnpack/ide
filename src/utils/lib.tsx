@@ -133,6 +133,8 @@ getEnvironment();
 
 export const RIGOBOT_HOST = import.meta.env.VITE_RIGOBOT_HOST || "https://rigobot.herokuapp.com";
 // export const RIGOBOT_HOST = "https://8000-charlytoc-rigobot-bmwdeam7cev.ws-us120.gitpod.io";
+/** Max wait for Rigobot evaluation (tests, builds, open questions) before showing Retry. */
+export const RIGOBOT_EVALUATION_TIMEOUT_MS = 20000;
 export const BREATHECODE_HOST = "https://breathecode.herokuapp.com";
 
 export const changeSidebarVisibility = () => {
