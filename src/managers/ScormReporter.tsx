@@ -15,7 +15,12 @@ import {
  *
  * No-op outside SCORM: it only subscribes when running inside the exported SCORM
  * package (detected via the `ScormProcess*` globals injected by config/api.js).
- * Course completion stays in eventListener.tsx (`last_lesson_finished`).
+ *
+ * Scope: this component handles only the CONTINUOUS signals (start, progress,
+ * bookmark). Course COMPLETION deliberately stays in eventListener.tsx, where the
+ * "course finished" decision already lives (`last_lesson_finished` guarded by
+ * `!hasPendingTasksInAnyLesson()`, alongside confetti and the modal). Keeping it
+ * there avoids duplicating that guard.
  */
 export default function ScormReporter() {
   useEffect(() => {
