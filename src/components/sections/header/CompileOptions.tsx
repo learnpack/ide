@@ -21,20 +21,26 @@ export const CompileOptions = ({
   isHtml?: boolean;
 }) => {
   const { t } = useTranslation();
-  const { isBuildable, isTesteable, isCompiling } = useStore((state) => ({
+  const { isBuildable, isTesteable, isCompiling, lastState, serviceError } = useStore((state) => ({
     isBuildable: state.isBuildable,
     isTesteable: state.isTesteable,
     isCompiling: state.isCompiling,
+    lastState: state.lastState,
+    serviceError: state.serviceError,
   }));
+
+  const hasError = !isCompiling && !isRunning && lastState === "error";
+  const errorIcon = serviceError ? svgs.warning : svgs.testIcon;
+  const errorText = serviceError ? t("retry") : t("try-again");
 
   return (
     <Dropdown
       className={dropdownDirection}
       openingElement={
         <SimpleButton
-          extraClass={`compiler rounded padding-small ${isCompiling ? "palpitate" : ""}`}
-          svg={svgs.run}
-          text={isCompiling || isRunning ? t("Running...") : t("Run")}
+          extraClass={`compiler rounded padding-small ${isCompiling ? "palpitate" : ""} ${hasError ? "bg-fail text-white" : ""}`}
+          svg={hasError ? errorIcon : svgs.run}
+          text={isCompiling || isRunning ? t("Running...") : hasError ? errorText : t("Run")}
         />
       }
     >

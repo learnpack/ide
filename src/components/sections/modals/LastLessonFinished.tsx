@@ -67,54 +67,53 @@ export const LastLessonFinishedModal = () => {
     };
 
     return (
-        <Modal
-            outsideClickHandler={handleClose}
-            extraClass="last-lesson-finished-modal"
-            minWidth="500px"
-            showCloseButton={false}
-        >
-            <div className="last-lesson-finished-content">
-                {/* Celebration Icon */}
-                <div className="celebration-icon">
-                    <div className="celebration-emoji">{svgs.congratsRigo}</div>
-                    <div className="celebration-crown">👑</div>
-                </div>
+      <Modal
+        outsideClickHandler={handleClose}
+        extraClass="last-lesson-finished-modal"
+        minWidth="500px"
+        showCloseButton={false}
+      >
+        <div className="last-lesson-finished-content">
+          {/* Celebration Icon */}
+          <div className="celebration-icon">
+            <div className="celebration-emoji">{svgs.congratsRigo}</div>
+            <div className="celebration-crown">👑</div>
+          </div>
 
-                {/* Progress Bar */}
-                <div className="progress-bar-container">
-                    <div 
-                        className="progress-bar-fill"
-                        style={{ width: `${progress}%` }}
-                    />
-                </div>
+          {/* Progress Bar */}
+          <div className="progress-bar-container">
+            <div
+              className="progress-bar-fill"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
 
-                {/* Main Message - Random Success Message */}
-                <h2 className="congratulations-message">
-                    {successMessage}
-                </h2>
+          {/* Main Message - Random Success Message */}
+          <h2 className="congratulations-message">{successMessage}</h2>
 
-                {/* Course Title Section */}
-                {courseTitle && (
-                    <div className="course-title-section">
-                        <div className="course-title-item">
-                            <span className="course-title-label">
-                                {t("lesson-complete") || "Lesson Complete!"}
-                            </span>
-                            <span className="course-title-value">{courseTitle}</span>
-                        </div>
-                    </div>
-                )}
-
-                {/* Continue Button */}
-                <div className="continue-button-container">
-                    <SimpleButton
-                        text={t("continue") || "Continue"}
-                        action={handleContinue}
-                        extraClass="bg-success text-white big rounded continue-button-green"
-                        svg={svgs.sendSvg}
-                    />
-                </div>
+          {/* Course Title Section */}
+          {courseTitle && (
+            <div className="course-title-section">
+              <div className="course-title-item">
+                <span className="course-title-label">
+                  {t("lesson-complete") || "Lesson Complete!"}
+                </span>
+                <span className="course-title-value">{courseTitle}</span>
+                <p>{t("tutorial-end-message")}</p>
+              </div>
             </div>
-        </Modal>
+          )}
+
+          {/* Continue Button */}
+          <div className="continue-button-container">
+            <SimpleButton
+              text={t("continue") || "Continue"}
+              action={handleContinue}
+              extraClass="bg-success text-white big rounded continue-button-green"
+              svg={svgs.sendSvg}
+            />
+          </div>
+        </div>
+      </Modal>
     );
 };

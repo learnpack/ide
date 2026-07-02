@@ -3,6 +3,7 @@ import { eventBus } from "./eventBus";
 import { useEffect } from "react";
 import TelemetryManager from "./telemetry";
 import { Notifier } from "./Notifier";
+import { reportScormCompletion } from "./scormBridge";
 
 
 export default function EventListener() {
@@ -15,7 +16,8 @@ export default function EventListener() {
             console.debug("assessment_completed", event);
             if (isLastExercise) {
                 if (event.status === "SUCCESS" &&
-                    !TelemetryManager.hasPendingTasks(currentExercisePosition)) {
+                    !TelemetryManager.hasPendingTasks(currentExercisePosition) &&
+                    !TelemetryManager.hasPendingTasksInAnyLesson()) {
                     eventBus.emit("last_lesson_finished", {});
                 }
             }
@@ -23,13 +25,26 @@ export default function EventListener() {
 
         eventBus.on("last_lesson_finished", () => {
             console.debug("last_lesson_finished");
-            Notifier.confetti();
-            setOpenedModals({ lastLessonFinished: true });
+            // Verify again if there are pending tasks in any lesson
+            if (!TelemetryManager.hasPendingTasksInAnyLesson()) {
+                // Mark the last step as complete if it hasn't been yet.
+                // quiz_submission / case "test" handle testeable steps; this covers
+                // read-only last steps that have no departure open_step event.
+                const lastPos = exercises.length - 1;
+                TelemetryManager.completeStepIfReadOnly(lastPos);
+                Notifier.confetti();
+                setOpenedModals({ lastLessonFinished: true });
+                // If running inside a SCORM package, tell the LMS the course is
+                // complete. No-op in every other environment.
+                reportScormCompletion(100);
+            } else {
+                console.debug("Modal not opened: there are pending tasks in other lessons");
+            }
         });
         return () => {
             eventBus.off("assessment_completed");
         }
-    }, [isLastExercise, currentExercisePosition]);
+    }, [isLastExercise, currentExercisePosition, setOpenedModals]);
 
     return null;
 }

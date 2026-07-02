@@ -1,4 +1,31 @@
 import { TStep, TStepEvent } from "../managers/telemetry";
+
+/**
+ * Tracks the progress of the initial telemetry GET at boot time.
+ * "idle"         — fetch has not started yet (non-cloud agents stay here)
+ * "loading"      — fetch in flight; UI shows blocking loading screen
+ * "ready"        — fetch succeeded (ok or empty) and TelemetryManager is initialized
+ * "timeout"      — network error or 60 s timeout; student must decide to reload or proceed
+ * "server_error" — 5xx response; student must decide to reload or proceed
+ */
+export type TTelemetryFetchStatus =
+  | "idle"
+  | "loading"
+  | "ready"
+  | "timeout"
+  | "server_error";
+
+type TLoadingAction = {
+  label: string;
+  action: () => void;
+  style: "primary" | "ghost";
+};
+
+export type TAppLoadingError = {
+  titleKey: string;
+  descriptionKey: string;
+  actions: TLoadingAction[];
+};
 import { Tab } from "../types/editor";
 import { Point } from "unist";
 
@@ -73,6 +100,13 @@ type TFile = {
   name: string;
   path: string;
 };
+
+/** Student code snapshot at the moment tests passed (persisted in session, web env only). */
+export type TApprovedSolutionFile = {
+  name: string;
+  content: string;
+};
+
 export type TExercise = {
   path: any;
   files: TFile[];
@@ -80,6 +114,8 @@ export type TExercise = {
   title: string;
   translations: Record<string, string>;
   done: boolean;
+  /** Student files when tests passed; excluded from package solution.hide tabs. */
+  approved_solution_files?: TApprovedSolutionFile[];
   graded: boolean;
   position: number;
   language: string;
@@ -274,6 +310,10 @@ export interface IStore {
   user: TUser;
   token: string;
   bc_token: string;
+  /** Rigobot Learnpack package id for the current course slug; null until resolved. Always string when set. */
+  packageId: string | null;
+  /** Slug for which `packageId` is valid; used to skip refetch and to invalidate on course change. */
+  packageIdSlug: string | null;
   assessmentConfig: TAssessmentConfig;
   configObject: IConfigObject;
   videoTutorial: string;
@@ -294,6 +334,8 @@ export interface IStore {
   shouldBeTested: boolean;
   targetButtonForFeedback: "build" | "feedback";
   editorTabs: TEditorTab[];
+  fileLoadNotFoundByLesson: Record<string, string[]>;
+  lessonSyncInProgress: string | null;
   isIframe: boolean;
   isRigoOpened: boolean;
   theme: string;
@@ -305,6 +347,9 @@ export interface IStore {
   terminalShouldShow: boolean;
   rigoContext: TRigoContext;
   isCompiling: boolean;
+  compilationWatchdog: ReturnType<typeof setTimeout> | null;
+  /** True only when the last run failed due to a service/infrastructure error (e.g. Rigobot 503), not the student's code. */
+  serviceError: boolean;
   showSidebar: boolean;
   userConsumables: TUserConsumables;
   maxQuizRetries: number;
@@ -349,21 +394,38 @@ export interface IStore {
   getContextFilesContent: () => Promise<string>;
   loginToRigo: (loginInfo: TLoginInfo) => Promise<void | false>;
   getCurrentExercise: () => TExercise;
-  refreshDataFromAnotherTab: (data: TRefreshData) => void;
+  refreshDataFromAnotherTab: (data: TRefreshData) => Promise<void>;
   setExerciseMessages: (messages: IMessage[], position: number) => void;
   setShowVideoTutorial: (show: boolean) => void;
   registerTelemetryEvent: (event: TStepEvent, data: object) => void;
   getTelemetryStep: (stepPosition: number) => Promise<TStep | null>;
   setLanguage: (language: string, fetchExercise?: boolean) => void;
+  updateCourseTitle: (language: string, title: string) => void;
   checkLoggedStatus: (opts?: TCheckLoggedStatusOptions) => void;
   setToken: (newToken: string) => void;
   setBuildButtonPrompt: (t: string, c: string) => void;
   setFeedbackButtonProps: (t: string, c: string) => void;
+  startCompilationWatchdog: () => void;
+  clearCompilationWatchdog: () => void;
+  failCompilation: () => void;
   fetchSingleExerciseInfo: (index: number) => Promise<TExercise>;
   toggleFeedback: () => void;
-  fetchExercises: () => void;
+  fetchExercises: () => Promise<boolean | void>;
+  /**
+   * creatorWeb: after loginToRigo succeeds, mirrors start() post-fetch (see store implementation comment).
+   * Do not call from other environments.
+   */
+  bootstrapCreatorWebAfterAuth: () => Promise<void>;
+  /** GET package metadata from Rigobot when token and config slug exist; merges package_id into telemetry if missing. */
+  fetchPackageMetadata: () => Promise<void>;
   updateEditorTabs: () => void;
+  setFileLoadNotFound: (lessonSlug: string, filename: string, notFound: boolean) => void;
+  clearFileLoadNotFoundForLesson: (lessonSlug: string) => void;
+  setLessonSyncInProgress: (slug: string | null) => void;
+  syncLessonFilesFromEditor: (lessonSlug: string) => Promise<void>;
   startTelemetry: () => Promise<void>;
+  /** Idempotent wrapper; call after login or late session sync when bootstrap skipped telemetry. */
+  ensureTelemetryStarted: () => Promise<void>;
   build: (buildText: string, submittedInputs?: string[]) => void;
   setPosition: (position: number) => void;
   fetchReadme: () => void;
@@ -387,10 +449,28 @@ export interface IStore {
     opts?: Partial<TRunExerciseTestsOptions>,
     submittedInputs?: string[]
   ) => void;
-  resetExercise: (opts: TResetExerciseOpts) => void;
+  resetExercise: (opts: TResetExerciseOpts) => Promise<void>;
+  /** Web student: exit read-only approved state and allow editing again (clears approved_solution_files). */
+  unlockExerciseEditing: () => void;
   // registerAIInteraction: (setPosition: number, interaction: object) => void;
   sessionActions: (opts: TSessionActionsOpts) => void;
   displayTestButton: boolean;
+  /** True after TelemetryManager.start() completes without throwing (cloud reconciliation included). */
+  telemetryReady: boolean;
+  /** Status of the initial telemetry GET at boot (cloud only). */
+  telemetryFetchStatus: TTelemetryFetchStatus;
+  /** False while the app is initializing; true once it's ready to show content. Controls AppLoadingScreen. */
+  appReady: boolean;
+  /** Non-null when the loading screen should display an error state. */
+  appLoadingError: TAppLoadingError | null;
+  /** Timestamp (Date.now()) when the current loading sequence started; used for ensureMinDuration. */
+  appLoadStartTime: number;
+  /**
+   * Called when the student chooses to continue after a timeout or server error.
+   * Initializes TelemetryManager with a blank slate (null server data) and runs
+   * the full post-start setup (lifecycle listeners, struggle listeners, open_step).
+   */
+  proceedWithTelemetry: () => Promise<void>;
   getOrCreateActiveSession: () => void;
   updateDBSession: () => void;
   test: () => void;

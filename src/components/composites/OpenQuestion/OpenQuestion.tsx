@@ -4,7 +4,12 @@ import { useTranslation } from "react-i18next";
 import { suggestExamples } from "../../../managers/EventProxy";
 import { Element } from "hast";
 import { useEffect, useRef, useState } from "react";
-import { asyncHashText, debounce, playEffect } from "../../../utils/lib";
+import {
+  asyncHashText,
+  debounce,
+  playEffect,
+  RIGOBOT_EVALUATION_TIMEOUT_MS,
+} from "../../../utils/lib";
 
 import { SpeechToTextButton } from "../SpeechRecognitionButton/SpeechRecognitionButton";
 
@@ -16,11 +21,12 @@ import { TMetadata } from "../Markdowner/types";
 import { AutoResizeTextarea } from "../AutoResizeTextarea/AutoResizeTextarea";
 import { Markdowner } from "../Markdowner/Markdowner";
 import TelemetryManager, { TTesteableElement } from "../../../managers/telemetry";
-import { makeQuizSubmission } from "../QuizRenderer/QuizRenderer";
-import { RigoAI } from "../../Rigobot/AI";
+import { makeQuizSubmission } from "../QuizRenderer/quizSubmissionUtils";
+import { RigoAI, TAgentJob } from "../../Rigobot/AI";
 import CustomDropdown from "../../CustomDropdown";
 import { Icon } from "../../Icon"
 import { eventBus } from "@/managers/eventBus";
+import { getStatus } from "../../../managers/socket";
 const splitInLines = (code: string) => {
   return code.split("\n").filter((line) => line.trim() !== "");
 };
@@ -54,6 +60,8 @@ export const Question = ({
     getTelemetryStep,
     token,
     setOpenedModals,
+    telemetryReady,
+    language,
   } = useStore((state) => ({
     replaceInReadme: state.replaceInReadme,
     mode: state.mode,
@@ -64,10 +72,15 @@ export const Question = ({
     reportEnrichDataLayer: state.reportEnrichDataLayer,
     getTelemetryStep: state.getTelemetryStep,
     setOpenedModals: state.setOpenedModals,
+    telemetryReady: state.telemetryReady,
+    language: state.language,
   }));
 
   const [feedback, setFeedback] = useState<TFeedback | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  // Infrastructure/service failure (Rigobot error or timeout), distinct from a
+  // legitimate "your answer needs improvement" result.
+  const [serviceError, setServiceError] = useState<boolean>(false);
   const [examples, setExamples] = useState<string[]>(splitInLines(code));
   const [answer, setAnswer] = useState("");
   const [questionHash, setQuestionHash] = useState<string>("");
@@ -75,6 +88,11 @@ export const Question = ({
   const hashRef = useRef<string>("");
   const startedAtRef = useRef<number>(0);
   const isRestoredFeedbackRef = useRef(false);
+  const watchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const jobRef = useRef<TAgentJob | undefined>(undefined);
+  // Ensures only the first outcome (success / server error / timeout) wins, so a
+  // webhook arriving after the timeout can't reprocess a settled evaluation.
+  const settledRef = useRef(false);
 
   // Generate hash immediately when component mounts or metadata.eval changes
   useEffect(() => {
@@ -96,7 +114,7 @@ export const Question = ({
       hash: questionHash,
       searchString: metadata.eval as string,
     }
-    TelemetryManager.registerTesteableElement(Number(currentExercisePosition), elem);
+    TelemetryManager.registerTesteableElement(Number(currentExercisePosition), elem, language);
   };
 
   const debouncedRegister = debounce(register, 2000);
@@ -124,7 +142,7 @@ export const Question = ({
 
   // Recover answer state from telemetry when component mounts
   useEffect(() => {
-    if (!questionHash || !metadata.eval) return;
+    if (!questionHash || !metadata.eval || !telemetryReady) return;
 
     const recoverState = async () => {
       try {
@@ -169,9 +187,42 @@ export const Question = ({
     };
 
     recoverState();
-  }, [questionHash, metadata.eval, getTelemetryStep, currentExercisePosition, t]);
+  }, [
+    questionHash,
+    metadata.eval,
+    getTelemetryStep,
+    currentExercisePosition,
+    t,
+    telemetryReady,
+  ]);
 
 
+
+  const clearWatchdog = () => {
+    if (watchdogRef.current) {
+      clearTimeout(watchdogRef.current);
+      watchdogRef.current = null;
+    }
+  };
+
+  // Bail out of the loading state when the evaluation can't complete because of a
+  // service problem: either Rigobot returned an error (server) or no response
+  // arrived in time (timeout). Does NOT register a quiz_submission, so it never
+  // counts as a failed student attempt.
+  const handleEvaluationFailure = (reason: "timeout" | "server") => {
+    if (settledRef.current) return;
+    settledRef.current = true;
+
+    clearWatchdog();
+    jobRef.current?.stop();
+    setIsLoading(false);
+    setServiceError(true);
+
+    const [icon, message] = getStatus("service-error", language);
+    toast.error(message, { icon, duration: 6000 });
+
+    reportEnrichDataLayer("open_question_evaluation_error", { reason });
+  };
 
   const evaluateAnswer = async () => {
     if (!answer) {
@@ -183,8 +234,18 @@ export const Question = ({
       setOpenedModals({ mustLogin: true });
       return;
     }
+    settledRef.current = false;
+    setServiceError(false);
+    setFeedback(null);
     setIsLoading(true);
-    RigoAI.useTemplate({
+
+    clearWatchdog();
+    watchdogRef.current = setTimeout(
+      () => handleEvaluationFailure("timeout"),
+      RIGOBOT_EVALUATION_TIMEOUT_MS
+    );
+
+    jobRef.current = RigoAI.useTemplate({
       slug: "evaluator",
       inputs: {
         eval: metadata.eval as string,
@@ -193,7 +254,11 @@ export const Question = ({
         examples: examples.join("\n"),
       },
       onComplete: (success, rigoData) => {
+        if (settledRef.current) return;
+
         if (success) {
+          settledRef.current = true;
+          clearWatchdog();
           const result = rigoData.data.parsed;
           setFeedback({
             exit_code: result.exit_code,
@@ -230,7 +295,8 @@ export const Question = ({
                 hash: hashRef.current,
                 is_completed: true,
                 searchString: metadata.eval as string,
-              }
+              },
+              language
             );
             playEffect("success");
           } else {
@@ -248,10 +314,20 @@ export const Question = ({
 
           setIsLoading(false);
           useConsumable("ai-compilation");
+        } else {
+          handleEvaluationFailure("server");
         }
       },
     });
   };
+
+  // Tear down any in-flight evaluation (watchdog + Pusher subscription) on unmount.
+  useEffect(() => {
+    return () => {
+      clearWatchdog();
+      jobRef.current?.stop();
+    };
+  }, []);
 
   const handleTranscription = (text: string) => {
     // Clear feedback when user adds transcription
@@ -292,6 +368,10 @@ ${newExamples.join("\n")}
             if (feedback) {
               setFeedback(null);
             }
+            // Clear any previous service error once the user edits the answer
+            if (serviceError) {
+              setServiceError(false);
+            }
             setAnswer(e.target.value);
           }}
         />
@@ -300,11 +380,25 @@ ${newExamples.join("\n")}
       <div className="d-flex gap-small padding-small justify-between row-reverse">
         <SimpleButton
           disabled={isLoading || !answer}
-          text={isLoading ? t("evaluating") : t("submitForReview")}
-          title={isLoading ? t("evaluating") : t("submitForReview")}
-          svg={svgs.rigoSoftBlue}
+          text={
+            isLoading
+              ? t("evaluating")
+              : serviceError
+              ? t("retry")
+              : t("submitForReview")
+          }
+          title={
+            isLoading
+              ? t("evaluating")
+              : serviceError
+              ? t("retry")
+              : t("submitForReview")
+          }
+          svg={serviceError ? svgs.warning : svgs.rigoSoftBlue}
           action={evaluateAnswer}
-          extraClass="active-on-hover padding-small rounded align-self-end bg-blue-rigo text-white"
+          extraClass={`active-on-hover padding-small rounded align-self-end text-white ${
+            serviceError ? "bg-fail" : "bg-blue-rigo"
+          }`}
         />
         {isCreator && mode === "creator" && (
           <AddExampleButton
@@ -315,6 +409,11 @@ ${newExamples.join("\n")}
           />
         )}
       </div>
+      {serviceError && !isLoading && (
+        <div className="d-flex justify-end text-small text-secondary padding-small">
+          <span>{t("evaluationServiceError")}</span>
+        </div>
+      )}
       <div ref={feedbackRef}>
         {feedback && (
           <div

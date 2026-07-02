@@ -1,14 +1,28 @@
-import Markdown from "react-markdown";
+import Markdown, { type Components } from "react-markdown";
 import { Element } from "hast";
 import remarkGfm from "remark-gfm";
 import { TMetadata } from "./types";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import useStore from "../../../utils/store";
+import { useShallow } from "zustand/react/shallow";
 import emoji from "remark-emoji";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark as prismStyle } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { QuizRenderer } from "../QuizRenderer/QuizRenderer";
+import {
+  buildFillInTheBlankIdentityString,
+  buildOrderingIdentityString,
+  buildSelectTheBlankIdentityString,
+  getLatestQuizSubmission,
+  isFillInTheBlankAnswerCorrect,
+  isSelectTheBlankAnswerCorrect,
+  makeFillInTheBlankSubmission,
+  makeOrderingSubmission,
+  makeSelectTheBlankSubmission,
+  parseOrderingItems,
+} from "../QuizRenderer/quizSubmissionUtils";
+import { Select } from "radix-ui";
 import { RigoQuestion } from "../RigoQuestion/RigoQuestion";
 import { CommunityLink } from "../CommunityLink/CommunityLink";
 import { CreatorWrapper } from "../../Creator/Creator";
@@ -21,8 +35,25 @@ import {
 } from "@/components/ui/tooltip";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { useState, useEffect } from "react";
-import { DEV_MODE } from "../../../utils/lib";
+import { useState, useEffect, useId, useRef, useMemo } from "react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { DEV_MODE, asyncHashText, debounce, playEffect } from "../../../utils/lib";
 
 
 import MermaidRenderer from "../MermaidRenderer/MermaidRenderer";
@@ -40,9 +71,12 @@ import { useCompletionJobStatus } from "../../../hooks/useCompletionJobStatus";
 import { AutoResizeTextarea } from "../AutoResizeTextarea/AutoResizeTextarea";
 import { isRunnableCodeBlock } from "../../../utils/runnableDetection";
 import MonacoEditor from "@monaco-editor/react";
+import { configureMonacoTypeScript } from "../../../utils/monacoTsConfig";
 import { Toolbar } from "../Editor/Editor";
 import { eventBus } from "@/managers/eventBus";
 import { ComparisonRenderer } from "../ComparisonRenderer/ComparisonRenderer";
+import TelemetryManager from "../../../managers/telemetry";
+import { Notifier } from "../../../managers/Notifier";
 
 
 const ClickMeToGetID = ({ id }: { id: string }) => {
@@ -148,6 +182,9 @@ const generateHeadingID = (md: string) => {
   return md.toLowerCase().replace(/ /g, "-").replace(/[^a-z0-9-]/g, "");
 }
 
+const REMARK_PLUGINS = [remarkGfm, remarkMath, emoji];
+const REHYPE_PLUGINS = [rehypeKatex];
+
 export const Markdowner = ({
   markdown,
   allowCreate = false,
@@ -155,13 +192,13 @@ export const Markdowner = ({
   markdown: string;
   allowCreate?: boolean;
 }) => {
-  const { openLink, mode, isCreator, config, getPortion } = useStore((state) => ({
+  const { openLink, mode, isCreator, config, getPortion } = useStore(useShallow((state) => ({
     openLink: state.openLink,
     mode: state.mode,
     isCreator: state.isCreator,
     config: state.configObject,
     getPortion: state.getPortion,
-  }));
+  })));
 
   const creatorModeActivated = isCreator && mode === "creator" && allowCreate;
 
@@ -181,13 +218,7 @@ export const Markdowner = ({
     }
   }, [markdown]);
 
-  return (
-    <>
-      <Markdown
-        skipHtml={true}
-        remarkPlugins={[remarkGfm, remarkMath, emoji]}
-        rehypePlugins={[rehypeKatex]}
-        components={{
+  const components = useMemo((): Partial<Components> => ({
           a: ({ href, children }) => {
             if (href) {
               if (isRigoQuestion(href)) {
@@ -197,7 +228,14 @@ export const Markdowner = ({
                 return <CommunityLink />;
               }
               return (
-                <a onClick={() => openLink(href)} target="_blank" href={href}>
+                <a
+                  className="link"
+                  href={href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    openLink(href);
+                  }}
+                >
                   {children}
                 </a>
               );
@@ -495,7 +533,15 @@ export const Markdowner = ({
               />
             );
           },
-        }}
+  }), [openLink, mode, isCreator, config, getPortion, allowCreate, markdown, creatorModeActivated]);
+
+  return (
+    <>
+      <Markdown
+        skipHtml={true}
+        remarkPlugins={REMARK_PLUGINS}
+        rehypePlugins={REHYPE_PLUGINS}
+        components={components}
       >
         {markdown}
       </Markdown>
@@ -651,6 +697,16 @@ const getMonacoLanguage = (language: string): string => {
   return langMap[language.toLowerCase()] || "plaintext";
 };
 
+/** Returns file extension for Monaco model URI so TS/JS worker treats the file correctly. */
+const getExtensionForLanguage = (language: string): string => {
+  const lang = language.toLowerCase();
+  if (lang === "tsx") return "tsx";
+  if (lang === "ts" || lang === "typescript") return "ts";
+  if (lang === "jsx") return "jsx";
+  if (lang === "js" || lang === "javascript") return "js";
+  return "txt";
+};
+
 const CustomCodeBlock = ({
   code,
   language,
@@ -667,6 +723,7 @@ const CustomCodeBlock = ({
     node: any;
     allowCreate: boolean;
   }) => {
+  const blockId = useId();
   const {
     getCurrentExercise,
     isIframe,
@@ -772,6 +829,12 @@ const CustomCodeBlock = ({
   }
   if (language === "fill_in_the_blank" || language === "fill") {
     return <FillInTheBlankRenderer node={node} code={code} metadata={metadata} />;
+  }
+  if (language === "select_the_blank" || language === "select") {
+    return <SelectTheBlankRenderer node={node} code={code} metadata={metadata} />;
+  }
+  if (language === "ordering" || language === "order") {
+    return <OrderingRenderer node={node} code={code} metadata={metadata} />;
   }
 
 
@@ -887,6 +950,8 @@ const CustomCodeBlock = ({
       {isEditing ? (
         <>
           <MonacoEditor
+            beforeMount={configureMonacoTypeScript}
+            path={`file:///markdown-block-${blockId.replace(/\W/g, "-")}.${getExtensionForLanguage(language)}`}
             height="230px"
             language={getMonacoLanguage(language)}
             theme="vs-dark"
@@ -1047,20 +1112,120 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [quizHash, setQuizHash] = useState("");
+  const hashRef = useRef("");
+  const startedAtRef = useRef(0);
+  const hasRestoredData = useRef(false);
+
   const { t } = useTranslation();
-  const { token, setOpenedModals } = useStore((state) => ({
+  const {
+    token,
+    setOpenedModals,
+    registerTelemetryEvent,
+    getTelemetryStep,
+    currentExercisePosition,
+    telemetryReady,
+    recordConsumable,
+    toastFromStatus,
+    reportEnrichDataLayer,
+    language,
+  } = useStore((state) => ({
     token: state.token,
     setOpenedModals: state.setOpenedModals,
+    registerTelemetryEvent: state.registerTelemetryEvent,
+    getTelemetryStep: state.getTelemetryStep,
+    currentExercisePosition: state.currentExercisePosition,
+    telemetryReady: state.telemetryReady,
+    recordConsumable: state.useConsumable,
+    toastFromStatus: state.toastFromStatus,
+    reportEnrichDataLayer: state.reportEnrichDataLayer,
+    language: state.language,
   }));
 
   // Extract correct answers from metadata
   const correctAnswers: Record<string, string[]> = {};
   Object.keys(metadata).forEach(key => {
-    if (key.match(/^\d+$/)) { // Check if key is a number
-      const answers = metadata[key] as string;
-      correctAnswers[key] = answers.split(',').map(answer => answer.trim().toLowerCase());
+    if (key.match(/^\d+$/)) {
+      const ans = metadata[key] as string;
+      correctAnswers[key] = ans.split(',').map((a) => a.trim().toLowerCase());
     }
   });
+
+  useEffect(() => {
+    const run = async () => {
+      const id = buildFillInTheBlankIdentityString(code, metadata as Record<string, unknown>);
+      const h = await asyncHashText(id);
+      hashRef.current = h;
+      setQuizHash(h);
+    };
+    run();
+  }, [code, metadata]);
+
+  const registerFitb = async () => {
+    if (!hashRef.current) return;
+    TelemetryManager.registerTesteableElement(Number(currentExercisePosition), {
+      type: "quiz",
+      hash: hashRef.current,
+      searchString: code.slice(0, 200) || "",
+    }, language);
+  };
+
+  const debouncedRegisterFitb = debounce(registerFitb, 2000);
+
+  useEffect(() => {
+    if (quizHash) {
+      debouncedRegisterFitb();
+    }
+    return () => {
+      debouncedRegisterFitb.cancel();
+    };
+  }, [quizHash]);
+
+  useEffect(() => {
+    if (!quizHash || !telemetryReady) return;
+
+    const recoverState = async () => {
+      try {
+        const currentStep = await getTelemetryStep(Number(currentExercisePosition));
+        if (!currentStep?.quiz_submissions) return;
+
+        const submissions = currentStep.quiz_submissions.filter(
+          (s) => s.quiz_hash === quizHash
+        );
+        if (submissions.length === 0) return;
+
+        const latestSubmission = getLatestQuizSubmission(submissions);
+        if (!latestSubmission?.selections?.length) return;
+
+        const restored: Record<string, string> = {};
+        latestSubmission.selections.forEach((sel) => {
+          const m = /^blank_(\d+)$/.exec(sel.question);
+          if (m) restored[m[1]] = sel.answer;
+        });
+
+        setAnswers(restored);
+        setSubmitted(true);
+        setShowResults(true);
+        hasRestoredData.current = true;
+      } catch (error) {
+        console.error("Error recovering fill-in-the-blank from telemetry:", error);
+      }
+    };
+
+    recoverState();
+  }, [quizHash, telemetryReady, getTelemetryStep, currentExercisePosition]);
+
+  const onAnswerChange = (blankNum: string, value: string) => {
+    if (startedAtRef.current === 0) {
+      startedAtRef.current = Date.now();
+    }
+    if (hasRestoredData.current) {
+      setSubmitted(false);
+      setShowResults(false);
+      hasRestoredData.current = false;
+    }
+    setAnswers((prev) => ({ ...prev, [blankNum]: value }));
+  };
 
   // Parse the text and create JSX elements
   const parseTextWithInputs = () => {
@@ -1070,15 +1235,18 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
     let match;
 
     while ((match = blankRegex.exec(code)) !== null) {
-      // Add text before the blank
       if (match.index > lastIndex) {
         parts.push(code.slice(lastIndex, match.index));
       }
 
-      // Add input field for the blank
       const blankNum = match[1];
-      const isCorrect = submitted && correctAnswers[blankNum]?.includes(answers[blankNum]?.toLowerCase());
-      const isIncorrect = submitted && answers[blankNum] && !correctAnswers[blankNum]?.includes(answers[blankNum]?.toLowerCase());
+      const isCorrect =
+        submitted &&
+        isFillInTheBlankAnswerCorrect(answers[blankNum], correctAnswers[blankNum]);
+      const isIncorrect =
+        submitted &&
+        answers[blankNum]?.trim() &&
+        !isFillInTheBlankAnswerCorrect(answers[blankNum], correctAnswers[blankNum]);
 
       let inputClassName = "fill-blank-input";
       if (submitted) {
@@ -1096,7 +1264,7 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
           className={inputClassName}
           placeholder="Type your answer..."
           value={answers[blankNum] || ''}
-          onChange={(e) => setAnswers(prev => ({ ...prev, [blankNum]: e.target.value }))}
+          onChange={(e) => onAnswerChange(blankNum, e.target.value)}
           readOnly={submitted}
         />
       );
@@ -1104,7 +1272,6 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
       lastIndex = match.index + match[0].length;
     }
 
-    // Add remaining text
     if (lastIndex < code.length) {
       parts.push(code.slice(lastIndex));
     }
@@ -1121,41 +1288,74 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
   }
   const uniqueBlanks = [...new Set(blanks)].sort((a, b) => parseInt(a) - parseInt(b));
 
-  // Check if all blanks are filled
   const allFilled = uniqueBlanks.every(blankNum => answers[blankNum]?.trim());
 
   // Calculate score
-  const correctCount = uniqueBlanks.filter(blankNum =>
-    correctAnswers[blankNum]?.includes(answers[blankNum]?.toLowerCase())
+  const correctCount = uniqueBlanks.filter((blankNum) =>
+    isFillInTheBlankAnswerCorrect(answers[blankNum], correctAnswers[blankNum])
   ).length;
   const totalCount = uniqueBlanks.length;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!token) {
       toast.error(t("youMustLoginFirst"));
       setOpenedModals({ mustLogin: true });
       return;
     }
+    if (!hashRef.current || uniqueBlanks.length === 0) {
+      return;
+    }
+
+    const startedAt = startedAtRef.current || Date.now();
+    const submission = makeFillInTheBlankSubmission(
+      uniqueBlanks,
+      answers,
+      correctAnswers,
+      hashRef.current,
+      startedAt
+    );
+
+    registerTelemetryEvent("quiz_submission", submission);
+
     setSubmitted(true);
     setShowResults(true);
+    startedAtRef.current = 0;
 
-    if (correctCount === totalCount) {
-      toast.success(`Perfect! You got all ${totalCount} answers correct!`);
-    } else {
-      toast.error(`You got ${correctCount} out of ${totalCount} correct. ${t("Keep practicing!")}`);
-    }
     eventBus.emit("assessment_completed", {
-      status: correctCount === totalCount ? "SUCCESS" : "ERROR",
-      ended_at: Date.now(),
+      status: submission.status,
+      ended_at: submission.ended_at,
       type: "fill-in-the-blank",
-      score: correctCount === totalCount ? 100 : 0,
+      score: submission.percentage,
     });
+
+    TelemetryManager.registerTesteableElement(Number(currentExercisePosition), {
+      type: "quiz",
+      hash: hashRef.current,
+      is_completed: submission.status === "SUCCESS",
+      searchString: code.slice(0, 200) || "",
+    }, language);
+
+    if (submission.status === "SUCCESS") {
+      toastFromStatus("quiz-success");
+      Notifier.confetti();
+      playEffect("success");
+      reportEnrichDataLayer("quiz_success", {});
+    } else {
+      toastFromStatus("quiz-error");
+      playEffect("error");
+      reportEnrichDataLayer("quiz_error", {});
+    }
+
+    recordConsumable("ai-compilation");
   };
 
   const handleReset = () => {
-    setAnswers({});
+    // Unlock the fields for editing while keeping the previous answers,
+    // so the student only has to fix what was wrong (not redo the correct ones).
     setSubmitted(false);
     setShowResults(false);
+    hasRestoredData.current = false;
+    startedAtRef.current = 0;
   };
 
   return (
@@ -1172,6 +1372,802 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
           <button
             onClick={handleSubmit}
             disabled={!allFilled}
+            className="check-answers-btn"
+          >
+            {t("Check Answers")}
+          </button>
+        ) : (
+          <button
+            onClick={handleReset}
+            className="try-again-btn"
+          >
+            {t("Try again")}
+          </button>
+        )}
+      </div>
+
+      {showResults && (
+        <div className="fill-blank-results">
+          <div className="results-header">
+            <div className="results-title">{t("Results")}</div>
+            <div className="score-badge">{correctCount}/{totalCount}</div>
+          </div>
+
+          <div className="results-content">
+            <div className={`result-message ${correctCount === totalCount ? "perfect" : correctCount > totalCount / 2 ? "good" : "needs-improvement"}`}>
+              {correctCount === totalCount ? (
+                <>
+                  <div className="celebration">🎉</div>
+                  <div className="message-text">{t(`perfectSuccess.${randomFrom0to9()}`)}</div>
+                </>
+              ) : correctCount > totalCount / 2 ? (
+                <>
+                  <div className="celebration">👍</div>
+                  <div className="message-text">{t(`goodSuccess.${randomFrom0to9()}`)}</div>
+                </>
+              ) : (
+                <>
+                  <div className="celebration">💪</div>
+                  <div className="message-text">{t(`encouragement.${randomFrom0to9()}`)}</div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+
+// Deterministic string hash used to seed stable shuffles (no reshuffle on re-render).
+const seededHash = (s: string) => {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = (Math.imul(h, 31) + s.charCodeAt(i)) >>> 0;
+  }
+  return h;
+};
+
+// Stable shuffle: same input + seed always yields the same order.
+const seededShuffle = (items: string[], seed: string): string[] =>
+  [...items]
+    .map((item) => ({ item, k: seededHash(`${seed}:${item}`) }))
+    .sort((a, b) => a.k - b.k)
+    .map((x) => x.item);
+
+const SelectBlank = ({
+  blankNum,
+  options,
+  value,
+  placeholder,
+  disabled,
+  stateClass,
+  onChange,
+}: {
+  blankNum: string;
+  options: string[];
+  value: string;
+  placeholder: string;
+  disabled: boolean;
+  stateClass: string;
+  onChange: (value: string) => void;
+}) => {
+  return (
+    // inline-grid wrapper stacks hidden "sizers" (one per option) in the same grid
+    // cell as the trigger, so the cell reserves the width of the longest option.
+    // Result: full text is always visible and there is no layout shift on select.
+    <span className="stb-select-wrap">
+      {options.map((opt) => (
+        <span key={`sizer-${opt}`} className="stb-sizer" aria-hidden="true">
+          {opt}
+        </span>
+      ))}
+      <Select.Root value={value} onValueChange={onChange} disabled={disabled}>
+        <Select.Trigger
+          className={`stb-trigger ${stateClass}`}
+          aria-label={`blank ${blankNum}`}
+        >
+          <Select.Value placeholder={placeholder} />
+          <Select.Icon className="stb-chevron">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </Select.Icon>
+        </Select.Trigger>
+        <Select.Portal>
+          <Select.Content className="stb-content" position="popper" sideOffset={4}>
+            <Select.Viewport className="stb-viewport">
+              {options.map((opt) => (
+                <Select.Item key={opt} value={opt} className="stb-item">
+                  <Select.ItemText>{opt}</Select.ItemText>
+                  <Select.ItemIndicator className="stb-item-indicator">✓</Select.ItemIndicator>
+                </Select.Item>
+              ))}
+            </Select.Viewport>
+          </Select.Content>
+        </Select.Portal>
+      </Select.Root>
+    </span>
+  );
+};
+
+const SelectTheBlankRenderer = ({ code, metadata }: { code: string, node: Element, metadata: TMetadata }) => {
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [submitted, setSubmitted] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [quizHash, setQuizHash] = useState("");
+  const hashRef = useRef("");
+  const startedAtRef = useRef(0);
+  const hasRestoredData = useRef(false);
+
+  const { t } = useTranslation();
+  const {
+    token,
+    setOpenedModals,
+    registerTelemetryEvent,
+    getTelemetryStep,
+    currentExercisePosition,
+    telemetryReady,
+    recordConsumable,
+    toastFromStatus,
+    reportEnrichDataLayer,
+    language,
+  } = useStore((state) => ({
+    token: state.token,
+    setOpenedModals: state.setOpenedModals,
+    registerTelemetryEvent: state.registerTelemetryEvent,
+    getTelemetryStep: state.getTelemetryStep,
+    currentExercisePosition: state.currentExercisePosition,
+    telemetryReady: state.telemetryReady,
+    recordConsumable: state.useConsumable,
+    toastFromStatus: state.toastFromStatus,
+    reportEnrichDataLayer: state.reportEnrichDataLayer,
+    language: state.language,
+  }));
+
+  // Parse options/correct answers from metadata. Convention: options are separated
+  // by "|" and the FIRST option is the correct one.
+  const { options, correctAnswers } = useMemo(() => {
+    const options: Record<string, string[]> = {};
+    const correctAnswers: Record<string, string> = {};
+    Object.keys(metadata).forEach((key) => {
+      if (/^\d+$/.test(key)) {
+        const opts = String(metadata[key])
+          .split("|")
+          .map((o) => o.trim())
+          .filter(Boolean);
+        options[key] = opts;
+        correctAnswers[key] = opts[0] ?? "";
+      }
+    });
+    return { options, correctAnswers };
+  }, [metadata]);
+
+  // Stable, shuffled options for display (correct option is not always first on screen).
+  const displayOptions = useMemo(() => {
+    const shuffled: Record<string, string[]> = {};
+    Object.keys(options).forEach((blankNum) => {
+      shuffled[blankNum] = seededShuffle(options[blankNum], `${quizHash}:${blankNum}`);
+    });
+    return shuffled;
+  }, [options, quizHash]);
+
+  useEffect(() => {
+    const run = async () => {
+      const id = buildSelectTheBlankIdentityString(code, metadata as Record<string, unknown>);
+      const h = await asyncHashText(id);
+      hashRef.current = h;
+      setQuizHash(h);
+    };
+    run();
+  }, [code, metadata]);
+
+  const registerStb = async () => {
+    if (!hashRef.current) return;
+    TelemetryManager.registerTesteableElement(Number(currentExercisePosition), {
+      type: "quiz",
+      hash: hashRef.current,
+      searchString: code.slice(0, 200) || "",
+    }, language);
+  };
+
+  const debouncedRegisterStb = debounce(registerStb, 2000);
+
+  useEffect(() => {
+    if (quizHash) {
+      debouncedRegisterStb();
+    }
+    return () => {
+      debouncedRegisterStb.cancel();
+    };
+  }, [quizHash]);
+
+  useEffect(() => {
+    if (!quizHash || !telemetryReady) return;
+
+    const recoverState = async () => {
+      try {
+        const currentStep = await getTelemetryStep(Number(currentExercisePosition));
+        if (!currentStep?.quiz_submissions) return;
+
+        const submissions = currentStep.quiz_submissions.filter(
+          (s) => s.quiz_hash === quizHash
+        );
+        if (submissions.length === 0) return;
+
+        const latestSubmission = getLatestQuizSubmission(submissions);
+        if (!latestSubmission?.selections?.length) return;
+
+        const restored: Record<string, string> = {};
+        latestSubmission.selections.forEach((sel) => {
+          const m = /^blank_(\d+)$/.exec(sel.question);
+          if (m) restored[m[1]] = sel.answer;
+        });
+
+        setAnswers(restored);
+        setSubmitted(true);
+        setShowResults(true);
+        hasRestoredData.current = true;
+      } catch (error) {
+        console.error("Error recovering select-the-blank from telemetry:", error);
+      }
+    };
+
+    recoverState();
+  }, [quizHash, telemetryReady, getTelemetryStep, currentExercisePosition]);
+
+  const onAnswerChange = (blankNum: string, value: string) => {
+    if (startedAtRef.current === 0) {
+      startedAtRef.current = Date.now();
+    }
+    if (hasRestoredData.current) {
+      setSubmitted(false);
+      setShowResults(false);
+      hasRestoredData.current = false;
+    }
+    setAnswers((prev) => ({ ...prev, [blankNum]: value }));
+  };
+
+  // Parse the text and create JSX elements (text interleaved with select dropdowns).
+  const parseTextWithSelects = () => {
+    const parts: (string | JSX.Element)[] = [];
+    const blankRegex = /_(\d+)_/g;
+    let lastIndex = 0;
+    let match;
+
+    while ((match = blankRegex.exec(code)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(code.slice(lastIndex, match.index));
+      }
+
+      const blankNum = match[1];
+      const blankOptions = displayOptions[blankNum] || [];
+      const isCorrect =
+        submitted &&
+        isSelectTheBlankAnswerCorrect(answers[blankNum], correctAnswers[blankNum]);
+      const isIncorrect =
+        submitted &&
+        answers[blankNum]?.trim() &&
+        !isSelectTheBlankAnswerCorrect(answers[blankNum], correctAnswers[blankNum]);
+
+      let stateClass = "";
+      if (submitted) {
+        if (isCorrect) stateClass = "correct-answer";
+        else if (isIncorrect) stateClass = "incorrect-answer";
+      }
+
+      parts.push(
+        <SelectBlank
+          key={`blank-${blankNum}`}
+          blankNum={blankNum}
+          options={blankOptions}
+          value={answers[blankNum] || ""}
+          placeholder={t("Choose...")}
+          disabled={submitted}
+          stateClass={stateClass}
+          onChange={(value) => onAnswerChange(blankNum, value)}
+        />
+      );
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    if (lastIndex < code.length) {
+      parts.push(code.slice(lastIndex));
+    }
+
+    return parts;
+  };
+
+  // Get all blank numbers
+  const blankRegex = /_(\d+)_/g;
+  const blanks: string[] = [];
+  let match;
+  while ((match = blankRegex.exec(code)) !== null) {
+    blanks.push(match[1]);
+  }
+  const uniqueBlanks = [...new Set(blanks)].sort((a, b) => parseInt(a) - parseInt(b));
+
+  const allFilled = uniqueBlanks.every(blankNum => answers[blankNum]?.trim());
+
+  // Calculate score
+  const correctCount = uniqueBlanks.filter((blankNum) =>
+    isSelectTheBlankAnswerCorrect(answers[blankNum], correctAnswers[blankNum])
+  ).length;
+  const totalCount = uniqueBlanks.length;
+
+  const handleSubmit = async () => {
+    if (!token) {
+      toast.error(t("youMustLoginFirst"));
+      setOpenedModals({ mustLogin: true });
+      return;
+    }
+    if (!hashRef.current || uniqueBlanks.length === 0) {
+      return;
+    }
+
+    const startedAt = startedAtRef.current || Date.now();
+    const submission = makeSelectTheBlankSubmission(
+      uniqueBlanks,
+      answers,
+      correctAnswers,
+      hashRef.current,
+      startedAt
+    );
+
+    registerTelemetryEvent("quiz_submission", submission);
+
+    setSubmitted(true);
+    setShowResults(true);
+    startedAtRef.current = 0;
+
+    eventBus.emit("assessment_completed", {
+      status: submission.status,
+      ended_at: submission.ended_at,
+      type: "select-the-blank",
+      score: submission.percentage,
+    });
+
+    TelemetryManager.registerTesteableElement(Number(currentExercisePosition), {
+      type: "quiz",
+      hash: hashRef.current,
+      is_completed: submission.status === "SUCCESS",
+      searchString: code.slice(0, 200) || "",
+    }, language);
+
+    if (submission.status === "SUCCESS") {
+      toastFromStatus("quiz-success");
+      Notifier.confetti();
+      playEffect("success");
+      reportEnrichDataLayer("quiz_success", {});
+    } else {
+      toastFromStatus("quiz-error");
+      playEffect("error");
+      reportEnrichDataLayer("quiz_error", {});
+    }
+
+    recordConsumable("ai-compilation");
+  };
+
+  const handleReset = () => {
+    // Unlock the fields for editing while keeping the previous answers,
+    // so the student only has to fix what was wrong (not redo the correct ones).
+    setSubmitted(false);
+    setShowResults(false);
+    hasRestoredData.current = false;
+    startedAtRef.current = 0;
+  };
+
+  return (
+    <div className="fill-in-the-blank-container select-the-blank-container">
+      <h4 className="fill-blank-title">{t("Select the blank")}</h4>
+      <p className="fill-blank-help">{t("Pick the correct option for each blank to complete the exercise, then click 'Check Answers' when you're done.")}</p>
+
+      <div className="fill-in-the-blank-content">
+        {parseTextWithSelects()}
+      </div>
+
+      <div className="fill-blank-buttons">
+        {!submitted ? (
+          <button
+            onClick={handleSubmit}
+            disabled={!allFilled}
+            className="check-answers-btn"
+          >
+            {t("Check Answers")}
+          </button>
+        ) : (
+          <button
+            onClick={handleReset}
+            className="try-again-btn"
+          >
+            {t("Try again")}
+          </button>
+        )}
+      </div>
+
+      {showResults && (
+        <div className="fill-blank-results">
+          <div className="results-header">
+            <div className="results-title">{t("Results")}</div>
+            <div className="score-badge">{correctCount}/{totalCount}</div>
+          </div>
+
+          <div className="results-content">
+            <div className={`result-message ${correctCount === totalCount ? "perfect" : correctCount > totalCount / 2 ? "good" : "needs-improvement"}`}>
+              {correctCount === totalCount ? (
+                <>
+                  <div className="celebration">🎉</div>
+                  <div className="message-text">{t(`perfectSuccess.${randomFrom0to9()}`)}</div>
+                </>
+              ) : correctCount > totalCount / 2 ? (
+                <>
+                  <div className="celebration">👍</div>
+                  <div className="message-text">{t(`goodSuccess.${randomFrom0to9()}`)}</div>
+                </>
+              ) : (
+                <>
+                  <div className="celebration">💪</div>
+                  <div className="message-text">{t(`encouragement.${randomFrom0to9()}`)}</div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+
+const SortableOrderingItem = ({
+  id,
+  index,
+  isLast,
+  stateClass,
+  disabled,
+  onMoveUp,
+  onMoveDown,
+  moveUpLabel,
+  moveDownLabel,
+}: {
+  id: string;
+  index: number;
+  isLast: boolean;
+  stateClass: string;
+  disabled: boolean;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  moveUpLabel: string;
+  moveDownLabel: string;
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id, disabled });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      className={`ordering-item ${stateClass} ${isDragging ? "ordering-item-dragging" : ""} ${disabled ? "" : "ordering-item-draggable"}`}
+      {...attributes}
+      {...listeners}
+    >
+      <span className="ordering-position">{index + 1}</span>
+      <span className="ordering-text">{id}</span>
+      <span className="ordering-controls">
+        <button
+          type="button"
+          className="ordering-move-btn"
+          aria-label={moveUpLabel}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={onMoveUp}
+          disabled={disabled || index === 0}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M7 10.5V3.5M7 3.5L3.5 7M7 3.5l3.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          className="ordering-move-btn"
+          aria-label={moveDownLabel}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={onMoveDown}
+          disabled={disabled || isLast}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M7 3.5v7M7 10.5L3.5 7M7 10.5l3.5-3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </span>
+    </li>
+  );
+};
+
+const OrderingRenderer = ({ code, metadata }: { code: string, node: Element, metadata: TMetadata }) => {
+  const [order, setOrder] = useState<string[]>([]);
+  const [submitted, setSubmitted] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [quizHash, setQuizHash] = useState("");
+  const hashRef = useRef("");
+  const startedAtRef = useRef(0);
+  const hasRestoredData = useRef(false);
+
+  const { t } = useTranslation();
+  const {
+    token,
+    setOpenedModals,
+    registerTelemetryEvent,
+    getTelemetryStep,
+    currentExercisePosition,
+    telemetryReady,
+    recordConsumable,
+    toastFromStatus,
+    reportEnrichDataLayer,
+    language,
+  } = useStore((state) => ({
+    token: state.token,
+    setOpenedModals: state.setOpenedModals,
+    registerTelemetryEvent: state.registerTelemetryEvent,
+    getTelemetryStep: state.getTelemetryStep,
+    currentExercisePosition: state.currentExercisePosition,
+    telemetryReady: state.telemetryReady,
+    recordConsumable: state.useConsumable,
+    toastFromStatus: state.toastFromStatus,
+    reportEnrichDataLayer: state.reportEnrichDataLayer,
+    language: state.language,
+  }));
+
+  const title = typeof metadata.title === "string" ? metadata.title : "";
+
+  // Drag-and-drop sensors: pointer (with a small activation distance so button
+  // clicks aren't swallowed) and keyboard (accessible reordering with arrow keys).
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  // Canonical items: the lines of the code block, in the correct order.
+  const canonicalItems = useMemo(() => parseOrderingItems(code), [code]);
+
+  // Stable initial order shown to the student (shuffled). Guards against showing the
+  // already-correct order as a freebie.
+  const initialOrder = useMemo(() => {
+    if (canonicalItems.length <= 1) return canonicalItems;
+    let shuffled = seededShuffle(canonicalItems, `${quizHash}:ordering`);
+    const sameAsCanonical = shuffled.every((it, i) => it === canonicalItems[i]);
+    if (sameAsCanonical) {
+      shuffled = [...shuffled];
+      [shuffled[0], shuffled[1]] = [shuffled[1], shuffled[0]];
+    }
+    return shuffled;
+  }, [canonicalItems, quizHash]);
+
+  useEffect(() => {
+    const run = async () => {
+      const id = buildOrderingIdentityString(code, metadata as Record<string, unknown>);
+      const h = await asyncHashText(id);
+      hashRef.current = h;
+      setQuizHash(h);
+    };
+    run();
+  }, [code, metadata]);
+
+  // Seed the working order once the hash is known (unless restored from telemetry).
+  useEffect(() => {
+    if (!quizHash || hasRestoredData.current) return;
+    setOrder((prev) => (prev.length ? prev : initialOrder));
+  }, [quizHash, initialOrder]);
+
+  const registerOrdering = async () => {
+    if (!hashRef.current) return;
+    TelemetryManager.registerTesteableElement(Number(currentExercisePosition), {
+      type: "quiz",
+      hash: hashRef.current,
+      searchString: code.slice(0, 200) || "",
+    }, language);
+  };
+
+  const debouncedRegisterOrdering = debounce(registerOrdering, 2000);
+
+  useEffect(() => {
+    if (quizHash) {
+      debouncedRegisterOrdering();
+    }
+    return () => {
+      debouncedRegisterOrdering.cancel();
+    };
+  }, [quizHash]);
+
+  useEffect(() => {
+    if (!quizHash || !telemetryReady) return;
+
+    const recoverState = async () => {
+      try {
+        const currentStep = await getTelemetryStep(Number(currentExercisePosition));
+        if (!currentStep?.quiz_submissions) return;
+
+        const submissions = currentStep.quiz_submissions.filter(
+          (s) => s.quiz_hash === quizHash
+        );
+        if (submissions.length === 0) return;
+
+        const latestSubmission = getLatestQuizSubmission(submissions);
+        if (!latestSubmission?.selections?.length) return;
+
+        const restored = [...latestSubmission.selections]
+          .sort((a, b) => {
+            const pa = parseInt(/^position_(\d+)$/.exec(a.question)?.[1] ?? "0", 10);
+            const pb = parseInt(/^position_(\d+)$/.exec(b.question)?.[1] ?? "0", 10);
+            return pa - pb;
+          })
+          .map((sel) => sel.answer);
+
+        if (restored.length) {
+          setOrder(restored);
+          setSubmitted(true);
+          setShowResults(true);
+          hasRestoredData.current = true;
+        }
+      } catch (error) {
+        console.error("Error recovering ordering from telemetry:", error);
+      }
+    };
+
+    recoverState();
+  }, [quizHash, telemetryReady, getTelemetryStep, currentExercisePosition]);
+
+  const move = (index: number, direction: -1 | 1) => {
+    if (submitted && !hasRestoredData.current) return;
+    registerInteraction();
+    setOrder((prev) => {
+      const target = index + direction;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
+  };
+
+  // Mark the exercise as started and clear a restored "submitted" state on first edit.
+  const registerInteraction = () => {
+    if (startedAtRef.current === 0) {
+      startedAtRef.current = Date.now();
+    }
+    if (hasRestoredData.current) {
+      setSubmitted(false);
+      setShowResults(false);
+      hasRestoredData.current = false;
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    registerInteraction();
+    setOrder((prev) => {
+      const oldIndex = prev.indexOf(String(active.id));
+      const newIndex = prev.indexOf(String(over.id));
+      if (oldIndex === -1 || newIndex === -1) return prev;
+      return arrayMove(prev, oldIndex, newIndex);
+    });
+  };
+
+  const correctCount = order.filter((item, index) => item === canonicalItems[index]).length;
+  const totalCount = canonicalItems.length;
+
+  const handleSubmit = async () => {
+    if (!token) {
+      toast.error(t("youMustLoginFirst"));
+      setOpenedModals({ mustLogin: true });
+      return;
+    }
+    if (!hashRef.current || order.length === 0) {
+      return;
+    }
+
+    const startedAt = startedAtRef.current || Date.now();
+    const submission = makeOrderingSubmission(
+      canonicalItems,
+      order,
+      hashRef.current,
+      startedAt
+    );
+
+    registerTelemetryEvent("quiz_submission", submission);
+
+    setSubmitted(true);
+    setShowResults(true);
+    startedAtRef.current = 0;
+
+    eventBus.emit("assessment_completed", {
+      status: submission.status,
+      ended_at: submission.ended_at,
+      type: "ordering",
+      score: submission.percentage,
+    });
+
+    TelemetryManager.registerTesteableElement(Number(currentExercisePosition), {
+      type: "quiz",
+      hash: hashRef.current,
+      is_completed: submission.status === "SUCCESS",
+      searchString: code.slice(0, 200) || "",
+    }, language);
+
+    if (submission.status === "SUCCESS") {
+      toastFromStatus("quiz-success");
+      Notifier.confetti();
+      playEffect("success");
+      reportEnrichDataLayer("quiz_success", {});
+    } else {
+      toastFromStatus("quiz-error");
+      playEffect("error");
+      reportEnrichDataLayer("quiz_error", {});
+    }
+
+    recordConsumable("ai-compilation");
+  };
+
+  const handleReset = () => {
+    // Unlock for editing while keeping the student's current arrangement
+    // (do NOT reshuffle), so they only have to swap the items that were wrong.
+    setSubmitted(false);
+    setShowResults(false);
+    hasRestoredData.current = false;
+    startedAtRef.current = 0;
+  };
+
+  return (
+    <div className="fill-in-the-blank-container ordering-container">
+      <h4 className="fill-blank-title">{title || t("Put the steps in the correct order")}</h4>
+      <p className="fill-blank-help">{t("Use the up and down arrows to arrange the items in the correct order, then click 'Check Answers' when you're done.")}</p>
+
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={order} strategy={verticalListSortingStrategy}>
+          <ol className="ordering-list">
+            {order.map((item, index) => {
+              const isCorrect = submitted && item === canonicalItems[index];
+              const isIncorrect = submitted && item !== canonicalItems[index];
+              let stateClass = "";
+              if (isCorrect) stateClass = "correct-answer";
+              else if (isIncorrect) stateClass = "incorrect-answer";
+
+              return (
+                <SortableOrderingItem
+                  key={item}
+                  id={item}
+                  index={index}
+                  isLast={index === order.length - 1}
+                  stateClass={stateClass}
+                  disabled={submitted}
+                  onMoveUp={() => move(index, -1)}
+                  onMoveDown={() => move(index, 1)}
+                  moveUpLabel={t("Move up")}
+                  moveDownLabel={t("Move down")}
+                />
+              );
+            })}
+          </ol>
+        </SortableContext>
+      </DndContext>
+
+      <div className="fill-blank-buttons">
+        {!submitted ? (
+          <button
+            onClick={handleSubmit}
+            disabled={order.length === 0}
             className="check-answers-btn"
           >
             {t("Check Answers")}

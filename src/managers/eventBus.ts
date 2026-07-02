@@ -7,10 +7,12 @@ type Events = {
   assessment_completed: {
     status: "SUCCESS" | "ERROR";
     ended_at: number;
-    type: "code" | "open-question" | "fill-in-the-blank" | "multiple-choice"
+    type: "code" | "open-question" | "fill-in-the-blank" | "select-the-blank" | "ordering" | "multiple-choice"
     score: number;
   };
   last_lesson_finished: {};
+  lesson_rendered: { stepPosition: number };
+  step_completed: number;
 };
 
 export const eventBus: Emitter<Events> = mitt<Events>();

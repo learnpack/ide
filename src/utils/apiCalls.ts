@@ -126,6 +126,56 @@ export async function useConsumableCall(
   }
 }
 
+function normalizeLearnpackPackageAssetIds(raw: unknown): number[] {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  const out: number[] = [];
+  for (const item of raw) {
+    const n = typeof item === "number" ? item : Number(item);
+    if (Number.isFinite(n)) {
+      out.push(n);
+    }
+  }
+  return out;
+}
+
+/**
+ * Package id and Breathecode asset_ids for telemetry; accessible to any authenticated Rigobot user
+ * (unlike GET /v1/learnpack/package/{slug}/, which is owner-only).
+ */
+export async function fetchLearnpackPackageInfo(
+  rigoToken: string,
+  packageSlug: string
+): Promise<{ id: string | null; assetIds: number[] }> {
+  const empty = { id: null, assetIds: [] as number[] };
+  if (!rigoToken?.trim() || !packageSlug) {
+    return empty;
+  }
+
+  const url = `${RIGOBOT_HOST}/v1/learnpack/package/${encodeURIComponent(packageSlug)}/assets/`;
+
+  try {
+    const response = await axios.get<{
+      id?: unknown;
+      asset_ids?: unknown;
+    }>(url, {
+      headers: {
+        Authorization: `Token ${rigoToken.trim()}`,
+      },
+    });
+    const raw = response.data;
+    const id = raw?.id != null ? String(raw.id) : null;
+    return { id, assetIds: normalizeLearnpackPackageAssetIds(raw?.asset_ids) };
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      return empty;
+    }
+    console.warn("fetchLearnpackPackageInfo failed:", error);
+    return empty;
+  }
+}
+
 export const isPackageAuthor = async (
   token: string,
   packageSlug: string

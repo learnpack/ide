@@ -18,15 +18,17 @@ const ContinueButton = () => {
   const agent = useStore((s) => s.agent);
   const exercises = useStore((s) => s.exercises);
   const [loading, setLoading] = useState(false);
+  const [, setCompletionTick] = useState(0);
   const isLastExercise = currentExercisePosition === exercises.length - 1;
 
-  // Check if the current step still has pending tasks (tests/quizzes not completed)
   const hasPendingTasks =
     typeof currentExercisePosition === "number" || typeof currentExercisePosition === "string"
       ? TelemetryManager.hasPendingTasks(Number(currentExercisePosition))
       : false;
 
-  const isFinishDisabled = isLastExercise && hasPendingTasks;
+  const hasPendingTasksInAnyLesson = TelemetryManager.hasPendingTasksInAnyLesson();
+
+  const isFinishDisabled = isLastExercise && (hasPendingTasks || hasPendingTasksInAnyLesson);
   const isDisabled = loading || isFinishDisabled;
 
   const hasBodyLessonLoader = () => {
@@ -39,17 +41,23 @@ const ContinueButton = () => {
     const handlePositionChanged = () => {
       setLoading(false);
     };
-    
+
     const handleLastLessonFinished = () => {
       setLoading(false);
     };
 
+    const handleStepCompleted = () => {
+      setCompletionTick((t) => t + 1);
+    };
+
     eventBus.on("position_changed", handlePositionChanged);
     eventBus.on("last_lesson_finished", handleLastLessonFinished);
+    eventBus.on("step_completed", handleStepCompleted);
 
     return () => {
       eventBus.off("position_changed", handlePositionChanged);
       eventBus.off("last_lesson_finished", handleLastLessonFinished);
+      eventBus.off("step_completed", handleStepCompleted);
     };
   }, []);
 
@@ -68,7 +76,13 @@ const ContinueButton = () => {
           if (isDisabled) return;
           setLoading(true);
           if (isLastExercise) {
-            eventBus.emit("last_lesson_finished", {});
+            // If there are no pending tasks in any lesson, finish the lesson
+            if (!hasPendingTasksInAnyLesson) {
+              eventBus.emit("last_lesson_finished", {});
+            } else {
+              console.debug("Cannot finish: there are pending tasks in other lessons");
+              setLoading(false);
+            }
           } else {
             eventBus.emit("position_change", {
               position: Number(currentExercisePosition) + 1,
@@ -100,9 +114,8 @@ const LessonInspector = () => {
     intervalRef.current = setTimeout(async () => {
       const katexErrors = document.querySelectorAll("span.katex-error");
       const errorTexts = document.querySelectorAll("text.error-text");
-      const taskListItems = document.querySelectorAll("li.task-list-item");
 
-      if (katexErrors.length > 0 || errorTexts.length > 0 || taskListItems.length > 0) {
+      if (katexErrors.length > 0 || errorTexts.length > 0) {
         let foundErrors = "There are\n";
         
         if (katexErrors.length > 0) {
@@ -120,18 +133,8 @@ const LessonInspector = () => {
           });
           foundErrors += `</MERMAID_ERRORS>\n`;
         }
-        
-        if (taskListItems.length > 0) {
-          foundErrors += `<TASK_LIST_ITEMS> ${taskListItems.length} task list items that are not properly formatted as quizzes:\n`;
-          taskListItems.forEach((item) => {
-            foundErrors += `  - ${item.textContent || ""}\n`;
-          });
-          foundErrors += `</TASK_LIST_ITEMS>\n`;
-        }
-
 
         if (environment !== "creatorWeb") {
-          console.log("not creator web, skipping fix lesson");
           return;
         }
 
@@ -183,14 +186,17 @@ export const LessonRenderer = memo(() => {
   const isTesteable = useStore((s) => s.isTesteable);
   const lastTestResult = useStore((s) => s.lastTestResult);
   const isBuildable = useStore((s) => s.isBuildable);
+  const currentExercisePosition = useStore((s) => s.currentExercisePosition);
 
-  console.log("Rendering LessonRenderer", {
-    currentContent,
-    editingContent,
-    agent,
-    environment,
-    lastState,
-  });
+  // Notify telemetry that the lesson content has rendered, so it can
+  // determine (after a debounce window) whether the step is read-only.
+  useEffect(() => {
+    if (currentContent && currentExercisePosition != null) {
+      eventBus.emit("lesson_rendered", {
+        stepPosition: Number(currentExercisePosition),
+      });
+    }
+  }, [currentContent, currentExercisePosition]);
 
   const onReset = () => {
     setOpenedModals({ reset: true });

@@ -1,4 +1,4 @@
-import React, { useEffect, useState} from "react";
+import React, { useCallback, useEffect, useRef, useState} from "react";
 import MonacoEditor from "@monaco-editor/react";
 import useStore from "../../../utils/store";
 import { LocalStorage } from "../../../managers/localStorage";
@@ -8,7 +8,6 @@ import FeedbackButton from "../../sections/header/FeedbackButton";
 import ResetButton from "../../sections/header/ResetButton";
 
 import { useTranslation } from "react-i18next";
-// import { debounce } from "../../../utils/lib";
 import { Tab } from "../../../types/editor";
 import { CompileOptions } from "../../sections/header/CompileOptions";
 import SimpleButton from "../../mockups/SimpleButton";
@@ -23,10 +22,12 @@ import { Loader } from "../Loader/Loader";
 import { TEditorTab } from "../../../utils/storeTypes";
 import { Markdowner } from "../Markdowner/Markdowner";
 import { eventBus } from "../../../managers/eventBus";
+import TelemetryManager from "../../../managers/telemetry";
 import { Modal } from "../../mockups/Modal";
 import { deleteFile } from "../../../utils/creator";
 import { Icon } from "../../Icon";
 import toast from "react-hot-toast";
+import { configureMonacoTypeScript } from "../../../utils/monacoTsConfig";
 
 const languageMap: { [key: string]: string } = {
   ".js": "javascript",
@@ -79,6 +80,12 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     fetchExercises,
     createNewFile,
     renameFileInExercise,
+    fileLoadNotFoundByLesson,
+    lessonSyncInProgress,
+    environment,
+    syncLessonFilesFromEditor,
+    configObject,
+    unlockExerciseEditing,
   } = useStore((state) => ({
     tabs: state.editorTabs,
     setTabs: state.setEditorTabs,
@@ -94,6 +101,12 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     createNewFile: state.createNewFile,
     renameFileInExercise: state.renameFileInExercise,
     setOpenedModals: state.setOpenedModals,
+    fileLoadNotFoundByLesson: state.fileLoadNotFoundByLesson,
+    lessonSyncInProgress: state.lessonSyncInProgress,
+    environment: state.environment,
+    syncLessonFilesFromEditor: state.syncLessonFilesFromEditor,
+    configObject: state.configObject,
+    unlockExerciseEditing: state.unlockExerciseEditing,
   }));
 
   const { t } = useTranslation();
@@ -109,6 +122,14 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
   const [isRenaming, setIsRenaming] = useState<boolean>(false);
   const isBuildable = useStore((s) => s.isBuildable);
   const isTesteable = useStore((s) => s.isTesteable);
+
+  const tabsRef = useRef<HTMLDivElement | null>(null);
+  const [showFadeLeft, setShowFadeLeft] = useState(false);
+  const [showFadeRight, setShowFadeRight] = useState(false);
+  const isDraggingTabsRef = useRef(false);
+  const dragPointerIdRef = useRef<number | null>(null);
+  const dragStartXRef = useRef(0);
+  const dragScrollLeftRef = useRef(0);
 
   const updateContent = (id: number, content: string) => {
     const newTabs = tabs.map((tab) =>
@@ -129,7 +150,6 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
       if (mode === "creator") {
         updateFileContent(ex.slug, tab);
       }
-      // debouncedStore();
     }
   };
 
@@ -437,6 +457,102 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
     }
   }, [tabs]);
 
+  useEffect(() => {
+    const el = tabsRef.current;
+    if (!el) return;
+
+    const updateFades = () => {
+      const { scrollLeft, scrollWidth, clientWidth } = el;
+      setShowFadeLeft(scrollLeft > 0);
+      setShowFadeRight(scrollLeft + clientWidth < scrollWidth - 1);
+    };
+
+    updateFades();
+    el.addEventListener("scroll", updateFades);
+    window.addEventListener("resize", updateFades);
+
+    return () => {
+      el.removeEventListener("scroll", updateFades);
+      window.removeEventListener("resize", updateFades);
+    };
+  }, [tabs.length]);
+
+  const handleTabsWheel: React.WheelEventHandler<HTMLDivElement> = (e) => {
+    const el = tabsRef.current;
+    if (!el) return;
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      e.preventDefault();
+      el.scrollLeft += e.deltaY;
+    }
+  };
+
+  const DRAG_THRESHOLD_PX = 8;
+  const hasPointerDownRef = useRef(false);
+
+  const endTabsDrag = useCallback((pointerId: number) => {
+    const el = tabsRef.current;
+    if (!el) return;
+    if (dragPointerIdRef.current !== null) {
+      try {
+        el.releasePointerCapture(pointerId);
+      } catch {
+        // ignore
+      }
+      dragPointerIdRef.current = null;
+    }
+    isDraggingTabsRef.current = false;
+    hasPointerDownRef.current = false;
+    el.classList.remove("dragging");
+  }, []);
+
+  const handleDragStart: React.PointerEventHandler<HTMLDivElement> = (e) => {
+    const el = tabsRef.current;
+    if (!el) return;
+    hasPointerDownRef.current = true;
+    isDraggingTabsRef.current = false;
+    dragPointerIdRef.current = null;
+    dragStartXRef.current = e.clientX;
+    dragScrollLeftRef.current = el.scrollLeft;
+    const pointerId = e.pointerId;
+    const onPointerUpGlobal = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return;
+      hasPointerDownRef.current = false;
+      if (dragPointerIdRef.current !== null) {
+        endTabsDrag(ev.pointerId);
+      }
+      window.removeEventListener("pointerup", onPointerUpGlobal);
+      window.removeEventListener("pointercancel", onPointerUpGlobal);
+    };
+    window.addEventListener("pointerup", onPointerUpGlobal);
+    window.addEventListener("pointercancel", onPointerUpGlobal);
+  };
+
+  const handleDragMove: React.PointerEventHandler<HTMLDivElement> = (e) => {
+    const el = tabsRef.current;
+    if (!el) return;
+    if (!hasPointerDownRef.current) return;
+    if (!isDraggingTabsRef.current) {
+      if (Math.abs(e.clientX - dragStartXRef.current) < DRAG_THRESHOLD_PX) return;
+      isDraggingTabsRef.current = true;
+      dragPointerIdRef.current = e.pointerId;
+      el.classList.add("dragging");
+      dragStartXRef.current = e.clientX;
+      dragScrollLeftRef.current = el.scrollLeft;
+      try {
+        el.setPointerCapture(e.pointerId);
+      } catch {
+        // ignore
+      }
+    }
+    const dx = e.clientX - dragStartXRef.current;
+    el.scrollLeft = dragScrollLeftRef.current - dx;
+  };
+
+  const handleDragEnd: React.PointerEventHandler<HTMLDivElement> = (e) => {
+    if (e.pointerId !== dragPointerIdRef.current) return;
+    endTabsDrag(e.pointerId);
+  };
+
   const onReset = () => {
     setOpenedModals({ reset: true });
   };
@@ -445,14 +561,16 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
 
   const filteredTabs = tabs.filter((tab) => tab.name !== "terminal");
 
-  const toolbarStateClass = 
+  const ex = getCurrentExercise();
+  const toolbarStateClass =
     lastTestResult?.status === "failed"
-      ? "error"  // Tests failed - keep toolbar red even if compilation succeeds
-      : lastTestResult?.status === "successful" && lastState === "success"
-      ? "success"  // Tests passed - toolbar green
-      : lastState === "error"
-      ? "error"  // Compilation error (no test result yet)
-      : "";  // Normal state
+      ? "error" // Tests failed - keep toolbar red even if compilation succeeds
+      : (lastTestResult?.status === "successful" && lastState === "success") ||
+          ex.done
+        ? "success" // Tests passed or persisted done - toolbar green
+        : lastState === "error"
+          ? "error" // Compilation error (no test result yet)
+          : ""; // Normal state
 
   const onlyContinue = !isBuildable && !isTesteable;
 
@@ -464,14 +582,23 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
       style={{ display: `${tabs.length === 0 ? "none" : "block"}` }}
     >
       <div
-        className="tabs"
+        className="tabs-scroll-container"
         style={{ display: terminal === "only" ? "none" : "flex" }}
       >
-        {filteredTabs.map((tab) => (
-          <div
-            key={tab.id + tab.name}
-            className={`tab ${tab.isActive ? "active" : ""}`}
-          >
+        <div
+          className="tabs"
+          ref={tabsRef}
+          onWheel={handleTabsWheel}
+          onPointerDown={handleDragStart}
+          onPointerMove={handleDragMove}
+          onPointerUp={handleDragEnd}
+          onPointerLeave={handleDragEnd}
+        >
+          {filteredTabs.map((tab) => (
+            <div
+              key={tab.id + tab.name}
+              className={`tab ${tab.isActive ? "active" : ""}`}
+            >
             {editingTabId === tab.id ? (
               <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                 <input
@@ -518,6 +645,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
+                    className="whitespace-nowrap"
                     onClick={() => handleTabClick(tab.id)}
                     onDoubleClick={() => handleDoubleClick(tab)}
                   >
@@ -538,29 +666,69 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
               </Tooltip>
             )}
             {mode === "creator" && editingTabId !== tab.id && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteFile(tab.name);
-                    }}
-                    className="delete-file-btn"
-                    style={{
-                      marginLeft: "8px",
-                      padding: "2px 6px",
-                      fontSize: "12px",
-                      cursor: "pointer",
-                      color: "#ff4444",
-                    }}
-                  >
-                    <Icon size={10} name="Trash" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{t("delete-file") || "Delete file"}</p>
-                </TooltipContent>
-              </Tooltip>
+              (() => {
+                const currentSlug = getCurrentExercise()?.slug;
+                const isCreatorWebAndCreator = environment === "creatorWeb" && mode === "creator";
+                const showSyncIcon = isCreatorWebAndCreator && currentSlug && fileLoadNotFoundByLesson[currentSlug]?.includes(tab.name) && !tab.name.includes("solution.hide");
+                const buttonsDisabled = isCreatorWebAndCreator && lessonSyncInProgress === currentSlug;
+
+                if (showSyncIcon) {
+                  return (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (currentSlug && !buttonsDisabled) syncLessonFilesFromEditor(currentSlug);
+                          }}
+                          disabled={buttonsDisabled}
+                          className="delete-file-btn"
+                          style={{
+                            marginLeft: "8px",
+                            padding: "2px 6px",
+                            fontSize: "12px",
+                            cursor: buttonsDisabled ? "not-allowed" : "pointer",
+                            color: buttonsDisabled ? "#999" : "#0d6efd",
+                          }}
+                        >
+                          <Icon size={10} name="RefreshCw" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{t("sync-lesson-files-tooltip") || "Sync lesson files"}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                }
+
+                return (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!buttonsDisabled) handleDeleteFile(tab.name);
+                        }}
+                        disabled={buttonsDisabled}
+                        className="delete-file-btn"
+                        style={{
+                          marginLeft: "8px",
+                          padding: "2px 6px",
+                          fontSize: "12px",
+                          cursor: buttonsDisabled ? "not-allowed" : "pointer",
+                          color: buttonsDisabled ? "#999" : "#ff4444",
+                        }}
+                      >
+                        <Icon size={10} name="Trash" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{t("delete-file") || "Delete file"}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })()
             )}
           </div>
         ))}
@@ -581,6 +749,9 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
             </Tooltip>
           </div>
         )}
+        </div>
+        {showFadeLeft && <div className="tabs-fade-left" />}
+        {showFadeRight && <div className="tabs-fade-right" />}
       </div>
 
       {!(terminal === "only") && (
@@ -589,53 +760,107 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
             (tab) =>
               tab.isActive && (
                 <div className="h-100" key={tab.id}>
-                  {tab.name.includes("solution.hide") && mode !== "creator" && (
-                    <div className=" padding-small margin-children-none text-small bg-warning text-black">
-                      <Markdowner
-                        allowCreate={false}
-                        markdown={t("solution-tab-not-editable", {
-                          switchTo:
-                            filteredTabs.filter(
-                              (t) => !t.name.includes("solution")
-                            ).length > 1
-                              ? t("another-tab")
-                              : filteredTabs[0].name,
-                        })}
-                      />
-                    </div>
-                  )}
-                  <MonacoEditor
-                    className="editor-monaco"
-                    height="100%"
-                    key={tab.id}
-                    language={getLanguageFromExtension(tab.name)}
-                    theme={editorTheme}
-                    value={tab.content}
-                    onChange={(value) => updateContent(tab.id, value || "")}
-                    options={{
-                      minimap: {
-                        enabled: false,
-                      },
-                      fontSize: 16,
-                      bracketPairColorization: {
-                        enabled: true,
-                      },
-                      cursorBlinking: "smooth",
-                      wordWrap: "off",
-                      padding: {
-                        top: 10,
-                        bottom: 0,
-                      },
-                      scrollbar: {
-                        vertical: "hidden",
-                        horizontal: "hidden",
-                      },
-                      lineNumbersMinChars: 3,
-                      readOnly:
-                        tab.name === "terminal" ||
-                        (tab.name.includes("solution.hide") && mode !== "creator"),
-                    }}
-                  />
+                  {(() => {
+                    const currentSlug = getCurrentExercise()?.slug;
+                    const isFileNotFoundTab =
+                      currentSlug &&
+                      fileLoadNotFoundByLesson[currentSlug]?.includes(tab.name);
+                    if (isFileNotFoundTab) {
+                      return (
+                        <div className="h-100 p-4 margin-children-none text-small text-orange-500" style={{ backgroundColor: "#1e1e1e" }}>
+                          <p>{t("file-not-found") || "File not found"}</p>
+                          {mode === "creator" && (
+                            <p className="margin-top-small">
+                              {t("file-not-found-sync-hint") ||
+                                "Use the sync icon in the tab to synchronize lesson files."}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    }
+                    const exDoneReadonly = getCurrentExercise();
+                    const grading = configObject.config?.grading;
+                    const isWebStudent =
+                      environment === "localStorage" ||
+                      (environment === "creatorWeb" && mode !== "creator");
+                    const gradingStr = grading != null ? String(grading).trim() : "";
+                    const showDoneReadonlyBanner =
+                      exDoneReadonly.done &&
+                      !tab.name.includes("solution.hide") &&
+                      gradingStr !== "" &&
+                      gradingStr !== "no-grading" &&
+                      isWebStudent;
+                    return (
+                      <>
+                        {showDoneReadonlyBanner && (
+                          <div className="padding-small margin-children-none text-small bg-success text-white d-flex align-center justify-between gap-small flex-wrap">
+                            <span>
+                              {grading === "incremental"
+                                ? t("exercise-done-readonly-banner-incremental")
+                                : t("exercise-done-readonly-banner-isolated")}
+                            </span>
+                            <button
+                              type="button"
+                              className="btn btn-sm shrink-0 bg-white text-success border-0 fw-semibold rounded-sm px-2 py-1"
+                              onClick={() => unlockExerciseEditing()}
+                            >
+                              {t("exercise-done-unlock-edit")}
+                            </button>
+                          </div>
+                        )}
+                        {tab.name.includes("solution.hide") && mode !== "creator" && (
+                          <div className=" padding-small margin-children-none text-small bg-warning text-black">
+                            <Markdowner
+                              allowCreate={false}
+                              markdown={t("solution-tab-not-editable", {
+                                switchTo:
+                                  filteredTabs.filter(
+                                    (t) => !t.name.includes("solution")
+                                  ).length > 1
+                                    ? t("another-tab")
+                                    : filteredTabs[0].name,
+                              })}
+                            />
+                          </div>
+                        )}
+                        <MonacoEditor
+                          beforeMount={configureMonacoTypeScript}
+                          className="editor-monaco"
+                          height="100%"
+                          key={tab.id}
+                          path={`file:///${tab.id}/${tab.name}`}
+                          language={getLanguageFromExtension(tab.name)}
+                          theme={editorTheme}
+                          value={tab.content}
+                          onChange={(value) => updateContent(tab.id, value || "")}
+                          options={{
+                            minimap: {
+                              enabled: false,
+                            },
+                            fontSize: 16,
+                            bracketPairColorization: {
+                              enabled: true,
+                            },
+                            cursorBlinking: "smooth",
+                            wordWrap: "off",
+                            padding: {
+                              top: 10,
+                              bottom: 0,
+                            },
+                            scrollbar: {
+                              vertical: "hidden",
+                              horizontal: "hidden",
+                            },
+                            lineNumbersMinChars: 3,
+                            readOnly:
+                              tab.name === "terminal" ||
+                              (tab.name.includes("solution.hide") && mode !== "creator") ||
+                              showDoneReadonlyBanner,
+                          }}
+                        />
+                      </>
+                    );
+                  })()}
                 </div>
               )
           )}
@@ -784,16 +1009,19 @@ const Terminal = ({
     }
   };
 
-  const toolbarStateClass = 
+  const ex = getCurrentExercise();
+  const toolbarStateClass =
     lastTestResult?.status === "failed"
-      ? "error"  // Tests failed - keep toolbar red even if compilation succeeds
-      : lastTestResult?.status === "successful" && lastState === "success"
-      ? "success"  // Tests passed - toolbar green
-      : lastState === "error"
-      ? "error"  // Compilation error (no test result yet)
-      : "";  // Normal state
+      ? "error" // Tests failed - keep toolbar red even if compilation succeeds
+      : (lastTestResult?.status === "successful" && lastState === "success") ||
+          ex.done
+        ? "success" // Tests passed or persisted done - toolbar green
+        : lastState === "error"
+          ? "error" // Compilation error (no test result yet)
+          : ""; // Normal state
 
-  const onlyContinue = !isTesteable && lastState === "success"; 
+  const onlyContinue =
+    !isTesteable && (lastState === "success" || ex.done);
 
   return (
     <>
@@ -947,9 +1175,26 @@ const NextButton = () => {
     exercises: state.exercises,
   }));
 
+  const isLastExercise = currentExercisePosition === exercises.length - 1;
+
+  if (isLastExercise) {
+    const hasPendingTasksInAnyLesson = TelemetryManager.hasPendingTasksInAnyLesson();
+    return (
+      <SimpleButton
+        disabled={hasPendingTasksInAnyLesson}
+        action={() => {
+          if (!hasPendingTasksInAnyLesson) {
+            eventBus.emit("last_lesson_finished", {});
+          }
+        }}
+        text={"Finish"}
+        extraClass="w-100 bg-success text-white big"
+      />
+    );
+  }
+
   return (
     <SimpleButton
-      disabled={currentExercisePosition === exercises.length - 1}
       action={() =>
         eventBus.emit("position_change", {
           position: Number(currentExercisePosition) + 1,
@@ -988,22 +1233,17 @@ export const Toolbar = ({
   isHtml,
 }: EditorFooterProps) => {
   const { t } = useTranslation();
-  const {
-    lastState,
-    getCurrentExercise,
-    currentExercisePosition,
-    exercises,
-  } = useStore((state) => ({
-    lastState: state.lastState,
-    getCurrentExercise: state.getCurrentExercise,
-    currentExercisePosition: state.currentExercisePosition,
-    exercises: state.exercises,
-  }));
+  const { getCurrentExercise, currentExercisePosition, exercises } = useStore(
+    (state) => ({
+      getCurrentExercise: state.getCurrentExercise,
+      currentExercisePosition: state.currentExercisePosition,
+      exercises: state.exercises,
+    })
+  );
 
   const ex = getCurrentExercise();
 
-  const letPass =
-    lastState === "success" && ex.done && editorStatus === "MODIFIED";
+  const letPass = ex.done;
 
   const isLastExercise = currentExercisePosition === exercises.length - 1;
 

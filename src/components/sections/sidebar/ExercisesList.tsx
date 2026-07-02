@@ -7,8 +7,8 @@ import toast from "react-hot-toast";
 import {
   createStep,
   deleteExercise,
-  markLessonAsDone,
   renameExercise,
+  synchronizeSyllabus,
 } from "../../../utils/creator";
 import { FetchManager } from "../../../managers/fetchManager";
 import { Syllabus, TMode } from "../../../utils/storeTypes";
@@ -16,6 +16,7 @@ import { DEV_MODE, slugify, getLessonDisplayInfo } from "../../../utils/lib";
 import { eventBus } from "../../../managers/eventBus";
 import { Loader } from "../../composites/Loader/Loader";
 import { Modal } from "@/components/mockups/Modal";
+import { GitHubActions } from "./GitHubActions";
 import { RigoMessage } from "@/components/Creator/RealtimeImage";
 import { AutoResizeTextarea } from "@/components/composites/AutoResizeTextarea/AutoResizeTextarea";
 import TelemetryManager from "@/managers/telemetry";
@@ -112,7 +113,6 @@ const AddExerciseButton = ({
     }
     catch (error) {
       toast.error(t("errorGeneratingExercise"), { id: toastId });
-      console.log(error);
     }
   };
 
@@ -169,7 +169,6 @@ const AddExerciseButton = ({
 export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
   const {
     exercises,
-    // fetchExercises,
     getSidebar,
     sidebar,
     token,
@@ -177,7 +176,6 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
     syllabus,
   } = useStore((state) => ({
     exercises: state.exercises,
-    // fetchExercises: state.fetchExercises,
     getSidebar: state.getSidebar,
     sidebar: state.sidebar,
     token: state.token,
@@ -236,12 +234,63 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
       setSelectedExercises([]);
     } catch (error) {
       toast.error(t("errorTranslatingExercises"), { id: toastId });
-      console.log(error, "Error");
+    }
+  };
+
+  const handleSyncSyllabus = async () => {
+    const toastId = toast.loading("Synchronizing syllabus...");
+    try {
+      const result = await synchronizeSyllabus();
+      
+      const totalChanges =
+        (result.removedLessons || 0) +
+        (result.duplicatesResolved || 0) +
+        (result.addedLessons || 0) +
+        (result.fixedLessons || 0);
+
+      if (totalChanges > 0) {
+        const messages = [];
+        if (result.removedLessons > 0) {
+          messages.push(`${result.removedLessons} non-existent removed`);
+        }
+        if (result.duplicatesResolved > 0) {
+          messages.push(`${result.duplicatesResolved} duplicate(s) resolved`);
+        }
+        if (result.addedLessons > 0) {
+          messages.push(`${result.addedLessons} added from bucket`);
+        }
+        if (result.fixedLessons > 0) {
+          messages.push(`${result.fixedLessons} status fixed`);
+        }
+        toast.success(
+          `Syllabus synchronized: ${messages.join(", ")}`,
+          { id: toastId, duration: 6000 }
+        );
+      } else {
+        toast.success("Syllabus is already in sync!", { id: toastId });
+      }
+      
+      // Refresh sidebar
+      await getSidebar();
+    
+    } catch (error) {
+      toast.error("Error synchronizing syllabus", { id: toastId });
     }
   };
 
   return (
     <div className="exercise-list">
+      {mode === "creator" && DEV_MODE && (
+        <div className="padding-small bg-yellow-50 border-b border-yellow-200">
+          <SimpleButton
+            extraClass="w-100 text-small text-yellow-800 bg-yellow-100 hover:bg-yellow-200 padding-small rounded"
+            svg={<Icon name="Settings" size={16} />}
+            text="🔧 Sync Syllabus (Dev)"
+            action={handleSyncSyllabus}
+          />
+          <GitHubActions />
+        </div>
+      )}
       {selectedExercises.length > 0 && (
         <div className="flex-y gap-small align-center">
           <div className="flex-x gap-small align-center bg-1 rounded padding-small w-100">
@@ -307,8 +356,6 @@ function ExerciseCard({
   slug,
   position,
   closeSidebar,
-  graded,
-  done,
   mode,
   handleSelect,
   selected,
@@ -322,16 +369,12 @@ function ExerciseCard({
     getCurrentExercise,
     sidebar,
     language,
-    token,
-    config,
   } = useStore((state) => ({
     handlePositionChange: state.handlePositionChange,
     fetchExercises: state.fetchExercises,
     getCurrentExercise: state.getCurrentExercise,
     sidebar: state.sidebar,
     language: state.language,
-    token: state.token,
-    config: state.configObject,
   }));
 
   const [isEditing, setIsEditing] = useState(false);
@@ -343,7 +386,7 @@ function ExerciseCard({
     if (isEditing) {
       const toastId = toast.loading(t("updatingExercise"));
       let newTitle = titleInputRef.current?.value;
-       if (!newTitle) {
+      if (!newTitle) {
         toast.error(t("titleCannotBeEmpty"), { id: toastId });
         return;
       }
@@ -352,7 +395,7 @@ function ExerciseCard({
       newTitle = slugify(newTitle);
 
       const { isValid, fixedTitle, error } = fixTitleFormat(newTitle);
-      if (!isValid && error ) {
+      if (!isValid && error) {
         toast.error(t(error), { id: toastId });
         return;
       }
@@ -367,7 +410,6 @@ function ExerciseCard({
         await fetchExercises();
       } catch (e) {
         toast.error(t("errorRenamingExercise"), { id: toastId });
-        console.log(e);
       }
     } else {
       setIsEditing(true);
@@ -386,9 +428,17 @@ function ExerciseCard({
   const current = getCurrentExercise();
   const isCurrent = current.slug === slug;
 
-  const isDone = TelemetryManager.isTesteable(position) && !TelemetryManager.hasPendingTasks(position);
-  const isTesteable = TelemetryManager.isTesteable(position);
-  console.table({graded, done, isDone, isTesteable});
+  const [isDone, setIsDone] = useState(() => TelemetryManager.isStepCompleted(position));
+
+  useEffect(() => {
+    const handler = (completedPosition: number) => {
+      if (completedPosition === position) setIsDone(true);
+    };
+    eventBus.on("step_completed", handler);
+    return () => eventBus.off("step_completed", handler);
+  }, [position]);
+
+  const isTesteableAndDone = isDone && TelemetryManager.isTesteable(position);
 
 
   return (
@@ -445,7 +495,7 @@ function ExerciseCard({
               }
             }}
           >
-            <button className={`exercise-circle ${isDone ? "done" : ""}`}>
+            <button className={`exercise-circle ${isTesteableAndDone ? "done" : ""}`}>
               <span>{id}</span>
             </button>
             <span>{formattedTitle}</span>
@@ -459,20 +509,6 @@ function ExerciseCard({
           foundInSyllabus.status === "GENERATING" && (
             <>
               <Loader color="gray" extraClass="svg-blue" />
-              {DEV_MODE && (
-                <button
-                  onClick={() => {
-                    toast.success("Marking as done...");
-                    markLessonAsDone(
-                      config.config.slug,
-                      slug,
-                      token
-                    );
-                  }}
-                >
-                  IS DONE
-                </button>
-              )}
             </>
           )}
         {foundInSyllabus &&
@@ -484,7 +520,7 @@ function ExerciseCard({
               svg={svgs.pause}
             />
           )}
-        {mode === "student" && isTesteable && (
+        {mode === "student" && TelemetryManager.current !== null && (
           <SimpleButton
             svg={isDone ? <Icon className="text-green-500" size={20} name="Check" /> : <Icon className="text-gray-500" size={15} name="Circle" />}
             text=""
@@ -526,7 +562,6 @@ function ExerciseCard({
                     toast.error(t("errorDeletingExercise"), {
                       id: toastId,
                     });
-                    console.log(error);
                   }
                 }}
                 confirmationMessage={isEditing ? undefined : t("sure?")}

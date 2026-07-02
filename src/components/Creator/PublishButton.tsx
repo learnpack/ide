@@ -6,16 +6,93 @@ import { svgs } from "../../assets/svgs";
 import { Modal } from "../mockups/Modal";
 import ProgressBar from "../composites/ProgressBar/ProgressBar";
 import useStore from "../../utils/store";
-import { publishTutorial, changeSlug } from "../../utils/creator";
+import { publishTutorial, changeSlug, getUserAcademies, getPackageAcademy, PackageAcademyInfo } from "../../utils/creator";
 import { toast } from "react-hot-toast";
 import { playEffect, getSlugFromPath, slugify } from "../../utils/lib";
 import { Notifier } from "../../managers/Notifier";
 import { FetchManager } from "../../managers/fetchManager";
 import { isSlugAvailable } from "../../utils/lib";
 
+type Academy = {
+  id: number;
+  name: string;
+  slug: string;
+  timezone: string;
+};
+
+/** keep in sync with learnpack-cli/src/utils/api.ts AssetSyncError */
+type AssetSyncError =
+  | { kind: "lang_error"; lang: string; error: { detail: string } }
+  | { kind: "package_error"; error: { detail: string } };
+
+function normalizePublishErrors(raw: unknown): AssetSyncError[] {
+  if (!Array.isArray(raw)) return [];
+  const out: AssetSyncError[] = [];
+  for (const item of raw as Record<string, unknown>[]) {
+    if (item?.kind === "package_error" && item.error && typeof (item.error as { detail?: string }).detail === "string") {
+      out.push({
+        kind: "package_error",
+        error: { detail: (item.error as { detail: string }).detail },
+      });
+    } else if (
+      item?.kind === "lang_error" &&
+      typeof item.lang === "string" &&
+      item.error
+    ) {
+      const er = item.error as { detail?: string; message?: string };
+      out.push({
+        kind: "lang_error",
+        lang: item.lang,
+        error: {
+          detail: String(er.detail ?? er.message ?? JSON.stringify(item.error)),
+        },
+      });
+    } else if (item?.lang != null && item?.error != null) {
+      const er = item.error as { detail?: string; message?: string };
+      out.push({
+        kind: "lang_error",
+        lang: String(item.lang),
+        error: {
+          detail: String(er.detail ?? er.message ?? JSON.stringify(item.error)),
+        },
+      });
+    } else {
+      out.push({
+        kind: "package_error",
+        error: { detail: String((item as { detail?: string })?.detail ?? JSON.stringify(item)) },
+      });
+    }
+  }
+  return out;
+}
+
+function countLangErrors(errors: AssetSyncError[]): number {
+  return errors.filter((e) => e.kind === "lang_error").length;
+}
+
+function publishErrorToastMessage(errors: AssetSyncError[]): string {
+  const onlyPackage =
+    errors.length > 0 && errors.every((e) => e.kind === "package_error");
+  if (onlyPackage) {
+    return errors.map((e) => e.error.detail).join(" ");
+  }
+  const n = countLangErrors(errors);
+  const parts: string[] = [];
+  if (n > 0) {
+    parts.push(`${n} language(s) failed to publish`);
+  }
+  const pkgDetails = errors
+    .filter((e): e is Extract<AssetSyncError, { kind: "package_error" }> => e.kind === "package_error")
+    .map((e) => e.error.detail);
+  if (pkgDetails.length) {
+    parts.push(pkgDetails.join(" "));
+  }
+  return parts.join(". ") || "Publishing completed with issues";
+}
+
 const PublishConfirmationModal: FC<{
   onClose: () => void;
-  onPublish: (slug: string) => Promise<void>;
+  onPublish: (slug: string, academyId?: number) => Promise<void>;
 }> = ({ onClose, onPublish }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -25,8 +102,14 @@ const PublishConfirmationModal: FC<{
   const syllabus = useStore((state) => state.syllabus);
   const [hasEnoughConsumables, setHasEnoughConsumables] = useState(false);
   const [needToReviewAll, setNeedToReviewAll] = useState(false);
+  const [pendingLessons, setPendingLessons] = useState<Array<{ id: string; title: string }>>([]);
   const [editableSlug, setEditableSlug] = useState("");
   const [slugStatus, setSlugStatus] = useState<"checking" | "available" | "taken" | null>(null);
+  const [academies, setAcademies] = useState<Academy[]>([]);
+  const [selectedAcademyId, setSelectedAcademyId] = useState<number | undefined>(undefined);
+  const [loadingAcademies, setLoadingAcademies] = useState(false);
+  const [packageAcademyInfo, setPackageAcademyInfo] = useState<PackageAcademyInfo | null>(null);
+  const [loadingPackageInfo, setLoadingPackageInfo] = useState(false);
 
   useEffect(() => {
     checkConsumables();
@@ -38,17 +121,53 @@ const PublishConfirmationModal: FC<{
   }, []);
 
   useEffect(() => {
+    if (isOpen && bcToken) {
+      fetchPackageInfo();
+      fetchAcademies();
+    }
+  }, [isOpen, bcToken]);
+
+  const fetchPackageInfo = async () => {
+    if (!bcToken) return;
+    const currentSlug = getSlugFromPath();
+    if (!currentSlug) return;
+
+    try {
+      setLoadingPackageInfo(true);
+      const packageInfo = await getPackageAcademy(bcToken, currentSlug);
+      setPackageAcademyInfo(packageInfo);
+
+      // For locked mode, pre-set the academy so it's sent on publish
+      if (packageInfo.mode === "locked" && packageInfo.lockedAcademyId !== undefined) {
+        setSelectedAcademyId(packageInfo.lockedAcademyId);
+      }
+    } catch (error) {
+      console.error("Error fetching package academy:", error);
+      // On error, fall back to select mode so the user can still proceed
+      setPackageAcademyInfo({ isPublished: false, mode: "select" });
+    } finally {
+      setLoadingPackageInfo(false);
+    }
+  };
+
+  useEffect(() => {
     if (!syllabus || !syllabus.lessons) {
       setNeedToReviewAll(false);
+      setPendingLessons([]);
       return;
     }
-    const anyNotGenerated = syllabus.lessons.some(
+    const notGeneratedLessons = syllabus.lessons.filter(
       (lesson) => !lesson.generated
     );
-    if (anyNotGenerated) {
+    if (notGeneratedLessons.length > 0) {
       setNeedToReviewAll(true);
+      setPendingLessons(notGeneratedLessons.map(lesson => ({
+        id: lesson.id,
+        title: lesson.title
+      })));
     } else {
       setNeedToReviewAll(false);
+      setPendingLessons([]);
     }
   }, [syllabus]);
 
@@ -73,6 +192,24 @@ const PublishConfirmationModal: FC<{
 
     return () => clearTimeout(timeoutId);
   }, [editableSlug]);
+
+  const fetchAcademies = async () => {
+    if (!bcToken) return;
+    try {
+      setLoadingAcademies(true);
+      const academiesList = await getUserAcademies(bcToken);
+      setAcademies(academiesList);
+      // Auto-select only in select mode (no existing academy association)
+      if (academiesList.length === 1 && packageAcademyInfo?.mode !== "locked") {
+        setSelectedAcademyId(academiesList[0].id);
+      }
+    } catch (error) {
+      console.error("Error fetching academies:", error);
+      toast.error("Error loading academies");
+    } finally {
+      setLoadingAcademies(false);
+    }
+  };
 
   const checkConsumables = async () => {
     const consumables = await getUserConsumables();
@@ -108,6 +245,20 @@ const PublishConfirmationModal: FC<{
             <p className="padding-smll text-blue bg-soft-blue rounded padding-small text-big text-center">
               {t("please-review-all-lessons-before-publishing")}
             </p>
+            {pendingLessons.length > 0 && (
+              <div className="flex-y gap-small padding-small bg-soft-blue rounded">
+                <p className="text-blue font-medium m-0">
+                  Pending lessons ({pendingLessons.length}):
+                </p>
+                <ul className="text-blue text-small m-0 pl-4">
+                  {pendingLessons.map((lesson) => (
+                    <li key={lesson.id}>
+                      {lesson.id}. {lesson.title}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <SimpleButton
               extraClass="text-blue row-reverse padding-medium rounded"
               text={t("cancel")}
@@ -129,13 +280,14 @@ const PublishConfirmationModal: FC<{
 
             <div className="flex-y gap-small padding-small">
               <label className="text-blue font-medium">{t("tutorial-slug")}</label>
-              <input 
+              <input
                 className="padding-small rounded border"
                 maxLength={47}
                 value={editableSlug}
                 onClick={(e) => e.stopPropagation()}
                 onChange={handleSlugChange}
                 placeholder={t("tutorial-slug")}
+                disabled={packageAcademyInfo?.isPublished}
               />
               <div className="flex-x justify-between align-center">
                 <span className="text-small text-gray-600">{editableSlug.length}/47</span>
@@ -149,7 +301,56 @@ const PublishConfirmationModal: FC<{
                   <span className="text-small text-danger">{t("slug-taken")}</span>
                 )}
               </div>
+              {packageAcademyInfo?.isPublished && (
+                <p className="text-small text-gray-600 m-0">
+                  You can't change the slug in published packages
+                </p>
+              )}
             </div>
+
+            {!loadingPackageInfo && packageAcademyInfo?.mode === "select" && academies.length > 0 && (
+              <div className="flex-y gap-small padding-small">
+                <label className="text-blue font-medium">Academy</label>
+                <select
+                  className="padding-small rounded border"
+                  value={selectedAcademyId || ""}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => setSelectedAcademyId(e.target.value ? Number(e.target.value) : undefined)}
+                  disabled={loadingAcademies}
+                >
+                  {academies.length > 1 && <option value="">Select an academy</option>}
+                  {academies.map((academy) => (
+                    <option key={academy.id} value={academy.id}>
+                      {academy.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {!loadingPackageInfo && packageAcademyInfo?.mode === "locked" && (
+              <div className="flex-y gap-small padding-small">
+                <label className="text-blue font-medium">Academy</label>
+                <p className="padding-small rounded border bg-soft-blue text-blue m-0">
+                  {academies.find((a) => a.id === packageAcademyInfo.lockedAcademyId)?.name
+                    ?? `Academy #${packageAcademyInfo.lockedAcademyId}`}
+                </p>
+                <p className="text-small text-gray-600 m-0">
+                  The academy cannot be changed for published packages.
+                </p>
+              </div>
+            )}
+
+            {!loadingPackageInfo && packageAcademyInfo?.mode === "conflict" && (
+              <div className="flex-y gap-small padding-small bg-soft-yellow rounded">
+                <p className="text-yellow font-medium m-0">⚠ Academy conflict</p>
+                <p className="text-small text-yellow m-0">
+                  Your assets are associated with different academies
+                  ({packageAcademyInfo.conflictAcademies?.join(", ")}).
+                  Academy assignment will be skipped.
+                </p>
+              </div>
+            )}
 
             <div className="flex-x gap-small justify-center align-center">
               <SimpleButton
@@ -162,7 +363,7 @@ const PublishConfirmationModal: FC<{
                 disabled={!editableSlug || (slugStatus === "taken" || slugStatus === "checking")}
                 svg={"🚀"}
                 text={t("publish")}
-                action={() => onPublish(editableSlug)}
+                action={() => onPublish(editableSlug, selectedAcademyId)}
               />
             </div>
           </div>
@@ -261,10 +462,12 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
   // const getSyllabus = useStore((state) => state.getSyllabus);
   const currentSlug = useStore((state) => state.configObject.config.slug);
   const [deployedUrl, setDeployedUrl] = useState("");
+  const [publishErrors, setPublishErrors] = useState<AssetSyncError[]>([]);
 
-  const handlePublish = async (slug: string) => {
+  const handlePublish = async (slug: string, academyId?: number) => {
     try {
       setPublishing(true);
+      setPublishErrors([]);
       
       // Check if slug changed
       if (slug && currentSlug && slug !== currentSlug) {
@@ -287,10 +490,22 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
           return;
         }
       }
-      const res = await publishTutorial(bctoken, token);
-      toast.success(t("tutorial-published-successfully"));
-      Notifier.confetti();
-      playEffect("success");
+      const res = await publishTutorial(bctoken, token, academyId);
+      const errs = normalizePublishErrors(res.errors);
+
+      if (res.url) {
+        toast.success(t("tutorial-published-successfully"));
+        Notifier.confetti();
+        playEffect("success");
+      }
+
+      if (errs.length > 0) {
+        setPublishErrors(errs);
+        toast.error(publishErrorToastMessage(errs));
+      } else {
+        setPublishErrors([]);
+      }
+
       setDeployedUrl(res.url);
       setPublishing(false);
       await fetchExercises();
@@ -344,6 +559,49 @@ const PublishingModal: FC<{ onClose: () => void }> = ({ onClose }) => {
             <p className="text-center m-0">
               {t("congratulations-your-tutorial-is-published")}
             </p>
+            {publishErrors.length > 0 && (
+              <div className="flex-y gap-small padding-small bg-yellow-50 border border-yellow-200 rounded">
+                <p className="text-yellow-800 font-medium m-0">
+                  {(() => {
+                    const langErrs = publishErrors.filter(
+                      (e): e is Extract<AssetSyncError, { kind: "lang_error" }> =>
+                        e.kind === "lang_error"
+                    );
+                    const pkgErrs = publishErrors.filter(
+                      (e): e is Extract<AssetSyncError, { kind: "package_error" }> =>
+                        e.kind === "package_error"
+                    );
+                    if (pkgErrs.length > 0 && langErrs.length > 0) {
+                      return t("publish-mixed-notices-heading", {
+                        defaultValue: "Publishing notices:",
+                      });
+                    }
+                    if (pkgErrs.length > 0 && langErrs.length === 0) {
+                      return t("publish-breathecode-sync-heading", {
+                        defaultValue: "Breathecode asset sync:",
+                      });
+                    }
+                    return t("publish-lang-failures-heading", {
+                      count: langErrs.length,
+                      defaultValue: `Warning: ${langErrs.length} language(s) failed to publish:`,
+                    });
+                  })()}
+                </p>
+                <ul className="text-yellow-700 text-small m-0 pl-4">
+                  {publishErrors.map((err, index) => (
+                    <li key={index}>
+                      {err.kind === "package_error" ? (
+                        <span>{err.error.detail}</span>
+                      ) : (
+                        <>
+                          <strong>{err.lang}:</strong> {err.error.detail}
+                        </>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <div className="flex-x gap-small align-center justify-between border-gray rounded padding-small">
               <p className="m-0 ">{deployedUrl}</p>
               <div className="flex-x gap-small">

@@ -10,7 +10,8 @@ import assessmentComponentsRaw from "../../docs/assessment_components.yml?raw";
 import explanatoryComponentsRaw from "../../docs/explanatory_components.yml?raw";
 // import toast from "react-hot-toast";
 export const DEV_MODE =false;
-export const DEV_URL = "https://1gm40gnb-3000.use2.devtunnels.ms";
+export const DEV_URL = import.meta.env.VITE_DEV_URL || "https://1gm40gnb-3000.use2.devtunnels.ms";
+export const LEARNPACK_LOCAL_URL = DEV_MODE ? "http://localhost:3000" : "";
 
 export const FASTAPI_HOST = "https://ai.4geeks.com";
 // export const FASTAPI_HOST = "http://localhost:8003";
@@ -64,6 +65,34 @@ export const getEnvironment = async () => {
   const host = getHost();
 
   console.log("DETECTED HOST", host);
+
+  // SCORM SCO: el config vive en `${host}/.learn/config.json`. Se detecta de forma
+  // explícita y primero, porque algunos LMS devuelven un 404 con cuerpo JSON parseable
+  // en otras rutas, lo que haría que la detección legacy se quedara en "localStorage".
+  const includeScormPath = window.location.pathname.endsWith("/config/index.html");
+  if (includeScormPath) {
+    try {
+      const scormConfig = await fetch(`${host}/.learn/config.json`);
+      if (scormConfig.ok) {
+        await scormConfig.json();
+        ENVIRONMENT = "scorm";
+        document.dispatchEvent(
+          new CustomEvent("environment-change", {
+            detail: { environment: "scorm" },
+          })
+        );
+        console.log("The environment will be scorm");
+        return "scorm";
+      }
+    } catch (e) {
+      console.error(
+        "SCORM config fetch failed, falling back to legacy detection",
+        e
+      );
+    }
+    // si no se encontró, continúa con la detección legacy de abajo
+  }
+
   try {
     const slug = getSlugFromPath();
     const response = await fetch(`${host}/config?slug=${slug}`);
@@ -95,6 +124,7 @@ export const getEnvironment = async () => {
     // Fetch config,jsonhandleEnvironmentChange
     try {
       const config = await fetch(`${host}/config.json`);
+      if (!config.ok) throw new Error("config.json not found");
       await config.json();
 
       console.log("The environment will be localStorage");
@@ -111,8 +141,10 @@ export const getEnvironment = async () => {
       try {
         const scormConfig = await fetch(`${host}/.learn/config.json`);
         console.log("SCORM CONFIG PATH", scormConfig);
+        if (!scormConfig.ok) throw new Error(".learn/config.json not found");
         await scormConfig.json();
 
+        ENVIRONMENT = "scorm";
         const myEvent = new CustomEvent("environment-change", {
           detail: { environment: "scorm" },
         });
@@ -130,8 +162,10 @@ export const getEnvironment = async () => {
 
 getEnvironment();
 
-export const RIGOBOT_HOST = "https://rigobot.herokuapp.com";
+export const RIGOBOT_HOST = import.meta.env.VITE_RIGOBOT_HOST || "https://rigobot.herokuapp.com";
 // export const RIGOBOT_HOST = "https://8000-charlytoc-rigobot-bmwdeam7cev.ws-us120.gitpod.io";
+/** Max wait for Rigobot evaluation (tests, builds, open questions) before showing Retry. */
+export const RIGOBOT_EVALUATION_TIMEOUT_MS = 20000;
 export const BREATHECODE_HOST = "https://breathecode.herokuapp.com";
 
 export const changeSidebarVisibility = () => {
@@ -232,21 +266,41 @@ export const getParamsObject = (): TPossibleParams => {
   return getQueryParams();
 };
 
-export const debounce = (func: (...args: any[]) => void, wait: number) => {
-  let timeout: any;
+export type DebouncedFunction<T extends unknown[] = unknown[]> = ((...args: T) => void) & {
+  cancel: () => void;
+  flush: () => void;
+};
 
-  function debounced(this: any, ...args: any[]) {
+export const debounce = <T extends unknown[]>(
+  func: (...args: T) => void,
+  wait: number
+): DebouncedFunction<T> => {
+  let timeout: ReturnType<typeof setTimeout>;
+  let lastArgs: T | null = null;
+
+  const debounced = (...args: T) => {
+    lastArgs = args;
     clearTimeout(timeout);
     timeout = setTimeout(() => {
-      func.apply(this, args);
+      lastArgs = null;
+      func(...args);
     }, wait);
-  }
+  };
 
   debounced.cancel = () => {
     clearTimeout(timeout);
+    lastArgs = null;
   };
 
-  return debounced;
+  debounced.flush = () => {
+    if (lastArgs !== null) {
+      clearTimeout(timeout);
+      func(...lastArgs);
+      lastArgs = null;
+    }
+  };
+
+  return debounced as DebouncedFunction<T>;
 };
 
 
@@ -348,6 +402,11 @@ export const asyncHashText = async (text: string) => {
     .join("");
   return hashHex;
 };
+
+export async function ensureMinDuration(startTime: number, minMs = 2000): Promise<void> {
+  const elapsed = Date.now() - startTime;
+  if (elapsed < minMs) await new Promise(r => setTimeout(r, minMs - elapsed));
+}
 
 export const removeParam = (param: string) => {
   // Retrieve the current URL
@@ -476,6 +535,27 @@ export function cleanFloatString(input: string): string {
   parts[0] = parts[0].replace(/^0+(?=\d)/, "");
 
   return parts.join(".");
+}
+
+type TCourseTitle = Record<string, string> | string | undefined | null;
+
+/**
+ * Resolves the display title for a course/package from learn.json title fields.
+ */
+export function resolveCourseTitle(
+  title: TCourseTitle,
+  language = "en"
+): string {
+  if (!title) return "";
+  if (typeof title === "string") return title.trim();
+
+  return (
+    title[language]?.trim() ||
+    title.en?.trim() ||
+    title.us?.trim() ||
+    Object.values(title).find((value) => typeof value === "string" && value.trim())?.trim() ||
+    ""
+  );
 }
 
 /**
@@ -713,4 +793,87 @@ export const getComponentsInfo = (has_coding_challenges: boolean = false): strin
   ${explanatoryComponentsRaw}
   `
   return componentsInfoString;
+};
+
+/**
+ * How a menu entry produces its content:
+ * - "image": dedicated image generation flow (generateImage), with style selector.
+ * - "code-challenge": dedicated code challenge flow (generateCodeChallenge).
+ * - "ai-template": generated via Rigobot (request-changes-in-lesson-v2) with preview.
+ */
+export type TComponentGeneration = "ai-template" | "image" | "code-challenge";
+
+export type TMenuComponent = {
+  id: string;
+  group: "explanatory" | "assessment";
+  generation: TComponentGeneration;
+};
+
+export type TImageStyle = {
+  id: string;
+  visualStyle: string;
+};
+
+// Synthetic "image" entry: the 3 explanatory image components (those with a
+// `visualStyle`) collapse into this single entry plus a style selector.
+const IMAGE_COMPONENT_ID = "image";
+
+type TYamlComponent = {
+  name: string;
+  visualStyle?: string;
+  [key: string]: unknown;
+};
+
+const parseYamlComponents = (raw: string): TYamlComponent[] => {
+  try {
+    const parsed = yaml.load(raw) as { components?: TYamlComponent[] };
+    return parsed?.components ?? [];
+  } catch (error) {
+    console.error("Error parsing components YAML:", error);
+    return [];
+  }
+};
+
+/**
+ * Image styles for the "Generate image" sub-input. Derived from the explanatory
+ * components that define a `visualStyle`, prepended with a "free" (no style)
+ * default. Keeps explanatory_components.yml as the single source of truth.
+ */
+export const getImageStyles = (): TImageStyle[] => {
+  const explanatory = parseYamlComponents(explanatoryComponentsRaw);
+  const styled = explanatory
+    .filter((c) => typeof c.visualStyle === "string" && c.visualStyle.trim())
+    .map((c) => ({ id: c.name, visualStyle: c.visualStyle as string }));
+
+  return [{ id: "free", visualStyle: "" }, ...styled];
+};
+
+/**
+ * Menu entries for the "Add" menu, grouped into explanatory and assessment.
+ * Components with a `visualStyle` are NOT listed here (they are image styles);
+ * a single synthetic "image" entry represents image generation instead.
+ */
+export const getMenuComponents = (): TMenuComponent[] => {
+  const toEntry = (
+    c: TYamlComponent,
+    group: "explanatory" | "assessment"
+  ): TMenuComponent => ({
+    id: c.name,
+    group,
+    generation:
+      c.name === "code_challenge_proposal" ? "code-challenge" : "ai-template",
+  });
+
+  const explanatory: TMenuComponent[] = [
+    { id: IMAGE_COMPONENT_ID, group: "explanatory", generation: "image" },
+    ...parseYamlComponents(explanatoryComponentsRaw)
+      .filter((c) => !(typeof c.visualStyle === "string" && c.visualStyle.trim()))
+      .map((c) => toEntry(c, "explanatory")),
+  ];
+
+  const assessment: TMenuComponent[] = parseYamlComponents(
+    assessmentComponentsRaw
+  ).map((c) => toEntry(c, "assessment"));
+
+  return [...explanatory, ...assessment];
 };

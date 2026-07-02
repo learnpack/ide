@@ -1,7 +1,5 @@
 import axios from "axios";
-import { DEV_MODE, getSlugFromPath } from "./lib";
-
-export const LEARNPACK_LOCAL_URL = "http://localhost:3000";
+import { getSlugFromPath, LEARNPACK_LOCAL_URL } from "./lib";
 
 export const createStep = async (
   token: string,
@@ -15,7 +13,7 @@ export const createStep = async (
     };
     const response = await axios.post(
       `${
-        DEV_MODE ? "http://localhost:3000" : ""
+        LEARNPACK_LOCAL_URL
       }/course/${courseSlug}/create-step`,
       {
         description,
@@ -35,7 +33,7 @@ export const deleteExercise = async (slug: string) => {
     const courseSlug = getSlugFromPath();
     const response = await axios.delete(
       `${
-        DEV_MODE ? "http://localhost:3000" : ""
+        LEARNPACK_LOCAL_URL
       }/exercise/${slug}/delete?slug=${courseSlug}`
     );
     return response.data;
@@ -50,7 +48,7 @@ export const renameExercise = async (slug: string, newSlug: string) => {
     const courseSlug = getSlugFromPath();
     const response = await axios.put(
       `${
-        DEV_MODE ? "http://localhost:3000" : ""
+        LEARNPACK_LOCAL_URL
       }/actions/rename?slug=${courseSlug}`,
       {
         slug,
@@ -64,9 +62,54 @@ export const renameExercise = async (slug: string, newSlug: string) => {
   }
 };
 
+export const getUserAcademies = async (breathecodeToken: string) => {
+  try {
+    const headers = {
+      "x-breathecode-token": breathecodeToken,
+    };
+    const response = await axios.get(
+      `${LEARNPACK_LOCAL_URL}/actions/academies`,
+      { headers }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching academies:", error);
+    throw error;
+  }
+};
+
+export type PackageAcademyMode = "select" | "locked" | "conflict";
+
+export type PackageAcademyInfo = {
+  isPublished: boolean;
+  mode: PackageAcademyMode;
+  lockedAcademyId?: number;
+  conflictAcademies?: number[];
+};
+
+export const getPackageAcademy = async (
+  breathecodeToken: string,
+  slug: string
+): Promise<PackageAcademyInfo> => {
+  try {
+    const headers = {
+      "x-breathecode-token": breathecodeToken,
+    };
+    const response = await axios.get(
+      `${LEARNPACK_LOCAL_URL}/actions/package-academy/${slug}`,
+      { headers }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching package academy:", error);
+    throw error;
+  }
+};
+
 export const publishTutorial = async (
   breathecodeToken: string,
-  rigoToken: string
+  rigoToken: string,
+  academyId?: number
 ) => {
   try {
     const slug = getSlugFromPath();
@@ -74,12 +117,13 @@ export const publishTutorial = async (
       "x-breathecode-token": breathecodeToken,
       "x-rigo-token": rigoToken,
     };
+    const body: any = {};
+    if (academyId !== undefined) {
+      body.academyId = academyId;
+    }
     const response = await axios.post(
-      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/publish/${slug}`,
-      {
-        categoryId: "663296363296363296363296",
-        academyId: "663296363296363296363296",
-      },
+      `${LEARNPACK_LOCAL_URL}/actions/publish/${slug}`,
+      body,
       { headers }
     );
     return response.data;
@@ -100,12 +144,74 @@ export const deleteTutorial = async (
       "x-rigo-token": rigoToken,
     };
     const response = await axios.delete(
-      `${DEV_MODE ? "http://localhost:3000" : ""}/packages/${slug}`,
+      `${LEARNPACK_LOCAL_URL}/packages/${slug}`,
       { headers }
     );
     return response.data;
   } catch (error) {
     console.error("Error deleting tutorial:", error);
+    throw error;
+  }
+};
+
+export const updateCourseTitle = async (
+  rigoToken: string,
+  language: string,
+  title: string
+) => {
+  try {
+    const courseSlug = getSlugFromPath();
+    const headers = {
+      "x-rigo-token": rigoToken,
+    };
+    const response = await axios.post(
+      `${LEARNPACK_LOCAL_URL}/actions/update-title?slug=${courseSlug}`,
+      {
+        language,
+        title,
+      },
+      { headers }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating course title:", error);
+    throw error;
+  }
+};
+
+export const synchronizeSyllabus = async () => {
+  try {
+    const courseSlug = getSlugFromPath();
+    const response = await axios.post(
+      `${LEARNPACK_LOCAL_URL}/actions/synchronize-syllabus?slug=${courseSlug}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error synchronizing syllabus:", error);
+    throw error;
+  }
+};
+
+export const synchronizeLessonFiles = async (
+  lessonSlug: string
+): Promise<{ removedCount: number; keptCount: number; movedCount?: number }> => {
+  try {
+    const courseSlug = getSlugFromPath();
+    const response = await axios.post<{
+      removedCount: number;
+      keptCount: number;
+      movedCount?: number;
+    }>(
+      `${LEARNPACK_LOCAL_URL}/actions/synchronize-lesson-files?slug=${courseSlug}`,
+      { lessonSlug }
+    );
+    return response.data as {
+      removedCount: number;
+      keptCount: number;
+      movedCount?: number;
+    };
+  } catch (error) {
+    console.error("Error synchronizing lesson files:", error);
     throw error;
   }
 };
@@ -181,7 +287,7 @@ export const continueGenerating = async (
   
   const response = await axios.post(
     `${
-      DEV_MODE ? "http://localhost:3000" : ""
+      LEARNPACK_LOCAL_URL
     }/actions/continue-generating/${courseSlug}/${lessonId}`,
     { lessonId, feedback: feedbackWithCacheEvict, mode },
     { headers }
@@ -199,7 +305,7 @@ export const markLessonAsDone = async (
   };
   const response = await axios.put(
     `${
-      DEV_MODE ? "http://localhost:3000" : ""
+      LEARNPACK_LOCAL_URL
     }/courses/${courseSlug}/lessons/${lessonSlug}/status`,
     {},
     { headers }
@@ -220,7 +326,7 @@ export const generateCodeChallenge = async (
   };
 
   const response = await axios.post(
-    `${DEV_MODE ? "http://localhost:3000" : ""}/actions/generate-code-challenge`,
+    `${LEARNPACK_LOCAL_URL}/actions/generate-code-challenge`,
     {
       code_challenge: codeChallenge,
       lesson_content: lessonContent,
@@ -244,7 +350,7 @@ export const generateImageLearnPack = async (
   };
   const response = await axios.post(
     `${
-      DEV_MODE ? "http://localhost:3000" : ""
+      LEARNPACK_LOCAL_URL
     }/actions/generate-image/${courseSlug}`,
     { image },
     { headers }
@@ -257,12 +363,12 @@ export const createFile = async (exerciseSlug: string, filename: string, content
     const courseSlug = getSlugFromPath();
     const response = await axios.put(
       `${
-        DEV_MODE ? "http://localhost:3000" : ""
+        LEARNPACK_LOCAL_URL
       }/exercise/${exerciseSlug}/file/${filename}?slug=${courseSlug}`,
-      content,
+      { content: content ?? "" },
       {
         headers: {
-          'Content-Type': 'text/plain',
+          "Content-Type": "application/json",
         },
       }
     );
@@ -278,7 +384,7 @@ export const deleteFile = async (exerciseSlug: string, filename: string) => {
     const courseSlug = getSlugFromPath();
     const response = await axios.delete(
       `${
-        DEV_MODE ? "http://localhost:3000" : ""
+        LEARNPACK_LOCAL_URL
       }/courses/${courseSlug}/exercises/${exerciseSlug}/file/${filename}`
     );
     return response.data;
@@ -297,7 +403,7 @@ export const renameFile = async (
     const courseSlug = getSlugFromPath();
     const response = await axios.put(
       `${
-        DEV_MODE ? "http://localhost:3000" : ""
+        LEARNPACK_LOCAL_URL
       }/courses/${courseSlug}/exercises/${exerciseSlug}/file/${oldFilename}/rename`,
       {
         oldFilename,
@@ -321,13 +427,129 @@ export const changeSlug = async (
       "x-rigo-token": rigoToken,
     };
     const response = await axios.post(
-      `${DEV_MODE ? "http://localhost:3000" : ""}/actions/change-slug`,
+      `${LEARNPACK_LOCAL_URL}/actions/change-slug`,
       { currentSlug, newSlug },
       { headers }
     );
     return response.data;
   } catch (error) {
     console.error("Error changing slug:", error);
+    throw error;
+  }
+};
+
+export const getGithubStatus = async (courseSlug: string) => {
+  try {
+    const response = await axios.get(
+      `${LEARNPACK_LOCAL_URL}/actions/github/status?slug=${courseSlug}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching GitHub status:", error);
+    throw error;
+  }
+};
+
+export const createGithubRepo = async (
+  courseSlug: string,
+  repoName: string,
+  isPrivate: boolean,
+  rigoToken: string,
+  description?: string
+) => {
+  try {
+    const headers = { "x-rigo-token": rigoToken };
+    const body: Record<string, unknown> = { courseSlug, repoName, isPrivate };
+    if (description !== undefined) body.description = description;
+    const response = await axios.post(
+      `${LEARNPACK_LOCAL_URL}/actions/github/create-repo`,
+      body,
+      { headers }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error creating GitHub repo:", error);
+    if (axios.isAxiosError(error)) {
+      const data = error.response?.data as {
+        message?: string;
+        details?: {
+          failedOperation?: string;
+          failedPath?: string;
+          repoCreated?: boolean;
+          github?: { message?: string };
+        };
+      } | undefined;
+
+      const backendMessage = data?.message;
+      const failedOperation = data?.details?.failedOperation;
+      const failedPath = data?.details?.failedPath;
+      const repoCreated = data?.details?.repoCreated;
+      const githubMessage = data?.details?.github?.message?.toLowerCase() || "";
+
+      if (
+        failedPath &&
+        (githubMessage.includes("push protection") ||
+          githubMessage.includes("secret"))
+      ) {
+        throw new Error(`Archivo bloqueado por push protection: ${failedPath}`);
+      }
+
+      if (repoCreated && failedOperation && failedOperation !== "create_repo") {
+        throw new Error(
+          backendMessage ||
+            "Repo creado en GitHub, pero falló el commit inicial"
+        );
+      }
+
+      if (backendMessage) {
+        throw new Error(backendMessage);
+      }
+    }
+
+    throw error;
+  }
+};
+
+export const checkGithubChanges = async (courseSlug: string) => {
+  try {
+    const response = await axios.get(
+      `${LEARNPACK_LOCAL_URL}/actions/github/check-changes?slug=${courseSlug}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error checking GitHub changes:", error);
+    throw error;
+  }
+};
+
+export const pullFromGithub = async (
+  courseSlug: string,
+  targetSHA: string,
+  lessons?: string[]
+) => {
+  try {
+    const body: Record<string, unknown> = { courseSlug, targetSHA };
+    if (lessons !== undefined && Array.isArray(lessons)) body.lessons = lessons;
+    const response = await axios.post(
+      `${LEARNPACK_LOCAL_URL}/actions/github/pull`,
+      body
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error pulling from GitHub:", error);
+    throw error;
+  }
+};
+
+export const pushToGithub = async (courseSlug: string) => {
+  try {
+    const response = await axios.post(
+      `${LEARNPACK_LOCAL_URL}/actions/github/push`,
+      { courseSlug }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error pushing to GitHub:", error);
     throw error;
   }
 };

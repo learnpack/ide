@@ -267,6 +267,16 @@ a {
   word-break: break-all;
 }
 
+a.link {
+  color: var(--color-blue-rigo);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+a.link:hover {
+  text-decoration: underline;
+}
+
 /* This will affect the entire webpage */
 ::-webkit-scrollbar {
   width: 5px;
@@ -587,7 +597,7 @@ a {
 }
 
 .browser {
-  height: max-content !important;
+  height: 100%;
   background-color: var(--opaque-blue-editor);
   padding: 3px;
 }
@@ -616,6 +626,7 @@ a {
   min-height: 200px;
   border-radius: 5px;
   margin-top: 3px;
+  height: 100%;
 }
 
 .danger-on-hover:hover {

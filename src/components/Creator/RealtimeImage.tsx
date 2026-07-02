@@ -134,10 +134,9 @@ export default function RealtimeImage({
     if (data.status === "ERROR") {
       setStatus("ERROR");
       toast.error(t("imageGenerationFailed"));
-      // Keep the component visible with the error
-      // Only in creator mode does it make sense to show the generation error
       return;
     }
+    setStatus("SUCCESS");
     fetchReadme();
     reportEnrichDataLayer("creator_image_generation_completed", {
       image_id: imageId,
@@ -277,6 +276,14 @@ export default function RealtimeImage({
             </div>
           )}
         </>
+      )}
+
+      {status === "SUCCESS" && (
+        <img
+          src={`${DEV_MODE ? "http://localhost:3000" : ""}/.learn/assets/${imageId}?slug=${config?.config?.slug}`}
+          alt={innerAlt}
+          style={{ maxWidth: "100%" }}
+        />
       )}
 
       {status === "GENERATING" && (
