@@ -17,6 +17,7 @@ import TranslationListener from "./components/Creator/TranslationListener";
 import SyncNotificationListener from "./components/SyncNotifications/SyncNotificationListener";
 import PackageMetadataListener from "./components/PackageMetadataListener";
 import EventListener from "./managers/eventListener";
+import ScormReporter from "./managers/ScormReporter";
 import AppLoadingScreen from "./components/sections/AppLoadingScreen";
 export default function Home() {
   const start = useStore((s) => s.start);
@@ -69,6 +70,7 @@ export default function Home() {
       <NewHeader />
       <Container />
       <EventListener />
+      <ScormReporter />
     </main>
   );
 }

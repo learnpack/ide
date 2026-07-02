@@ -895,6 +895,7 @@ interface ITelemetryManager {
   hasPendingTasksInAnyLesson: () => boolean;
   isTesteable: (stepPosition: number) => boolean;
   isStepCompleted: (stepPosition: number) => boolean;
+  getCompletionRate: () => number;
   getStepIndicators: (stepPosition: number) => TStepIndicators | null;
   streamEvent: (stepPosition: number, event: string, data: any) => void;
   submit: () => Promise<void>;
@@ -1585,6 +1586,13 @@ const TelemetryManager: ITelemetryManager = {
 
   isStepCompleted: function (stepPosition: number) {
     return this.current?.steps[stepPosition]?.is_completed ?? false;
+  },
+
+  // Live course completion percentage (0-100) derived from the current blob.
+  // Reuses the same metrics pipeline used by submit().
+  getCompletionRate: function () {
+    if (!this.current) return 0;
+    return calculateIndicators(this.current).global.metrics.completion_rate;
   },
 
   hasPendingTasksInAnyLesson: function () {

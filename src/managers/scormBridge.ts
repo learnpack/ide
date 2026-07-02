@@ -37,6 +37,71 @@ const getScormWrapper = (): ScormWrapper | null => {
 
 export const isScormEnvironment = (): boolean => getScormWrapper() !== null;
 
+// Writes cmi.core.score.raw/min/max (0-100 CMIDecimal). Shared by progress and
+// completion reporting.
+const setScore = (scorm: ScormWrapper, percent: number): void => {
+  const clamped = Math.max(0, Math.min(100, Math.round(percent)));
+  scorm.ScormProcessSetValue?.("cmi.core.score.min", "0");
+  scorm.ScormProcessSetValue?.("cmi.core.score.max", "100");
+  scorm.ScormProcessSetValue?.("cmi.core.score.raw", String(clamped));
+};
+
+/**
+ * Marks the course as started/in-progress in the LMS.
+ *
+ * Sets `cmi.core.lesson_status = "incomplete"` and commits, so the LMS records
+ * the attempt as soon as the learner opens the course. Does NOT downgrade a
+ * returning learner who already finished (guards against "completed"/"passed").
+ */
+export const reportScormStarted = (): void => {
+  const scorm = getScormWrapper();
+  if (!scorm) return;
+
+  try {
+    const status = scorm.ScormProcessGetValue?.("cmi.core.lesson_status");
+    if (status === "completed" || status === "passed") return;
+
+    scorm.ScormProcessSetValue?.("cmi.core.lesson_status", "incomplete");
+    scorm.ScormProcessCommit?.();
+  } catch (error) {
+    console.error("Error reporting start to SCORM LMS", error);
+  }
+};
+
+/**
+ * Reports incremental progress to the LMS during the course.
+ *
+ * @param percent   0-100 completion percentage → `cmi.core.score.raw`.
+ * @param stepIndex Optional current step index → `cmi.core.lesson_location`
+ *                  (bookmark). When omitted, only the score is written.
+ *
+ * Intentionally does NOT touch `cmi.core.lesson_status` (it stays "incomplete"
+ * until `reportScormCompletion` marks it "completed"), so progress reporting can
+ * never overwrite the completion state.
+ */
+export const reportScormProgress = (
+  percent: number,
+  stepIndex?: number
+): void => {
+  const scorm = getScormWrapper();
+  if (!scorm) return;
+
+  try {
+    if (typeof percent === "number" && Number.isFinite(percent)) {
+      setScore(scorm, percent);
+    }
+    if (typeof stepIndex === "number" && Number.isFinite(stepIndex)) {
+      scorm.ScormProcessSetValue?.(
+        "cmi.core.lesson_location",
+        String(stepIndex)
+      );
+    }
+    scorm.ScormProcessCommit?.();
+  } catch (error) {
+    console.error("Error reporting progress to SCORM LMS", error);
+  }
+};
+
 /**
  * Reports course completion to the LMS.
  *
@@ -51,10 +116,7 @@ export const reportScormCompletion = (scorePercent?: number): void => {
     scorm.ScormProcessSetValue?.("cmi.core.lesson_status", "completed");
 
     if (typeof scorePercent === "number" && Number.isFinite(scorePercent)) {
-      const clamped = Math.max(0, Math.min(100, Math.round(scorePercent)));
-      scorm.ScormProcessSetValue?.("cmi.core.score.min", "0");
-      scorm.ScormProcessSetValue?.("cmi.core.score.max", "100");
-      scorm.ScormProcessSetValue?.("cmi.core.score.raw", String(clamped));
+      setScore(scorm, scorePercent);
     }
 
     scorm.ScormProcessCommit?.();
