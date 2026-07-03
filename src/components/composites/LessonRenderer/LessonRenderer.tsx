@@ -17,6 +17,7 @@ const ContinueButton = () => {
   const editorTabs = useStore((s) => s.editorTabs);
   const agent = useStore((s) => s.agent);
   const exercises = useStore((s) => s.exercises);
+  const telemetryReady = useStore((s) => s.telemetryReady);
   const [loading, setLoading] = useState(false);
   const [, setCompletionTick] = useState(0);
   const isLastExercise = currentExercisePosition === exercises.length - 1;
@@ -28,7 +29,12 @@ const ContinueButton = () => {
 
   const hasPendingTasksInAnyLesson = TelemetryManager.hasPendingTasksInAnyLesson();
 
-  const isFinishDisabled = isLastExercise && (hasPendingTasks || hasPendingTasksInAnyLesson);
+  // Without telemetry we cannot know whether there are unanswered testeable
+  // elements, so completion is unverifiable → block Finish (fail-safe). Telemetry
+  // only becomes ready after a successful start, which requires being logged in.
+  const isFinishDisabled =
+    isLastExercise &&
+    (hasPendingTasks || hasPendingTasksInAnyLesson || !telemetryReady);
   const isDisabled = loading || isFinishDisabled;
 
   const hasBodyLessonLoader = () => {
