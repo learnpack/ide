@@ -47,37 +47,19 @@ const setScore = (scorm: ScormWrapper, percent: number): void => {
 };
 
 /**
- * Marks the course as started/in-progress in the LMS.
- *
- * Sets `cmi.core.lesson_status = "incomplete"` and commits, so the LMS records
- * the attempt as soon as the learner opens the course. Does NOT downgrade a
- * returning learner who already finished (guards against "completed"/"passed").
- */
-export const reportScormStarted = (): void => {
-  const scorm = getScormWrapper();
-  if (!scorm) return;
-
-  try {
-    const status = scorm.ScormProcessGetValue?.("cmi.core.lesson_status");
-    if (status === "completed" || status === "passed") return;
-
-    scorm.ScormProcessSetValue?.("cmi.core.lesson_status", "incomplete");
-    scorm.ScormProcessCommit?.();
-  } catch (error) {
-    console.error("Error reporting start to SCORM LMS", error);
-  }
-};
-
-/**
- * Reports incremental progress to the LMS during the course.
+ * Reports incremental progress to the LMS during the course, and marks the
+ * attempt as in-progress.
  *
  * @param percent   0-100 completion percentage → `cmi.core.score.raw`.
  * @param stepIndex Optional current step index → `cmi.core.lesson_location`
  *                  (bookmark). When omitted, only the score is written.
  *
- * Intentionally does NOT touch `cmi.core.lesson_status` (it stays "incomplete"
- * until `reportScormCompletion` marks it "completed"), so progress reporting can
- * never overwrite the completion state.
+ * Sets `cmi.core.lesson_status = "incomplete"` unless the attempt is already
+ * "completed"/"passed" (never downgrades a finished attempt). This is where
+ * "started"/in-progress gets registered reliably: it runs on real learner
+ * events (lesson render, step completion, navigation), which happen AFTER the
+ * wrapper's `LMSInitialize` — unlike a mount-time call, which can run before
+ * init and be silently ignored by api.js.
  */
 export const reportScormProgress = (
   percent: number,
@@ -87,6 +69,15 @@ export const reportScormProgress = (
   if (!scorm) return;
 
   try {
+    const status = scorm.ScormProcessGetValue?.("cmi.core.lesson_status");
+    if (
+      status !== "completed" &&
+      status !== "passed" &&
+      status !== "incomplete"
+    ) {
+      scorm.ScormProcessSetValue?.("cmi.core.lesson_status", "incomplete");
+    }
+
     if (typeof percent === "number" && Number.isFinite(percent)) {
       setScore(scorm, percent);
     }
