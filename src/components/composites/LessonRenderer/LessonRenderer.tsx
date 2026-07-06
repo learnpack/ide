@@ -11,6 +11,11 @@ import RealtimeNotificationListener from "../../Creator/RealtimeNotificationList
 import { svgs } from "../../../assets/svgs";
 import TelemetryManager from "../../../managers/telemetry";
 import toast from "react-hot-toast";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const ContinueButton = () => {
   const { t } = useTranslation();
@@ -84,50 +89,57 @@ const ContinueButton = () => {
     };
   }, []);
 
-  return (
-    agent !== "vscode" &&
-    !hasBodyLessonLoader() && (
-      <div
-        aria-disabled={isDisabled}
-        className={`badge bg-blue  ${
-          editorTabs.length > 0 ? "hide-continue-button" : "continue-button"
-        }`}
-        role="button"
-        tabIndex={0}
-        title={finishTitle}
-        style={isDisabled ? { opacity: 0.6, cursor: "not-allowed" } : {}}
-        onClick={() => {
-          // Anonymous learner trying to finish: route them to the login modal
-          // instead of a dead button (mirrors the quiz login prompt).
-          if (needsLogin) {
-            toast.error(t("login-to-finish"));
-            setOpenedModals({ mustLogin: true });
-            return;
-          }
-          if (isDisabled) return;
-          setLoading(true);
-          if (isLastExercise) {
-            // If there are no pending tasks in any lesson, finish the lesson
-            if (!hasPendingTasksInAnyLesson) {
-              eventBus.emit("last_lesson_finished", {});
-            } else {
-              console.debug("Cannot finish: there are pending tasks in other lessons");
-              setLoading(false);
-            }
+  if (agent === "vscode" || hasBodyLessonLoader()) return null;
+
+  const buttonElement = (
+    <div
+      aria-disabled={isDisabled}
+      className={`badge bg-blue  ${
+        editorTabs.length > 0 ? "hide-continue-button" : "continue-button"
+      }`}
+      role="button"
+      tabIndex={0}
+      style={isDisabled ? { opacity: 0.6, cursor: "not-allowed" } : {}}
+      onClick={() => {
+        // Anonymous learner trying to finish: route them to the login modal
+        // instead of a dead button (mirrors the quiz login prompt).
+        if (needsLogin) {
+          toast.error(t("login-to-finish"));
+          setOpenedModals({ mustLogin: true });
+          return;
+        }
+        if (isDisabled) return;
+        setLoading(true);
+        if (isLastExercise) {
+          // If there are no pending tasks in any lesson, finish the lesson
+          if (!hasPendingTasksInAnyLesson) {
+            eventBus.emit("last_lesson_finished", {});
           } else {
-            eventBus.emit("position_change", {
-              position: Number(currentExercisePosition) + 1,
-            });
+            console.debug("Cannot finish: there are pending tasks in other lessons");
+            setLoading(false);
           }
-        }}
-      >
-        {loading
-          ? t("loading")
-          : isLastExercise
-          ? "Finish"
-          : t("continue")}
-      </div>
-    )
+        } else {
+          eventBus.emit("position_change", {
+            position: Number(currentExercisePosition) + 1,
+          });
+        }
+      }}
+    >
+      {loading ? t("loading") : isLastExercise ? "Finish" : t("continue")}
+    </div>
+  );
+
+  // Explain the button state (login needed / pending activities) via a shadcn
+  // tooltip, consistent with the rest of the app (see SimpleButton).
+  if (!finishTitle) return buttonElement;
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{buttonElement}</TooltipTrigger>
+      <TooltipContent className="max-w-[200px]" side="top">
+        <p className="whitespace-normal break-words">{finishTitle}</p>
+      </TooltipContent>
+    </Tooltip>
   );
 };
 
