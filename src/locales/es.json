@@ -152,6 +152,8 @@
     "exercises": "Ejercicios",
     "you-must-login-title": "¡Ups! Parece que no has iniciado sesión.",
     "you-must-login-message": "Para compilar código en la web y usar nuestro mentor AI Rigobot, ¡por favor inicia sesión primero!",
+    "login-to-finish": "Inicia sesión para registrar tu progreso y finalizar el curso",
+    "complete-activities-to-finish": "Completa todas las actividades para finalizar el curso",
     "execute-my-code": "Ejecutar mi código",
     "test-my-code": "Testear mi código",
     "test-and-send": "Testear & Enviar",

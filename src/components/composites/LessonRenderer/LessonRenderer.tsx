@@ -10,6 +10,12 @@ import { fixLesson } from "../../../managers/EventProxy";
 import RealtimeNotificationListener from "../../Creator/RealtimeNotificationListener";
 import { svgs } from "../../../assets/svgs";
 import TelemetryManager from "../../../managers/telemetry";
+import toast from "react-hot-toast";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const ContinueButton = () => {
   const { t } = useTranslation();
@@ -18,6 +24,8 @@ const ContinueButton = () => {
   const agent = useStore((s) => s.agent);
   const exercises = useStore((s) => s.exercises);
   const telemetryReady = useStore((s) => s.telemetryReady);
+  const token = useStore((s) => s.token);
+  const setOpenedModals = useStore((s) => s.setOpenedModals);
   const [loading, setLoading] = useState(false);
   const [, setCompletionTick] = useState(0);
   const isLastExercise = currentExercisePosition === exercises.length - 1;
@@ -32,10 +40,24 @@ const ContinueButton = () => {
   // Without telemetry we cannot know whether there are unanswered testeable
   // elements, so completion is unverifiable → block Finish (fail-safe). Telemetry
   // only becomes ready after a successful start, which requires being logged in.
-  const isFinishDisabled =
-    isLastExercise &&
-    (hasPendingTasks || hasPendingTasksInAnyLesson || !telemetryReady);
-  const isDisabled = loading || isFinishDisabled;
+  const hasPendingWork = hasPendingTasks || hasPendingTasksInAnyLesson;
+  // Anonymous learner at the end: keep the button clickable so it can open the
+  // login modal (needsLogin implies !telemetryReady, since telemetry requires login).
+  const needsLogin = isLastExercise && !token;
+  // Logged-in learner with unfinished activities: genuinely blocked.
+  const blockedByPending = isLastExercise && telemetryReady && hasPendingWork;
+  // Logged in but telemetry not ready yet (transient/failed): cannot verify → block.
+  const cannotVerifyLoggedIn = isLastExercise && !telemetryReady && !!token;
+  // needsLogin is deliberately NOT part of isDisabled: the button stays active so
+  // clicking it routes the learner to the login modal.
+  const isDisabled = loading || blockedByPending || cannotVerifyLoggedIn;
+
+  // Never leave the button state mute: explain why it is blocked / what to do.
+  const finishTitle = needsLogin
+    ? t("login-to-finish")
+    : blockedByPending || cannotVerifyLoggedIn
+    ? t("complete-activities-to-finish")
+    : undefined;
 
   const hasBodyLessonLoader = () => {
     const selector = ".lesson-loader";
@@ -67,42 +89,57 @@ const ContinueButton = () => {
     };
   }, []);
 
-  return (
-    agent !== "vscode" &&
-    !hasBodyLessonLoader() && (
-      <div
-        aria-disabled={isDisabled}
-        className={`badge bg-blue  ${
-          editorTabs.length > 0 ? "hide-continue-button" : "continue-button"
-        }`}
-        role="button"
-        tabIndex={0}
-        style={isDisabled ? { opacity: 0.6, cursor: "not-allowed" } : {}}
-        onClick={() => {
-          if (isDisabled) return;
-          setLoading(true);
-          if (isLastExercise) {
-            // If there are no pending tasks in any lesson, finish the lesson
-            if (!hasPendingTasksInAnyLesson) {
-              eventBus.emit("last_lesson_finished", {});
-            } else {
-              console.debug("Cannot finish: there are pending tasks in other lessons");
-              setLoading(false);
-            }
+  if (agent === "vscode" || hasBodyLessonLoader()) return null;
+
+  const buttonElement = (
+    <div
+      aria-disabled={isDisabled}
+      className={`badge bg-blue  ${
+        editorTabs.length > 0 ? "hide-continue-button" : "continue-button"
+      }`}
+      role="button"
+      tabIndex={0}
+      style={isDisabled ? { opacity: 0.6, cursor: "not-allowed" } : {}}
+      onClick={() => {
+        // Anonymous learner trying to finish: route them to the login modal
+        // instead of a dead button (mirrors the quiz login prompt).
+        if (needsLogin) {
+          toast.error(t("login-to-finish"));
+          setOpenedModals({ mustLogin: true });
+          return;
+        }
+        if (isDisabled) return;
+        setLoading(true);
+        if (isLastExercise) {
+          // If there are no pending tasks in any lesson, finish the lesson
+          if (!hasPendingTasksInAnyLesson) {
+            eventBus.emit("last_lesson_finished", {});
           } else {
-            eventBus.emit("position_change", {
-              position: Number(currentExercisePosition) + 1,
-            });
+            console.debug("Cannot finish: there are pending tasks in other lessons");
+            setLoading(false);
           }
-        }}
-      >
-        {loading
-          ? t("loading")
-          : isLastExercise
-          ? "Finish"
-          : t("continue")}
-      </div>
-    )
+        } else {
+          eventBus.emit("position_change", {
+            position: Number(currentExercisePosition) + 1,
+          });
+        }
+      }}
+    >
+      {loading ? t("loading") : isLastExercise ? "Finish" : t("continue")}
+    </div>
+  );
+
+  // Explain the button state (login needed / pending activities) via a shadcn
+  // tooltip, consistent with the rest of the app (see SimpleButton).
+  if (!finishTitle) return buttonElement;
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{buttonElement}</TooltipTrigger>
+      <TooltipContent className="max-w-[200px]" side="top">
+        <p className="whitespace-normal break-words">{finishTitle}</p>
+      </TooltipContent>
+    </Tooltip>
   );
 };
 
