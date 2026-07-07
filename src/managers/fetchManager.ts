@@ -10,6 +10,7 @@ import {
   DEV_MODE,
   getReadmeExtension,
   ENVIRONMENT,
+  isWebTelemetryEnvironment,
 } from "../utils/lib";
 import { TEnvironment } from "./EventProxy";
 import frontMatter from "front-matter";
@@ -747,10 +748,7 @@ export const FetchManager = {
         token: breathecodeToken,
         tabHash: tabHash,
       });
-    } else if (
-      FetchManager.ENVIRONMENT === "localStorage" ||
-      FetchManager.ENVIRONMENT === "creatorWeb"
-    ) {
+    } else if (isWebTelemetryEnvironment(FetchManager.ENVIRONMENT as TEnvironment)) {
       LocalStorage.set("session", {
         token: breathecodeToken,
         user_id: loggedFormat.user_id,

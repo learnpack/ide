@@ -30,6 +30,8 @@ import {
   getSlugFromPath,
   ensureMinDuration,
   resolveCourseTitle,
+  isWebStudentEnvironment,
+  isWebTelemetryEnvironment,
   // getMainIndex,
 } from "./lib";
 import {
@@ -557,7 +559,7 @@ const useStore = create<IStore>((set, get) => ({
         score: 100,
       });
 
-      if (environment === "localStorage") {
+      if (isWebTelemetryEnvironment(environment)) {
         registerTelemetryEvent("test", data.result);
       }
 
@@ -573,7 +575,7 @@ const useStore = create<IStore>((set, get) => ({
       playEffect("success");
       Notifier.confetti();
 
-      if (environment === "localStorage" || environment === "creatorWeb") {
+      if (isWebTelemetryEnvironment(environment)) {
         const currentExercise = getCurrentExercise();
         TelemetryManager.registerTesteableElement(Number(currentExercise.position), {
           hash: currentExercise.slug,
@@ -598,7 +600,7 @@ const useStore = create<IStore>((set, get) => ({
         type: "code",
         score: 0,
       });
-      if (environment === "localStorage") {
+      if (isWebTelemetryEnvironment(environment)) {
         registerTelemetryEvent("test", data.result);
       }
       if (data.ai_required) {
@@ -612,7 +614,7 @@ const useStore = create<IStore>((set, get) => ({
       }
       playEffect("error");
 
-      if (environment === "localStorage" || environment === "creatorWeb") {
+      if (isWebTelemetryEnvironment(environment)) {
         const currentExercise = getCurrentExercise();
         TelemetryManager.registerTesteableElement(
           Number(currentExercise.position),
@@ -637,7 +639,7 @@ const useStore = create<IStore>((set, get) => ({
       setBuildButtonPrompt("try-again", "bg-fail text-white");
 
       toastFromStatus("compiler-error");
-      if (environment === "localStorage") {
+      if (isWebTelemetryEnvironment(environment)) {
         registerTelemetryEvent("compile", data);
       }
       if (data.ai_required) {
@@ -656,7 +658,7 @@ const useStore = create<IStore>((set, get) => ({
       toastFromStatus("compiler-success");
 
       setBuildButtonPrompt("see-terminal-output", "bg-success text-white");
-      if (environment === "localStorage") {
+      if (isWebTelemetryEnvironment(environment)) {
         registerTelemetryEvent("compile", data);
       }
       if (data.ai_required) {
@@ -1214,9 +1216,7 @@ The user's set up the application in "${language}" language, give your feedback 
       hasSolution: hasSolution,
     });
 
-    const isWebEnv =
-      environment === "localStorage" || environment === "creatorWeb";
-    if (isTesteable && isWebEnv && !TelemetryManager.hasTesteableElementByHash(index, slug)) {
+    if (isTesteable && isWebTelemetryEnvironment(environment) && !TelemetryManager.hasTesteableElementByHash(index, slug)) {
       TelemetryManager.registerTesteableElement(index, {
         hash: slug,
         searchString: slug,
@@ -1604,7 +1604,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
       if (
         editorTabsCopy.length > 0 &&
-        (environment === "localStorage" || environment === "creatorWeb")
+        isWebTelemetryEnvironment(environment)
       ) {
         set({ isTesteable: true, isBuildable: true });
       }
@@ -2079,10 +2079,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
     copy[pos].done = status === "successful";
 
-    const isWebStudent =
-      environment === "localStorage" ||
-      environment === "scorm" ||
-      (environment === "creatorWeb" && mode !== "creator");
+    const isWebStudent = isWebStudentEnvironment(environment, mode);
 
     if (status === "successful" && isWebStudent) {
       const MAX_FILE_SIZE = 50 * 1024;
@@ -2136,6 +2133,7 @@ The user's set up the application in "${language}" language, give your feedback 
       bc_token,
       toastFromStatus,
       reportEnrichDataLayer,
+      mode,
     } = get();
 
     if (!Boolean(bc_token) || !Boolean(token)) {
@@ -2144,7 +2142,7 @@ The user's set up the application in "${language}" language, give your feedback 
     }
 
     if (
-      (environment === "localStorage" || environment === "creatorWeb") &&
+      isWebStudentEnvironment(environment, mode) &&
       !(
         userConsumables.ai_compilation > 0 ||
         userConsumables.ai_compilation === -1
@@ -2203,6 +2201,7 @@ The user's set up the application in "${language}" language, give your feedback 
       environment,
       userConsumables,
       currentContent,
+      mode,
     } = get();
 
     console.log("tokens runnin tests", token, bc_token);
@@ -2212,7 +2211,7 @@ The user's set up the application in "${language}" language, give your feedback 
     }
 
     if (
-      environment === "localStorage" &&
+      isWebStudentEnvironment(environment, mode) &&
       !(
         userConsumables.ai_compilation > 0 ||
         userConsumables.ai_compilation === -1
@@ -2634,10 +2633,7 @@ The user's set up the application in "${language}" language, give your feedback 
     compilerSocket.emit("reset", data);
     reportEnrichDataLayer("learnpack_reset", {});
 
-    const isWebStudent =
-      environment === "localStorage" ||
-      environment === "scorm" ||
-      (environment === "creatorWeb" && mode !== "creator");
+    const isWebStudent = isWebStudentEnvironment(environment, mode);
     if (isWebStudent) {
       const exercise = newExercises.find((e) => e.slug === exerciseSlug);
       if (exercise) {
@@ -2675,10 +2671,7 @@ The user's set up the application in "${language}" language, give your feedback 
     set({ exercises: copy });
     updateDBSession();
 
-    const isWebStudent =
-      environment === "localStorage" ||
-      environment === "scorm" ||
-      (environment === "creatorWeb" && mode !== "creator");
+    const isWebStudent = isWebStudentEnvironment(environment, mode);
     if (isWebStudent) {
       TelemetryManager.registerTesteableElement(Number(exercise.position), {
         hash: exercise.slug,
@@ -3555,27 +3548,22 @@ The user's set up the application in "${language}" language, give your feedback 
     });
   },
   initRigoAI: () => {
-    const { token, environment } = get();
+    const { token, environment, mode } = get();
 
     if (!token) {
       console.log("ERROR: No token found, initializing RigoAI failed");
       return;
     }
 
-    let purposeSlug = "learnpack-lesson-writer";
-
-    if (environment === "creatorWeb") {
-      purposeSlug = "learnpack-lesson-writer";
-    }
-    if (environment === "localStorage") {
-      purposeSlug = "learnpack-ai-tutor";
-    }
+    const purposeSlug = isWebStudentEnvironment(environment, mode)
+      ? "learnpack-ai-tutor"
+      : "learnpack-lesson-writer";
 
     console.log("Initializing RigoAI with purpose slug", purposeSlug);
 
     RigoAI.init({
       chatHash: "529ca5a219084bc7b93c172ad78ef92a",
-      purposeSlug: "learnpack-lesson-writer",
+      purposeSlug,
       userToken: token,
       context:
         "You are a helpful teacher assistant. Please provide your responses always in MARKDOWN. ",

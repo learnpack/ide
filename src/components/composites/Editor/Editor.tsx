@@ -28,6 +28,7 @@ import { deleteFile } from "../../../utils/creator";
 import { Icon } from "../../Icon";
 import toast from "react-hot-toast";
 import { configureMonacoTypeScript } from "../../../utils/monacoTsConfig";
+import { isWebStudentEnvironment } from "../../../utils/lib";
 
 const languageMap: { [key: string]: string } = {
   ".js": "javascript",
@@ -780,10 +781,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                     }
                     const exDoneReadonly = getCurrentExercise();
                     const grading = configObject.config?.grading;
-                    const isWebStudent =
-                      environment === "localStorage" ||
-                      environment === "scorm" ||
-                      (environment === "creatorWeb" && mode !== "creator");
+                    const isWebStudent = isWebStudentEnvironment(environment, mode);
                     const gradingStr = grading != null ? String(grading).trim() : "";
                     const showDoneReadonlyBanner =
                       exDoneReadonly.done &&
