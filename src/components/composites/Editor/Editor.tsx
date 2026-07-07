@@ -782,6 +782,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                     const grading = configObject.config?.grading;
                     const isWebStudent =
                       environment === "localStorage" ||
+                      environment === "scorm" ||
                       (environment === "creatorWeb" && mode !== "creator");
                     const gradingStr = grading != null ? String(grading).trim() : "";
                     const showDoneReadonlyBanner =

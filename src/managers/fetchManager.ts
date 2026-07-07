@@ -170,10 +170,35 @@ export const FetchManager = {
       },
 
       scorm: async () => {
+        let edited = false;
         const url = `${FetchManager.HOST}/exercises/${slug}/${file}`;
         const response = await fetch(url);
         const fileContent = await response.text();
-        return { fileContent, edited: false };
+
+        if (opts.cached) {
+          const state = useStore.getState();
+          const exercise = state.exercises.find((e) => e.slug === slug);
+
+          if (exercise?.done && exercise?.approved_solution_files) {
+            const approvedFile = exercise.approved_solution_files.find(
+              (f) => f.name === file
+            );
+            if (approvedFile) {
+              return { fileContent: approvedFile.content, edited: true };
+            }
+          }
+
+          const cachedEditorTabs = LocalStorage.get(`editorTabs_${slug}`);
+          if (cachedEditorTabs) {
+            const cached = cachedEditorTabs.find((t: TEditorTab) => t.name === file);
+            if (cached) {
+              edited = true;
+              return { fileContent: cached.content, edited };
+            }
+          }
+        }
+
+        return { fileContent, edited };
       },
 
       creatorWeb: async () => {

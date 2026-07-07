@@ -2081,6 +2081,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
     const isWebStudent =
       environment === "localStorage" ||
+      environment === "scorm" ||
       (environment === "creatorWeb" && mode !== "creator");
 
     if (status === "successful" && isWebStudent) {
@@ -2635,6 +2636,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
     const isWebStudent =
       environment === "localStorage" ||
+      environment === "scorm" ||
       (environment === "creatorWeb" && mode !== "creator");
     if (isWebStudent) {
       const exercise = newExercises.find((e) => e.slug === exerciseSlug);
@@ -2675,6 +2677,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
     const isWebStudent =
       environment === "localStorage" ||
+      environment === "scorm" ||
       (environment === "creatorWeb" && mode !== "creator");
     if (isWebStudent) {
       TelemetryManager.registerTesteableElement(Number(exercise.position), {

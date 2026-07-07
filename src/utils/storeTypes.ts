@@ -1,4 +1,5 @@
 import { TStep, TStepEvent } from "../managers/telemetry";
+import { TEnvironment } from "../managers/EventProxy";
 
 /**
  * Tracks the progress of the initial telemetry GET at boot time.
@@ -297,7 +298,7 @@ export interface IStore {
   agent: TAgent;
   learnpackPurposeId: number | string;
   status: string;
-  environment: "localhost" | "localStorage" | "creatorWeb";
+  environment: TEnvironment;
   testingEnvironment: "auto" | "cloud" | "local";
   dialogData: TDialog;
   lessonTitle: string;
