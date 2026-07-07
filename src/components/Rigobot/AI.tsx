@@ -1,5 +1,11 @@
 import toast from "react-hot-toast";
-import { FASTAPI_HOST } from "../../utils/lib";
+import {
+  FASTAPI_HOST,
+  RIGOBOT_PUSHER_PENDING_MAX_ATTEMPTS,
+  RIGOBOT_PUSHER_PENDING_POLL_INTERVAL_MS,
+  RIGOBOT_RESCUE_MAX_ATTEMPTS,
+  RIGOBOT_RESCUE_POLL_INTERVAL_MS,
+} from "../../utils/lib";
 import { getCompletionJob } from "@/utils/apiCalls";
 
 export type TRigoMessage = {
@@ -31,6 +37,11 @@ export type TAgentJob = {
   run: () => void;
 };
 
+export type TJobStartedContext = {
+  jobId: string;
+  attemptRescue: () => Promise<boolean>;
+};
+
 type TRigoTemplateParams = {
   templateSlug: string;
   payload?: Record<string, any>;
@@ -38,6 +49,7 @@ type TRigoTemplateParams = {
   target?: HTMLElement;
   onComplete?: (success: boolean, data: any) => void;
   onStart?: (data: { when: string; url: string }) => void;
+  onJobStarted?: (ctx: TJobStartedContext) => void;
   userToken: string;
   apiHost?: string;
   pusherKey?: string;
@@ -59,6 +71,12 @@ const rigoTemplateState = {
   pusherHost: rigoTemplateDefaults.pusherHost,
 };
 
+const isTerminalCompletionStatus = (status: string) =>
+  status === "SUCCESS" || status === "ERROR";
+
+const sleep = (ms: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, ms));
+
 export const RigoTemplate = {
   use: ({
     templateSlug,
@@ -67,6 +85,7 @@ export const RigoTemplate = {
     target,
     onComplete,
     onStart,
+    onJobStarted,
     userToken,
     apiHost,
     pusherKey,
@@ -96,19 +115,82 @@ export const RigoTemplate = {
     let pusherClient: any = null;
     let channel: any = null;
     let started = false;
+    let settled = false;
+    let jobId = "";
     const resolvedApiHost = apiHost ?? rigoTemplateDefaults.apiHost;
     const resolvedSoketiKey = pusherKey ?? rigoTemplateDefaults.pusherKey;
     const resolvedPusherHost = pusherHost ?? rigoTemplateDefaults.pusherHost;
     const resolvedPusherPort = pusherPort ?? rigoTemplateDefaults.pusherPort;
-    return {
-      stop: () => {
+
+    const cleanupPusher = () => {
+      try {
         if (channel) {
           channel.unbind_all();
           channel.unsubscribe();
+          channel = null;
         }
         if (pusherClient) {
           pusherClient.disconnect();
+          pusherClient = null;
         }
+      } catch (error) {
+        console.debug("Error cleaning up pusher client", error);
+      }
+    };
+
+    const settle = (completionJob: any, eventData?: { answer?: string }) => {
+      if (settled) return;
+      settled = true;
+      if (target && eventData?.answer) {
+        target.innerHTML = eventData.answer;
+      }
+      cleanupPusher();
+      const success = completionJob.status === "SUCCESS";
+      onComplete?.(success, { data: completionJob });
+    };
+
+    const pollCompletionJob = async (
+      maxAttempts: number,
+      intervalMs: number
+    ) => {
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        if (settled) return null;
+        try {
+          const completionJob = await getCompletionJob(
+            userToken,
+            jobId,
+            resolvedApiHost
+          );
+          if (isTerminalCompletionStatus(completionJob.status)) {
+            return completionJob;
+          }
+        } catch (error) {
+          console.warn("Error fetching completion job", error);
+        }
+        if (attempt < maxAttempts - 1) {
+          await sleep(intervalMs);
+        }
+      }
+      return null;
+    };
+
+    const attemptRescue = async (): Promise<boolean> => {
+      if (settled) return true;
+      const completionJob = await pollCompletionJob(
+        RIGOBOT_RESCUE_MAX_ATTEMPTS,
+        RIGOBOT_RESCUE_POLL_INTERVAL_MS
+      );
+      if (completionJob) {
+        settle(completionJob);
+        return true;
+      }
+      return settled;
+    };
+
+    return {
+      stop: () => {
+        settled = true;
+        cleanupPusher();
       },
       run: async () => {
         // TEMP LOCAL: simulate Rigobot 503 to test error UX.
@@ -153,7 +235,7 @@ export const RigoTemplate = {
             return;
           }
           const data = await response.json();
-          const jobId = data.id;
+          jobId = data.id;
           if (!jobId) {
             onComplete?.(false, { error: "No job ID returned from API" });
             return;
@@ -171,40 +253,39 @@ export const RigoTemplate = {
             onComplete?.(true, data);
             return;
           }
+
+          onJobStarted?.({ jobId, attemptRescue });
+
           const channelName = `completion-job-${jobId}`;
           channel = pusherClient.subscribe(channelName);
           channel.bind("completion", async (eventData: any) => {
+            if (settled) return;
             if (!started) {
               started = true;
             }
-            const completionJob = await getCompletionJob(userToken, jobId, resolvedApiHost);
-            if (completionJob.status === "SUCCESS" || completionJob.status === "ERROR") {
-              if (target) {
-                target.innerHTML = eventData.answer || "";
-              }
-              const success = completionJob.status === "SUCCESS";
-              onComplete?.(success, {
-                data: completionJob
-              });
-              try {
-                channel.unbind_all();
-              channel.unsubscribe();
-              pusherClient.disconnect();
-              } catch (error: any) {
-                console.debug("Error unbinding pusher client", error);
-              }
+            const completionJob = await pollCompletionJob(
+              RIGOBOT_PUSHER_PENDING_MAX_ATTEMPTS,
+              RIGOBOT_PUSHER_PENDING_POLL_INTERVAL_MS
+            );
+            if (completionJob) {
+              settle(completionJob, eventData);
             }
           });
           pusherClient.connection.bind("error", (err: any) => {
-            onComplete?.(false, { error: err?.error?.message || "Pusher connection error" });
+            if (settled) return;
+            settled = true;
+            cleanupPusher();
+            onComplete?.(false, {
+              error: err?.error?.message || "Pusher connection error",
+            });
           });
         } catch (error: any) {
-          onComplete?.(false, {
-            error: error?.message || "Unknown error occurred",
-          });
-          if (pusherClient) {
-            pusherClient.disconnect();
+          if (!settled) {
+            onComplete?.(false, {
+              error: error?.message || "Unknown error occurred",
+            });
           }
+          cleanupPusher();
         }
       },
     };
@@ -216,7 +297,7 @@ export const RigoAI = {
   load: () => {
     // @ts-ignore
     if (window.rigo) {
-      console.log("RigoAI already started, skipping load");
+      console.log("RigoAI already started, skipping");
       return;
     }
     const rigoAI = document.createElement("script");
@@ -267,7 +348,6 @@ export const RigoAI = {
           },
           context: context || "",
           sockethost: FASTAPI_HOST,
-          // sockethost: "http://127.0.0.1:8003",
         });
         // @ts-ignore
         window.rigo.show({
@@ -276,7 +356,6 @@ export const RigoAI = {
         });
         rigoTemplateState.userToken = userToken;
       } else {
-
         console.error(
           `No window.rigo found, initializing RigoAI failed, retrying in ${1000 * (retries + 1)
           }ms`
@@ -297,11 +376,13 @@ export const RigoAI = {
     inputs,
     target,
     onComplete,
+    onJobStarted,
   }: {
     slug: string;
     inputs: Record<string, string>;
     target?: HTMLElement;
     onComplete?: (success: boolean, data: any) => void;
+    onJobStarted?: (ctx: TJobStartedContext) => void;
   }): TAgentJob | undefined => {
     // @ts-ignore
     if (!window.rigo) {
@@ -319,10 +400,9 @@ export const RigoAI = {
       onComplete: (success: boolean, data: any) => {
         if (onComplete) onComplete(success, data);
       },
+      onJobStarted,
       userToken: rigoTemplateState.userToken,
-      // userToken: "bf535a2d08e685f5d2dbd810d3f509a90c63cfe3",
       apiHost: rigoTemplateState.apiHost,
-      // apiHost: "https://rigobot-test-cca7d841c9d8.herokuapp.com",
       pusherKey: rigoTemplateState.pusherKey,
       pusherHost: rigoTemplateState.pusherHost,
     });

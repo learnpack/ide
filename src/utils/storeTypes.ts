@@ -348,6 +348,8 @@ export interface IStore {
   rigoContext: TRigoContext;
   isCompiling: boolean;
   compilationWatchdog: ReturnType<typeof setTimeout> | null;
+  /** HTTP rescue invoked by the watchdog when Pusher may have failed to deliver. */
+  evaluationRescue: (() => Promise<boolean>) | null;
   /** True only when the last run failed due to a service/infrastructure error (e.g. Rigobot 503), not the student's code. */
   serviceError: boolean;
   showSidebar: boolean;
@@ -407,6 +409,7 @@ export interface IStore {
   setFeedbackButtonProps: (t: string, c: string) => void;
   startCompilationWatchdog: () => void;
   clearCompilationWatchdog: () => void;
+  setEvaluationRescue: (fn: (() => Promise<boolean>) | null) => void;
   failCompilation: () => void;
   fetchSingleExerciseInfo: (index: number) => Promise<TExercise>;
   toggleFeedback: () => void;

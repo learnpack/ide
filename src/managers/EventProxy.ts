@@ -13,8 +13,9 @@ import {
 import { FetchManager } from "./fetchManager";
 import { LocalStorage } from "./localStorage";
 import Socket from "./socket";
-import { RigoAI } from "../components/Rigobot/AI";
+import { RigoAI, TAgentJob } from "../components/Rigobot/AI";
 import { DEV_MODE } from "../utils/lib";
+import useStore from "../utils/store";
 
 export type TEnvironment =
   | "localhost"
@@ -143,6 +144,8 @@ const RETRYABLE_STATUSES = [502, 503, 504];
 const MAX_RETRIES = 2;
 const BACKOFF_MS = [1000, 2000];
 
+let activeTemplateJob: TAgentJob | undefined;
+
 function runTemplateWithRetry(
   {
     slug,
@@ -158,13 +161,20 @@ function runTemplateWithRetry(
   onSuccess: (json: any) => void,
   attempt = 0
 ) {
-  RigoAI.useTemplate({
+  activeTemplateJob?.stop();
+
+  activeTemplateJob = RigoAI.useTemplate({
     slug,
     inputs,
     target,
+    onJobStarted: ({ attemptRescue }) => {
+      useStore.getState().setEvaluationRescue(attemptRescue);
+    },
     onComplete: (success, rigoData) => {
       const parsed = rigoData?.data?.parsed;
       if (success && parsed) {
+        useStore.getState().setEvaluationRescue(null);
+        activeTemplateJob = undefined;
         onSuccess(parsed);
         return;
       }
@@ -173,6 +183,9 @@ function runTemplateWithRetry(
       const isRetryable =
         status === undefined || RETRYABLE_STATUSES.includes(status);
       if (isRetryable && attempt < MAX_RETRIES) {
+        activeTemplateJob?.stop();
+        activeTemplateJob = undefined;
+        useStore.getState().setEvaluationRescue(null);
         localStorageEventEmitter.emitStatus("retrying", {
           targetButton,
           attempt: attempt + 1,
@@ -188,6 +201,8 @@ function runTemplateWithRetry(
         );
         return;
       }
+      useStore.getState().setEvaluationRescue(null);
+      activeTemplateJob = undefined;
       localStorageEventEmitter.emitStatus("service-error", {
         targetButton,
         error: rigoData?.error,

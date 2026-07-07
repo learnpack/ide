@@ -166,6 +166,14 @@ export const RIGOBOT_HOST = import.meta.env.VITE_RIGOBOT_HOST || "https://rigobo
 // export const RIGOBOT_HOST = "https://8000-charlytoc-rigobot-bmwdeam7cev.ws-us120.gitpod.io";
 /** Max wait for Rigobot evaluation (tests, builds, open questions) before showing Retry. */
 export const RIGOBOT_EVALUATION_TIMEOUT_MS = 20000;
+/** HTTP rescue poll interval after the evaluation watchdog fires (Pusher may have failed). */
+export const RIGOBOT_RESCUE_POLL_INTERVAL_MS = 2000;
+/** Max HTTP polls during a rescue burst after watchdog timeout. */
+export const RIGOBOT_RESCUE_MAX_ATTEMPTS = 3;
+/** Poll interval when Pusher fires but the completion job is still PENDING. */
+export const RIGOBOT_PUSHER_PENDING_POLL_INTERVAL_MS = 1000;
+/** Max polls while waiting for a PENDING job to reach a terminal status. */
+export const RIGOBOT_PUSHER_PENDING_MAX_ATTEMPTS = 3;
 export const BREATHECODE_HOST = "https://breathecode.herokuapp.com";
 
 export const changeSidebarVisibility = () => {
