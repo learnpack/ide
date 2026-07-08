@@ -90,6 +90,7 @@ export const Question = ({
   const isRestoredFeedbackRef = useRef(false);
   const watchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const jobRef = useRef<TAgentJob | undefined>(undefined);
+  const attemptRescueRef = useRef<(() => Promise<boolean>) | null>(null);
   // Ensures only the first outcome (success / server error / timeout) wins, so a
   // webhook arriving after the timeout can't reprocess a settled evaluation.
   const settledRef = useRef(false);
@@ -239,11 +240,15 @@ export const Question = ({
     setFeedback(null);
     setIsLoading(true);
 
+    jobRef.current?.stop();
+    attemptRescueRef.current = null;
     clearWatchdog();
-    watchdogRef.current = setTimeout(
-      () => handleEvaluationFailure("timeout"),
-      RIGOBOT_EVALUATION_TIMEOUT_MS
-    );
+    watchdogRef.current = setTimeout(async () => {
+      const rescued = await attemptRescueRef.current?.();
+      if (!rescued && !settledRef.current) {
+        handleEvaluationFailure("timeout");
+      }
+    }, RIGOBOT_EVALUATION_TIMEOUT_MS);
 
     jobRef.current = RigoAI.useTemplate({
       slug: "evaluator",
@@ -252,6 +257,9 @@ export const Question = ({
         lesson_content: wholeMD,
         student_response: answer,
         examples: examples.join("\n"),
+      },
+      onJobStarted: ({ attemptRescue }) => {
+        attemptRescueRef.current = attemptRescue;
       },
       onComplete: (success, rigoData) => {
         if (settledRef.current) return;
@@ -325,6 +333,7 @@ export const Question = ({
   useEffect(() => {
     return () => {
       clearWatchdog();
+      attemptRescueRef.current = null;
       jobRef.current?.stop();
     };
   }, []);

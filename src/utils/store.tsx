@@ -337,6 +337,7 @@ const useStore = create<IStore>((set, get) => ({
   },
   isCompiling: false,
   compilationWatchdog: null as ReturnType<typeof setTimeout> | null,
+  evaluationRescue: null as (() => Promise<boolean>) | null,
   serviceError: false,
   showSidebar: false,
   user_id: null,
@@ -542,6 +543,7 @@ const useStore = create<IStore>((set, get) => ({
 
     const debounceTestingSuccess = debounce((data: any) => {
       get().clearCompilationWatchdog();
+      set({ evaluationRescue: null });
       const stdout = removeSpecialCharacters(data.logs[0]);
 
       setTestResult("successful", stdout);
@@ -584,6 +586,7 @@ const useStore = create<IStore>((set, get) => ({
 
     const debounceTestingError = debounce((data: any) => {
       get().clearCompilationWatchdog();
+      set({ evaluationRescue: null });
       const stdout = removeSpecialCharacters(data.logs[0]);
       set({ isCompiling: false, serviceError: false });
       setTestResult("failed", stdout);
@@ -626,6 +629,7 @@ const useStore = create<IStore>((set, get) => ({
     let compilerErrorHandler = debounce(async (data: any) => {
       data;
       get().clearCompilationWatchdog();
+      set({ evaluationRescue: null });
 
       set({ lastState: "error", terminalShouldShow: true });
       set({ isCompiling: false, serviceError: false });
@@ -645,6 +649,7 @@ const useStore = create<IStore>((set, get) => ({
     let compilerSuccessHandler = debounce(async (data: any) => {
       data;
       get().clearCompilationWatchdog();
+      set({ evaluationRescue: null });
       set({ lastState: "success", terminalShouldShow: true });
       set({ isCompiling: false, serviceError: false });
 
@@ -744,7 +749,13 @@ const useStore = create<IStore>((set, get) => ({
 
   startCompilationWatchdog: () => {
     get().clearCompilationWatchdog();
-    const id = setTimeout(() => {
+    const id = setTimeout(async () => {
+      if (!get().isCompiling) return;
+      const rescue = get().evaluationRescue;
+      if (rescue) {
+        const rescued = await rescue();
+        if (rescued) return;
+      }
       if (get().isCompiling) get().failCompilation();
     }, RIGOBOT_EVALUATION_TIMEOUT_MS);
     set({ compilationWatchdog: id });
@@ -756,6 +767,10 @@ const useStore = create<IStore>((set, get) => ({
     set({ compilationWatchdog: null });
   },
 
+  setEvaluationRescue: (fn) => {
+    set({ evaluationRescue: fn });
+  },
+
   failCompilation: () => {
     const {
       setFeedbackButtonProps,
@@ -765,7 +780,12 @@ const useStore = create<IStore>((set, get) => ({
       clearCompilationWatchdog,
     } = get();
     clearCompilationWatchdog();
-    set({ isCompiling: false, lastState: "error", serviceError: true });
+    set({
+      isCompiling: false,
+      lastState: "error",
+      serviceError: true,
+      evaluationRescue: null,
+    });
     if (targetButtonForFeedback === "feedback") {
       setFeedbackButtonProps("retry", "bg-fail text-white");
     } else {
@@ -2061,6 +2081,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
     const isWebStudent =
       environment === "localStorage" ||
+      environment === "scorm" ||
       (environment === "creatorWeb" && mode !== "creator");
 
     if (status === "successful" && isWebStudent) {
@@ -2615,6 +2636,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
     const isWebStudent =
       environment === "localStorage" ||
+      environment === "scorm" ||
       (environment === "creatorWeb" && mode !== "creator");
     if (isWebStudent) {
       const exercise = newExercises.find((e) => e.slug === exerciseSlug);
@@ -2655,6 +2677,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
     const isWebStudent =
       environment === "localStorage" ||
+      environment === "scorm" ||
       (environment === "creatorWeb" && mode !== "creator");
     if (isWebStudent) {
       TelemetryManager.registerTesteableElement(Number(exercise.position), {

@@ -1,4 +1,5 @@
 import { TStep, TStepEvent } from "../managers/telemetry";
+import { TEnvironment } from "../managers/EventProxy";
 
 /**
  * Tracks the progress of the initial telemetry GET at boot time.
@@ -297,7 +298,7 @@ export interface IStore {
   agent: TAgent;
   learnpackPurposeId: number | string;
   status: string;
-  environment: "localhost" | "localStorage" | "creatorWeb";
+  environment: TEnvironment;
   testingEnvironment: "auto" | "cloud" | "local";
   dialogData: TDialog;
   lessonTitle: string;
@@ -348,6 +349,8 @@ export interface IStore {
   rigoContext: TRigoContext;
   isCompiling: boolean;
   compilationWatchdog: ReturnType<typeof setTimeout> | null;
+  /** HTTP rescue invoked by the watchdog when Pusher may have failed to deliver. */
+  evaluationRescue: (() => Promise<boolean>) | null;
   /** True only when the last run failed due to a service/infrastructure error (e.g. Rigobot 503), not the student's code. */
   serviceError: boolean;
   showSidebar: boolean;
@@ -407,6 +410,7 @@ export interface IStore {
   setFeedbackButtonProps: (t: string, c: string) => void;
   startCompilationWatchdog: () => void;
   clearCompilationWatchdog: () => void;
+  setEvaluationRescue: (fn: (() => Promise<boolean>) | null) => void;
   failCompilation: () => void;
   fetchSingleExerciseInfo: (index: number) => Promise<TExercise>;
   toggleFeedback: () => void;
