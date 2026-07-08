@@ -74,6 +74,7 @@ import MonacoEditor from "@monaco-editor/react";
 import { configureMonacoTypeScript } from "../../../utils/monacoTsConfig";
 import { Toolbar } from "../Editor/Editor";
 import { eventBus } from "@/managers/eventBus";
+import { ComparisonRenderer } from "../ComparisonRenderer/ComparisonRenderer";
 import TelemetryManager from "../../../managers/telemetry";
 import { Notifier } from "../../../managers/Notifier";
 
@@ -780,6 +781,31 @@ const CustomCodeBlock = ({
   }
   if (language === "mermaid") {
     return <MermaidRenderer code={code} />;
+  }
+
+  if (language === "comparison") {
+    if (isCreator && mode === "creator" && allowCreate) {
+      return (
+        <CreatorWrapper node={node} tagName="comparison">
+          <ComparisonRenderer 
+            code={code}
+            metadata={metadata}
+            wholeMD={wholeMD}
+            node={node}
+            allowCreate={allowCreate}
+          />
+        </CreatorWrapper>
+      );
+    }
+    return (
+      <ComparisonRenderer 
+        code={code}
+        metadata={metadata}
+        wholeMD={wholeMD}
+        node={node}
+        allowCreate={allowCreate}
+      />
+    );
   }
 
   if (language === "changesDiff") {
