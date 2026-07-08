@@ -13,6 +13,27 @@ export const DEV_MODE =false;
 export const DEV_URL = import.meta.env.VITE_DEV_URL || "https://1gm40gnb-3000.use2.devtunnels.ms";
 export const LEARNPACK_LOCAL_URL = DEV_MODE ? "http://localhost:3000" : "";
 
+/** Student-facing web envs: localStorage, SCORM, creatorWeb in student mode. */
+export function isWebStudentEnvironment(
+  environment: TEnvironment,
+  mode?: string
+): boolean {
+  return (
+    environment === "localStorage" ||
+    environment === "scorm" ||
+    (environment === "creatorWeb" && mode !== "creator")
+  );
+}
+
+/** Web envs where client-side telemetry/testeable registration applies. */
+export function isWebTelemetryEnvironment(environment: TEnvironment): boolean {
+  return (
+    environment === "localStorage" ||
+    environment === "scorm" ||
+    environment === "creatorWeb"
+  );
+}
+
 export const FASTAPI_HOST = "https://ai.4geeks.com";
 // export const FASTAPI_HOST = "http://localhost:8003";
 //@ts-ignore
