@@ -18,10 +18,24 @@ export const AutoResizeTextarea = ({
   const ref = useRef<HTMLTextAreaElement>(null);
 
   const resizeTextarea = () => {
-    if (ref.current) {
-      ref.current.style.height = "auto";
-      ref.current.style.height = `${ref.current.scrollHeight}px`;
+    const textarea = ref.current;
+    if (!textarea) return;
+
+    // Measuring requires collapsing the textarea to its natural height, which
+    // makes the browser scroll the focused caret back into view and drags every
+    // scrollable ancestor with it. Snapshot those offsets and put them back
+    // before the browser paints, so the measurement stays invisible.
+    const scrollers: [Element, number][] = [];
+    for (let node = textarea.parentElement; node; node = node.parentElement) {
+      scrollers.push([node, node.scrollTop]);
     }
+    const windowScrollY = window.scrollY;
+
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+
+    for (const [node, scrollTop] of scrollers) node.scrollTop = scrollTop;
+    window.scrollTo(window.scrollX, windowScrollY);
   };
 
   useEffect(() => {
