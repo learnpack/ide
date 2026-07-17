@@ -1,6 +1,7 @@
 import { memo, useEffect, useRef, useState } from "react";
 import { Toolbar } from "../Editor/Editor";
 import { Markdowner } from "../Markdowner/Markdowner";
+import { AutoResizeTextarea } from "../AutoResizeTextarea/AutoResizeTextarea";
 import { useTranslation } from "react-i18next";
 import useStore from "../../../utils/store";
 import "./LessonStyles.css";
@@ -222,6 +223,9 @@ const LessonInspector = () => {
 export const LessonRenderer = memo(() => {
   const currentContent = useStore((s) => s.currentContent);
   const editingContent = useStore((s) => s.editingContent);
+  const markdownEditorEnabled = useStore((s) => s.markdownEditorEnabled);
+  const setMarkdownEditorEnabled = useStore((s) => s.setMarkdownEditorEnabled);
+  const replaceInReadme = useStore((s) => s.replaceInReadme);
   const agent = useStore((s) => s.agent);
   const environment = useStore((s) => s.environment);
   const setOpenedModals = useStore((s) => s.setOpenedModals);
@@ -230,6 +234,47 @@ export const LessonRenderer = memo(() => {
   const lastTestResult = useStore((s) => s.lastTestResult);
   const isBuildable = useStore((s) => s.isBuildable);
   const currentExercisePosition = useStore((s) => s.currentExercisePosition);
+  const { t } = useTranslation();
+  const [draftContent, setDraftContent] = useState(currentContent);
+  const [isSaving, setIsSaving] = useState(false);
+  const [resetKey, setResetKey] = useState(0);
+  const handleSaveRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    setDraftContent(currentContent);
+    setResetKey((k) => k + 1);
+  }, [currentContent]);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    await replaceInReadme(
+      draftContent,
+      { line: 1, column: 1, offset: 0 },
+      { line: 1, column: 1, offset: Number.MAX_SAFE_INTEGER }
+    );
+    setIsSaving(false);
+    setMarkdownEditorEnabled(false);
+  };
+
+  handleSaveRef.current = handleSave;
+
+  useEffect(() => {
+    if (!markdownEditorEnabled) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault();
+        handleSaveRef.current();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [markdownEditorEnabled]);
+
+  const handleCancel = () => {
+    setDraftContent(currentContent);
+    setResetKey((k) => k + 1);
+    setMarkdownEditorEnabled(false);
+  };
 
   // Notify telemetry that the lesson content has rendered, so it can
   // determine (after a debounce window) whether the step is read-only.
@@ -246,7 +291,7 @@ export const LessonRenderer = memo(() => {
   };
 
   const onlyContinue = !isBuildable && !isTesteable;
-  const toolbarStateClass = 
+  const toolbarStateClass =
     lastTestResult?.status === "failed"
       ? "error"  // Tests failed - keep toolbar red even if compilation succeeds
       : lastTestResult?.status === "successful" && lastState === "success"
@@ -259,7 +304,33 @@ export const LessonRenderer = memo(() => {
       <LessonInspector />
       <AddVideoButton />
 
-      <Markdowner markdown={editingContent || currentContent} allowCreate={true} />
+      {markdownEditorEnabled ? (
+        <div className="flex-y gap-small">
+          <AutoResizeTextarea
+            key={resetKey}
+            defaultValue={currentContent}
+            onChange={(e) => setDraftContent(e.target.value)}
+            className="w-100"
+            minHeight="400px"
+          />
+          <div className="flex-x gap-small justify-end padding-small">
+            <SimpleButton
+              action={handleCancel}
+              extraClass="padding-small border-gray rounded scale-on-hover"
+              svg={svgs.iconClose}
+              text={t("cancel")}
+            />
+            <SimpleButton
+              action={handleSave}
+              extraClass="padding-small border-gray rounded scale-on-hover"
+              svg={svgs.iconCheck}
+              text={isSaving ? t("loading") : t("save")}
+            />
+          </div>
+        </div>
+      ) : (
+        <Markdowner markdown={editingContent || currentContent} allowCreate={true} />
+      )}
 
       {/* <TestLatex /> */}
       <ContinueButton />
