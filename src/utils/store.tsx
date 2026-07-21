@@ -3208,6 +3208,43 @@ The user's set up the application in "${language}" language, give your feedback 
   markdownEditorEnabled: false,
   setMarkdownEditorEnabled: (enabled: boolean) => set({ markdownEditorEnabled: enabled }),
 
+  markdownDraftDirty: false,
+  setMarkdownDraftDirty: (dirty: boolean) => set({ markdownDraftDirty: dirty }),
+
+  pendingDiscard: null,
+
+  // Run `confirm` straight away unless the markdown draft has unsaved edits, in
+  // which case park it and let the confirmation modal decide its fate. Callers
+  // stay synchronous and do not need to know whether a prompt was shown; those
+  // that leave state pending pass `cancel` to unwind it.
+  requestMarkdownDraftDiscard: (confirm: () => void, cancel?: () => void) => {
+    const { markdownDraftDirty, pendingDiscard } = get();
+    if (!markdownDraftDirty) {
+      confirm();
+    } else if (pendingDiscard) {
+      // A prompt is already open (the modal does not trap focus, so a second
+      // exit can still be triggered). Unwind the newcomer rather than clobber
+      // the parked one, whose caller may be waiting on its cancel.
+      cancel?.();
+    } else {
+      set({ pendingDiscard: { confirm, cancel } });
+    }
+  },
+
+  resolveMarkdownDraftDiscard: (confirmed: boolean) => {
+    const pending = get().pendingDiscard;
+    set({ pendingDiscard: null });
+    if (!pending) return;
+    if (confirmed) {
+      // Clear before running: it both stops the next exit attempt prompting
+      // again and lets the editor resynchronise its draft from the lesson.
+      set({ markdownDraftDirty: false });
+      pending.confirm();
+    } else {
+      pending.cancel?.();
+    }
+  },
+
   getSidebar: async () => {
     const { token } = get();
     const sidebar = await FetchManager.getSidebar(token);

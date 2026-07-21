@@ -373,6 +373,13 @@ export interface IStore {
   setMode: (mode: TMode) => void;
   markdownEditorEnabled: boolean;
   setMarkdownEditorEnabled: (enabled: boolean) => void;
+  markdownDraftDirty: boolean;
+  setMarkdownDraftDirty: (dirty: boolean) => void;
+  // Outcome parked while the user is asked to confirm discarding a dirty
+  // markdown draft. Non-null means the confirmation modal is showing.
+  pendingDiscard: { confirm: () => void; cancel?: () => void } | null;
+  requestMarkdownDraftDiscard: (confirm: () => void, cancel?: () => void) => void;
+  resolveMarkdownDraftDiscard: (confirmed: boolean) => void;
   addVideoTutorial: (videoTutorial: string) => Promise<void>;
   removeVideoTutorial: () => Promise<void>;
   useConsumable: (consumableSlug: TConsumableSlug) => Promise<boolean>;

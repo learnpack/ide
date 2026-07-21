@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import useStore from "../../../utils/store";
 import "./LessonStyles.css";
 import SimpleButton from "../../mockups/SimpleButton";
+import { Modal } from "../../mockups/Modal";
 import { eventBus } from "../../../managers/eventBus";
 import { fixLesson } from "../../../managers/EventProxy";
 import RealtimeNotificationListener from "../../Creator/RealtimeNotificationListener";
@@ -225,6 +226,10 @@ export const LessonRenderer = memo(() => {
   const editingContent = useStore((s) => s.editingContent);
   const markdownEditorEnabled = useStore((s) => s.markdownEditorEnabled);
   const setMarkdownEditorEnabled = useStore((s) => s.setMarkdownEditorEnabled);
+  const markdownDraftDirty = useStore((s) => s.markdownDraftDirty);
+  const setMarkdownDraftDirty = useStore((s) => s.setMarkdownDraftDirty);
+  const pendingDiscard = useStore((s) => s.pendingDiscard);
+  const resolveMarkdownDraftDiscard = useStore((s) => s.resolveMarkdownDraftDiscard);
   const replaceInReadme = useStore((s) => s.replaceInReadme);
   const agent = useStore((s) => s.agent);
   const environment = useStore((s) => s.environment);
@@ -239,21 +244,50 @@ export const LessonRenderer = memo(() => {
   const [isSaving, setIsSaving] = useState(false);
   const [resetKey, setResetKey] = useState(0);
   const handleSaveRef = useRef<() => void>(() => {});
+  // Guards against concurrent saves. A ref rather than the isSaving state
+  // because two clicks (or Ctrl+S repeats) landing in the same render pass
+  // would both read a stale `false` from state.
+  const isSavingRef = useRef(false);
 
+  // Follow the saved lesson only while there is nothing unsaved to lose.
+  // currentContent also moves on optimistic saves, failed-save rollbacks,
+  // undo/redo and background syncs; re-seeding then would wipe the buffer the
+  // user is still editing. Clearing the flag (cancel, discard, save) re-runs
+  // this and resynchronises the draft.
   useEffect(() => {
+    if (markdownDraftDirty) return;
     setDraftContent(currentContent);
     setResetKey((k) => k + 1);
-  }, [currentContent]);
+  }, [currentContent, markdownDraftDirty]);
 
-  const handleSave = async () => {
+  // Safety net. This component is mounted for the app's lifetime today, so the
+  // cleanup never runs; it matters only if that ever changes. A flag left set
+  // with no editor to clear it would block navigation behind a modal that is
+  // no longer rendered. The dep is a stable store action.
+  useEffect(() => () => setMarkdownDraftDirty(false), [setMarkdownDraftDirty]);
+
+  const handleSave = async (): Promise<boolean> => {
+    if (isSavingRef.current) return false;
+    isSavingRef.current = true;
     setIsSaving(true);
-    await replaceInReadme(
-      draftContent,
-      { line: 1, column: 1, offset: 0 },
-      { line: 1, column: 1, offset: Number.MAX_SAFE_INTEGER }
-    );
-    setIsSaving(false);
-    setMarkdownEditorEnabled(false);
+    try {
+      const result = await replaceInReadme(
+        draftContent,
+        { line: 1, column: 1, offset: 0 },
+        { line: 1, column: 1, offset: Number.MAX_SAFE_INTEGER }
+      );
+      // Only close on success. On failure the draft stays on screen so the
+      // user can retry; replaceInReadme already reports the error via toast.
+      if (result?.success) {
+        setMarkdownDraftDirty(false);
+        setMarkdownEditorEnabled(false);
+        return true;
+      }
+      return false;
+    } finally {
+      isSavingRef.current = false;
+      setIsSaving(false);
+    }
   };
 
   handleSaveRef.current = handleSave;
@@ -263,16 +297,19 @@ export const LessonRenderer = memo(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "s") {
         e.preventDefault();
+        // Inert while the discard prompt is open: it has its own Save button,
+        // and a shortcut save behind it would leave the prompt out of date.
+        if (pendingDiscard) return;
         handleSaveRef.current();
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [markdownEditorEnabled]);
+  }, [markdownEditorEnabled, pendingDiscard]);
 
   const handleCancel = () => {
-    setDraftContent(currentContent);
-    setResetKey((k) => k + 1);
+    // Clearing the flag lets the effect above resynchronise the draft.
+    setMarkdownDraftDirty(false);
     setMarkdownEditorEnabled(false);
   };
 
@@ -311,20 +348,25 @@ export const LessonRenderer = memo(() => {
         <div className="flex-y gap-small">
           <AutoResizeTextarea
             key={resetKey}
-            defaultValue={currentContent}
-            onChange={(e) => setDraftContent(e.target.value)}
+            defaultValue={draftContent}
+            onChange={(e) => {
+              setDraftContent(e.target.value);
+              setMarkdownDraftDirty(true);
+            }}
             className="w-100"
             minHeight="400px"
           />
           <div className="flex-x gap-small justify-end padding-small">
             <SimpleButton
               action={handleCancel}
+              disabled={isSaving || !!pendingDiscard}
               extraClass="padding-small border-gray rounded scale-on-hover"
               svg={svgs.iconClose}
               text={t("cancel")}
             />
             <SimpleButton
               action={handleSave}
+              disabled={isSaving || !!pendingDiscard}
               extraClass="padding-small border-gray rounded scale-on-hover"
               svg={svgs.iconCheck}
               text={
@@ -342,6 +384,40 @@ export const LessonRenderer = memo(() => {
         </div>
       ) : (
         <Markdowner markdown={editingContent || currentContent} allowCreate={true} />
+      )}
+
+      {/* The Modal's own X (and clicking outside) resolves as "keep editing". */}
+      {pendingDiscard && (
+        <Modal
+          extraClass="unsaved-draft-modal"
+          outsideClickHandler={() => resolveMarkdownDraftDiscard(false)}
+        >
+          <div className="draft-warning flex-x align-center">
+            <div className="big-svg">{svgs.rigoSoftBlue}</div>
+            <p>{t("unsaved-changes-description")}</p>
+          </div>
+          <div className="flex-x gap-small justify-center">
+            <SimpleButton
+              text={isSaving ? t("loading") : t("save")}
+              svg={svgs.iconCheck}
+              disabled={isSaving}
+              extraClass="padding-small bg-blue-rigo text-white rounded"
+              action={async () => {
+                // On success the parked action continues; on failure the
+                // editor stays open with the draft and the caller is unwound
+                // (the error toast already explains what happened).
+                resolveMarkdownDraftDiscard(await handleSave());
+              }}
+            />
+            <SimpleButton
+              text={t("discardElement")}
+              svg={svgs.trash}
+              disabled={isSaving}
+              extraClass="padding-small border-gray rounded"
+              action={() => resolveMarkdownDraftDiscard(true)}
+            />
+          </div>
+        </Modal>
       )}
 
       {/* <TestLatex /> */}

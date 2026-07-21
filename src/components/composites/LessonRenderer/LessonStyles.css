@@ -347,3 +347,28 @@
   border-radius: 4px;
   opacity: 0.75;
 }
+
+/* Unsaved-draft confirmation dialog. The Modal's close X is absolutely
+   positioned in the band a title normally occupies, so push the body below it
+   and give the actions room to breathe. pre-line honours the line break
+   encoded in the translation. */
+/* Selector mirrors the Modal's own width rule so it out-specifies it. */
+.self-closing-modal > div.modal-content.unsaved-draft-modal {
+  /* Size the dialog to its content instead of the Modal's fixed 600px. */
+  width: fit-content;
+  max-width: 98vw;
+}
+.unsaved-draft-modal .draft-warning {
+  /* 49px top puts 24px of air below the close X — same as above the buttons. */
+  margin: 49px 0 24px;
+  gap: 18px;
+}
+.unsaved-draft-modal p {
+  margin: 0;
+  white-space: pre-line;
+}
+.unsaved-draft-modal .simple-button-svg {
+  padding: 6px 18px;
+  /* Tighter than the global 10px so icon and label read as one unit. */
+  gap: 6px;
+}
