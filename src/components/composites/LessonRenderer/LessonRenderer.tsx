@@ -276,6 +276,9 @@ export const LessonRenderer = memo(() => {
     setMarkdownEditorEnabled(false);
   };
 
+  const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+  const saveShortcut = isMac ? "⌘S" : "Ctrl+S";
+
   // Notify telemetry that the lesson content has rendered, so it can
   // determine (after a debounce window) whether the step is read-only.
   useEffect(() => {
@@ -324,7 +327,16 @@ export const LessonRenderer = memo(() => {
               action={handleSave}
               extraClass="padding-small border-gray rounded scale-on-hover"
               svg={svgs.iconCheck}
-              text={isSaving ? t("loading") : t("save")}
+              text={
+                isSaving ? (
+                  t("loading")
+                ) : (
+                  <>
+                    {t("save")}
+                    <kbd className="kbd-hint">{saveShortcut}</kbd>
+                  </>
+                )
+              }
             />
           </div>
         </div>
