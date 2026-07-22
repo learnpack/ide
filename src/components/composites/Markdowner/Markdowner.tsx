@@ -1,4 +1,5 @@
 import Markdown, { type Components } from "react-markdown";
+import { type PluggableList } from "unified";
 import { Element } from "hast";
 import remarkGfm from "remark-gfm";
 import { TMetadata } from "./types";
@@ -181,7 +182,15 @@ const generateHeadingID = (md: string) => {
   return md.toLowerCase().replace(/ /g, "-").replace(/[^a-z0-9-]/g, "");
 }
 
-const REMARK_PLUGINS = [remarkGfm, remarkMath, emoji];
+// singleDollarTextMath is disabled so a lone "$" is treated as literal text:
+// with it enabled, prose containing two dollar signs (e.g. "$300,000 ... $310,000"
+// or two n8n "{{ $json.x }}" expressions) gets the span between them swallowed
+// and typeset as a KaTeX formula. Math still renders via $$...$$ (inline or block).
+const REMARK_PLUGINS: PluggableList = [
+  remarkGfm,
+  [remarkMath, { singleDollarTextMath: false }],
+  emoji,
+];
 const REHYPE_PLUGINS = [rehypeKatex];
 
 export const Markdowner = ({
