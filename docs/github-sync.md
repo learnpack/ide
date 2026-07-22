@@ -50,7 +50,7 @@ In the sidebar, under "Sync Syllabus (Dev)", when in creator mode with DEV_MODE 
 
 ## What Does NOT Sync (Pull)
 
-- **Structural files**: `learn.json`, `.learn/config.json`, `.learn/initialSyllabus.json`, `.learn/sidebar.json`, `.learn/memory_bank.txt`
+- **Structural files**: `learn.json`, `.learn/config.json`, `.learn/initialSyllabus.json`, `.learn/sidebar.json`, `.learn/package-manifest.json`, `.learn/memory_bank.txt`
 - **New lessons** created directly in GitHub
 - **Structural changes** inside lessons: adding/removing/renaming files within a lesson folder
 
