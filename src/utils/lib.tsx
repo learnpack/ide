@@ -588,16 +588,28 @@ export function resolveCourseTitle(
 }
 
 /**
- * Formats a lesson title by removing the numeric prefix and capitalizing
- * @param str - The title string (e.g., "00.0-bienvenido-al-ciclo-de-vida-de-react")
+ * Formats a lesson title for display. Accepts both slug-format strings
+ * (e.g., "00.0-bienvenido-al-ciclo-de-vida-de-react") and plain human
+ * titles (e.g., "Bienvenido al ciclo de vida de React"), which are
+ * returned as-is. Previously a plain title without dashes was reduced
+ * to an empty string because the first dash-segment was always dropped.
+ * @param str - The title string (slug or plain title)
  * @returns Formatted title (e.g., "Bienvenido al ciclo de vida de react")
  */
 export function titlefy(str: string): string {
-  let arr = str.split("-");
-  arr.shift(); // Remove the numeric prefix
-  let result = arr.join(" ");
-  result = result.charAt(0).toUpperCase() + result.slice(1);
-  return result;
+  if (!str) return "";
+  const trimmed = str.trim();
+  // Plain human titles (spaces or no dashes) are shown as-is
+  if (!trimmed.includes("-") || trimmed.includes(" ")) {
+    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+  }
+  const arr = trimmed.split("-");
+  // Only drop the first segment when it is a numeric prefix (e.g. "01" or "01.1")
+  if (arr.length > 1 && /^\d+(\.\d+)?$/.test(arr[0])) {
+    arr.shift();
+  }
+  const result = arr.join(" ");
+  return result.charAt(0).toUpperCase() + result.slice(1);
 }
 
 /**
@@ -615,7 +627,11 @@ export function getLessonDisplayInfo(
   fallbackTitle: string
 ): { id: string; formattedTitle: string } {
   const id = cleanFloatString(slug.split("-")[0]);
-  const translatedTitle = sidebar?.[slug]?.[language] || fallbackTitle;
+  const entry = sidebar?.[slug];
+  // Prefer the requested language, then the lesson's own title; fall back to
+  // the sidebar's en/us entries and finally the slug so the title is never blank
+  const translatedTitle =
+    entry?.[language] || fallbackTitle || entry?.en || entry?.us || slug;
   const formattedTitle = titlefy(translatedTitle);
   return { id, formattedTitle };
 }
