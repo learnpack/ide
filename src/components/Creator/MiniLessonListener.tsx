@@ -8,15 +8,17 @@ const socketClient = new CreatorSocket(DEV_MODE ? "http://localhost:3000" : "");
 export default function MiniLessonListener() {
   const config = useStore((state) => state.configObject);
   const getSyllabus = useStore((state) => state.getSyllabus);
-  const getCurrentExercise = useStore((state) => state.getCurrentExercise);
 
   useEffect(() => {
     if (!config?.config?.slug) return;
 
     const handleUpdate = async (data: any) => {
-      const currentExercise = getCurrentExercise();
-      
-      if (data.status === "done" && data.lesson === currentExercise.slug) {
+      // Refresh the syllabus whenever any lesson reaches a terminal state, not
+      // just the one currently being viewed. Generation runs in the background
+      // for lessons other than the current one, and the sidebar loading state
+      // is driven entirely by the syllabus store, so it must be refreshed on
+      // every completion to reflect the real generation state.
+      if (data.status === "done" || data.status === "error") {
         getSyllabus();
       }
     };
