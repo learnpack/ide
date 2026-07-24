@@ -427,6 +427,7 @@
     "video-tutorial-added": "¡Video tutorial agregado!",
     "pending-tasks": "Tareas pendientes",
     "pending-tasks-description": "Tienes tareas pendientes para validar. Te animamos a completarlas antes de continuar.",
+    "unsaved-changes-description": "Tienes cambios sin guardar en el editor markdown.\nGuárdalos o descártalos, o pulsa X para seguir editando.",
     "stay-here": "Quedarse aquí",
     "skip-and-continue": "Saltar y continuar",
     "loading": "Cargando...",

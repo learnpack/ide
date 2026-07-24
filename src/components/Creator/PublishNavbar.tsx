@@ -15,6 +15,7 @@ export const PublishNavbar = () => {
   const setMode = useStore((state) => state.setMode);
   const markdownEditorEnabled = useStore((state) => state.markdownEditorEnabled);
   const setMarkdownEditorEnabled = useStore((state) => state.setMarkdownEditorEnabled);
+  const requestMarkdownDraftDiscard = useStore((state) => state.requestMarkdownDraftDiscard);
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -48,7 +49,15 @@ export const PublishNavbar = () => {
         {mode === "creator" && (
           <SwitchComponent
             checked={markdownEditorEnabled}
-            onChange={setMarkdownEditorEnabled}
+            onChange={(checked) => {
+              // Turning the switch off closes the editor: confirm first if the
+              // draft has unsaved edits.
+              if (!checked) {
+                requestMarkdownDraftDiscard(() => setMarkdownEditorEnabled(false));
+                return;
+              }
+              setMarkdownEditorEnabled(true);
+            }}
             label="Markdown"
             id="markdown-editor"
           />
@@ -56,10 +65,13 @@ export const PublishNavbar = () => {
         <SwitchComponent checked={mode === "creator"} onChange={(checked) => {
           if (checked) {
             setMode("creator");
-          } else {
+            return;
+          }
+          // Leaving creator mode also closes the markdown editor.
+          requestMarkdownDraftDiscard(() => {
             setMode("student");
             setMarkdownEditorEnabled(false);
-          }
+          });
         }} label={t("edit-mode")} id="edit-mode" />
 
         <PublishButton />

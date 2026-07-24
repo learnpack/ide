@@ -46,6 +46,7 @@ const ValidationModal = ({
 
 export const PositionHandler = () => {
   const handlePositionChange = useStore((s) => s.handlePositionChange);
+  const requestMarkdownDraftDiscard = useStore((s) => s.requestMarkdownDraftDiscard);
   const mode = useStore((s) => s.mode);
 
   const currentExercisePosition = useStore((s) => s.currentExercisePosition);
@@ -70,16 +71,25 @@ export const PositionHandler = () => {
   }, [mode]);
 
   const handler = () => {
-    const result = TelemetryManager.hasPendingTasks(
-      Number(currentExercisePositionRef.current)
+    // Changing lesson swaps the content out from under the markdown editor and
+    // silently drops the draft, so confirm before letting navigation proceed.
+    requestMarkdownDraftDiscard(
+      () => {
+        const result = TelemetryManager.hasPendingTasks(
+          Number(currentExercisePositionRef.current)
+        );
+        if (result && currentModeRef.current !== "creator") {
+          setShouldValidate(true);
+          return;
+        } else {
+          handlePositionChange(desiredPosition.current);
+          eventBus.emit("position_changed", {});
+        }
+      },
+      // Staying put still ends the attempt: the Continue button shows a loader
+      // until this fires. Mirrors ValidationModal's "stay here" below.
+      () => eventBus.emit("position_changed", {})
     );
-    if (result && currentModeRef.current !== "creator") {
-      setShouldValidate(true);
-      return;
-    } else {
-      handlePositionChange(desiredPosition.current);
-      eventBus.emit("position_changed", {});
-    }
   };
 
   return (
