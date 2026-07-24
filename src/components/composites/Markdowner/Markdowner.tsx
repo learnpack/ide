@@ -5,6 +5,7 @@ import remarkGfm from "remark-gfm";
 import { TMetadata } from "./types";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import { remarkInlineHtmlToCode } from "./remarkInlineHtmlToCode";
 import useStore from "../../../utils/store";
 import { useShallow } from "zustand/react/shallow";
 import emoji from "remark-emoji";
@@ -190,6 +191,7 @@ const REMARK_PLUGINS: PluggableList = [
   remarkGfm,
   [remarkMath, { singleDollarTextMath: false }],
   emoji,
+  remarkInlineHtmlToCode,
 ];
 const REHYPE_PLUGINS = [rehypeKatex];
 
