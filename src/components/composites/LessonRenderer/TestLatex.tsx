@@ -44,7 +44,6 @@ export const TestLatex = () => {
   const language = useStore((state) => state.language);
 
   const testLatex = async () => {
-    console.log("test", token, configObject?.config?.slug, language);
     const bod = {
       prompt: "Hello, world!",
     };

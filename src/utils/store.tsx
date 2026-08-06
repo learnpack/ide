@@ -831,7 +831,6 @@ const useStore = create<IStore>((set, get) => ({
       if (params.token) {
         set({ bc_token: params.token });
         json = await FetchManager.loginWithToken(params.token);
-        console.log("json login with token", json);
         set({ token: json.rigoToken });
         set({ user: json.user });
         setTimeout(() => {
@@ -936,8 +935,6 @@ The user's set up the application in "${language}" language, give your feedback 
 
   fetchExercises: async () => {
     const { user_id, setOpenedModals, environment, token } = get();
-
-    console.log("Fetching exercises", environment, token);
 
     if (environment === "creatorWeb") {
       const slug = getSlugFromPath();
@@ -2204,7 +2201,6 @@ The user's set up the application in "${language}" language, give your feedback 
       mode,
     } = get();
 
-    console.log("tokens runnin tests", token, bc_token);
     if (!Boolean(token) || !Boolean(bc_token)) {
       setOpenedModals({ mustLogin: true });
       return;
@@ -2286,9 +2282,6 @@ The user's set up the application in "${language}" language, give your feedback 
     }
 
     const fallbackSlug = getSlugFromPath();
-
-    console.log("Getting session", token, configObject.config.slug);
-
 
     try {
       const session = await getSession(token, configObject.config.slug || fallbackSlug || "");
