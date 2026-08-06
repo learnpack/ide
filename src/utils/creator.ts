@@ -1,3 +1,4 @@
+import { describeError } from "./logging";
 import axios from "axios";
 import { getSlugFromPath, LEARNPACK_LOCAL_URL } from "./lib";
 
@@ -23,7 +24,7 @@ export const createStep = async (
     );
     return response.data;
   } catch (error) {
-    console.error("Error creating step:", error);
+    console.error("Error creating step:", describeError(error));
     throw error;
   }
 };
@@ -38,7 +39,7 @@ export const deleteExercise = async (slug: string) => {
     );
     return response.data;
   } catch (error) {
-    console.error("Error deleting exercise:", error);
+    console.error("Error deleting exercise:", describeError(error));
     throw error;
   }
 };
@@ -57,7 +58,7 @@ export const renameExercise = async (slug: string, newSlug: string) => {
     );
     return response.data;
   } catch (error) {
-    console.error("Error renaming exercise:", error);
+    console.error("Error renaming exercise:", describeError(error));
     throw error;
   }
 };
@@ -73,7 +74,7 @@ export const getUserAcademies = async (breathecodeToken: string) => {
     );
     return response.data;
   } catch (error) {
-    console.error("Error fetching academies:", error);
+    console.error("Error fetching academies:", describeError(error));
     throw error;
   }
 };
@@ -101,7 +102,7 @@ export const getPackageAcademy = async (
     );
     return response.data;
   } catch (error) {
-    console.error("Error fetching package academy:", error);
+    console.error("Error fetching package academy:", describeError(error));
     throw error;
   }
 };
@@ -128,7 +129,7 @@ export const publishTutorial = async (
     );
     return response.data;
   } catch (error) {
-    console.error("Error publishing tutorial:", error);
+    console.error("Error publishing tutorial:", describeError(error));
     throw error;
   }
 };
@@ -149,7 +150,7 @@ export const deleteTutorial = async (
     );
     return response.data;
   } catch (error) {
-    console.error("Error deleting tutorial:", error);
+    console.error("Error deleting tutorial:", describeError(error));
     throw error;
   }
 };
@@ -174,7 +175,7 @@ export const updateCourseTitle = async (
     );
     return response.data;
   } catch (error) {
-    console.error("Error updating course title:", error);
+    console.error("Error updating course title:", describeError(error));
     throw error;
   }
 };
@@ -187,7 +188,7 @@ export const synchronizeSyllabus = async () => {
     );
     return response.data;
   } catch (error) {
-    console.error("Error synchronizing syllabus:", error);
+    console.error("Error synchronizing syllabus:", describeError(error));
     throw error;
   }
 };
@@ -211,7 +212,7 @@ export const synchronizeLessonFiles = async (
       movedCount?: number;
     };
   } catch (error) {
-    console.error("Error synchronizing lesson files:", error);
+    console.error("Error synchronizing lesson files:", describeError(error));
     throw error;
   }
 };
@@ -374,7 +375,7 @@ export const createFile = async (exerciseSlug: string, filename: string, content
     );
     return response.data;
   } catch (error) {
-    console.error("Error creating file:", error);
+    console.error("Error creating file:", describeError(error));
     throw error;
   }
 };
@@ -389,7 +390,7 @@ export const deleteFile = async (exerciseSlug: string, filename: string) => {
     );
     return response.data;
   } catch (error) {
-    console.error("Error deleting file:", error);
+    console.error("Error deleting file:", describeError(error));
     throw error;
   }
 };
@@ -412,7 +413,7 @@ export const renameFile = async (
     );
     return response.data;
   } catch (error) {
-    console.error("Error renaming file:", error);
+    console.error("Error renaming file:", describeError(error));
     throw error;
   }
 };
@@ -433,7 +434,7 @@ export const changeSlug = async (
     );
     return response.data;
   } catch (error) {
-    console.error("Error changing slug:", error);
+    console.error("Error changing slug:", describeError(error));
     throw error;
   }
 };
@@ -445,7 +446,7 @@ export const getGithubStatus = async (courseSlug: string) => {
     );
     return response.data;
   } catch (error) {
-    console.error("Error fetching GitHub status:", error);
+    console.error("Error fetching GitHub status:", describeError(error));
     throw error;
   }
 };
@@ -468,7 +469,7 @@ export const createGithubRepo = async (
     );
     return response.data;
   } catch (error) {
-    console.error("Error creating GitHub repo:", error);
+    console.error("Error creating GitHub repo:", describeError(error));
     if (axios.isAxiosError(error)) {
       const data = error.response?.data as {
         message?: string;
@@ -517,7 +518,7 @@ export const checkGithubChanges = async (courseSlug: string) => {
     );
     return response.data;
   } catch (error) {
-    console.error("Error checking GitHub changes:", error);
+    console.error("Error checking GitHub changes:", describeError(error));
     throw error;
   }
 };
@@ -536,7 +537,7 @@ export const pullFromGithub = async (
     );
     return response.data;
   } catch (error) {
-    console.error("Error pulling from GitHub:", error);
+    console.error("Error pulling from GitHub:", describeError(error));
     throw error;
   }
 };
@@ -549,7 +550,7 @@ export const pushToGithub = async (courseSlug: string) => {
     );
     return response.data;
   } catch (error) {
-    console.error("Error pushing to GitHub:", error);
+    console.error("Error pushing to GitHub:", describeError(error));
     throw error;
   }
 };

@@ -1,3 +1,4 @@
+import { describeError } from "../../utils/logging";
 import { useState, useEffect, useRef, memo } from "react";
 import { useTranslation } from "react-i18next";
 import SimpleButton from "../mockups/SimpleButton";
@@ -199,7 +200,7 @@ function setupPusherSubscription(
     });
 
     pusherClient.connection.bind("error", (err: any) => {
-      console.error("Pusher connection error:", err);
+      console.error("Pusher connection error:", describeError(err));
       callbacks.onError?.(err);
     });
 
@@ -207,7 +208,7 @@ function setupPusherSubscription(
       console.log("Pusher disconnected");
     });
   }).catch((error) => {
-    console.error("Failed to load Pusher:", error);
+    console.error("Failed to load Pusher:", describeError(error));
     callbacks.onError?.(error);
   });
 
@@ -497,7 +498,7 @@ export const AgentTab = () => {
         }
       }
     } catch (error) {
-      console.error("Error handling tool call:", error);
+      console.error("Error handling tool call:", describeError(error));
     }
   };
 
@@ -560,7 +561,7 @@ export const AgentTab = () => {
         console.error("Agent error:", data.error_message);
       }
     } catch (error) {
-      console.error("Error handling completion:", error);
+      console.error("Error handling completion:", describeError(error));
       toast.error("Error obteniendo resultados del agente");
     }
   };
@@ -698,7 +699,7 @@ ${context}
           await handleAgentCompletion(completionData);
         },
         onError: (error) => {
-          console.error("Pusher error:", error);
+          console.error("Pusher error:", describeError(error));
           toast.error("Error en la conexión en tiempo real");
         },
       });
@@ -708,7 +709,7 @@ ${context}
       // Poll for updates as fallback (optional, if Pusher fails)
       // You can implement polling here if needed
     } catch (error: any) {
-      console.error("Error starting agent run:", error);
+      console.error("Error starting agent run:", describeError(error));
       setIsGenerating(false);
       toast.error(error.message || "Error iniciando la conversación con el agente");
       

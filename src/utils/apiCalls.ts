@@ -1,3 +1,4 @@
+import { describeError } from "./logging";
 import axios from "axios";
 import { RIGOBOT_HOST, BREATHECODE_HOST } from "./lib";
 import { TConsumableSlug } from "./storeTypes";
@@ -19,7 +20,7 @@ export const getSession = async (token: string, slug: string) => {
 
     return response.data;
   } catch (error) {
-    console.error("Error fetching session:", error);
+    console.error("Error fetching session:", describeError(error));
     throw error;
   }
 };
@@ -48,7 +49,7 @@ export const updateSession = async (
     });
     return response.data;
   } catch (error) {
-    console.error("Error updating session:", error);
+    console.error("Error updating session:", describeError(error));
     throw error;
   }
 };
@@ -77,7 +78,7 @@ export const createSession = async (
 
     return response.data;
   } catch (error) {
-    console.error("Error creating session:", error);
+    console.error("Error creating session:", describeError(error));
     throw error; // Rethrow the error for further handling
   }
 };
@@ -93,7 +94,7 @@ export async function getConsumables(token: string): Promise<any> {
     const response = await axios.get(url, { headers });
     return response.data;
   } catch (error) {
-    console.error("Error fetching consumables:", error);
+    console.error("Error fetching consumables:", describeError(error));
     throw error;
   }
 }
@@ -121,7 +122,7 @@ export async function useConsumableCall(
       return false;
     }
   } catch (error) {
-    console.error(`Error consuming ${consumableSlug}:`, error);
+    console.error(`Error consuming ${consumableSlug}:`, describeError(error));
     return false;
   }
 }
@@ -171,7 +172,7 @@ export async function fetchLearnpackPackageInfo(
     if (axios.isAxiosError(error) && error.response?.status === 404) {
       return empty;
     }
-    console.warn("fetchLearnpackPackageInfo failed:", error);
+    console.warn("fetchLearnpackPackageInfo failed:", describeError(error));
     return empty;
   }
 }
@@ -191,7 +192,7 @@ export const isPackageAuthor = async (
     return { isAuthor: response.status === 200, status: response.status };
   } catch (error: any) {
     const status = error?.response?.status || 500;
-    console.error("Error fetching package:", error);
+    console.error("Error fetching package:", describeError(error));
     return { isAuthor: false, status };
   }
 };
