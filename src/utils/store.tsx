@@ -2350,8 +2350,7 @@ The user's set up the application in "${language}" language, give your feedback 
         return;
       }
     } catch (e) {
-      console.error(e);
-      console.log("Error trying to get session");
+      console.error("Error trying to get session", describeError(e));
     }
   },
   updateDBSession: async () => {
