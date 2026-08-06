@@ -355,8 +355,6 @@ const QuizQuestion = ({
         text: answer,
         isCorrect: isCorrect,
       });
-    } else {
-      console.error("No group ref found");
     }
   };
 

@@ -1,3 +1,4 @@
+import { describeError } from "../utils/logging";
 import {
   BREATHECODE_HOST,
   getExercise,
@@ -871,13 +872,13 @@ export const FetchManager = {
               const { getSyncNotifications } = useStore.getState();
               getSyncNotifications().catch((err) => {
                 // Silently fail - non-critical operation
-                console.error("Error refreshing sync notifications:", err);
+                console.error("Error refreshing sync notifications:", describeError(err));
               });
             }
           } catch (notifError) {
             // Non-critical error - README was saved successfully
             // Don't show error to user - notification creation is optional
-            console.error("Error creating sync notification:", notifError);
+            console.error("Error creating sync notification:", describeError(notifError));
           }
         }
 
@@ -1223,7 +1224,7 @@ const createTabHashFromURL = () => {
     console.debug(hash, "HASH");
     return hash;
   } catch (error) {
-    console.error("Error generating tab hash:", error);
+    console.error("Error generating tab hash:", describeError(error));
     return uuidv4();
   }
 };

@@ -26,7 +26,6 @@ export const slugToTitle = (slug: string, uppercase = true) => {
   if (!slug) return "";
 
   if (typeof slug !== "string") {
-    console.error("slugToTitle: slug is not a string");
     return "";
   }
   let title = slug.replace(/-/g, " ").replace(/_/g, " ");

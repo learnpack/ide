@@ -1,3 +1,4 @@
+import { describeError } from "../../../utils/logging";
 import { useTranslation } from "react-i18next";
 import useStore from "../../../utils/store";
 import { Modal } from "../../mockups/Modal";
@@ -40,7 +41,7 @@ export const SyllabusFeedbackModal = () => {
         // setOpenedModals({ syllabusFeedback: false });
       })
       .catch((error) => {
-        console.error("Error continuing course:", error);
+        console.error("Error continuing course:", describeError(error));
       });
   };
 

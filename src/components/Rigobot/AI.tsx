@@ -1,3 +1,4 @@
+import { describeError } from "../../utils/logging";
 import toast from "react-hot-toast";
 import {
   FASTAPI_HOST,
@@ -165,7 +166,7 @@ export const RigoTemplate = {
             return completionJob;
           }
         } catch (error) {
-          console.warn("Error fetching completion job", error);
+          console.warn("Error fetching completion job", describeError(error));
         }
         if (attempt < maxAttempts - 1) {
           await sleep(intervalMs);
