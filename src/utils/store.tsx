@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { describeError } from "./logging";
 
 // import io from "socket.io-client";
 
@@ -1062,7 +1063,7 @@ The user's set up the application in "${language}" language, give your feedback 
 
       return true;
     } catch (err) {
-      console.log(err, "ERROR FETCHING EXERCISES!");
+      console.error("Error fetching exercises", describeError(err));
       disconnected();
       return false;
     }
@@ -3583,7 +3584,7 @@ The user's set up the application in "${language}" language, give your feedback 
     const { token, environment, mode } = get();
 
     if (!token) {
-      console.log("ERROR: No token found, initializing RigoAI failed");
+      console.error("No token found, initializing RigoAI failed");
       return;
     }
 

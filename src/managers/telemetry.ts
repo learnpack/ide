@@ -469,7 +469,7 @@ const sendStreamTelemetry = async function (
       return response;
     })
     .catch((error) => {
-      console.log("Error while sending stream Telemetry", error);
+      console.error("Error while sending stream Telemetry", describeError(error));
     });
 };
 
@@ -1019,8 +1019,10 @@ const TelemetryManager: ITelemetryManager = {
 
           submitLocalIfNewer = source === "local";
         } catch (error) {
-          console.log("ERROR: There was a problem starting the Telemetry");
-          console.error(describeError(error));
+          console.error(
+            "There was a problem starting the Telemetry",
+            describeError(error)
+          );
           throw new Error(
             "There was a problem starting, reload LearnPack\nRun\n$ learnpack start"
           );
@@ -1110,8 +1112,10 @@ const TelemetryManager: ITelemetryManager = {
         await this.submit();
       })
       .catch((error) => {
-        console.log("ERROR: There was a problem starting the Telemetry");
-        console.error(describeError(error));
+        console.error(
+          "There was a problem starting the Telemetry",
+          describeError(error)
+        );
 
         throw new Error(
           "There was a problem starting, reload LearnPack\nRun\n$ learnpack start"
