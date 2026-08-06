@@ -20,10 +20,11 @@ export default defineConfig({
     },
     cssCodeSplit: false,
   },
-  // `minify: true` (esbuild) no elimina las llamadas a consola, asi que todos
-  // los console.log del proyecto acababan en el bundle. Se descartan solo los
-  // informativos: console.error y console.warn se conservan porque son el
-  // unico canal de diagnostico del IDE (no hay Sentry ni ErrorBoundary).
+  // `minify: true` (esbuild) minifies but does not strip console calls, so
+  // every console.log in the project used to end up in the bundle. Only the
+  // informational ones are dropped: console.error and console.warn are kept
+  // because they are the IDE's only diagnostic channel (there is no Sentry
+  // and no ErrorBoundary).
   esbuild: {
     pure: ["console.log", "console.debug", "console.info"],
   },

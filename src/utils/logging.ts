@@ -1,12 +1,12 @@
 import axios from "axios";
 
 /**
- * Utilidades para registrar errores en consola sin exponer credenciales.
+ * Helpers for logging errors to the console without exposing credentials.
  *
- * El objeto de error de axios arrastra `config.headers` (con `Authorization`
- * o `x-rigo-token`), `request` y `response.headers`. Volcarlo entero con
- * `console.error("...", error)` publica el token del usuario en las devtools.
- * `describeError` se queda solo con lo que sirve para diagnosticar.
+ * An axios error object carries `config.headers` (holding `Authorization` or
+ * `x-rigo-token`), `request` and `response.headers`. Dumping it whole with
+ * `console.error("...", error)` publishes the user's token to the devtools.
+ * `describeError` keeps only what is useful for diagnosis.
  */
 
 export type TSafeErrorInfo = {
@@ -22,7 +22,7 @@ export type TSafeErrorInfo = {
 
 const MAX_DATA_CHARS = 500;
 
-/** Parametros de query cuyo valor nunca debe aparecer en un log. */
+/** Query parameters whose value must never show up in a log. */
 const SENSITIVE_QUERY_PARAMS = [
   "token",
   "access_token",
@@ -35,10 +35,10 @@ const SENSITIVE_QUERY_PARAMS = [
 ];
 
 /**
- * Devuelve la URL sin los valores de los parametros sensibles. Algunas
- * peticiones llevan el token en la query (por ejemplo
- * `/v1/auth/me/token?breathecode_token=...`), asi que no basta con omitir
- * las cabeceras.
+ * Returns the URL with the values of sensitive parameters redacted. Some
+ * requests carry the token in the query string (for example
+ * `/v1/auth/me/token?breathecode_token=...`), so omitting the headers is not
+ * enough.
  */
 export const redactUrl = (url?: string): string | undefined => {
   if (!url) return undefined;
@@ -59,7 +59,7 @@ export const redactUrl = (url?: string): string | undefined => {
   return `${base}?${redactedQuery}`;
 };
 
-/** Serializa el cuerpo de la respuesta y lo recorta para no inundar la consola. */
+/** Serializes the response body and truncates it so it does not flood the console. */
 const summarizeData = (data: unknown): unknown => {
   if (data === null || data === undefined) return undefined;
 
@@ -78,8 +78,8 @@ const summarizeData = (data: unknown): unknown => {
 };
 
 /**
- * Extrae de un error los datos utiles para soporte (mensaje, estado, metodo y
- * URL) omitiendo siempre cabeceras y configuracion de la peticion.
+ * Extracts the data that is useful for support (message, status, method and
+ * URL) from an error, always omitting request headers and configuration.
  */
 export const describeError = (error: unknown): TSafeErrorInfo => {
   if (axios.isAxiosError(error)) {
@@ -94,8 +94,8 @@ export const describeError = (error: unknown): TSafeErrorInfo => {
     };
   }
 
-  // En los errores que no son de red (parseo, Pusher, hashing...) la traza es
-  // el dato de diagnostico principal y no contiene credenciales.
+  // For non-network errors (parsing, Pusher, hashing...) the stack is the main
+  // diagnostic signal and holds no credentials.
   if (error instanceof Error) {
     return { message: error.message, name: error.name, stack: error.stack };
   }
