@@ -69,6 +69,27 @@ export const SyncNotificationCard = ({ notification, onSyncClick }: Props) => {
   };
   
   const isProcessing = notification.status === "processing";
+  // A partial sync is a failure too: some languages are still out of date.
+  const hasFailed =
+    notification.status === "error" || notification.status === "partial";
+
+  const failedLanguages = (notification.syncProgress?.failedLanguages || [])
+    .map(failed => getLanguageName(failed.code, i18n.language))
+    .join(", ");
+
+  const failureMessage = (() => {
+    if (notification.status === "partial") {
+      return t("sync-partial-message", { languages: failedLanguages });
+    }
+
+    if (failedLanguages) {
+      return t("sync-failed-languages", { languages: failedLanguages });
+    }
+
+    // Falls back to whatever the server reported, the timeout is only one of
+    // the reasons a sync can fail.
+    return notification.error?.message || t("sync-timeout-message");
+  })();
   
   return (
     <div 
@@ -123,13 +144,13 @@ export const SyncNotificationCard = ({ notification, onSyncClick }: Props) => {
           {notification.targetLanguages.length} {t("languages")}
         </span>
       </div>
-      
-      {/* Error message if sync failed */}
-      {notification.status === "error" && (
+
+      {/* Feedback when the sync failed or only some languages made it */}
+      {hasFailed && (
         <div className="flex-x align-center gap-small padding-small rounded bg-warning text-black" style={{ marginTop: "8px" }}>
           <Icon name="AlertCircle" size={16} />
           <p className="m-0">
-            {t("sync-timeout-message")}
+            {failureMessage}
           </p>
         </div>
       )}
@@ -169,7 +190,7 @@ export const SyncNotificationCard = ({ notification, onSyncClick }: Props) => {
           <SimpleButton
             extraClass="bg-blue-rigo text-white padding-small rounded"
             size="small"
-            text={notification.status === "error" ? t("retry") : t("synchronize")}
+            text={hasFailed ? t("retry") : t("synchronize")}
             action={handleSyncClick}
           />
         </div>

@@ -82,6 +82,7 @@ import {
   fetchSyncNotifications,
   dismissSyncNotification as dismissSyncNotificationAPI,
   acceptSyncNotification as acceptSyncNotificationAPI,
+  SyncNotificationError,
 } from "./syncNotifications";
 import i18n from "./i18n";
 import { eventBus } from "@/managers/eventBus";
@@ -1949,55 +1950,61 @@ The user's set up the application in "${language}" language, give your feedback 
       return;
     }
 
-    // Verify and consume consumable if not unlimited
-    if (userConsumables.ai_generation !== -1) {
-      const hasEnough = userConsumables.ai_generation >= 1;
+    const needsConsumable = userConsumables.ai_generation !== -1;
 
-      if (!hasEnough) {
-        toast.error(i18n.t("sync-consumable-insufficient"));
-        return;
-      }
+    if (needsConsumable && userConsumables.ai_generation < 1) {
+      toast.error(i18n.t("sync-consumable-insufficient"));
+      return;
+    }
 
-      // Consume the consumable
+    // Mark as processing locally so the card reacts right away
+    const { syncNotifications } = get();
+    set({
+      syncNotifications: syncNotifications.map(n =>
+        n.id === notification.id
+          ? { ...n, status: "processing" as TSyncNotificationStatus }
+          : n
+      ),
+    });
+
+    try {
+      await acceptSyncNotificationAPI(
+        notification.id,
+        notification.lessonSlug,
+        token
+      );
+    } catch (error) {
+      console.error("Error accepting sync notification:", error);
+
+      const alreadyProcessing =
+        error instanceof SyncNotificationError && error.status === 409;
+
+      toast.error(
+        i18n.t(
+          alreadyProcessing ? "sync-already-processing" : "error-starting-sync"
+        )
+      );
+
+      // Read the real state back from the server instead of guessing it:
+      // forcing "pending" here is what made a notification look retryable
+      // while the server had it in another state.
+      await get().getSyncNotifications();
+      return;
+    }
+
+    // The consumable is only spent once the server accepted the sync, so a
+    // rejected retry no longer costs an AI generation.
+    if (needsConsumable) {
       const consumed = await get().useConsumable("ai-generation");
 
       if (!consumed) {
-        toast.error(i18n.t("error-consuming-consumable"));
-        return;
+        console.warn(
+          "Synchronization started but the consumable could not be spent"
+        );
       }
     }
 
-    try {
-      // Mark as processing locally
-      const { syncNotifications } = get();
-      set({
-        syncNotifications: syncNotifications.map(n =>
-          n.id === notification.id
-            ? { ...n, status: "processing" as TSyncNotificationStatus }
-            : n
-        ),
-      });
-
-      await acceptSyncNotificationAPI(notification.id, notification.lessonSlug, token);
-
-      toast.success(i18n.t("sync-started"));
-    } catch (error) {
-      console.error("Error accepting sync notification:", error);
-      toast.error(i18n.t("error-starting-sync"));
-
-      // Revert status on error
-      const { syncNotifications } = get();
-      set({
-        syncNotifications: syncNotifications.map(n =>
-          n.id === notification.id
-            ? { ...n, status: "pending" as TSyncNotificationStatus }
-            : n
-        ),
-      });
-
-      // Note: If error occurred after consuming, we cannot revert the consumable
-      // but we show the error to the user
-    }
+    toast.success(i18n.t("sync-started"));
   },
 
   handlePositionChange: async (desiredPosition) => {

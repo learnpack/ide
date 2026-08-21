@@ -1,6 +1,22 @@
 import { FetchManager } from "../managers/fetchManager";
 import { getSlugFromPath } from "./lib";
 
+/**
+ * Carries the HTTP status and the server error code, so the caller can tell a
+ * sync that is already running (409) from an actual failure.
+ */
+export class SyncNotificationError extends Error {
+  status: number;
+  code?: string;
+
+  constructor(message: string, status: number, code?: string) {
+    super(message);
+    this.name = "SyncNotificationError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
 export interface CreateSyncNotificationParams {
   exerciseSlug: string;
   sourceLanguage: string;
@@ -148,8 +164,12 @@ export const acceptSyncNotification = async (
     });
     
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Failed to start synchronization");
+      const body = await response.json().catch(() => ({}));
+      throw new SyncNotificationError(
+        body.error || body.message || "Failed to start synchronization",
+        response.status,
+        body.code
+      );
     }
     
   } catch (error) {

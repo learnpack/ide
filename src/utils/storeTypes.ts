@@ -261,7 +261,7 @@ export type TConsumableSlug =
   | "ai-compilation"
   | "ai-generation";
 
-export type TSyncNotificationStatus = "pending" | "processing" | "completed" | "error";
+export type TSyncNotificationStatus = "pending" | "processing" | "completed" | "partial" | "error";
 
 export type TSyncNotification = {
   id: string;
