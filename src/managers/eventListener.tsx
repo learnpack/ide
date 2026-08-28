@@ -41,7 +41,10 @@ export default function EventListener() {
                 // quiz_submission / case "test" handle testeable steps; this covers
                 // read-only last steps that have no departure open_step event.
                 const lastPos = exercises.length - 1;
-                TelemetryManager.completeStepIfReadOnly(lastPos);
+                TelemetryManager.completeStepIfReadOnly(
+                  lastPos,
+                  useStore.getState().mode
+                );
                 Notifier.confetti();
                 setOpenedModals({ lastLessonFinished: true });
                 // If running inside a SCORM package, tell the LMS the course is

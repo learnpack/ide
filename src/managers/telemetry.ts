@@ -10,7 +10,7 @@ import {
 import packageInfo from "../../package.json";
 import { LocalStorage } from "./localStorage";
 import axios, { AxiosResponse } from "axios";
-import { TAgent } from "../utils/storeTypes";
+import { TAgent, TMode } from "../utils/storeTypes";
 import { debounce, LEARNPACK_LOCAL_URL, RIGOBOT_HOST } from "../utils/lib";
 import { eventBus } from "./eventBus";
 import { fetchLearnpackPackageInfo } from "../utils/apiCalls";
@@ -882,14 +882,19 @@ interface ITelemetryManager {
     retry?: number
   ) => void;
   activeHashes: Map<string, Set<string>>;
+  /** When `current` became available in this session. Session-only, not persisted. */
+  currentReadyAt?: number;
+  /** Steps auto-completed as read-only in this session, so a late registration can undo it. */
+  prunedCompletions: Set<number>;
   registerTesteableElement: (
     stepPosition: number,
     testeableElement: TTesteableElement,
     language?: string
   ) => void;
   hasTesteableElementByHash: (stepPosition: number, hash: string) => boolean;
-  completeStepIfReadOnly: (stepPosition: number) => void;
-  onLessonRendered: (stepPosition: number) => void;
+  isActiveHash: (hash: string) => boolean;
+  completeStepIfReadOnly: (stepPosition: number, mode?: TMode) => void;
+  onLessonRendered: (stepPosition: number, mode?: TMode) => void;
   _lessonRenderedDebounce: ReturnType<typeof debounce> | null;
   hasPendingTasks: (stepPosition: number) => boolean;
   hasPendingTasksInAnyLesson: () => boolean;
@@ -918,6 +923,8 @@ const TelemetryManager: ITelemetryManager = {
   prevStep: undefined,
   prevStepStartedAt: undefined,
   activeHashes: new Map<string, Set<string>>(),
+  currentReadyAt: undefined,
+  prunedCompletions: new Set<number>(),
   _lessonRenderedDebounce: null,
   user: {
     token: "",
@@ -934,7 +941,6 @@ const TelemetryManager: ITelemetryManager = {
   },
 
   start: function (agent, steps, tutorialSlug, storageKey, student, prefetchedServerTelemetry?) {
-    this.activeHashes = new Map<string, Set<string>>();
     this.packageAssetIds = [];
     this.telemetryKey = storageKey;
     this.tutorialSlug = tutorialSlug;
@@ -948,6 +954,13 @@ const TelemetryManager: ITelemetryManager = {
     if (this.current) {
       return Promise.resolve();
     }
+
+    // Reset session-only state AFTER the early return: a duplicate bootstrap must
+    // not wipe the hashes of quizzes that are already mounted, or the read-only
+    // prune would mistake live elements for orphans.
+    this.activeHashes = new Map<string, Set<string>>();
+    this.prunedCompletions = new Set<number>();
+    this.currentReadyAt = undefined;
 
     if (agent === "cloud") {
       this.reconciling = true;
@@ -998,6 +1011,7 @@ const TelemetryManager: ITelemetryManager = {
           );
 
           this.current = telemetry;
+          this.currentReadyAt = Date.now();
           this.current.user_id = student.user_id;
           this.current.fullname = student.fullname;
           this.current.cohort_id = student.cohort_id || null;
@@ -1081,6 +1095,7 @@ const TelemetryManager: ITelemetryManager = {
           );
         }
 
+        this.currentReadyAt = Date.now();
         this.current.user_id = this.user.id;
         this.current.fullname = this.user.fullname;
         this.current.cohort_id = student.cohort_id || null;
@@ -1186,6 +1201,13 @@ const TelemetryManager: ITelemetryManager = {
     return this.current.steps[stepPosition]?.testeable_elements?.some((e) => e.hash === hash) || false;
   },
 
+  isActiveHash: function (hash: string) {
+    for (const [, hashes] of this.activeHashes) {
+      if (hashes.has(hash)) return true;
+    }
+    return false;
+  },
+
   registerTesteableElement: function (
     stepPosition: number,
     testeableElement: TTesteableElement,
@@ -1193,6 +1215,24 @@ const TelemetryManager: ITelemetryManager = {
   ) {
     if (!this.current) {
       return
+    }
+
+    // A step auto-completed as read-only turned out to have live content after
+    // all: the prune ran before this component managed to register. Undo the
+    // completion — otherwise hasPendingTasks short-circuits on is_completed and
+    // the learner keeps the credit without doing the work.
+    if (
+      this.prunedCompletions.has(stepPosition) &&
+      !testeableElement.is_completed
+    ) {
+      const prunedStep = this.current.steps[stepPosition];
+      if (prunedStep) {
+        prunedStep.completed_at = undefined;
+        prunedStep.is_completed = false;
+        this.current.steps[stepPosition] = prunedStep;
+      }
+      this.prunedCompletions.delete(stepPosition);
+      eventBus.emit("step_uncompleted", stepPosition);
     }
 
     // Chequea si el elemento ya existe en otro step
@@ -1243,33 +1283,59 @@ const TelemetryManager: ITelemetryManager = {
   },
 
   /**
-   * Mark a step as completed if it has no testeable content (reading-only).
+   * Mark a step as completed if it has no live testeable content (reading-only).
    *
-   * Called from fetchSingleExerciseInfo once it has resolved the exercise's
-   * actual graded/testeable status.  This is the safe moment to auto-complete
-   * a step — open_step fires too early (before elements are registered) and
-   * cannot distinguish a reading-only step from one whose elements haven't
-   * loaded yet.
+   * Called from onLessonRendered (after the debounce window) and from the
+   * last_lesson_finished handler.  open_step fires too early — before elements
+   * are registered — and cannot distinguish a reading-only step from one whose
+   * elements haven't loaded yet.
+   *
+   * Stored elements are matched against activeHashes: a quiz that no component
+   * registered in this session was removed from the lesson and can never be
+   * completed again, so it is pruned rather than left to block the course.  The
+   * prune is all-or-nothing — see the survivor filter below.
    */
-  completeStepIfReadOnly: function (stepPosition: number) {
+  completeStepIfReadOnly: function (stepPosition: number, mode?: TMode) {
     if (!this.current) return;
     const step = this.current.steps[stepPosition];
     if (!step || step.completed_at) return;
 
-    // If the step has any testeable_elements at this point (e.g. quiz elements
-    // restored from a previous session, or a registered code-test element), it
-    // is NOT read-only. Orphaned quiz elements are intentionally left in place —
-    // they are ignored by hasPendingTasks via the activeHashes filter, so they
-    // don't block completion, but they must never be pruned here (that would
-    // also wipe "test" elements, which are never tracked in activeHashes).
-    if (step.testeable_elements?.length) return;
-
     // If the step has code tests, it is NOT read-only.
     if (step.is_testeable) return;
+
+    // Never rewrite telemetry while an instructor edits the course, mirroring
+    // the exclusion in PositionHandler.tsx.
+    if (mode === "creator") return;
+
+    const elements = step.testeable_elements ?? [];
+    if (elements.length) {
+      // An element survives if it is a code test (never tracked in activeHashes),
+      // if it is already completed (multi-language progress must be preserved),
+      // or if a component registered its hash in this session (it is still live).
+      // What is left is orphaned: a quiz that was removed from the lesson and
+      // that the learner can no longer complete, blocking the course forever.
+      const survivors = elements.filter(
+        (e) =>
+          e.type !== "quiz" ||
+          e.is_completed === true ||
+          this.isActiveHash(e.hash)
+      );
+
+      // All-or-nothing: if anything survives, the step is not read-only and
+      // nothing is written. The prune only ever runs on a step that turned out
+      // to have no live testeable content at all.
+      if (survivors.length > 0) return;
+
+      step.testeable_elements = [];
+    }
 
     step.completed_at = Date.now();
     step.is_completed = true;
     this.current.steps[stepPosition] = step;
+    // Remember the completion so a late registration can undo it (see
+    // registerTesteableElement). Also covers the empty-array case, where a live
+    // quiz that has not mounted yet is indistinguishable from a read-only step.
+    this.prunedCompletions.add(stepPosition);
     this.save();
     eventBus.emit("step_completed", stepPosition);
   },
@@ -1284,19 +1350,40 @@ const TelemetryManager: ITelemetryManager = {
    * The debounce is cancelled every time a new lesson_rendered fires (e.g.
    * the user navigated to another step), so stale completions are avoided.
    */
-  onLessonRendered: function (stepPosition: number) {
+  onLessonRendered: function (stepPosition: number, mode?: TMode) {
     // Cancel any pending debounce from a previous step/render.
     if (this._lessonRenderedDebounce) {
       this._lessonRenderedDebounce.cancel();
     }
 
     const READOLY_COMPLETION_DELAY_MS = 5000;
+    // lesson_rendered fires as soon as the markdown string reaches the store,
+    // which can be before telemetry has resolved. Registrations that land in
+    // that gap are dropped, so the window is measured from the LATER of the two
+    // events; if telemetry is not ready yet, re-arm instead of deciding blind.
+    const MAX_REARMS = 3;
+    let rearms = 0;
 
-    this._lessonRenderedDebounce = debounce(() => {
-      this.completeStepIfReadOnly(stepPosition);
-    }, READOLY_COMPLETION_DELAY_MS);
+    const schedule = () => {
+      this._lessonRenderedDebounce = debounce(() => {
+        const readyFor =
+          typeof this.currentReadyAt === "number"
+            ? Date.now() - this.currentReadyAt
+            : -1;
 
-    this._lessonRenderedDebounce();
+        if (readyFor < READOLY_COMPLETION_DELAY_MS && rearms < MAX_REARMS) {
+          rearms++;
+          schedule();
+          return;
+        }
+
+        this.completeStepIfReadOnly(stepPosition, mode);
+      }, READOLY_COMPLETION_DELAY_MS);
+
+      this._lessonRenderedDebounce();
+    };
+
+    schedule();
   },
 
   isTesteable: function (stepPosition: number) {
@@ -1711,8 +1798,8 @@ export function submitTelemetryToRigobotViaBeacon(): void {
 }
 
 // Wire up the lesson_rendered event once, at module load time.
-eventBus.on("lesson_rendered", ({ stepPosition }) => {
-  TelemetryManager.onLessonRendered(stepPosition);
+eventBus.on("lesson_rendered", ({ stepPosition, mode }) => {
+  TelemetryManager.onLessonRendered(stepPosition, mode);
 });
 
 export default TelemetryManager;

@@ -434,8 +434,16 @@ function ExerciseCard({
     const handler = (completedPosition: number) => {
       if (completedPosition === position) setIsDone(true);
     };
+    // A read-only completion can be undone if live content registers late.
+    const undoHandler = (uncompletedPosition: number) => {
+      if (uncompletedPosition === position) setIsDone(false);
+    };
     eventBus.on("step_completed", handler);
-    return () => eventBus.off("step_completed", handler);
+    eventBus.on("step_uncompleted", undoHandler);
+    return () => {
+      eventBus.off("step_completed", handler);
+      eventBus.off("step_uncompleted", undoHandler);
+    };
   }, [position]);
 
   const isTesteableAndDone = isDone && TelemetryManager.isTesteable(position);
