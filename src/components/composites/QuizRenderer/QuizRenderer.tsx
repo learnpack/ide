@@ -85,14 +85,18 @@ export const QuizRenderer = ({ children }: { children: any }) => {
 
   const debouncedRegister = debounce(register, 2000);
 
+  // registerTesteableElement silently drops the call when telemetry has not
+  // resolved yet, and this effect would never re-run to retry. Waiting for
+  // telemetryReady keeps the element from being lost — which would leave it out
+  // of activeHashes and make a live quiz look like an orphan.
   useEffect(() => {
-    if (quiz.current.hash && quizRendered) {
+    if (quiz.current.hash && quizRendered && telemetryReady) {
       debouncedRegister();
     }
     return () => {
       debouncedRegister.cancel();
     };
-  }, [quizRendered]);
+  }, [quizRendered, telemetryReady]);
 
   // Recover quiz state from telemetry when component mounts
   useEffect(() => {

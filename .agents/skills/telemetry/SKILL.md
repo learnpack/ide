@@ -290,12 +290,12 @@ See `references/key-files.md` for the full file map with relevant line numbers.
 | Test passes | `case "test"` | `exit_code === 0` AND `!hasPendingTasks(pos)` AND `!step.completed_at` |
 | Quiz succeeds | `case "quiz_submission"` | `status === "SUCCESS"` AND no other active pending elements AND `!step.completed_at` |
 | Navigate away from step | `case "open_step"` — auto-completes **previous** step | `prev.testeable_elements?.length > 0` AND `!hasPendingTasks(prevStep)` AND `!prev.completed_at` |
-| Read-only step (any step) | `onLessonRendered` → `completeStepIfReadOnly` — 7s debounce after `lesson_rendered` | `!step.testeable_elements?.length` AND `!step.is_testeable` AND `!step.completed_at` |
-| Last step — user clicks Finish | `completeStepIfReadOnly` via `last_lesson_finished` in eventListener | Same as above — safety net if 7s debounce hasn't fired yet |
+| Read-only step (any step) | `onLessonRendered` → `completeStepIfReadOnly` — 5s debounce after `lesson_rendered` | `!step.is_testeable` AND `mode !== "creator"` AND `!step.completed_at` AND no element survives the orphan filter |
+| Last step — user clicks Finish | `completeStepIfReadOnly` via `last_lesson_finished` in eventListener | Same as above — safety net if the 5s debounce hasn't fired yet |
 
 **Critical:** `open_step` only auto-completes the previous step if `testeable_elements`
 is **non-empty**. Steps with empty `testeable_elements` are never completed by departure
-— they rely exclusively on `onLessonRendered` (7s debounce) to decide if they're
+— they rely exclusively on `onLessonRendered` (5s debounce) to decide if they're
 read-only. This prevents a race condition where a quiz step whose components haven't
 mounted yet looks indistinguishable from a read-only step.
 
@@ -304,18 +304,42 @@ mounted yet looks indistinguishable from a read-only step.
 Called from `onLessonRendered` (for all steps) and from the `last_lesson_finished`
 handler (safety net for the last step). It is a no-op if:
 - `step.completed_at` already set (already completed via quiz/test)
-- `step.testeable_elements?.length > 0` (has registered quiz/test elements — not read-only)
 - `step.is_testeable === true` (code-test step whose element may not have registered yet)
+- `mode === "creator"` (never rewrite telemetry while an instructor edits the course)
+- any stored element **survives the orphan filter** (see below)
+
+**Orphan prune (all-or-nothing).** A stored element survives if it is a `type: "test"`,
+if it is already `is_completed`, or if its hash is in `activeHashes` (a component
+registered it in this session). What does not survive is an orphaned quiz: one removed
+from the lesson, which the learner can no longer complete. If **anything** survives,
+nothing is written and the step is not completed; only when the filter empties the array
+does the step get `testeable_elements = []` and a `completed_at`. This is what keeps a
+lesson whose quiz was deleted from blocking the course forever.
+
+**Undo path.** Steps completed this way are tracked in the in-memory
+`TelemetryManager.prunedCompletions: Set<number>`. If a quiz registers afterwards with
+`is_completed` falsy, `registerTesteableElement` reverts `completed_at`/`is_completed`
+and emits `step_uncompleted`. This covers the case where a live quiz registered too late
+to be in `activeHashes` when the prune ran. The `Set` is session-only: it cannot undo a
+false completion that was already persisted and reloaded.
 
 ### `onLessonRendered`
 
 Listens to the `lesson_rendered` eventBus event. On each emission:
 1. Cancels any pending debounce (prevents stale completions from previous step)
-2. Schedules `completeStepIfReadOnly(stepPosition)` with a **7-second debounce**
+2. Schedules `completeStepIfReadOnly(stepPosition, mode)` with a **5-second debounce**
 
-The 7s window gives quiz/FITB/OQ components time to mount, compute their hashes,
-and call `registerTesteableElement`. If no elements are registered after 7s, the
+The 5s window gives quiz/FITB/OQ components time to mount, compute their hashes,
+and call `registerTesteableElement`. If no elements are registered after 5s, the
 step is genuinely read-only and gets marked complete.
+
+**The window is measured from the later of two events.** `lesson_rendered` fires as soon
+as the markdown string reaches the store, which can be *before* telemetry has resolved —
+and `registerTesteableElement` drops calls that arrive while `current` is null. So the
+debounce callback checks `TelemetryManager.currentReadyAt` and re-arms (up to 3 times,
+~20s) until telemetry has been available for the full window. Without this, a live quiz
+could be absent from `activeHashes` for reasons that have nothing to do with being an
+orphan.
 
 **Diagnosing `is_completed` bugs:**
 - Stays `false` unexpectedly → check `hasPendingTasks`: any stale/orphaned element?
@@ -323,7 +347,8 @@ step is genuinely read-only and gets marked complete.
   run before or after `registerStepEvent`?
 - Set `true` unexpectedly → was `open_step` fired before `testeable_elements` was
   populated (race condition)? Check `telemetryReady` guard. Did `onLessonRendered`
-  fire 7s after a step that had slow quiz registration?
+  fire 5s after a step that had slow quiz registration, or did the orphan prune clear a
+  live quiz that registered late?
 
 ## `testeable_elements` and `hasPendingTasks`
 
@@ -344,17 +369,25 @@ code tests). The step is only complete when all active items are done.
 
 **Key behavior:** `hasPendingTasks` uses **OR logic across languages** — the step is
 considered done if ALL active quiz hashes of **at least one language** are completed.
-Orphaned hashes (not in `activeHashes`) are completely ignored.
+
+**Orphaned hashes are NOT ignored here.** The loop can only *exonerate*: it needs to find
+one language whose relevant hashes are all complete. If a stored quiz hash appears in no
+language's set — because the component was deleted from the lesson and never registers —
+the loop body is skipped and step 5 returns `true`. That is why an orphan blocks the step
+forever, and why orphans are removed by the prune in `completeStepIfReadOnly` rather than
+filtered out here.
 
 ### `hasPendingTasksInAnyLesson()` — logic
 
-Does **not** delegate to `hasPendingTasks`. Uses `is_completed` directly:
+Does **not** delegate to `hasPendingTasks`. Uses `is_completed` directly, with no guard
+on whether the step has testeable content at all:
 
 ```typescript
-return steps.some(step =>
-  (step.is_testeable || step.testeable_elements?.length) && !step.is_completed
-)
+return steps.some(step => !step.is_completed)
 ```
+
+Any step that never reaches `is_completed` — read-only ones included — blocks the Finish
+button for the whole course.
 
 This avoids any dependency on `activeHashes` (in-memory, session-only) and works
 correctly for all steps, including those not visited in the current session.
@@ -433,9 +466,13 @@ different hash.
 
 Any text change to quiz content produces a new hash. The old element stays in
 `testeable_elements` with its previous `is_completed` state. The student loses
-visible progress on that question. Orphaned elements are ignored by `hasPendingTasks`
-(via `activeHashes` filter) so they don't block completion, but they accumulate over
-time.
+visible progress on that question.
+
+Orphaned elements **do** block completion (see `hasPendingTasks` above). They are only
+cleared when the step turns out to have no live testeable content at all, by the prune in
+`completeStepIfReadOnly`. A step that still has a live quiz — or a code test — keeps its
+orphans, and an orphan sitting next to an `is_testeable` step still blocks it: that case
+is a known gap.
 
 ### `activeHashes` — in-memory orphan filter
 
@@ -446,34 +483,47 @@ rebuilt each session as quiz components mount.
 - `registerTesteableElement` adds the hash to `activeHashes[language]` when
   `type === "quiz"` and a language is provided.
 - `hasPendingTasks` iterates `activeHashes` entries and applies OR logic across
-  languages (see above). Hashes not in any language's set are ignored.
+  languages (see above). A hash in no language's set does **not** get ignored — it falls
+  through to the default `return true`.
+- `completeStepIfReadOnly` uses it the other way round: absence from `activeHashes` is
+  the signal that a stored quiz is an orphan and can be pruned.
 - Code tests (`type: "test"`) are never orphaned — they are always evaluated
-  regardless of `activeHashes`.
+  regardless of `activeHashes`. They are also never *added* to it: every `type: "test"`
+  registration comes from `store.tsx` without a `language`.
 
-`activeHashes` is reset to an empty `Map` at the start of each `TelemetryManager.start()`
-call, preventing hash leakage when switching courses in the same tab.
+`activeHashes` is reset to an empty `Map` inside `TelemetryManager.start()`, **after** the
+`if (this.current) return` early return, together with `prunedCompletions` and
+`currentReadyAt`. Resetting before that early return would let a duplicate bootstrap
+empty the map while live elements are still in the blob — which the prune would then read
+as a lesson full of orphans.
 
 ## Multi-language progress in `testeable_elements`
 
 Quiz elements (MCQ, open question, FITB) produce different hashes per language.
-Progress per language is tracked independently via `TTesteableElement.language`.
+Progress per language is tracked independently, but **only through the hash**:
+`TTesteableElement` has no `language` field, so a stored element carries no record of
+which locale it came from. The only per-language signal is the in-memory `activeHashes`.
 
-- `language` is set on registration for `type === "quiz"` elements by `QuizRenderer.tsx`,
-  `Markdowner.tsx` (FITB), and `OpenQuestion.tsx`. Omitted for `type: "test"`.
+- `language` is passed as an **argument** to `registerTesteableElement` for
+  `type === "quiz"` elements by `QuizRenderer.tsx`, `Markdowner.tsx` (FITB, STB,
+  ordering), and `OpenQuestion.tsx`; it lands in `activeHashes`, not in the element.
+  Omitted for `type: "test"`.
 - `hasPendingTasks` uses OR logic: if ALL active hashes of **at least one language**
   are completed, the step is done. This means completing a course in Spanish does not
   require having also completed quizzes in English.
 - `hasPendingTasksInAnyLesson()` reads `step.is_completed` directly and is not
   affected by language at all.
-- Legacy stored elements without `language` (from before multi-language support) are
-  treated as matching every language check — they will block completion in any locale
-  until re-answered.
+- A stored hash whose component never registers in this session (another locale, or a
+  deleted quiz) blocks completion until either the learner completes the step some other
+  way or the read-only prune clears it.
 
 **If completion looks wrong in a multi-language course:**
-1. Inspect `step.testeable_elements` — confirm quiz rows include `language`.
+1. Inspect `TelemetryManager.activeHashes` in the console — it is the only per-language
+   state, and it is empty until components mount.
 2. Check that `registerTesteableElement` is being called with the `language` argument
    in `QuizRenderer.tsx`, `Markdowner.tsx`, `OpenQuestion.tsx`.
-3. Legacy rows without `language` can block completion across locales.
+3. Cross-check the hashes in `step.testeable_elements` against the ones in
+   `activeHashes`: any that appear only in the step are orphans for this session.
 
 ## workout_session mechanics
 
@@ -508,7 +558,7 @@ last_interaction_at` if no `ended_at`) and opens a new one. Handled by
 - **Race condition: `startTelemetry` + `getOrCreateActiveSession`** — on **startup** they are still invoked back-to-back without awaiting `getOrCreateActiveSession` in the initial chain. After **login**, the store **`await`s `getOrCreateActiveSession()` before `ensureTelemetryStarted()`** to align session before the first real `open_step`. If `getOrCreateActiveSession` resolves after telemetry is ready and calls `setPosition(N)` for the same step that's already open, `open_step(N)` fires with `prevStep === N === stepPosition`. The guard `this.prevStep !== stepPosition` prevents this from triggering auto-completion.
 
 - **`open_step` never completes steps with empty `testeable_elements`** — read-only step
-  completion relies on `onLessonRendered` (7s debounce). Never add completion logic to
+  completion relies on `onLessonRendered` (5s debounce). Never add completion logic to
   `open_step` for steps with `testeable_elements.length === 0` — it cannot distinguish
   a read-only step from a quiz step whose components haven't mounted yet.
 

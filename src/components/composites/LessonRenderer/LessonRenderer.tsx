@@ -76,18 +76,20 @@ const ContinueButton = () => {
       setLoading(false);
     };
 
-    const handleStepCompleted = () => {
+    const handleCompletionChanged = () => {
       setCompletionTick((t) => t + 1);
     };
 
     eventBus.on("position_changed", handlePositionChanged);
     eventBus.on("last_lesson_finished", handleLastLessonFinished);
-    eventBus.on("step_completed", handleStepCompleted);
+    eventBus.on("step_completed", handleCompletionChanged);
+    eventBus.on("step_uncompleted", handleCompletionChanged);
 
     return () => {
       eventBus.off("position_changed", handlePositionChanged);
       eventBus.off("last_lesson_finished", handleLastLessonFinished);
-      eventBus.off("step_completed", handleStepCompleted);
+      eventBus.off("step_completed", handleCompletionChanged);
+      eventBus.off("step_uncompleted", handleCompletionChanged);
     };
   }, []);
 
@@ -239,6 +241,7 @@ export const LessonRenderer = memo(() => {
   const lastTestResult = useStore((s) => s.lastTestResult);
   const isBuildable = useStore((s) => s.isBuildable);
   const currentExercisePosition = useStore((s) => s.currentExercisePosition);
+  const mode = useStore((s) => s.mode);
   const { t } = useTranslation();
   const [draftContent, setDraftContent] = useState(currentContent);
   const [isSaving, setIsSaving] = useState(false);
@@ -318,13 +321,16 @@ export const LessonRenderer = memo(() => {
 
   // Notify telemetry that the lesson content has rendered, so it can
   // determine (after a debounce window) whether the step is read-only.
+  // `mode` travels with the event so telemetry can skip that decision while an
+  // instructor is editing the course.
   useEffect(() => {
     if (currentContent && currentExercisePosition != null) {
       eventBus.emit("lesson_rendered", {
         stepPosition: Number(currentExercisePosition),
+        mode,
       });
     }
-  }, [currentContent, currentExercisePosition]);
+  }, [currentContent, currentExercisePosition, mode]);
 
   const onReset = () => {
     setOpenedModals({ reset: true });
