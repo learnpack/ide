@@ -132,14 +132,16 @@ export const Question = ({
     }
   }, [feedback, mode]);
 
+  // Wait for telemetry: registerTesteableElement drops the call when it has not
+  // resolved yet, and this effect would never re-run to retry.
   useEffect(() => {
-    if (questionHash) {
+    if (questionHash && telemetryReady) {
       debouncedRegister();
     }
     return () => {
       debouncedRegister.cancel();
     };
-  }, [questionHash]);
+  }, [questionHash, telemetryReady]);
 
   // Recover answer state from telemetry when component mounts
   useEffect(() => {

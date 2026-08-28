@@ -1157,14 +1157,16 @@ const FillInTheBlankRenderer = ({ code, metadata }: { code: string, node: any, m
 
   const debouncedRegisterFitb = debounce(registerFitb, 2000);
 
+  // Wait for telemetry: registerTesteableElement drops the call when it has not
+  // resolved yet, and this effect would never re-run to retry.
   useEffect(() => {
-    if (quizHash) {
+    if (quizHash && telemetryReady) {
       debouncedRegisterFitb();
     }
     return () => {
       debouncedRegisterFitb.cancel();
     };
-  }, [quizHash]);
+  }, [quizHash, telemetryReady]);
 
   useEffect(() => {
     if (!quizHash || !telemetryReady) return;
@@ -1559,14 +1561,16 @@ const SelectTheBlankRenderer = ({ code, metadata }: { code: string, node: Elemen
 
   const debouncedRegisterStb = debounce(registerStb, 2000);
 
+  // Wait for telemetry: registerTesteableElement drops the call when it has not
+  // resolved yet, and this effect would never re-run to retry.
   useEffect(() => {
-    if (quizHash) {
+    if (quizHash && telemetryReady) {
       debouncedRegisterStb();
     }
     return () => {
       debouncedRegisterStb.cancel();
     };
-  }, [quizHash]);
+  }, [quizHash, telemetryReady]);
 
   useEffect(() => {
     if (!quizHash || !telemetryReady) return;
@@ -1967,14 +1971,16 @@ const OrderingRenderer = ({ code, metadata }: { code: string, node: Element, met
 
   const debouncedRegisterOrdering = debounce(registerOrdering, 2000);
 
+  // Wait for telemetry: registerTesteableElement drops the call when it has not
+  // resolved yet, and this effect would never re-run to retry.
   useEffect(() => {
-    if (quizHash) {
+    if (quizHash && telemetryReady) {
       debouncedRegisterOrdering();
     }
     return () => {
       debouncedRegisterOrdering.cancel();
     };
-  }, [quizHash]);
+  }, [quizHash, telemetryReady]);
 
   useEffect(() => {
     if (!quizHash || !telemetryReady) return;
