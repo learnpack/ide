@@ -1,3 +1,4 @@
+import { describeError } from "./logging";
 import { FetchManager } from "../managers/fetchManager";
 import { getSlugFromPath } from "./lib";
 
@@ -52,7 +53,7 @@ export const createSyncNotification = async (
     return data;
     
   } catch (error) {
-    console.error("Error in createSyncNotification:", error);
+    console.error("Error in createSyncNotification:", describeError(error));
     throw error;
   }
 };
@@ -84,7 +85,7 @@ export const fetchSyncNotifications = async (): Promise<any> => {
     return await response.json();
     
   } catch (error) {
-    console.error("Error fetching sync notifications:", error);
+    console.error("Error fetching sync notifications:", describeError(error));
     throw error;
   }
 };
@@ -117,7 +118,7 @@ export const dismissSyncNotification = async (
     }
     
   } catch (error) {
-    console.error("Error dismissing notification:", error);
+    console.error("Error dismissing notification:", describeError(error));
     throw error;
   }
 };
@@ -153,7 +154,7 @@ export const acceptSyncNotification = async (
     }
     
   } catch (error) {
-    console.error("Error accepting sync notification:", error);
+    console.error("Error accepting sync notification:", describeError(error));
     throw error;
   }
 };

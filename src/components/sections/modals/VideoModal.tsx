@@ -25,7 +25,6 @@ const VideoModal: React.FC<IVideoModalProps> = ({ link, hideModal }) => {
     }
 
     if (!videoId) {
-      console.error("Invalid YouTube link: missing video ID");
       return;
     }
 

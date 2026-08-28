@@ -22,7 +22,6 @@ export const Icon = ({
   const LucideIcon = Icons[name] as React.ComponentType<LucideProps>;
 
   if (!LucideIcon) {
-    console.warn(`Icon "${String(name)}" not found in lucide-react`);
     return null;
   }
 

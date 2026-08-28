@@ -1,3 +1,4 @@
+import { describeError } from "../utils/logging";
 import {
   calculateIndicators,
   calculateTestMetrics,
@@ -56,13 +57,7 @@ const sendBatchTelemetryBreathecode = async function (
 
     return response.data;
   } catch (error) {
-    console.error("Error while sending batch telemetry", error);
-
-    if (axios.isAxiosError(error) && error.response) {
-      console.error("Response data:", error.response.data);
-      console.error("Response status:", error.response.status);
-      console.error("Response headers:", error.response.headers);
-    }
+    console.error("Error while sending batch telemetry", describeError(error));
     throw error;
   }
 };
@@ -81,7 +76,7 @@ const sendBatchTelemetryRigobot = async function (body: object, token: string) {
 
     return response.data;
   } catch (error) {
-    console.error("Error while sending batch telemetry", error);
+    console.error("Error while sending batch telemetry", describeError(error));
     throw error;
   }
 };
@@ -157,7 +152,7 @@ export async function fetchTelemetryFromServer(params: {
     if ((error as Error).name === "AbortError") {
       console.warn("fetchTelemetryFromServer: timeout or aborted");
     } else {
-      console.warn("fetchTelemetryFromServer: failed", error);
+      console.warn("fetchTelemetryFromServer: failed", describeError(error));
     }
     return null;
   } finally {
@@ -222,7 +217,7 @@ export async function fetchTelemetryWithStatus(params: {
       console.warn("fetchTelemetryWithStatus: timeout");
       return { status: "timeout" };
     }
-    console.warn("fetchTelemetryWithStatus: network error", error);
+    console.warn("fetchTelemetryWithStatus: network error", describeError(error));
     return { status: "timeout" };
   } finally {
     clearTimeout(timeoutId);
@@ -474,7 +469,7 @@ const sendStreamTelemetry = async function (
       return response;
     })
     .catch((error) => {
-      console.log("Error while sending stream Telemetry", error);
+      console.error("Error while sending stream Telemetry", describeError(error));
     });
 };
 
@@ -485,7 +480,7 @@ const retrieveFromCLI =
       // console.debug("Retrieved telemetry from CLI", response.data);
       return response.data;
     } catch (error) {
-      console.error("Error while retrieving telemetry from CLI", error);
+      console.error("Error while retrieving telemetry from CLI", describeError(error));
       return null;
     }
   };
@@ -499,7 +494,7 @@ const saveInCLI = async function (telemetry: ITelemetryJSONSchema) {
     console.debug("Saved telemetry in CLI", response.data);
     return response.data;
   } catch (error) {
-    console.error("Error while saving telemetry in CLI", error);
+    console.error("Error while saving telemetry in CLI", describeError(error));
     return null;
   }
 };
@@ -1024,8 +1019,10 @@ const TelemetryManager: ITelemetryManager = {
 
           submitLocalIfNewer = source === "local";
         } catch (error) {
-          console.log("ERROR: There was a problem starting the Telemetry");
-          console.error(error);
+          console.error(
+            "There was a problem starting the Telemetry",
+            describeError(error)
+          );
           throw new Error(
             "There was a problem starting, reload LearnPack\nRun\n$ learnpack start"
           );
@@ -1115,8 +1112,10 @@ const TelemetryManager: ITelemetryManager = {
         await this.submit();
       })
       .catch((error) => {
-        console.log("ERROR: There was a problem starting the Telemetry");
-        console.error(error);
+        console.error(
+          "There was a problem starting the Telemetry",
+          describeError(error)
+        );
 
         throw new Error(
           "There was a problem starting, reload LearnPack\nRun\n$ learnpack start"
@@ -1629,7 +1628,7 @@ const TelemetryManager: ITelemetryManager = {
       }
       this.save();
     } catch (error) {
-      console.error("Error submitting telemetry", error);
+      console.error("Error submitting telemetry", describeError(error));
     }
   },
   save: function () {

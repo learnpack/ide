@@ -1,3 +1,4 @@
+import { describeError } from "../utils/logging";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { compileHTML, compileReactHTML } from "../utils/compileHTML";
@@ -82,7 +83,7 @@ function searchInputsForFile(filename: string, fileContent: string) {
     const fixedMatches = allMatches.map((match) => match.replace(/['"]/g, ""));
     return fixedMatches.length > 0 ? fixedMatches : null;
   } catch (error) {
-    console.error("Something went wrong searching inputs:", error);
+    console.error("Something went wrong searching inputs:", describeError(error));
     return null;
   }
 }
@@ -634,7 +635,7 @@ const rigoFetch = async (
     }
     return json;
   } catch (error) {
-    console.error("Error in API request:", error);
+    console.error("Error in API request:", describeError(error));
     throw error;
   }
 };

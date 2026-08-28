@@ -1,3 +1,4 @@
+import { describeError } from "../utils/logging";
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { RIGOBOT_HOST } from "../utils/lib";
@@ -80,7 +81,7 @@ export const useCompletionJobStatus = ({
         });
       }
     } catch (error) {
-      console.error("Error polling completion status:", error);
+      console.error("Error polling completion status:", describeError(error));
       setStatus({
         status: "ERROR",
         error: error instanceof Error ? error.message : "Unknown error",

@@ -1,3 +1,4 @@
+import { describeError } from "./logging";
 import { TEnvironment } from "../managers/EventProxy";
 import { TPossibleParams, TSidebar } from "./storeTypes";
 // @ts-ignore
@@ -174,7 +175,7 @@ export const getEnvironment = async () => {
         document.dispatchEvent(myEvent);
         return "scorm";
       } catch (e) {
-        console.error("Error fetching scorm config, impossible to detect environment", e);
+        console.error("Error fetching scorm config, impossible to detect environment", describeError(e));
         return "localStorage";
       }
     }
@@ -417,7 +418,7 @@ export function hashText(text: string, callback: (hash: string) => void) {
       callback(hashHex); // Call the callback function with the hashed text
     })
     .catch((err) => {
-      console.error("Hashing failed:", err); // Handle any errors
+      console.error("Hashing failed:", describeError(err)); // Handle any errors
     });
 }
 
@@ -531,7 +532,7 @@ export const playEffect = (mood: "success" | "error") => {
     audio.volume = 0.4;
     audio.play();
   } catch (error) {
-    console.error("Error playing sound", error);
+    console.error("Error playing sound", describeError(error));
   }
 };
 
@@ -700,7 +701,7 @@ export const checkPreviewImage = async (slug: string) => {
     );
     return response.data;
   } catch (error) {
-    console.error("Error checking preview image", error);
+    console.error("Error checking preview image", describeError(error));
     return null;
   }
 };
@@ -743,7 +744,7 @@ export const isSlugAvailable = async (slug: string): Promise<boolean> => {
     const response = await axios.get<SlugAvailabilityResponse>(url)
     return response.data.available
   } catch (error) {
-    console.error("Error checking slug availability:", error)
+    console.error("Error checking slug availability:", describeError(error))
     throw error
   }
 }
@@ -777,7 +778,7 @@ export const generateImage = async (
 
     return response.data;
   } catch (error) {
-    console.error("Error generating image:", error);
+    console.error("Error generating image:", describeError(error));
     return null;
   }
 };
@@ -874,7 +875,7 @@ const parseYamlComponents = (raw: string): TYamlComponent[] => {
     const parsed = yaml.load(raw) as { components?: TYamlComponent[] };
     return parsed?.components ?? [];
   } catch (error) {
-    console.error("Error parsing components YAML:", error);
+    console.error("Error parsing components YAML:", describeError(error));
     return [];
   }
 };

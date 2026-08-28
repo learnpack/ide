@@ -61,7 +61,6 @@ const PreviewGenerator: React.FC = () => {
 
           canvas.toBlob(async (blob) => {
             if (!blob) {
-              console.error("No blob found");
               return;
             }
 
