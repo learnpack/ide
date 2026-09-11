@@ -472,8 +472,12 @@ export const Markdowner = ({
             return <ul onClick={() => console.log(node)}>{children}</ul>;
           },
           img: ({ src, alt, node }) => {
+            // Keyed by src so a replaced image (e.g. an accepted proposal) starts over with a
+            // fresh load attempt and socket subscription. Today the components memo depends on
+            // `markdown` and already remounts it, this guards against that changing.
             return (
               <CustomImage
+                key={src}
                 src={src}
                 alt={alt}
                 node={node}
@@ -598,36 +602,16 @@ const CustomImage = ({
   if (src) {
     // Creator mode: show RealtimeImage which handles generation errors internally
     if (isCreator && mode === "creator" && allowCreate) {
-      const isGenerating = alt?.startsWith("GENERATING");
-      // Check if alt is a path (user-uploaded image) vs a description (AI proposal)
+      // Check if alt is a path (user-uploaded image) vs a description (AI image)
       const isUserUploadedImage = alt?.startsWith("/.learn/assets/") || alt?.startsWith(".learn/assets/");
       const isAIImageInAssets = src.includes("/.learn/assets/") || src.startsWith(".learn/assets/");
 
-      // If it's an AI image proposal (in .learn/assets, no "GENERATING" prefix, and alt is not a path), 
-      // show RealtimeImage directly. Proposals don't have images yet, so we shouldn't wait for hasError
-      if (isAIImageInAssets && !isGenerating && !isUserUploadedImage) {
-        return (
-          <CreatorWrapper node={node} tagName="img">
-            <RealtimeImage
-              allowCreate={allowCreate}
-              imageId={src.split("/").pop() || ""}
-              alt={alt || ""}
-              node={node}
-            />
-          </CreatorWrapper>
-        );
-      }
-
-      // For images with "GENERATING" prefix, user-uploaded images, or external images, try to load first
-      // If it fails and has "GENERATING", show RealtimeImage (handles both generating and completed images with bug)
+      // Always try to load the file first: whether it exists is the source of truth, not the alt.
+      // The "GENERATING:" prefix can't be trusted, translating a lesson rewrites it (e.g. "GENERANDO:").
+      // Only when an AI image is missing, RealtimeImage shows the proposal or the generation progress.
       return (
         <CreatorWrapper node={node} tagName="img">
-          {/* TODO: Edge case - AI-generated images that completed successfully still have "GENERATING" 
-          prefix in their alt (backend webhook doesn't clean it). If such an image fails to load, 
-          it shows "Image generation in process" instead of a load error 
-          because RealtimeImage is rendered (due to "GENERATING" prefix).
-          Fix: Backend webhook should remove "GENERATING:" prefix from alt after successful generation. */}
-          {hasError && environment === "creatorWeb" && isGenerating ? (
+          {hasError && isAIImageInAssets && !isUserUploadedImage ? (
             <RealtimeImage
               allowCreate={allowCreate}
               imageId={src.split("/").pop() || ""}

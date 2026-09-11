@@ -4,10 +4,49 @@ type EventCallback = (...args: any[]) => void;
 
 class CreatorSocket {
   private socket: Socket | null = null;
+  private subscriptions = 0;
   private readonly url: string;
 
   constructor(url: string) {
     this.url = url;
+  }
+
+  /**
+   * Escucha una notificación, conectando con el primer suscriptor.
+   *
+   * Para listeners que comparten la conexión entre varias instancias: a diferencia
+   * de `disconnect()`, que la cierra para todos, solo libera la propia suscripción
+   * y cierra el socket cuando se va la última.
+   * @returns Función que libera esta suscripción.
+   */
+  subscribe(notificationId: string, callback: EventCallback): () => void {
+    if (!notificationId) {
+      return () => {};
+    }
+
+    this.connect();
+
+    // Capturado para que una liberación tardía no actúe sobre un socket que ya
+    // fue reemplazado por una conexión más nueva.
+    const socket = this.socket!;
+
+    socket.on(notificationId, callback);
+    socket.emit("registerNotification", { notificationId });
+    this.subscriptions += 1;
+
+    let released = false;
+
+    return () => {
+      if (released) return;
+      released = true;
+
+      socket.off(notificationId, callback);
+      this.subscriptions -= 1;
+
+      if (this.subscriptions === 0 && this.socket === socket) {
+        this.disconnect();
+      }
+    };
   }
 
   /**

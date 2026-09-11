@@ -146,16 +146,8 @@ export default function RealtimeImage({
   useEffect(() => {
     if (!config?.config?.slug) return;
 
-    socketClient.connect();
-    socketClient.on(imageId, handleUpdate);
-
-    socketClient.emit("registerNotification", {
-      notificationId: imageId,
-    });
-    return () => {
-      socketClient.off(imageId, handleUpdate);
-      socketClient.disconnect();
-    };
+    // Several images share socketClient, so each one only releases its own subscription
+    return socketClient.subscribe(imageId, handleUpdate);
   }, []);
 
   useEffect(() => {
