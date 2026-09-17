@@ -145,7 +145,11 @@ const PublishConfirmationModal: FC<{
     } catch (error) {
       console.error("Error fetching package academy:", error);
       // On error, fall back to select mode so the user can still proceed
-      setPackageAcademyInfo({ isPublished: false, mode: "select" });
+      setPackageAcademyInfo({
+        isPublished: false,
+        mode: "select",
+        warnings: ["Could not check existing assets; publishing will look them up again."],
+      });
     } finally {
       setLoadingPackageInfo(false);
     }
@@ -350,6 +354,17 @@ const PublishConfirmationModal: FC<{
                   ({packageAcademyInfo.conflictAcademies?.join(", ")}).
                   Academy assignment will be skipped.
                 </p>
+              </div>
+            )}
+
+            {!loadingPackageInfo && (packageAcademyInfo?.warnings?.length ?? 0) > 0 && (
+              <div className="flex-y gap-small padding-small bg-soft-yellow rounded">
+                <p className="text-yellow font-medium m-0">⚠ Existing assets</p>
+                <ul className="text-small text-yellow m-0 pl-4">
+                  {packageAcademyInfo?.warnings?.map((warning, i) => (
+                    <li key={i}>{warning}</li>
+                  ))}
+                </ul>
               </div>
             )}
 
