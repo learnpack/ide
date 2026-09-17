@@ -98,6 +98,7 @@ const PublishConfirmationModal: FC<{
   const [isOpen, setIsOpen] = useState(false);
   const getUserConsumables = useStore((state) => state.getUserConsumables);
   const bcToken = useStore((state) => state.bc_token);
+  const rigoToken = useStore((state) => state.token);
   const openLink = useStore((state) => state.openLink);
   const syllabus = useStore((state) => state.syllabus);
   const [hasEnoughConsumables, setHasEnoughConsumables] = useState(false);
@@ -134,7 +135,7 @@ const PublishConfirmationModal: FC<{
 
     try {
       setLoadingPackageInfo(true);
-      const packageInfo = await getPackageAcademy(bcToken, currentSlug);
+      const packageInfo = await getPackageAcademy(bcToken, rigoToken, currentSlug);
       setPackageAcademyInfo(packageInfo);
 
       // For locked mode, pre-set the academy so it's sent on publish

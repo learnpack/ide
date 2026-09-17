@@ -86,15 +86,20 @@ export type PackageAcademyInfo = {
   mode: PackageAcademyMode;
   lockedAcademyId?: number;
   conflictAcademies?: number[];
+  warnings?: string[];
 };
 
 export const getPackageAcademy = async (
   breathecodeToken: string,
+  rigoToken: string,
   slug: string
 ): Promise<PackageAcademyInfo> => {
   try {
+    // The Rigobot token lets the CLI look existing assets up through the
+    // package asset_ids instead of guessing their slugs from the title.
     const headers = {
       "x-breathecode-token": breathecodeToken,
+      "x-rigo-token": rigoToken,
     };
     const response = await axios.get(
       `${LEARNPACK_LOCAL_URL}/actions/package-academy/${slug}`,
