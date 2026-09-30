@@ -5,7 +5,10 @@ import { TExercise, TSidebar } from "./storeTypes";
 export type TFullContentLesson = {
   slug: string;
   id: string;
+  /** Title from the sidebar, used when the README has no h1 */
   title: string;
+  /** First h1 of the README, which is how the lesson titles itself */
+  heading?: string;
   body: string;
   video?: string;
   error?: boolean;
@@ -23,6 +26,22 @@ type TFetchAllLessonsOptions = {
 // How many READMEs are requested at the same time
 const CONCURRENCY = 5;
 const ENGLISH = ["en", "us"];
+
+/**
+ * Returns the text of the first `# ` heading of a README, ignoring the ones
+ * inside code blocks.
+ */
+export const getFirstHeading = (markdown: string): string | undefined => {
+  let inCodeBlock = false;
+  for (const line of markdown.split(/\r?\n/)) {
+    if (/^\s*(```|~~~)/.test(line)) inCodeBlock = !inCodeBlock;
+    if (inCodeBlock) continue;
+    const match = line.match(/^#\s+(.+?)\s*#*\s*$/);
+    // Drop inline markdown marks so the title reads as plain text in the index
+    if (match) return match[1].replace(/[*`]/g, "");
+  }
+  return undefined;
+};
 
 /**
  * Picks the language to request a lesson README in: the requested one when the
@@ -66,9 +85,11 @@ const fetchLesson = async (
       return { ...lesson, error: true };
     }
     const attributes = readme.attributes || {};
+    const body = fillReadmePlaceholders(readme.body, host, variables);
     return {
       ...lesson,
-      body: fillReadmePlaceholders(readme.body, host, variables),
+      heading: getFirstHeading(body),
+      body,
       video: attributes.tutorial || attributes.intro || undefined,
     };
   } catch (error) {
