@@ -42,7 +42,7 @@ export const NewHeader = () => {
     reportEnrichDataLayer,
     mode,
     // setMode,
-    // setOpenedModals,
+    setOpenedModals,
     environment,
     configObject,
     token,
@@ -62,7 +62,7 @@ export const NewHeader = () => {
     reportEnrichDataLayer: state.reportEnrichDataLayer,
     mode: state.mode,
     // isCreator: state.isCreator,
-    // setOpenedModals: state.setOpenedModals,
+    setOpenedModals: state.setOpenedModals,
     // setMode: state.setMode,
     environment: state.environment,
     configObject: state.configObject,
@@ -250,6 +250,17 @@ export const NewHeader = () => {
               />
             )}
           </div>
+        )}
+
+        {exercises.length > 0 && (
+          <SimpleButton
+            title={t("full-content")}
+            svg={<Icon name="BookOpen" size={20} />}
+            action={() => {
+              setOpenedModals({ fullContent: true });
+              reportEnrichDataLayer("learnpack_open_full_content", {});
+            }}
+          />
         )}
 
         <RigoToggler />
