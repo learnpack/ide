@@ -704,5 +704,18 @@
     "app-loading-error-description": "An unexpected error occurred while loading the app. Please try again.",
     "app-loading-retry": "Try again",
     "telemetry-generic-error-title": "Couldn't initialize progress tracking",
-    "telemetry-generic-error-description": "An unexpected error occurred while setting up progress tracking. You can try again or continue without it."
+    "telemetry-generic-error-description": "An unexpected error occurred while setting up progress tracking. You can try again or continue without it.",
+    "full-content": "All the content",
+    "full-content-download-pdf": "Download PDF",
+    "full-content-preparing-pdf": "Preparing the PDF...",
+    "full-content-close": "Close",
+    "full-content-table-of-contents": "Contents",
+    "full-content-lessons-count": "{{count}} lessons",
+    "full-content-search-hint": "Use Ctrl+F (Cmd+F on Mac) to search the whole content.",
+    "full-content-loading": "Loading lessons ({{loaded}}/{{total}})",
+    "full-content-load-error": "We couldn't load the content. Please try again.",
+    "full-content-lesson-error": "We couldn't load this lesson.",
+    "full-content-video": "Lesson video",
+    "full-content-open-question": "Open question: answer in your own words.",
+    "full-content-order-the-items": "Put the following items in order"
 }
