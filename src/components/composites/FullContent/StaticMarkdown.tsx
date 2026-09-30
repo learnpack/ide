@@ -187,12 +187,16 @@ const StaticImage = ({ src, alt }: { src?: string; alt?: string }) => {
   // A missing image is left out: its alt text is often the long prompt it was
   // generated from, which reads as noise in the document
   if (!src || hasError) return null;
+  // The wrapper lets the image be printed as inline-block: Firefox ignores
+  // break-inside on images and would cut them between two pages
   return (
-    <img
-      src={fixSrc(src, slug ?? "", environment)}
-      alt={alt}
-      onError={() => setHasError(true)}
-    />
+    <span className="full-content-image">
+      <img
+        src={fixSrc(src, slug ?? "", environment)}
+        alt={alt}
+        onError={() => setHasError(true)}
+      />
+    </span>
   );
 };
 
