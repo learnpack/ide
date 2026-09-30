@@ -169,6 +169,17 @@
   overflow-wrap: anywhere;
 }
 
+.full-content-image {
+  display: block;
+  text-align: center;
+}
+
+.full-content-lesson .full-content-image img {
+  display: inline-block;
+  max-width: min(100%, 750px);
+  margin: 5px 0;
+}
+
 .full-content-exercise {
   margin: 16px 0;
   padding: 12px 16px;
@@ -267,11 +278,14 @@
     border-top: 0;
   }
 
-  .full-content-lesson img {
+  /* An image never takes more than a page, so it can always be moved whole */
+  .full-content-lesson .full-content-image img {
     max-width: 100%;
+    max-height: 230mm;
+    object-fit: contain;
   }
 
-  .full-content-lesson img,
+  .full-content-image,
   .full-content-lesson .mermaid,
   .full-content-exercise {
     break-inside: avoid;
