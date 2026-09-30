@@ -133,7 +133,11 @@ const OpenQuestionSpace = () => {
   return (
     <div className="full-content-exercise">
       <p className="full-content-hint">{t("full-content-open-question")}</p>
-      <div className="full-content-answer-lines" />
+      <div className="full-content-answer-lines" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
     </div>
   );
 };
@@ -180,7 +184,9 @@ const StaticImage = ({ src, alt }: { src?: string; alt?: string }) => {
   const slug = useStore((state) => state.configObject?.config?.slug);
   const [hasError, setHasError] = useState(false);
 
-  if (!src || hasError) return alt ? <em>{alt}</em> : null;
+  // A missing image is left out: its alt text is often the long prompt it was
+  // generated from, which reads as noise in the document
+  if (!src || hasError) return null;
   return (
     <img
       src={fixSrc(src, slug ?? "", environment)}

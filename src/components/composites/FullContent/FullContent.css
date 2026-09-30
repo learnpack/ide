@@ -112,9 +112,13 @@
   margin-bottom: 8px;
 }
 
-.full-content-toc ol {
-  list-style: decimal;
-  padding-left: 24px;
+.full-content-toc ul {
+  padding-left: 0;
+}
+
+.full-content-toc li {
+  list-style: none;
+  margin-left: 0 !important;
 }
 
 .full-content-toc a {
@@ -132,14 +136,6 @@
   border-top: 1px solid var(--light-grey);
 }
 
-.full-content-lesson-label {
-  font-size: var(--font-size-small);
-  font-weight: 600;
-  color: var(--font-color-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
 .full-content-checkbox {
   display: inline-block;
   width: 0.8em;
@@ -152,6 +148,14 @@
 
 .full-content-lesson .task-list-item {
   list-style: none;
+}
+
+/* The global Inter font would otherwise apply to code too */
+.full-content-lesson pre,
+.full-content-lesson pre *,
+.full-content-lesson code,
+.full-content-lesson code * {
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace !important;
 }
 
 /* Long code lines wrap instead of being cut off in the PDF */
@@ -177,15 +181,10 @@
   white-space: pre-wrap;
 }
 
-.full-content-answer-lines {
-  height: 96px;
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent 31px,
-    var(--bg-color-dark-gray) 31px,
-    var(--bg-color-dark-gray) 32px
-  );
+.full-content-answer-lines span {
+  display: block;
+  height: 32px;
+  border-bottom: 1px solid var(--bg-color-dark-gray);
 }
 
 .full-content-lesson pre.stdout,
@@ -239,31 +238,40 @@
     --light-grey: #dadada;
   }
 
+  /* Side margin of its own in case the print dialog has margins disabled */
   .full-content-document {
     max-width: none;
-    padding: 0;
+    padding: 0 6mm;
   }
 
   .full-content-cover {
     border-bottom: 0;
   }
 
+  /* Cover and index on the first page, then the lessons one after another */
+  .full-content-toc {
+    break-after: page;
+  }
+
   .full-content-lesson {
-    break-before: page;
-    border-top: 0;
-    padding-top: 0;
+    margin-top: 28px;
+    padding-top: 20px;
     padding-inline: 0;
     font-size: 14px;
     line-height: 1.6;
+  }
+
+  .full-content-toc + .full-content-lesson {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
   }
 
   .full-content-lesson img {
     max-width: 100%;
   }
 
-  .full-content-lesson pre,
   .full-content-lesson img,
-  .full-content-lesson table,
   .full-content-lesson .mermaid,
   .full-content-exercise {
     break-inside: avoid;
