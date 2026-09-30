@@ -347,6 +347,24 @@ export const replaceSlot = (
   return string.replace(slotRegex, value);
 };
 
+/**
+ * Replaces the placeholders a lesson README can contain: {{publicUrl}} with the
+ * package host and {{variable}} with each value of the learn.json `variables`.
+ */
+export const fillReadmePlaceholders = (
+  body: string,
+  host: string,
+  variables?: unknown
+): string => {
+  let readme = replaceSlot(body, "{{publicUrl}}", host);
+  if (variables && typeof variables === "object") {
+    for (const [name, value] of Object.entries(variables)) {
+      readme = replaceSlot(readme, `{{${name}}}`, value as string);
+    }
+  }
+  return readme;
+};
+
 export const setQueryParams = (params: TPossibleParams) => {
   const searchParams = new URLSearchParams();
 
