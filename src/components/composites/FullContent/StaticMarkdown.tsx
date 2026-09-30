@@ -17,7 +17,8 @@ import { parseOrderingItems } from "../QuizRenderer/quizSubmissionUtils";
 // Read-only rendering of a lesson for the full content view. Unlike Markdowner
 // it has no interactive components: nothing here registers telemetry or reads
 // the current step, and no answer is revealed (quiz options are never checked,
-// blanks are empty and select/ordering options are sorted alphabetically).
+// blanks are empty, select options are sorted alphabetically and ordering
+// items are shuffled).
 
 const BLANK = "________";
 const BLANK_REGEX = /_(\d+)_/g;
@@ -25,6 +26,24 @@ const HIDDEN_BLOCKS = ["changesDiff", "loader", "code_challenge_proposal", "new"
 
 const sortAlphabetically = (items: string[]) =>
   [...items].sort((a, b) => a.localeCompare(b));
+
+const hashString = (value: string) => {
+  let hash = 0;
+  for (let i = 0; i < value.length; i++) {
+    hash = (hash * 31 + value.charCodeAt(i)) | 0;
+  }
+  return hash;
+};
+
+// Ordering items are written in the correct order, so they are shuffled the
+// same way on every render (screen and PDF match) and never left as written
+const shuffleOrderingItems = (items: string[]) => {
+  const shuffled = [...items].sort((a, b) => hashString(a) - hashString(b));
+  const isOriginalOrder = shuffled.every((item, index) => item === items[index]);
+  return isOriginalOrder && items.length > 1
+    ? [...shuffled.slice(1), shuffled[0]]
+    : shuffled;
+};
 
 const getCodeBlock = (node?: Element) => {
   const child = node?.children[0];
@@ -101,7 +120,7 @@ const Ordering = ({ code, metadata }: { code: string; metadata: TMetadata }) => 
         <strong>{title}</strong>
       </p>
       <ul>
-        {sortAlphabetically(parseOrderingItems(code)).map((item, index) => (
+        {shuffleOrderingItems(parseOrderingItems(code)).map((item, index) => (
           <li key={index}>{item}</li>
         ))}
       </ul>
