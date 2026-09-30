@@ -194,29 +194,35 @@ export const FullContentView = () => {
 
             <nav className="full-content-toc">
               <h2>{t("full-content-table-of-contents")}</h2>
-              <ol>
+              <ul>
                 {lessons.map((lesson) => (
                   <li key={lesson.slug}>
                     <a
                       href={`#${lessonAnchor(lesson.slug)}`}
                       onClick={(e) => scrollToLesson(e, lesson.slug)}
                     >
-                      {lesson.title}
+                      {lesson.heading || lesson.title}
                     </a>
                   </li>
                 ))}
-              </ol>
+              </ul>
             </nav>
 
-            {lessons.map((lesson, index) => (
+            {lessons.map((lesson) => (
               <section
                 key={lesson.slug}
                 id={lessonAnchor(lesson.slug)}
                 className="full-content-lesson lesson-content"
               >
-                <p className="full-content-lesson-label">
-                  {index + 1}. {lesson.title}
-                </p>
+                {/* The README h1 is the lesson title; the sidebar one is only a fallback */}
+                {!lesson.heading && <h1>{lesson.title}</h1>}
+                {lesson.error ? (
+                  <p className="full-content-hint">
+                    {t("full-content-lesson-error")}
+                  </p>
+                ) : (
+                  <StaticMarkdown markdown={lesson.body} />
+                )}
                 {lesson.video && (
                   <p>
                     {t("full-content-video")}:{" "}
@@ -229,13 +235,6 @@ export const FullContentView = () => {
                       {lesson.video}
                     </a>
                   </p>
-                )}
-                {lesson.error ? (
-                  <p className="full-content-hint">
-                    {t("full-content-lesson-error")}
-                  </p>
-                ) : (
-                  <StaticMarkdown markdown={lesson.body} />
                 )}
               </section>
             ))}
