@@ -11,7 +11,7 @@ import {
   disconnected,
   getHost,
   getParamsObject,
-  replaceSlot,
+  fillReadmePlaceholders,
   debounce,
   type DebouncedFunction,
   removeSpecialCharacters,
@@ -1698,19 +1698,12 @@ The user's set up the application in "${language}" language, give your feedback 
       set({ videoTutorial: "", showVideoTutorial: false });
     }
 
-    let readme = replaceSlot(exercise.body, "{{publicUrl}}", HOST);
-    // @ts-ignore
-    if (typeof configObject.config.variables === "object") {
+    let readme = fillReadmePlaceholders(
+      exercise.body,
+      HOST,
       // @ts-ignore
-      for (let v in configObject.config.variables) {
-        readme = replaceSlot(
-          readme,
-          `{{${v}}}`,
-          // @ts-ignore
-          configObject.config.variables[v]
-        );
-      }
-    }
+      configObject.config.variables
+    );
 
     // Clean code_challenge_proposals if code files exist
     // This handles both new and legacy lessons
