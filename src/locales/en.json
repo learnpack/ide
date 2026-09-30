@@ -710,5 +710,18 @@
     "lesson-search-min-length": "Type at least 2 characters",
     "lesson-search-no-results": "No lessons match your search",
     "lesson-search-error": "We couldn't load the lessons to search.",
-    "lesson-search-retry": "Try again"
+    "lesson-search-retry": "Try again",
+    "full-content": "All the content",
+    "full-content-download-pdf": "Download PDF",
+    "full-content-preparing-pdf": "Preparing the PDF...",
+    "full-content-close": "Close",
+    "full-content-table-of-contents": "Contents",
+    "full-content-lessons-count": "{{count}} lessons",
+    "full-content-search-hint": "Use Ctrl+F (Cmd+F on Mac) to search the whole content.",
+    "full-content-loading": "Loading lessons ({{loaded}}/{{total}})",
+    "full-content-load-error": "We couldn't load the content. Please try again.",
+    "full-content-lesson-error": "We couldn't load this lesson.",
+    "full-content-video": "Lesson video",
+    "full-content-open-question": "Open question: answer in your own words.",
+    "full-content-order-the-items": "Put the following items in order"
 }
