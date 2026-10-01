@@ -245,6 +245,7 @@ export const clearLessonHighlight = () => {
     clearTimeout(pendingTimer);
     pendingTimer = null;
   }
+  document.removeEventListener("pointerdown", clearLessonHighlight, true);
   getHighlightApi()?.highlights.delete(HIGHLIGHT_NAME);
 };
 
@@ -303,7 +304,15 @@ export const highlightInLessonWhenReady = (position: number, term: string) => {
     const ranges = isRendered ? findRanges(term) : [];
     if (ranges.length > 0) {
       const api = getHighlightApi();
-      if (api) api.highlights.set(HIGHLIGHT_NAME, new api.Highlight(...ranges));
+      if (api) {
+        api.highlights.set(HIGHLIGHT_NAME, new api.Highlight(...ranges));
+        // Any click or tap on the page removes it. Registered once the
+        // highlight is shown, so the click that opened the lesson doesn't count
+        document.addEventListener("pointerdown", clearLessonHighlight, {
+          capture: true,
+          once: true,
+        });
+      }
       ranges[0].startContainer.parentElement?.scrollIntoView({
         behavior: "smooth",
         block: "center",
