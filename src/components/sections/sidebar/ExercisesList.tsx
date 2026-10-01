@@ -21,6 +21,7 @@ import { RigoMessage } from "@/components/Creator/RealtimeImage";
 import { AutoResizeTextarea } from "@/components/composites/AutoResizeTextarea/AutoResizeTextarea";
 import TelemetryManager from "@/managers/telemetry";
 import { Icon } from "@/components/Icon";
+import { LessonSearch } from "./LessonSearch";
 interface IExerciseList {
   closeSidebar: () => void;
   mode: "creator" | "student";
@@ -187,6 +188,7 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
   const { t } = useTranslation();
 
   const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   if (!exercises || exercises.length === 0) return null;
 
@@ -315,7 +317,11 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
           </div>
         </div>
       )}
-      {exercises.map((ex, index) => (
+      <LessonSearch
+        closeSidebar={closeSidebar}
+        onActiveChange={setIsSearching}
+      />
+      {!isSearching && exercises.map((ex, index) => (
         <div key={ex.slug + index} className="flex-y align-center">
           <ExerciseCard
             key={ex.slug + index}

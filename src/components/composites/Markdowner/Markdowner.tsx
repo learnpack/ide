@@ -1,14 +1,9 @@
 import Markdown, { type Components } from "react-markdown";
-import { type PluggableList } from "unified";
 import { Element } from "hast";
-import remarkGfm from "remark-gfm";
 import { TMetadata } from "./types";
-import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
-import { remarkInlineHtmlToCode } from "./remarkInlineHtmlToCode";
+import { REHYPE_PLUGINS, REMARK_PLUGINS, extractMetadata, fixSrc } from "./markdownConfig";
 import useStore from "../../../utils/store";
 import { useShallow } from "zustand/react/shallow";
-import emoji from "remark-emoji";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark as prismStyle } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { QuizRenderer } from "../QuizRenderer/QuizRenderer";
@@ -55,7 +50,7 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { DEV_MODE, asyncHashText, debounce, playEffect } from "../../../utils/lib";
+import { asyncHashText, debounce, playEffect } from "../../../utils/lib";
 
 
 import MermaidRenderer from "../MermaidRenderer/MermaidRenderer";
@@ -64,7 +59,6 @@ import RealtimeLesson from "../../Creator/RealtimeLesson";
 import RealtimeImage from "../../Creator/RealtimeImage";
 import { ImageErrorDisplay } from "../../Creator/ImageErrorDisplay";
 import { RigoAI } from "../../Rigobot/AI";
-import { FetchManager } from "../../../managers/fetchManager";
 import { DIFF_SEPARATOR } from "../../Rigobot/Agent";
 import { Icon } from "../../Icon";
 import { generateCodeChallenge } from "../../../utils/creator";
@@ -151,49 +145,10 @@ const checkForQuiz = (node: any) => {
   return containsTaskList && containsTaskList.length > 0;
 };
 
-const isTrueOrFalse = (value: string) => {
-  return value.toLowerCase() === "true" || value.toLowerCase() === "false";
-};
-
-const parseBooleans = (value: string) => {
-  if (isTrueOrFalse(value)) {
-    if (value.toLowerCase() === "true") {
-      return true;
-    }
-    return false;
-  }
-  return value;
-};
-
-const extractMetadata = (metadata: string) => {
-  const metadataObject: Record<string, string | boolean> = {};
-  const regex = /(\w+)="([^"]*)"/g;
-  let match;
-
-  while ((match = regex.exec(metadata)) !== null) {
-    const [_, key, value] = match;
-    metadataObject[key] = parseBooleans(value);
-  }
-
-  return metadataObject;
-};
-
 const generateHeadingID = (md: string) => {
   // This function should remove specia characters, replace spaces with - and make it lowercase
   return md.toLowerCase().replace(/ /g, "-").replace(/[^a-z0-9-]/g, "");
 }
-
-// singleDollarTextMath is disabled so a lone "$" is treated as literal text:
-// with it enabled, prose containing two dollar signs (e.g. "$300,000 ... $310,000"
-// or two n8n "{{ $json.x }}" expressions) gets the span between them swallowed
-// and typeset as a KaTeX formula. Math still renders via $$...$$ (inline or block).
-const REMARK_PLUGINS: PluggableList = [
-  remarkGfm,
-  [remarkMath, { singleDollarTextMath: false }],
-  emoji,
-  remarkInlineHtmlToCode,
-];
-const REHYPE_PLUGINS = [rehypeKatex];
 
 export const Markdowner = ({
   markdown,
@@ -561,22 +516,6 @@ export const Markdowner = ({
       </Markdown>
     </>
   );
-};
-
-const fixSrc = (src: string, slug: string, environment: string) => {
-  // Normalize leading ../../.learn to /.learn
-  let normalizedSrc = src.replace(/^(\.\.\/)+\.learn/, "/.learn");
-
-  if (environment === "scorm") {
-    return FetchManager.HOST + normalizedSrc
-  }
-  if (normalizedSrc.includes("/.learn/assets/")) {
-    if (DEV_MODE) {
-      return "http://localhost:3000" + normalizedSrc + "?slug=" + slug;
-    }
-    return normalizedSrc + "?slug=" + slug;
-  }
-  return normalizedSrc;
 };
 
 const CustomImage = ({
