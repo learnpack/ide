@@ -704,5 +704,11 @@
     "app-loading-error-description": "An unexpected error occurred while loading the app. Please try again.",
     "app-loading-retry": "Try again",
     "telemetry-generic-error-title": "Couldn't initialize progress tracking",
-    "telemetry-generic-error-description": "An unexpected error occurred while setting up progress tracking. You can try again or continue without it."
+    "telemetry-generic-error-description": "An unexpected error occurred while setting up progress tracking. You can try again or continue without it.",
+    "lesson-search-placeholder": "Search in this package",
+    "lesson-search-indexing": "Indexing lessons ({{loaded}}/{{total}})...",
+    "lesson-search-min-length": "Type at least 2 characters",
+    "lesson-search-no-results": "No lessons match your search",
+    "lesson-search-error": "We couldn't load the lessons to search.",
+    "lesson-search-retry": "Try again"
 }
