@@ -732,7 +732,8 @@
     "full-content-video": "Video de la lección",
     "full-content-open-question": "Pregunta abierta: responde con tus propias palabras.",
     "full-content-order-the-items": "Ordena los siguientes elementos",
-    "full-content-watermark-owner": "Uso personal de {{name}} · {{email}}",
+    "full-content-watermark-owner": "Uso personal de",
+    "full-content-watermark-learner": "{{name}} · {{email}}",
     "full-content-watermark-no-distribution": "Prohibida su distribución · {{date}}",
     "full-content-license-notice": "Este material es para uso personal de {{name}} ({{email}}). Descargado el {{date}}. Prohibida su reproducción o distribución."
 }

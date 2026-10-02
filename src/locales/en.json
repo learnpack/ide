@@ -724,7 +724,8 @@
     "full-content-video": "Lesson video",
     "full-content-open-question": "Open question: answer in your own words.",
     "full-content-order-the-items": "Put the following items in order",
-    "full-content-watermark-owner": "For the personal use of {{name}} · {{email}}",
+    "full-content-watermark-owner": "For the personal use of",
+    "full-content-watermark-learner": "{{name}} · {{email}}",
     "full-content-watermark-no-distribution": "Distribution prohibited · {{date}}",
     "full-content-license-notice": "This material is for the personal use of {{name}} ({{email}}). Downloaded on {{date}}. Reproduction or distribution is prohibited."
 }

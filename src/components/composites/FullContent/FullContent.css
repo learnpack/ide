@@ -100,13 +100,8 @@
   margin-bottom: 8px;
 }
 
-.full-content-license {
-  margin-top: 16px;
-  font-size: 13px;
-  color: var(--font-color-secondary);
-}
-
 /* Only shown in the PDF (see the print styles) */
+.full-content-license,
 .full-content-watermark {
   display: none;
 }
@@ -270,6 +265,13 @@
     border-bottom: 0;
   }
 
+  .full-content-license {
+    display: block;
+    margin-top: 16px;
+    font-size: 12px;
+    color: var(--font-color-secondary);
+  }
+
   /* Fixed elements are repeated on every printed page, so every page of the
      PDF carries the name and email of the learner who downloaded it */
   .full-content-watermark {
@@ -280,17 +282,23 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
     transform: rotate(-30deg);
     color: #000000;
     opacity: 0.1;
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 700;
     text-align: center;
-    white-space: nowrap;
     pointer-events: none;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+  }
+
+  /* Firefox clips fixed elements to the page area, so once rotated every line
+     has to fit inside it: short lines, and a long email wraps */
+  .full-content-watermark span {
+    max-width: 600px;
+    overflow-wrap: anywhere;
   }
 
   /* Cover and index on the first page, then the lessons one after another */

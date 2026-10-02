@@ -156,7 +156,8 @@ export const FullContentView = () => {
     >
       {/* Only printed: position fixed repeats it on every page of the PDF */}
       <div className="full-content-watermark" aria-hidden="true">
-        <span>{t("full-content-watermark-owner", learner)}</span>
+        <span>{t("full-content-watermark-owner")}</span>
+        <span>{t("full-content-watermark-learner", learner)}</span>
         <span>{t("full-content-watermark-no-distribution", learner)}</span>
       </div>
 
