@@ -22,6 +22,7 @@ import {
 import { eventBus } from "../../managers/eventBus";
 import { HistoryControls } from "../HistoryControls/HistoryControls";
 import { updateCourseTitle } from "../../utils/creator";
+import { canOpenFullContent } from "../composites/FullContent/access";
 import toast from "react-hot-toast";
 // import { slugToTitle } from "../Rigobot/utils";
 
@@ -42,10 +43,11 @@ export const NewHeader = () => {
     reportEnrichDataLayer,
     mode,
     // setMode,
-    // setOpenedModals,
+    setOpenedModals,
     environment,
     configObject,
     token,
+    user,
     updateCourseTitle: updateCourseTitleInStore,
   } = useStore((state) => ({
     currentExercisePosition: state.currentExercisePosition,
@@ -62,11 +64,12 @@ export const NewHeader = () => {
     reportEnrichDataLayer: state.reportEnrichDataLayer,
     mode: state.mode,
     // isCreator: state.isCreator,
-    // setOpenedModals: state.setOpenedModals,
+    setOpenedModals: state.setOpenedModals,
     // setMode: state.setMode,
     environment: state.environment,
     configObject: state.configObject,
     token: state.token,
+    user: state.user,
     updateCourseTitle: state.updateCourseTitle,
   }));
 
@@ -250,6 +253,17 @@ export const NewHeader = () => {
               />
             )}
           </div>
+        )}
+
+        {exercises.length > 0 && canOpenFullContent(token, user) && (
+          <SimpleButton
+            title={t("full-content")}
+            svg={<Icon name="BookOpen" size={20} />}
+            action={() => {
+              setOpenedModals({ fullContent: true });
+              reportEnrichDataLayer("learnpack_open_full_content", {});
+            }}
+          />
         )}
 
         <RigoToggler />
