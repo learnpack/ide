@@ -25,15 +25,24 @@ import { getTeacherOnboardingKey } from "../../../utils/lib";
 import { LastLessonFinishedModal } from "./LastLessonFinished";
 import { CommunityModal } from "./CommunityModal";
 import { FullContentView } from "../../composites/FullContent/FullContentView";
+import { canOpenFullContent } from "../../composites/FullContent/access";
 
 export const ModalsContainer = () => {
-  const { openedModals, setOpenedModals, mode, teacherOnboardingClosed } =
-    useStore((state) => ({
-      openedModals: state.openedModals,
-      setOpenedModals: state.setOpenedModals,
-      mode: state.mode,
-      teacherOnboardingClosed: state.teacherOnboardingClosed,
-    }));
+  const {
+    openedModals,
+    setOpenedModals,
+    mode,
+    teacherOnboardingClosed,
+    token,
+    user,
+  } = useStore((state) => ({
+    openedModals: state.openedModals,
+    setOpenedModals: state.setOpenedModals,
+    mode: state.mode,
+    teacherOnboardingClosed: state.teacherOnboardingClosed,
+    token: state.token,
+    user: state.user,
+  }));
 
   useEffect(() => {
     if (
@@ -68,7 +77,9 @@ export const ModalsContainer = () => {
       {openedModals.teacherOnboarding && !LocalStorage.get(getTeacherOnboardingKey(), false) && <TeacherOnboarding />}
       {openedModals.lastLessonFinished && <LastLessonFinishedModal />}
       {openedModals.community && <CommunityModal />}
-      {openedModals.fullContent && <FullContentView />}
+      {openedModals.fullContent && canOpenFullContent(token, user) && (
+        <FullContentView />
+      )}
     </>
   );
 };
