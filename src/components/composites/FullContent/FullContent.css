@@ -100,6 +100,17 @@
   margin-bottom: 8px;
 }
 
+.full-content-license {
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--font-color-secondary);
+}
+
+/* Only shown in the PDF (see the print styles) */
+.full-content-watermark {
+  display: none;
+}
+
 .full-content-toc {
   padding: 24px 0;
   font-size: var(--font-size-medium);
@@ -257,6 +268,29 @@
 
   .full-content-cover {
     border-bottom: 0;
+  }
+
+  /* Fixed elements are repeated on every printed page, so every page of the
+     PDF carries the name and email of the learner who downloaded it */
+  .full-content-watermark {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transform: rotate(-30deg);
+    color: #000000;
+    opacity: 0.1;
+    font-size: 22px;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+    pointer-events: none;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 
   /* Cover and index on the first page, then the lessons one after another */

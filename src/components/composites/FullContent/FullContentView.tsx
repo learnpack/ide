@@ -39,6 +39,7 @@ export const FullContentView = () => {
   const language = useStore((state) => state.language);
   const configObject = useStore((state) => state.configObject);
   const setOpenedModals = useStore((state) => state.setOpenedModals);
+  const user = useStore((state) => state.user);
 
   const [lessons, setLessons] = useState<TPackageLesson[] | null>(null);
   const [progress, setProgress] = useState({ loaded: 0, total: 0 });
@@ -48,6 +49,17 @@ export const FullContentView = () => {
   const diagramsRendered = useRef<Promise<unknown>>(Promise.resolve());
 
   const courseTitle = resolveCourseTitle(configObject?.config?.title, language);
+
+  // Who the PDF is for: printed on the cover and as a watermark on every page
+  const learnerName =
+    `${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim() ||
+    user?.email ||
+    "";
+  const learner = {
+    name: learnerName,
+    email: user?.email ?? "",
+    date: new Date().toLocaleDateString(language),
+  };
 
   const close = () => setOpenedModals({ fullContent: false });
 
@@ -126,7 +138,7 @@ export const FullContentView = () => {
 
     // The browser suggests the document title as the PDF file name
     const previousTitle = document.title;
-    if (courseTitle) document.title = courseTitle;
+    document.title = [courseTitle, learnerName].filter(Boolean).join(" - ");
     const restoreTitle = () => {
       document.title = previousTitle;
       window.removeEventListener("afterprint", restoreTitle);
@@ -142,6 +154,12 @@ export const FullContentView = () => {
       aria-modal="true"
       aria-label={t("full-content")}
     >
+      {/* Only printed: position fixed repeats it on every page of the PDF */}
+      <div className="full-content-watermark" aria-hidden="true">
+        <span>{t("full-content-watermark-owner", learner)}</span>
+        <span>{t("full-content-watermark-no-distribution", learner)}</span>
+      </div>
+
       <header className="full-content-toolbar">
         <div className="full-content-toolbar-info">
           <strong>{courseTitle}</strong>
@@ -189,6 +207,9 @@ export const FullContentView = () => {
               <h1>{courseTitle}</h1>
               <p className="full-content-hint">
                 {t("full-content-lessons-count", { count: lessons.length })}
+              </p>
+              <p className="full-content-license">
+                {t("full-content-license-notice", learner)}
               </p>
             </section>
 
