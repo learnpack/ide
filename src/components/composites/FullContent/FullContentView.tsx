@@ -60,6 +60,15 @@ export const FullContentView = () => {
     email: user?.email ?? "",
     date: new Date().toLocaleDateString(language),
   };
+  // The same lines go in the watermark and in the notice on the cover
+  const ownershipLines = (
+    <>
+      <span>{t("full-content-watermark-source")}</span>
+      <span>{t("full-content-watermark-owner")}</span>
+      <span>{t("full-content-watermark-learner", learner)}</span>
+      <span>{t("full-content-watermark-no-distribution", learner)}</span>
+    </>
+  );
 
   const close = () => setOpenedModals({ fullContent: false });
 
@@ -156,9 +165,7 @@ export const FullContentView = () => {
     >
       {/* Only printed: position fixed repeats it on every page of the PDF */}
       <div className="full-content-watermark" aria-hidden="true">
-        <span>{t("full-content-watermark-owner")}</span>
-        <span>{t("full-content-watermark-learner", learner)}</span>
-        <span>{t("full-content-watermark-no-distribution", learner)}</span>
+        {ownershipLines}
       </div>
 
       <header className="full-content-toolbar">
@@ -209,9 +216,7 @@ export const FullContentView = () => {
               <p className="full-content-hint">
                 {t("full-content-lessons-count", { count: lessons.length })}
               </p>
-              <p className="full-content-license">
-                {t("full-content-license-notice", learner)}
-              </p>
+              <p className="full-content-license">{ownershipLines}</p>
             </section>
 
             <nav className="full-content-toc">
