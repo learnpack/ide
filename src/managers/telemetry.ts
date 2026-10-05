@@ -246,7 +246,9 @@ function createUUID(): string {
  * Matching is done by slug.
  *
  * Note on test element hashes: type="test" elements use exercise.slug as their
- * hash, so they are never orphaned and the by-hash merge is always safe for them.
+ * hash, the same key steps are matched by, so the by-hash merge is always safe
+ * for them. They can still be orphaned when the exercise loses its tests;
+ * completeStepIfReadOnly prunes those.
  */
 function mergeStepActivityFromLoser(
   winnerSteps: TStep[],
@@ -881,6 +883,9 @@ interface ITelemetryManager {
   currentReadyAt?: number;
   /** Steps auto-completed as read-only in this session, so a late registration can undo it. */
   prunedCompletions: Set<number>;
+  /** Slugs the store found not testeable when loading the exercise. Session-only, not persisted. */
+  nonTesteableSlugs: Set<string>;
+  setExerciseTesteable: (slug: string, testeable: boolean) => void;
   registerTesteableElement: (
     stepPosition: number,
     testeableElement: TTesteableElement,
@@ -920,6 +925,7 @@ const TelemetryManager: ITelemetryManager = {
   activeHashes: new Map<string, Set<string>>(),
   currentReadyAt: undefined,
   prunedCompletions: new Set<number>(),
+  nonTesteableSlugs: new Set<string>(),
   _lessonRenderedDebounce: null,
   user: {
     token: "",
@@ -1207,6 +1213,23 @@ const TelemetryManager: ITelemetryManager = {
     return false;
   },
 
+  /**
+   * Called by the store every time it loads an exercise, with the testeability
+   * it computed (graded, or the interactive-files special case). It is the only
+   * reliable signal that a stored type="test" element is orphaned: the step's
+   * is_testeable mirrors `graded` alone and misses the special case.
+   *
+   * Not reset in start(): the value comes from the package, not from telemetry,
+   * and the store may report it before telemetry has finished starting.
+   */
+  setExerciseTesteable: function (slug: string, testeable: boolean) {
+    if (testeable) {
+      this.nonTesteableSlugs.delete(slug);
+    } else {
+      this.nonTesteableSlugs.add(slug);
+    }
+  },
+
   registerTesteableElement: function (
     stepPosition: number,
     testeableElement: TTesteableElement,
@@ -1291,7 +1314,9 @@ const TelemetryManager: ITelemetryManager = {
    *
    * Stored elements are matched against activeHashes: a quiz that no component
    * registered in this session was removed from the lesson and can never be
-   * completed again, so it is pruned rather than left to block the course.  The
+   * completed again, so it is pruned rather than left to block the course.  A
+   * code test is pruned the same way once the store reports its exercise as not
+   * testeable (see setExerciseTesteable): the exercise lost its tests.  The
    * prune is all-or-nothing — see the survivor filter below.
    */
   completeStepIfReadOnly: function (stepPosition: number, mode?: TMode) {
@@ -1308,16 +1333,19 @@ const TelemetryManager: ITelemetryManager = {
 
     const elements = step.testeable_elements ?? [];
     if (elements.length) {
-      // An element survives if it is a code test (never tracked in activeHashes),
-      // if it is already completed (multi-language progress must be preserved),
-      // or if a component registered its hash in this session (it is still live).
-      // What is left is orphaned: a quiz that was removed from the lesson and
-      // that the learner can no longer complete, blocking the course forever.
+      // An element survives if it is already completed (multi-language progress
+      // must be preserved), if it is a quiz a component registered in this
+      // session, or if it is a code test whose exercise the store has not
+      // reported as not testeable (no report keeps it, as before).
+      // What is left is orphaned: a quiz removed from the lesson or a test whose
+      // exercise lost its tests, which the learner can no longer complete,
+      // blocking the course forever.
       const survivors = elements.filter(
         (e) =>
-          e.type !== "quiz" ||
           e.is_completed === true ||
-          this.isActiveHash(e.hash)
+          (e.type === "quiz"
+            ? this.isActiveHash(e.hash)
+            : !this.nonTesteableSlugs.has(e.hash))
       );
 
       // All-or-nothing: if anything survives, the step is not read-only and

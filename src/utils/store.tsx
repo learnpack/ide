@@ -1215,6 +1215,10 @@ The user's set up the application in "${language}" language, give your feedback 
       hasSolution: hasSolution,
     });
 
+    if (isWebTelemetryEnvironment(environment)) {
+      TelemetryManager.setExerciseTesteable(slug, Boolean(isTesteable));
+    }
+
     if (isTesteable && isWebTelemetryEnvironment(environment) && !TelemetryManager.hasTesteableElementByHash(index, slug)) {
       TelemetryManager.registerTesteableElement(index, {
         hash: slug,
