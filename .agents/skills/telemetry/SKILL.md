@@ -308,13 +308,21 @@ handler (safety net for the last step). It is a no-op if:
 - `mode === "creator"` (never rewrite telemetry while an instructor edits the course)
 - any stored element **survives the orphan filter** (see below)
 
-**Orphan prune (all-or-nothing).** A stored element survives if it is a `type: "test"`,
-if it is already `is_completed`, or if its hash is in `activeHashes` (a component
-registered it in this session). What does not survive is an orphaned quiz: one removed
-from the lesson, which the learner can no longer complete. If **anything** survives,
-nothing is written and the step is not completed; only when the filter empties the array
-does the step get `testeable_elements = []` and a `completed_at`. This is what keeps a
-lesson whose quiz was deleted from blocking the course forever.
+**Orphan prune (all-or-nothing).** A stored element survives if it is already
+`is_completed`, if it is a quiz whose hash is in `activeHashes` (a component registered
+it in this session), or if it is a `type: "test"` whose slug is **not** in
+`nonTesteableSlugs` (see below). What does not survive is an orphan the learner can no
+longer complete: a quiz removed from the lesson, or a code test whose exercise lost its
+tests. If **anything** survives, nothing is written and the step is not completed; only
+when the filter empties the array does the step get `testeable_elements = []` and a
+`completed_at`. This is what keeps a lesson whose quiz or tests were deleted from
+blocking the course forever.
+
+A test with no report from the store survives, so the prune never guesses. Do not
+replace `nonTesteableSlugs` with `!step.is_testeable`: `is_testeable` mirrors `graded`
+alone, while `fetchSingleExerciseInfo` also makes an exercise testeable when it has
+interactive files but no `entry` and no `language`. That exercise has a live test and
+`is_testeable === false` at the same time.
 
 **Undo path.** Steps completed this way are tracked in the in-memory
 `TelemetryManager.prunedCompletions: Set<number>`. If a quiz registers afterwards with
@@ -344,11 +352,14 @@ orphan.
 **Diagnosing `is_completed` bugs:**
 - Stays `false` unexpectedly → check `hasPendingTasks`: any stale/orphaned element?
   Is `testeable_elements` in the correct step slot (array index)? Did `registerTesteableElement`
-  run before or after `registerStepEvent`?
+  run before or after `registerStepEvent`? For a leftover `type: "test"`, is its slug in
+  `TelemetryManager.nonTesteableSlugs`? If not, the exercise info arrived after the
+  debounce window, or the environment is `localhost`, where the store never reports it.
 - Set `true` unexpectedly → was `open_step` fired before `testeable_elements` was
   populated (race condition)? Check `telemetryReady` guard. Did `onLessonRendered`
   fire 5s after a step that had slow quiz registration, or did the orphan prune clear a
-  live quiz that registered late?
+  live quiz that registered late? For a pruned code test, did `fetchSingleExerciseInfo`
+  compute `isTesteable === false` for an exercise that does have tests?
 
 ## `testeable_elements` and `hasPendingTasks`
 
@@ -470,9 +481,10 @@ visible progress on that question.
 
 Orphaned elements **do** block completion (see `hasPendingTasks` above). They are only
 cleared when the step turns out to have no live testeable content at all, by the prune in
-`completeStepIfReadOnly`. A step that still has a live quiz — or a code test — keeps its
+`completeStepIfReadOnly`. A step that still has a live quiz or a live code test keeps its
 orphans, and an orphan sitting next to an `is_testeable` step still blocks it: that case
-is a known gap.
+is a known gap. A code test whose exercise lost its tests is not part of the gap: it is
+an orphan itself and is pruned (see `nonTesteableSlugs` below).
 
 ### `activeHashes` — in-memory orphan filter
 
@@ -487,15 +499,41 @@ rebuilt each session as quiz components mount.
   through to the default `return true`.
 - `completeStepIfReadOnly` uses it the other way round: absence from `activeHashes` is
   the signal that a stored quiz is an orphan and can be pruned.
-- Code tests (`type: "test"`) are never orphaned — they are always evaluated
-  regardless of `activeHashes`. They are also never *added* to it: every `type: "test"`
-  registration comes from `store.tsx` without a `language`.
+- Code tests (`type: "test"`) are never looked up in `activeHashes` and never *added* to
+  it: every `type: "test"` registration comes from `store.tsx` without a `language`.
+  Their orphan signal is `nonTesteableSlugs` (see below).
 
 `activeHashes` is reset to an empty `Map` inside `TelemetryManager.start()`, **after** the
 `if (this.current) return` early return, together with `prunedCompletions` and
 `currentReadyAt`. Resetting before that early return would let a duplicate bootstrap
 empty the map while live elements are still in the blob — which the prune would then read
 as a lesson full of orphans.
+
+### `nonTesteableSlugs` — orphan signal for code tests
+
+`TelemetryManager.nonTesteableSlugs: Set<string>` — **not persisted**. It holds the
+slugs of exercises the store found not testeable in this session. A `type: "test"`
+element uses the exercise slug as its hash, so the prune looks it up by hash.
+
+**How it works:**
+- `fetchSingleExerciseInfo` (`store.tsx`) computes `isTesteable` every time it loads an
+  exercise (`graded`, or the interactive-files special case) and, in web telemetry
+  environments (`isWebTelemetryEnvironment`: `localStorage`, `scorm`, `creatorWeb`), calls
+  `TelemetryManager.setExerciseTesteable(slug, isTesteable)`. It adds the slug when the
+  exercise is not testeable and removes it when it is, so an exercise that gets its tests
+  back is handled too.
+- `completeStepIfReadOnly` prunes an incomplete `type: "test"` element only if its slug
+  is in the set. Completed tests are always kept.
+- In `localhost` the store never reports, so the set stays empty and code tests are never
+  pruned, as before.
+
+Unlike `activeHashes`, the set is **not** reset in `TelemetryManager.start()`. Its value
+comes from the package, not from the telemetry blob, and `fetchSingleExerciseInfo` can
+report it before telemetry has finished starting; a reset there would drop that report.
+
+**Limitation:** if the exercise info arrives after the `onLessonRendered` window
+(including its re-arms), the orphan test survives that visit and is pruned on the next
+one.
 
 ## Multi-language progress in `testeable_elements`
 
