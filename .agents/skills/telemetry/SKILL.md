@@ -522,6 +522,13 @@ element uses the exercise slug as its hash, so the prune looks it up by hash.
   `TelemetryManager.setExerciseTesteable(slug, isTesteable)`. It adds the slug when the
   exercise is not testeable and removes it when it is, so an exercise that gets its tests
   back is handled too.
+- The interactive-files special case skips README, `pycache`, images and `.md` files,
+  except a `.md` that has its own solution file (`regex-comments.md` +
+  `regex-comments.solution.hide.md`): that file is the exercise, not documentation.
+- The test result handlers in `store.tsx` (success and failure) also call
+  `setExerciseTesteable(slug, true)` before registering the element: a test the learner
+  just ran is live in this session and must never be pruned as an orphan. The mark is
+  session-only, so if the exercise is removed later, the next session prunes the test.
 - `completeStepIfReadOnly` prunes an incomplete `type: "test"` element only if its slug
   is in the set. Completed tests are always kept.
 - In `localhost` the store never reports, so the set stays empty and code tests are never
@@ -534,6 +541,12 @@ report it before telemetry has finished starting; a reset there would drop that 
 **Limitation:** if the exercise info arrives after the `onLessonRendered` window
 (including its re-arms), the orphan test survives that visit and is pruned on the next
 one.
+
+**UI and telemetry can disagree.** In web environments `updateEditorTabs` sets the
+store's `isTesteable: true` whenever the exercise has editor tabs, overwriting the value
+`fetchSingleExerciseInfo` computed. The editor can therefore offer to run tests on an
+exercise that telemetry treats as not testeable. Do not read the store's `isTesteable`
+as the telemetry decision; the test result handlers above exist to close that gap.
 
 ## Multi-language progress in `testeable_elements`
 
