@@ -1,0 +1,348 @@
+.full-content-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-color);
+  color: var(--read-font-color);
+}
+
+.full-content-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--light-grey);
+  background-color: var(--bg-1);
+}
+
+.full-content-toolbar-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.full-content-toolbar-info strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.full-content-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.full-content-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: var(--standard-border-radius);
+  color: inherit;
+  cursor: pointer;
+}
+
+.full-content-button:hover:not(:disabled) {
+  background-color: var(--color-hovered);
+}
+
+.full-content-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.full-content-button-primary {
+  background-color: var(--color-active);
+  color: white;
+}
+
+.full-content-button-primary:hover:not(:disabled) {
+  background-color: var(--color-active);
+  filter: brightness(1.1);
+}
+
+.full-content-scroll {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.full-content-status {
+  display: flex;
+  justify-content: center;
+  padding: 48px 16px;
+}
+
+.full-content-document {
+  max-width: 850px;
+  margin: 0 auto;
+  padding: 32px 16px 64px;
+}
+
+.full-content-hint {
+  font-size: var(--font-size-small);
+  color: var(--font-color-secondary);
+}
+
+.full-content-cover {
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--light-grey);
+}
+
+.full-content-cover h1 {
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+
+/* Only shown in the PDF (see the print styles) */
+.full-content-license,
+.full-content-watermark {
+  display: none;
+}
+
+.full-content-toc {
+  padding: 24px 0;
+  font-size: var(--font-size-medium);
+  line-height: 2rem;
+}
+
+.full-content-toc h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.full-content-toc ul {
+  padding-left: 0;
+}
+
+.full-content-toc li {
+  list-style: none;
+  margin-left: 0 !important;
+}
+
+.full-content-toc a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.full-content-toc a:hover {
+  color: var(--color-active);
+  text-decoration: underline;
+}
+
+.full-content-lesson {
+  padding-top: 32px;
+  border-top: 1px solid var(--light-grey);
+}
+
+.full-content-checkbox {
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  margin-right: 8px;
+  border: 1.5px solid currentColor;
+  border-radius: 3px;
+  vertical-align: -0.05em;
+}
+
+.full-content-lesson .task-list-item {
+  list-style: none;
+}
+
+/* The global Inter font would otherwise apply to code too */
+.full-content-lesson pre,
+.full-content-lesson pre *,
+.full-content-lesson code,
+.full-content-lesson code * {
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace !important;
+}
+
+/* Long code lines wrap instead of being cut off in the PDF */
+.full-content-lesson pre {
+  margin: 16px 0 !important;
+}
+
+.full-content-lesson pre,
+.full-content-lesson pre code {
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere;
+}
+
+.full-content-image {
+  display: block;
+  text-align: center;
+}
+
+.full-content-lesson .full-content-image img {
+  display: inline-block;
+  max-width: min(100%, 750px);
+  margin: 5px 0;
+}
+
+.full-content-exercise {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border-left: 4px solid var(--color-active);
+  border-radius: 4px;
+  background-color: var(--bg-2);
+}
+
+.full-content-blank-text {
+  white-space: pre-wrap;
+}
+
+.full-content-answer-lines span {
+  display: block;
+  height: 32px;
+  border-bottom: 1px solid var(--bg-color-dark-gray);
+}
+
+.full-content-lesson pre.stdout,
+.full-content-lesson pre.stderr {
+  white-space: pre-wrap;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.8em;
+  background-color: var(--bg-color-code);
+  color: var(--read-font-color);
+}
+
+.full-content-lesson pre.stderr {
+  color: var(--color-fail);
+}
+
+@media print {
+  @page {
+    margin: 16mm 14mm;
+  }
+
+  /* Print only the full content view */
+  body.lp-full-content-open > *:not(#root),
+  body.lp-full-content-open #main-container > *:not(.full-content-overlay),
+  body.lp-full-content-open .full-content-toolbar {
+    display: none !important;
+  }
+
+  html:has(body.lp-full-content-open),
+  body.lp-full-content-open,
+  body.lp-full-content-open #root,
+  body.lp-full-content-open #main-container,
+  body.lp-full-content-open .full-content-scroll {
+    height: auto !important;
+    overflow: visible !important;
+    width: auto !important;
+    background: white !important;
+  }
+
+  /* Always print in light colors, whatever the IDE theme */
+  .full-content-overlay {
+    position: static;
+    display: block;
+    background: white;
+    color: black;
+    --read-font-color: black;
+    --font-color-secondary: #555555;
+    --color-active: #0084ff;
+    --bg-2: #eef6fb;
+    --bg-color-code: #f4f4f4;
+    --light-grey: #dadada;
+  }
+
+  /* Side margin of its own in case the print dialog has margins disabled */
+  .full-content-document {
+    max-width: none;
+    padding: 0 6mm;
+  }
+
+  .full-content-cover {
+    border-bottom: 0;
+  }
+
+  .full-content-license {
+    display: block;
+    margin-top: 16px;
+    font-size: 12px;
+    color: var(--font-color-secondary);
+  }
+
+  /* Fixed elements are repeated on every printed page, so every page of the
+     PDF carries the name and email of the learner who downloaded it */
+  .full-content-watermark {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transform: rotate(-30deg);
+    color: #000000;
+    opacity: 0.1;
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+    pointer-events: none;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Firefox clips fixed elements to the page area, so once rotated every line
+     has to fit inside it: short lines, and a long email wraps */
+  .full-content-watermark span {
+    max-width: 600px;
+    overflow-wrap: anywhere;
+  }
+
+  /* Cover and index on the first page, then the lessons one after another */
+  .full-content-toc {
+    break-after: page;
+  }
+
+  .full-content-lesson {
+    margin-top: 28px;
+    padding-top: 20px;
+    padding-inline: 0;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .full-content-toc + .full-content-lesson {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  /* An image never takes more than a page, so it can always be moved whole */
+  .full-content-lesson .full-content-image img {
+    max-width: 100%;
+    max-height: 230mm;
+    object-fit: contain;
+  }
+
+  .full-content-image,
+  .full-content-lesson .mermaid,
+  .full-content-exercise {
+    break-inside: avoid;
+  }
+
+  .full-content-lesson h1,
+  .full-content-lesson h2,
+  .full-content-lesson h3,
+  .full-content-lesson h4 {
+    break-after: avoid;
+  }
+
+  .full-content-exercise,
+  .full-content-answer-lines {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
