@@ -579,6 +579,8 @@ const useStore = create<IStore>((set, get) => ({
 
       if (isWebTelemetryEnvironment(environment)) {
         const currentExercise = getCurrentExercise();
+        // A test that just ran is live in this session, never an orphan.
+        TelemetryManager.setExerciseTesteable(currentExercise.slug, true);
         TelemetryManager.registerTesteableElement(Number(currentExercise.position), {
           hash: currentExercise.slug,
           searchString: currentExercise.slug,
@@ -618,6 +620,8 @@ const useStore = create<IStore>((set, get) => ({
 
       if (isWebTelemetryEnvironment(environment)) {
         const currentExercise = getCurrentExercise();
+        // A test that just ran is live in this session, never an orphan.
+        TelemetryManager.setExerciseTesteable(currentExercise.slug, true);
         TelemetryManager.registerTesteableElement(
           Number(currentExercise.position),
           {
