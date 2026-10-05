@@ -1173,8 +1173,14 @@ The user's set up the application in "${language}" language, give your feedback 
         // Excluir README y otros archivos de documentación
         if (fileName.includes("readme")) return false;
         if (fileName.includes("pycache")) return false;
-        // Excluir archivos markdown
-        if (fileName.endsWith(".md")) return false;
+        // Excluir archivos markdown, salvo que sean el ejercicio mismo: un .md
+        // con su propia solución (regex-comments.md + regex-comments.solution.hide.md)
+        if (fileName.endsWith(".md")) {
+          const solutionName = fileName.replace(/\.md$/, ".solution.hide.md");
+          return exercise.files.some(
+            (f: TFile) => f.name.toLowerCase() === solutionName
+          );
+        }
         // Excluir imágenes (no son código ejecutable)
         if (
           fileName.endsWith(".png") ||
