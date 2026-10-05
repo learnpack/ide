@@ -29,4 +29,10 @@ i18n.use(initReactI18next).init({
   },
 });
 
+/** Syncs the UI language with the content language ("us" is the content code for English). */
+export function syncUiLanguage(lang: string) {
+  const uiLang = lang === "us" ? "en" : lang;
+  if (i18n.language !== uiLang) i18n.changeLanguage(uiLang);
+}
+
 export default i18n;
