@@ -179,3 +179,17 @@ export const acceptSyncNotification = async (
   }
 };
 
+
+/**
+ * Tells whether a finished sync rewrote the lesson on screen. The source
+ * language is the one the creator edited, so the sync never touches it.
+ */
+export const shouldRefreshCurrentLesson = (
+  syncedSlug: string | undefined,
+  currentSlug: string | undefined,
+  currentLanguage: string,
+  sourceLanguage: string | undefined
+): boolean => {
+  if (!syncedSlug || syncedSlug !== currentSlug) return false;
+  return currentLanguage !== sourceLanguage;
+};

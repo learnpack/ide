@@ -1,7 +1,8 @@
 import { useEffect, useRef, useCallback } from "react";
-import useStore from "../../utils/store";
+import useStore, { flushPendingBucketSaves } from "../../utils/store";
 import CreatorSocket from "../../managers/creatorSocket";
 import { DEV_MODE } from "../../utils/lib";
+import { shouldRefreshCurrentLesson } from "../../utils/syncNotifications";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 
@@ -21,6 +22,7 @@ export default function SyncNotificationListener() {
   const getSyncNotifications = useStore((state) => state.getSyncNotifications);
   const fetchExercises = useStore((state) => state.fetchExercises);
   const getSidebar = useStore((state) => state.getSidebar);
+  const fetchReadme = useStore((state) => state.fetchReadme);
   const processedBufferRef = useRef(false);
   const componentMountedRef = useRef(false);
   
@@ -55,7 +57,12 @@ export default function SyncNotificationListener() {
 
         case "sync-notification-completed": {
           // Show toast with completion status
-          const eventData = data as { completed?: number; failed?: number };
+          const eventData = data as {
+            exerciseSlug?: string;
+            notificationId?: string;
+            completed?: number;
+            failed?: number;
+          };
           const completed = eventData.completed || 0;
           const failed = eventData.failed || 0;
 
@@ -68,11 +75,33 @@ export default function SyncNotificationListener() {
             toast.error(t("sync-error"));
           }
 
+          // Read the source language before the refresh replaces the list
+          const sourceLanguage = useStore
+            .getState()
+            .syncNotifications.find((n) => n.id === eventData.notificationId)
+            ?.sourceLanguage;
+
           // Refresh notifications and exercises
           getSyncNotifications().then(() => {
             setTimeout(async () => {
               await fetchExercises();
               await getSidebar();
+
+              // Reload the lesson on screen if the sync rewrote it
+              const { exercises, currentExercisePosition, language } =
+                useStore.getState();
+              if (
+                shouldRefreshCurrentLesson(
+                  eventData.exerciseSlug,
+                  exercises[Number(currentExercisePosition)]?.slug,
+                  language,
+                  sourceLanguage
+                )
+              ) {
+                // fetchReadme reloads the code tabs from the bucket, so send pending edits first
+                flushPendingBucketSaves();
+                fetchReadme();
+              }
             }, 1000);
           });
           break;
@@ -93,7 +122,7 @@ export default function SyncNotificationListener() {
           console.warn(`Unknown sync event type: ${eventType}`);
       }
     },
-    [getSyncNotifications, fetchExercises, getSidebar, t]
+    [getSyncNotifications, fetchExercises, getSidebar, fetchReadme, t]
   );
 
   // Process buffered events when syncNotifications becomes available
