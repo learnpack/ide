@@ -39,6 +39,7 @@ The heart of all telemetry logic in the IDE.
 | 454, 493 | Test handlers → `registerTelemetryEvent("test", ...)` |
 | 530, 547 | Compile handlers → `registerTelemetryEvent("compile", ...)` |
 | 1069, 2656 | `registerTelemetryEvent("open_step", ...)` |
+| `fetchSingleExerciseInfo` | Computes `isTesteable` (`graded`, or interactive files with no `entry`/`language`); in web telemetry environments calls `TelemetryManager.setExerciseTesteable(slug, isTesteable)` and registers the `type: "test"` element when the exercise is testeable and not yet registered |
 | ~872–876 | `fetchExercises` — if config **slug** changes from a previous non-empty value, clears `packageId` / `packageIdSlug` |
 | ~895–911 | `fetchPackageMetadata` — `fetchLearnpackPackageInfo`, cache by slug, `mergePackageIdIfMissing` |
 | `startTelemetry` | Assigns `TelemetryManager.urls`, `skipDuplicateBootstrap` guard, `await TelemetryManager.start()`, `mergePackageIdIfMissing` if store `packageId` set; `telemetryReady` only on success; initial struggle listeners + `open_step` only when not skipping duplicate bootstrap |
