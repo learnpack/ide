@@ -85,7 +85,7 @@ import {
   acceptSyncNotification as acceptSyncNotificationAPI,
   SyncNotificationError,
 } from "./syncNotifications";
-import i18n from "./i18n";
+import i18n, { syncUiLanguage } from "./i18n";
 import { eventBus } from "@/managers/eventBus";
 import { synchronizeLessonFiles } from "./creator";
 
@@ -1766,6 +1766,7 @@ The user's set up the application in "${language}" language, give your feedback 
       language,
       ...(courseTitle ? { lessonTitle: courseTitle } : {}),
     });
+    syncUiLanguage(language);
 
     let params = checkParams({ justReturn: true });
     setQueryParams({ ...params, language: language });

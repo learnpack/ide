@@ -290,18 +290,12 @@ const LanguageDropdown = ({ toggleDrop }: ILanguageDropdown) => {
     ]),
   ].filter((l) => l !== language);
 
-  const changeLanguage = (lang: string) => {
-    if (lang === "us") lang = "en";
-    i18n.changeLanguage(lang);
-  };
-
   const setLang = (lang: string) => {
     const missingCount = getMissingSlugsForLang(exercises || [], lang).length;
     if (missingCount > 0) return;
 
     const fixedLang = fixLang(lang, environment);
     setLanguage(fixedLang);
-    changeLanguage(fixedLang);
     toggleDrop();
     reportEnrichDataLayer("learnpack_language_change", {
       language: fixedLang,
