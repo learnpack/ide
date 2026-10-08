@@ -1,5 +1,7 @@
 self.addEventListener('install', (event) => {
     console.log('Service Worker instalado');
+    // Replace an older worker right away instead of waiting for every tab to close
+    self.skipWaiting();
     event.waitUntil(
         caches.open('app-cache').then(async (cache) => {
             const urlsToCache = [
@@ -20,7 +22,18 @@ self.addEventListener('install', (event) => {
     );
 });
 
+self.addEventListener('activate', (event) => {
+    event.waitUntil(self.clients.claim());
+});
+
 self.addEventListener('fetch', (event) => {
+    // In GitHub Codespaces the forwarded port is private: GitHub redirects
+    // requests to its sign-in flow, which only completes on a real network
+    // navigation. Serving "/" from cache blocks it, so stay out of the way.
+    if (self.location.hostname.endsWith('.app.github.dev')) {
+        return;
+    }
+
     // Excluir solicitudes a /socket.io/ y otras URLs que no deben ser cacheadas
     if (event.request.url.includes('/socket.io/') || 
         event.request.url.includes('/api/') ||
