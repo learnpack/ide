@@ -96,10 +96,6 @@
   color: #0097cf;
   padding: 10px;
 }
-.exercise-circle.done {
-  background-color: #0097cf;
-  color: white;
-}
 
 .sidebar-component .exercise-list .exercise-card:hover {
   background-color: var(--bg-2);
@@ -239,4 +235,11 @@
 ::highlight(lesson-search) {
   background-color: var(--4geeks-yellow);
   color: black;
+}
+
+.lesson-status-icon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
 }
