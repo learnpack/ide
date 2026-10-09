@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describeError } from "./logging";
+import { createSaveStatusTracker } from "./fileSaveStatus";
 
 // import io from "socket.io-client";
 
@@ -105,6 +106,13 @@ const debouncedBucketSavers = new Map<
   DebouncedFunction<[string, string, string]>
 >();
 
+/** Mirrors each file's bucket save into the store so the editor can show it. */
+const saveStatusTracker = createSaveStatusTracker((key, status) => {
+  const { fileSaveStatus } = useStore.getState();
+  if (fileSaveStatus[key] === status) return;
+  useStore.setState({ fileSaveStatus: { ...fileSaveStatus, [key]: status } });
+});
+
 function debouncedSaveFileContent(
   slug: string,
   filename: string,
@@ -112,12 +120,13 @@ function debouncedSaveFileContent(
   waitMs = BUCKET_SAVE_DEBOUNCE_MS
 ) {
   const key = `${slug}:${filename}`;
+  saveStatusTracker.begin(key);
   if (!debouncedBucketSavers.has(key)) {
     debouncedBucketSavers.set(
       key,
       debounce(
         (s: string, fn: string, c: string) => {
-          FetchManager.saveFileContent(s, fn, c);
+          saveStatusTracker.run(key, () => FetchManager.saveFileContent(s, fn, c));
         },
         waitMs
       )
@@ -368,6 +377,7 @@ const useStore = create<IStore>((set, get) => ({
   editingContent: "",
   editorTabs: [],
   fileLoadNotFoundByLesson: {},
+  fileSaveStatus: {},
   lessonSyncInProgress: null,
   pendingTranslations: [] as TLanguageTranslation[],
   feedbackbuttonProps: {
