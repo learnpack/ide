@@ -88,6 +88,7 @@ import {
 import i18n, { syncUiLanguage } from "./i18n";
 import { eventBus } from "@/managers/eventBus";
 import { synchronizeLessonFiles } from "./creator";
+import { needsCloudCompiler } from "./lessonKind";
 
 type TFile = {
   name: string;
@@ -1168,39 +1169,9 @@ The user's set up the application in "${language}" language, give your feedback 
     if (exercise.entry) isBuildable = true;
     if (!exercise.language) isBuildable = false;
 
-    const notHiddenFiles = exercise.files.filter((file: TFile) => !file.hidden);
-
-    // Filtrar archivos que NO son interactivos (documentación/config/recursos)
-    const interactiveFiles = notHiddenFiles.filter(
-      (file: TFile) => {
-        const fileName = file.name.toLowerCase();
-        // Excluir README y otros archivos de documentación
-        if (fileName.includes("readme")) return false;
-        if (fileName.includes("pycache")) return false;
-        // Excluir archivos markdown, salvo que sean el ejercicio mismo: un .md
-        // con su propia solución (regex-comments.md + regex-comments.solution.hide.md)
-        if (fileName.endsWith(".md")) {
-          const solutionName = fileName.replace(/\.md$/, ".solution.hide.md");
-          return exercise.files.some(
-            (f: TFile) => f.name.toLowerCase() === solutionName
-          );
-        }
-        // Excluir imágenes (no son código ejecutable)
-        if (
-          fileName.endsWith(".png") ||
-          fileName.endsWith(".jpg") ||
-          fileName.endsWith(".jpeg") ||
-          fileName.endsWith(".gif") ||
-          fileName.endsWith(".svg") ||
-          fileName.endsWith(".webp")
-        ) return false;
-        return true;
-      }
-    );
-
     // Special case, we have interactive files, but we don't have entry or language, 
     // it means the CLI is not capable of compiling, then:
-    if (!exercise.entry && !exercise.language && interactiveFiles.length > 0) {
+    if (needsCloudCompiler(exercise)) {
       isBuildable = true;
       isTesteable = true;
       await initCompilerSocket("cloud");

@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import useStore from "../../../utils/store";
-import { getHost } from "../../../utils/lib";
-import { fetchAllLessons } from "../../../utils/packageLessons";
 import {
   buildSearchIndex,
   highlightInLessonWhenReady,
@@ -13,59 +11,22 @@ import {
 } from "../../../utils/lessonSearch";
 import { eventBus } from "../../../managers/eventBus";
 import { Icon } from "@/components/Icon";
+import { getLessonsLoad, TLessonsLoad } from "./lessonsLoad";
 
 const DEBOUNCE_MS = 200;
 
-type TIndexLoad = {
-  key: string;
-  promise: Promise<TSearchEntry[]>;
-  loaded: number;
-  total: number;
-  listeners: Set<() => void>;
-};
+// One index per download of the lessons, so reopening the sidebar reuses it
+const searchIndexes = new WeakMap<TLessonsLoad, Promise<TSearchEntry[]>>();
 
-// The index lives outside the component: the sidebar unmounts every time it
-// closes and the READMEs should be downloaded once per session and language
-let currentLoad: TIndexLoad | null = null;
-
-const getIndexLoad = (): TIndexLoad => {
-  const { exercises, sidebar, configObject, language, mode } =
-    useStore.getState();
-  const key = `${language}:${exercises.map((ex) => ex.slug).join(",")}`;
-
-  // Creators edit the lessons, so they get a fresh index each time they search
-  // again (a load in progress is still reused)
-  const isLoading =
-    currentLoad !== null && currentLoad.loaded < currentLoad.total;
-  if (currentLoad?.key === key && (mode !== "creator" || isLoading)) {
-    return currentLoad;
+const getSearchIndex = (load: TLessonsLoad): Promise<TSearchEntry[]> => {
+  let index = searchIndexes.get(load);
+  if (!index) {
+    index = load.promise.then(buildSearchIndex);
+    searchIndexes.set(load, index);
+    // A failed index is not kept, so retrying builds it again
+    index.catch(() => searchIndexes.delete(load));
   }
-
-  const load: TIndexLoad = {
-    key,
-    promise: Promise.resolve([]),
-    loaded: 0,
-    total: exercises.length,
-    listeners: new Set(),
-  };
-  load.promise = fetchAllLessons({
-    exercises,
-    language,
-    sidebar,
-    host: getHost(),
-    variables: (configObject?.config as { variables?: unknown })?.variables,
-    onProgress: (loaded) => {
-      load.loaded = loaded;
-      load.listeners.forEach((listener) => listener());
-    },
-  }).then(buildSearchIndex);
-  // A failed load is not cached, so the next search tries again
-  load.promise.catch(() => {
-    if (currentLoad === load) currentLoad = null;
-  });
-
-  currentLoad = load;
-  return load;
+  return index;
 };
 
 type TLessonSearchProps = {
@@ -86,7 +47,7 @@ export const LessonSearch = ({
 
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [load, setLoad] = useState<TIndexLoad | null>(null);
+  const [load, setLoad] = useState<TLessonsLoad | null>(null);
   const [index, setIndex] = useState<TSearchEntry[] | null>(null);
   const [progress, setProgress] = useState({ loaded: 0, total: 0 });
   const [failed, setFailed] = useState(false);
@@ -112,7 +73,7 @@ export const LessonSearch = ({
     setFailed(false);
     updateProgress();
     load.listeners.add(updateProgress);
-    load.promise
+    getSearchIndex(load)
       .then((result) => {
         if (active) setIndex(result);
       })
@@ -129,10 +90,10 @@ export const LessonSearch = ({
 
   // Changing the language invalidates an index that was already requested
   useEffect(() => {
-    setLoad((previous) => (previous ? getIndexLoad() : previous));
+    setLoad((previous) => (previous ? getLessonsLoad() : previous));
   }, [language]);
 
-  const startIndexing = () => setLoad(getIndexLoad());
+  const startIndexing = () => setLoad(getLessonsLoad());
 
   const results = useMemo(
     () => (index ? searchLessons(index, debouncedQuery) : []),

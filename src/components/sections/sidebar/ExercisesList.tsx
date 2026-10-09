@@ -22,6 +22,9 @@ import { AutoResizeTextarea } from "@/components/composites/AutoResizeTextarea/A
 import TelemetryManager from "@/managers/telemetry";
 import { Icon } from "@/components/Icon";
 import { LessonSearch } from "./LessonSearch";
+import { getLessonsLoad } from "./lessonsLoad";
+import { getLessonKind, hasQuestions, isCodeChallenge } from "@/utils/lessonKind";
+import { LessonStatusIcon } from "./LessonStatusIcon";
 interface IExerciseList {
   closeSidebar: () => void;
   mode: "creator" | "student";
@@ -189,6 +192,34 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
 
   const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  // Whether each lesson's README has questions, by slug. A lesson whose README
+  // failed to load is left out.
+  const [questionsBySlug, setQuestionsBySlug] = useState<Record<
+    string,
+    boolean
+  > | null>(null);
+
+  // The questions are written in the READMEs, so they are read from the same
+  // download the lesson search uses
+  useEffect(() => {
+    if (mode !== "student" || !exercises || exercises.length === 0) return;
+    let active = true;
+    getLessonsLoad()
+      .promise.then((lessons) => {
+        if (!active) return;
+        const questions: Record<string, boolean> = {};
+        for (const lesson of lessons) {
+          if (!lesson.error) questions[lesson.slug] = hasQuestions(lesson.body);
+        }
+        setQuestionsBySlug(questions);
+      })
+      .catch((error) => {
+        console.error("Error loading the lessons to find their questions", error);
+      });
+    return () => {
+      active = false;
+    };
+  }, [mode, language, exercises]);
 
   if (!exercises || exercises.length === 0) return null;
 
@@ -331,6 +362,8 @@ export default function ExercisesList({ closeSidebar, mode }: IExerciseList) {
             handleSelect={handleSelect}
             selected={selectedExercises.includes(ex.slug)}
             syllabus={syllabus}
+            codeChallenge={isCodeChallenge(ex)}
+            questions={questionsBySlug?.[ex.slug]}
           />
           {mode === "creator" && (
             <AddExerciseButton
@@ -355,6 +388,9 @@ interface IExerciseProps {
   handleSelect: (slug: string) => void;
   selected: boolean;
   syllabus: Syllabus;
+  codeChallenge: boolean;
+  /** Whether the README has questions; undefined until it is loaded */
+  questions: boolean | undefined;
 }
 
 function ExerciseCard({
@@ -366,6 +402,8 @@ function ExerciseCard({
   handleSelect,
   selected,
   syllabus,
+  codeChallenge,
+  questions,
 }: IExerciseProps) {
   const { t } = useTranslation();
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -452,8 +490,16 @@ function ExerciseCard({
     };
   }, [position]);
 
-  const isTesteableAndDone = isDone && TelemetryManager.isTesteable(position);
-
+  const lessonKind = getLessonKind({
+    codeChallenge,
+    questions,
+    registeredQuiz: Boolean(
+      TelemetryManager.current?.steps[position]?.testeable_elements?.some(
+        (element) => element.type === "quiz"
+      )
+    ),
+    done: isDone,
+  });
 
   return (
     <div
@@ -509,7 +555,7 @@ function ExerciseCard({
               }
             }}
           >
-            <button className={`exercise-circle ${isTesteableAndDone ? "done" : ""}`}>
+            <button className="exercise-circle">
               <span>{id}</span>
             </button>
             <span>{formattedTitle}</span>
@@ -534,11 +580,8 @@ function ExerciseCard({
               svg={svgs.pause}
             />
           )}
-        {mode === "student" && TelemetryManager.current !== null && (
-          <SimpleButton
-            svg={isDone ? <Icon className="text-green-500" size={20} name="Check" /> : <Icon className="text-gray-500" size={15} name="Circle" />}
-            text=""
-          />
+        {mode === "student" && (
+          <LessonStatusIcon kind={lessonKind} done={isDone} />
         )}
         {mode === "creator" &&
           (!foundInSyllabus ||
