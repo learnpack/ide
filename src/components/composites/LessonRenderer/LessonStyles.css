@@ -372,3 +372,97 @@
   /* Tighter than the global 10px so icon and label read as one unit. */
   gap: 6px;
 }
+
+/* The lesson's video in a loose theatre view: the bar opens downward to reveal the video, on the page's own
+   background, and folds back up on close. */
+.lesson-video-theatre-stage {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.35s ease, opacity 0.25s ease;
+}
+.lesson-video-theatre.open .lesson-video-theatre-stage {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.lesson-video-theatre-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+.lesson-video-theatre-inner video,
+.lesson-video-theatre-inner iframe {
+  display: block;
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+/* Scrolled past: the same player floats in the corner while the reader goes on (its place keeps its height). */
+.lesson-video-theatre-player.floating {
+  position: fixed;
+  right: 20px;
+  top: 16px; /* set inline to just inside the lesson's scrolling area */
+  width: min(400px, 45vw);
+  z-index: 1000;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  animation: lesson-video-float-in 0.25s ease-out;
+}
+.lesson-video-theatre-player.floating video,
+.lesson-video-theatre-player.floating iframe {
+  margin-bottom: 0;
+  border-radius: 10px;
+}
+.lesson-video-float-close {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  z-index: 1;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--border-color, #d1d5db);
+  border-radius: 50%;
+  background: var(--bg-color, #fff);
+  cursor: pointer;
+}
+.lesson-video-float-close svg {
+  width: 12px;
+  height: 12px;
+}
+@keyframes lesson-video-float-in {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: none; }
+}
+/* The button's two states (Watch / Close) cross-fade in place. */
+.lesson-video-swap {
+  display: inline-grid;
+  align-items: center;
+  justify-items: center;
+}
+.lesson-video-swap > span {
+  grid-area: 1 / 1;
+  display: inline-flex;
+  align-items: center;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+}
+.lesson-video-swap.icon > span {
+  transform: rotate(-90deg) scale(0.6);
+}
+.lesson-video-swap > span.shown {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lesson-video-theatre-stage,
+  .lesson-video-swap > span,
+  .lesson-video-theatre-player.floating {
+    transition: none;
+    animation: none;
+  }
+}

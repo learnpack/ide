@@ -240,7 +240,8 @@ export const NewHeader = () => {
             action={hasSolution ? openSolutionFile : () => {}}
           />
         )} */}
-        {videoTutorial && (
+        {/* learners open the video from the lesson's own button (LessonRenderer's theatre view) */}
+        {videoTutorial && mode === "creator" && (
           <div className="d-flex gap-small">
             {videoTutorial && (
               <SimpleButton

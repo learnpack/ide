@@ -476,6 +476,8 @@
     "addAVideoToStep": "Agrega un vídeo al paso {{step}}",
     "addVideoExplanation": "Para agregar un video al paso {{step}}, por favor pega la URL de uno de sitios soportados.",
     "add-video-tutorial": "Agrega un video tutorial",
+    "watch-video-tutorial": "Ver video tutorial",
+    "close-video-tutorial": "Cerrar video",
     "startReviewingMyPackage": "Empezar a revisar mi paquete",
     "iLikeItContinue": "Me gusta, continuar generando",
     "IHaveSomeFeedback": "Tengo algún feedback",

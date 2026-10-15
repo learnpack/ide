@@ -1701,9 +1701,11 @@ The user's set up the application in "${language}" language, give your feedback 
     }
 
     if (exercise.attributes && exercise.attributes.tutorial) {
-      set({ videoTutorial: exercise.attributes.tutorial });
+      // learners land on the lesson with its video view open (it waits for play); creators keep the button
+      set({ videoTutorial: exercise.attributes.tutorial, showVideoTutorial: get().mode !== "creator" });
     } else if (exercise.attributes.intro) {
       // openLink(exercise.attributes.intro);
+      // learners: the lesson's video view opens, waiting for play; creators: the floating window, as before
       set({
         videoTutorial: exercise.attributes.intro,
         showVideoTutorial: true,

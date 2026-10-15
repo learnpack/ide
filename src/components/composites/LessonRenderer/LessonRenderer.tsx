@@ -5,6 +5,7 @@ import { AutoResizeTextarea } from "../AutoResizeTextarea/AutoResizeTextarea";
 import { useTranslation } from "react-i18next";
 import useStore from "../../../utils/store";
 import "./LessonStyles.css";
+import { VideoPlayer } from "../VideoPlayer/VideoPlayer";
 import SimpleButton from "../../mockups/SimpleButton";
 import { Modal } from "../../mockups/Modal";
 import { eventBus } from "../../../managers/eventBus";
@@ -349,6 +350,7 @@ export const LessonRenderer = memo(() => {
     <div className="lesson-content">
       <LessonInspector />
       <AddVideoButton />
+      <LessonVideoTheatre />
 
       {markdownEditorEnabled ? (
         <div className="flex-y gap-small">
@@ -435,6 +437,127 @@ export const LessonRenderer = memo(() => {
     </div>
   );
 });
+
+// The lesson's video for learners: the same button as the creator's "Add video tutorial", in the same bar. Pressing
+// it opens the bar into a theatre view (animated) and then starts the video; the click lets it play with sound, which
+// an autoplaying video can't. The same button closes it again. A lesson with a video opens with the view already
+// expanded, waiting for play; a lesson without one shows no button. It replaces, for learners, the floating
+// picture-in-picture window (now creators only) and the header's video icon; the help menu's "Video tutorial" entry
+// opens it through showVideoTutorial.
+const LessonVideoTheatre = () => {
+  const mode = useStore((s) => s.mode);
+  const videoTutorial = useStore((s) => s.videoTutorial);
+  const lessonPosition = useStore((s) => s.currentExercisePosition);
+  const open = useStore((s) => s.showVideoTutorial);
+  const setOpen = useStore((s) => s.setShowVideoTutorial);
+  const reportEnrichDataLayer = useStore((s) => s.reportEnrichDataLayer);
+  const [mounted, setMounted] = useState(false);
+  const [play, setPlay] = useState(false);
+  const clicked = useRef(false); // opened by the learner's click (sound allowed), not on landing
+  const [floating, setFloating] = useState(false);
+  const [dockHeight, setDockHeight] = useState(0);
+  const [floatTop, setFloatTop] = useState(16);
+  const dockRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
+
+  // While it's open, the video follows the reader: when its place scrolls out of view it floats in the corner (the
+  // same element, so playback carries on), and docks back when they scroll up to it.
+  useEffect(() => {
+    const dock = dockRef.current;
+    if (!open || !mounted || !dock) {
+      setFloating(false);
+      return;
+    }
+    // floats once half of it has scrolled away upward (not only when it's gone completely)
+    const io = new IntersectionObserver(([e]) => {
+      const away = e.intersectionRatio < 0.5 && e.boundingClientRect.top < 0;
+      if (away) {
+        const h = dock.getBoundingClientRect().height;
+        setDockHeight((d) => h || d);
+        // top-aligned, just inside the lesson's scrolling area, so it never covers the header
+        let el: HTMLElement | null = dock.parentElement;
+        while (el && !/(auto|scroll)/.test(getComputedStyle(el).overflowY)) el = el.parentElement;
+        setFloatTop(Math.max(16, (el ? el.getBoundingClientRect().top : 0) + 16));
+      }
+      setFloating(away);
+    }, { threshold: [0, 0.25, 0.5, 0.75, 1] });
+    io.observe(dock);
+    return () => io.disconnect();
+  }, [open, mounted]);
+
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+      if (!clicked.current) return; // opened on landing: it waits for the learner to press play
+      const id = setTimeout(() => setPlay(true), 380); // once the reveal has finished, it starts playing
+      return () => clearTimeout(id);
+    }
+    clicked.current = false;
+    setPlay(false);
+    const id = setTimeout(() => setMounted(false), 350); // after the close animation; unmounting stops playback
+    return () => clearTimeout(id);
+  }, [open]);
+
+  // a new lesson's video lands waiting for play, even if the last one was playing
+  useEffect(() => {
+    clicked.current = false;
+    setPlay(false);
+  }, [videoTutorial, lessonPosition]);
+
+  if (mode === "creator" || !videoTutorial) return null;
+
+  return (
+    <div className={`lesson-video-theatre ${open ? "open" : ""}`}>
+      <div className="flex-x align-center justify-end gap-small padding-small">
+        <SimpleButton
+          // both states sit stacked in one cell and cross-fade, so the button neither jumps in width nor snaps
+          text={
+            <span className="lesson-video-swap">
+              <span className={open ? "" : "shown"} aria-hidden={open}>{t("watch-video-tutorial")}</span>
+              <span className={open ? "shown" : ""} aria-hidden={!open}>{t("close-video-tutorial")}</span>
+            </span>
+          }
+          svg={
+            <span className="lesson-video-swap icon" aria-hidden>
+              <span className={open ? "" : "shown"}>{svgs.video}</span>
+              <span className={open ? "shown" : ""}>{svgs.closeX}</span>
+            </span>
+          }
+          extraClass="svg-blue border-blue padding-small rounded"
+          action={() => {
+            if (!open) {
+              clicked.current = true;
+              reportEnrichDataLayer("learnpack_open_video", {});
+            }
+            setOpen(!open);
+          }}
+        />
+      </div>
+      <div className="lesson-video-theatre-stage">
+        <div className="lesson-video-theatre-inner" ref={dockRef} style={floating ? { height: dockHeight } : undefined}>
+          {mounted && (
+            <div className={`lesson-video-theatre-player ${floating ? "floating" : ""}`} style={floating ? { top: floatTop } : undefined}>
+              {floating && (
+                <button
+                  type="button"
+                  className="lesson-video-float-close"
+                  title={t("close-video-tutorial")}
+                  aria-label={t("close-video-tutorial")}
+                  onClick={() => setOpen(false)}
+                >
+                  {svgs.closeX}
+                </button>
+              )}
+              {/* a fresh player per lesson: leaving the lesson stops its video (a <video> keeps playing its old source
+                  otherwise, even with a new link) */}
+              <VideoPlayer key={`${lessonPosition}:${videoTutorial}`} link={videoTutorial} autoplay={false} play={play} />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const AddVideoButton = () => {
   const mode = useStore((s) => s.mode);

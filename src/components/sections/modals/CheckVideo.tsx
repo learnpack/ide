@@ -12,12 +12,14 @@ export default function CheckVideo() {
     videoTutorial,
     setShowVideoTutorial,
     showVideoTutorial,
+    mode,
   } = useStore((state) => ({
     configObject: state.configObject,
     currentExercisePosition: state.currentExercisePosition,
     videoTutorial: state.videoTutorial,
     setShowVideoTutorial: state.setShowVideoTutorial,
     showVideoTutorial: state.showVideoTutorial,
+    mode: state.mode,
   }));
 
   useEffect(() => {
@@ -39,9 +41,10 @@ export default function CheckVideo() {
     setShowVideoTutorial(false);
   };
 
+  // learners watch it in the lesson's theatre view (LessonRenderer); the floating window is for creators
   return (
     <>
-      {showVideoTutorial && link ? (
+      {showVideoTutorial && link && mode === "creator" ? (
         
         <CustomPictureInPicture hide={hideModal} link={link} />
       ) : null}
