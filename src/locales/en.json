@@ -468,6 +468,8 @@
     "addAVideoToStep": "Add a video to step {{step}}",
     "addVideoExplanation": "To add a video to this particular step {{step}}, please paste the URL from one of the supported sources",
     "add-video-tutorial": "Add video tutorial",
+    "watch-video-tutorial": "Watch video tutorial",
+    "close-video-tutorial": "Close video",
     "startReviewingMyPackage": "Start reviewing my package",
     "iLikeItContinue": "I like it, continue generating",
     "IHaveSomeFeedback": "I have some feedback",

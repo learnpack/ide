@@ -1,8 +1,13 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 interface IVideoPlayerProps {
   link: string;
+  // false: the viewer presses play, with sound (the lesson's theatre view)
+  autoplay?: boolean;
+  // with autoplay false: start playing, with sound, when this turns true (after the theatre's reveal; a click
+  // just before lets the browser allow sound)
+  play?: boolean;
 }
 
 interface VideoService {
@@ -12,8 +17,14 @@ interface VideoService {
   rawUrl?: string;
 }
 
-export const VideoPlayer: React.FC<IVideoPlayerProps> = ({ link }) => {
+export const VideoPlayer: React.FC<IVideoPlayerProps> = ({ link, autoplay = true, play = false }) => {
   const videoRef = useRef<HTMLIFrameElement>(null);
+  const embedPlay = autoplay || play;
+
+  useEffect(() => {
+    const v = videoRef.current as unknown as HTMLVideoElement | null;
+    if (play && v && typeof v.play === "function") v.play().catch(() => {});
+  }, [play]);
   const { t } = useTranslation();
 
   const parseVideoUrl = (url: string): VideoService | null => {
@@ -25,7 +36,7 @@ export const VideoPlayer: React.FC<IVideoPlayerProps> = ({ link }) => {
       return {
         type: "youtube",
         videoId: youtubeMatch[1],
-        embedUrl: `https://www.youtube.com/embed/${youtubeMatch[1]}?autoplay=1&enablejsapi=1`,
+        embedUrl: `https://www.youtube.com/embed/${youtubeMatch[1]}?autoplay=${embedPlay ? 1 : 0}&enablejsapi=1`,
       };
     }
 
@@ -49,7 +60,7 @@ export const VideoPlayer: React.FC<IVideoPlayerProps> = ({ link }) => {
       return {
         type: "dailymotion",
         videoId: dailymotionMatch[1],
-        embedUrl: `https://www.dailymotion.com/embed/video/${dailymotionMatch[1]}?autoplay=1`,
+        embedUrl: `https://www.dailymotion.com/embed/video/${dailymotionMatch[1]}?autoplay=${embedPlay ? 1 : 0}`,
       };
     }
 
@@ -104,9 +115,10 @@ export const VideoPlayer: React.FC<IVideoPlayerProps> = ({ link }) => {
             width="100%"
             style={{ aspectRatio: "16/9" }}
             controls
-            autoPlay
-            muted
+            autoPlay={autoplay}
+            muted={autoplay}
             playsInline
+            preload="metadata"
           >
             <source
               src={videoService.rawUrl}
