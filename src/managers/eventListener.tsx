@@ -45,6 +45,9 @@ export default function EventListener() {
                   lastPos,
                   useStore.getState().mode
                 );
+                // Push the finished state now: a read-only last step has no later
+                // open_step to carry it, and the unload path never reaches Breathecode.
+                void TelemetryManager.submit();
                 Notifier.confetti();
                 setOpenedModals({ lastLessonFinished: true });
                 // If running inside a SCORM package, tell the LMS the course is
