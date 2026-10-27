@@ -1,5 +1,6 @@
 import { TStep, TStepEvent } from "../managers/telemetry";
 import { TEnvironment } from "../managers/EventProxy";
+import { TFileSaveStatus } from "./fileSaveStatus";
 
 /**
  * Tracks the progress of the initial telemetry GET at boot time.
@@ -336,6 +337,8 @@ export interface IStore {
   targetButtonForFeedback: "build" | "feedback";
   editorTabs: TEditorTab[];
   fileLoadNotFoundByLesson: Record<string, string[]>;
+  /** Bucket save status per file in creator mode; key = `${slug}:${filename}`. */
+  fileSaveStatus: Record<string, TFileSaveStatus>;
   lessonSyncInProgress: string | null;
   isIframe: boolean;
   isRigoOpened: boolean;

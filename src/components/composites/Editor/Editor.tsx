@@ -122,6 +122,7 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
   const [editingTabExtension, setEditingTabExtension] = useState<string>("");
   const [isRenaming, setIsRenaming] = useState<boolean>(false);
   const isBuildable = useStore((s) => s.isBuildable);
+  const fileSaveStatus = useStore((s) => s.fileSaveStatus);
   const isTesteable = useStore((s) => s.isTesteable);
 
   const tabsRef = useRef<HTMLDivElement | null>(null);
@@ -807,6 +808,42 @@ const CodeEditor: React.FC<TCodeEditorProps> = ({
                             </button>
                           </div>
                         )}
+                        {mode === "creator" && tab.name !== "terminal" && (() => {
+                          const saveStatus =
+                            environment === "creatorWeb"
+                              ? fileSaveStatus[`${currentSlug}:${tab.name}`]
+                              : undefined;
+                          const bar =
+                            saveStatus === "saving"
+                              ? { className: "bg-blue", icon: "LoaderCircle" as const, text: t("creator-save-bar-saving") || "Saving to the course..." }
+                              : saveStatus === "saved"
+                              ? { className: "bg-success", icon: "CloudCheck" as const, text: t("creator-save-bar-saved") || "Saved. It will go live when you publish the course." }
+                              : saveStatus === "error"
+                              ? { className: "bg-danger", icon: "CloudAlert" as const, text: t("creator-save-bar-error") || "Could not save. It will retry on your next edit." }
+                              : { className: "bg-blue", icon: "Cloud" as const, text: t("creator-save-bar-idle") || "your edits are saved and will go live with the course." };
+                          return (
+                            <div
+                              className={`padding-small margin-children-none text-small text-white d-flex align-center gap-small ${bar.className}`}
+                              title={
+                                t("creator-file-changes-persist-banner") ||
+                                "Creator mode: changes to this file are saved to the course and will go live when you publish."
+                              }
+                            >
+                              <Icon
+                                size={14}
+                                name={bar.icon}
+                                className="shrink-0"
+                                style={saveStatus === "saving" ? { animation: "spin 0.8s linear infinite" } : undefined}
+                              />
+                              <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                {!saveStatus && (
+                                  <strong>{t("creator-mode-label") || "Creator mode:"} </strong>
+                                )}
+                                {bar.text}
+                              </span>
+                            </div>
+                          );
+                        })()}
                         {tab.name.includes("solution.hide") && mode !== "creator" && (
                           <div className=" padding-small margin-children-none text-small bg-warning text-black">
                             <Markdowner
