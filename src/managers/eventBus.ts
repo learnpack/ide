@@ -2,7 +2,7 @@
 import mitt, { Emitter } from "mitt";
 import { TMode } from "../utils/storeTypes";
 
-type Events = {
+export type Events = {
   position_change: { position: number };
   position_changed: {};
   assessment_completed: {
