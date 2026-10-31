@@ -11,12 +11,12 @@ components:
       - process explanation
       - system architecture
       - data flow
-    whenToUse: Use it only when the diagram
+    whenToUse: Use it for processes, sequences and decisions that read better as a diagram.
     avoid:
       - complex diagrams that might not render well
-      - use for simple to medium complexity diagrams
     rules:
       - NEVER under ANY circumstances use or write parentheses inside [] because it will break the mermaid syntax and won't render properly
+      - Keep diagrams simple to medium in complexity.
     example: |
       ```mermaid
       graph TD
@@ -36,10 +36,10 @@ components:
       - providing hints
       - AI assistance
       - learning support
+      - exploring a concept or applying it to the learner's own situation
     avoid:
       - overuse
       - should be used sparingly to encourage independent thinking
-    usage: Automatically appears in quiz and test components, no manual configuration needed
     example: |
       [Ask Rigo how to declare a variable in JavaScript](https://4geeks.com/ask?query=can-you-explain-me-in-simple-terms-how-to-declare-a-variable-in-javascript)
 
@@ -85,10 +85,10 @@ components:
   - name: conceptual_illustration
     intendedUse:
       - abstract concept visualization
-      - metaphorical representation of programming ideas
+      - metaphorical representation of ideas
       - simplified educational illustrations
     description: >-
-      Conceptual illustrations transform abstract programming concepts into visual metaphors
+      Conceptual illustrations transform abstract concepts into visual metaphors
       and simplified representations. They use friendly, approachable aesthetics with flat
       colors and minimal details to make complex ideas accessible. Focus on clarity and
       educational value through visual metaphors.
@@ -97,7 +97,7 @@ components:
       aesthetic, vector art style with smooth shapes, focus on clarity over realism,
       educational and welcoming visual language
     goodFor:
-      - abstract programming concepts (closures, scope, inheritance)
+      - abstract concepts
       - memory models and heap/stack visualization
       - conceptual relationships between ideas
       - visual metaphors for complex topics
@@ -111,13 +111,11 @@ components:
     rules:
       - Must use standard markdown image syntax => ![alt text](image-url)
       - Alt text must contain at least 30 words describing the concept and visual metaphor
-      - Must specify visual elements, e.g. "shown as", "represented by", "color-coded to differentiate"
       - Image URL must start with "./.learn/assets/"
       - Should simplify complex ideas into basic visual metaphors
-      - Use color coding to differentiate concept categories
-      - Include annotations that bridge the metaphor to the actual concept
+      - Do not include text unless the image cannot be understood without it: no titles, captions, quotes or dialogue.
     example: |
-      ![Conceptual illustration of JavaScript closure using nested container metaphor: outer function shown as large blue box labeled "Outer Function Scope" containing variable boxes (x, y), with inner function as smaller orange box labeled "Inner Function" inside it, arrows pointing from inner to outer variables with label "maintains access to", simplified flat design with friendly colors and clear annotations explaining the closure relationship](./.learn/assets/closure-concept.png)
+      ![Conceptual illustration of a monthly budget shown as a large jar divided into three sections for rent, food and savings, with coins flowing into each section from a single paycheck envelope, using a friendly visual metaphor, simplified flat design, soft colors and clear shapes, with no text in the image](./.learn/assets/budget-jar.png)
 
   - name: realistic_photography
     intendedUse:
@@ -155,5 +153,6 @@ components:
       - Should include context that explains the educational relevance
       - If showing UI/screens, specify what elements to highlight or annotate
       - Maintain professional, clean aesthetic appropriate for learning
+      - Do not include text unless the image cannot be understood without it: no titles, captions, quotes or dialogue.
     example: |
-      ![Professional photograph of a modern developer workspace showing a dual-monitor setup with code editor on left screen and browser developer tools on right screen, mechanical keyboard in foreground, with natural lighting from window, clean desk organization, demonstrating a typical full-stack development environment with annotations highlighting the debugging workflow between IDE and browser](./.learn/assets/developer-workspace.png)
+      ![Professional photograph of a modern developer workspace showing a dual-monitor setup with code editor on left screen and browser developer tools on right screen, mechanical keyboard in foreground, with natural lighting from window, clean desk organization, demonstrating a typical full-stack development environment](./.learn/assets/developer-workspace.png)
