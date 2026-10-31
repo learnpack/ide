@@ -2,13 +2,15 @@ version: "1.0.0"
 components:
   - name: open_text_question
     description: >-
-      The open text question is a type of interactive question where users can write down a text answer. The component consists in a markdown code block with the language set to `question` and has a metadata property eval in the metadata section of the code block with instructions on how to evaluate the answer. Inside the code block, you must write down 3-5 example answers with CORRECT: or INCORRECT: prefix. The actual question must be written before the code block so the user can see it.
+      The open text question is a type of interactive question where users can write down a text answer. The component consists in a markdown code block with the language set to `question` and has a metadata property eval in the metadata section of the code block with instructions on how to evaluate the answer. Inside the code block, you must write down 3-5 example answers with CORRECT: or INCORRECT: prefix. The question must be written before the code block, because the learner sees neither the eval nor the example answers. It must include everything needed to answer: the situation or the text to work on.
     avoid:
       - multiple choice
       - true/false
       - fill in the blank
       - this component is intended only for free form answers
       - never use for visual questions
+    goodFor:
+      - applying a concept by producing a short text
     props:
       - eval: string (required)
     example: |
@@ -27,6 +29,7 @@ components:
       - Answers can be as short as 1 word or as long as a full paragraph.
       - Only use for textual easy to evaluate questions
       - Never use this component for reflection questions, only for knowledge assessment questions.
+      - Every CORRECT example must meet the eval.
 
   - name: multiple_choice_question
     intendedUse:
@@ -53,47 +56,27 @@ components:
     rules:
       - Avoid questions with multiple correct answers. Each question must have an unique correct answer.
       - Avoid questions with too many options. Each question should have between 3 and 5 options.
+      - The question text must not contain the correct answer or repeat an option.
+      - Incorrect options must be plausible and as specific as the correct one.
     goodFor:
-      - reflection
-      - explanation
       - recall
-      - knowledge assessment
+      - judging a situation
     
     example: |
-
       ### Put your knowledge to the test!
 
-      Select the correct answer for each question.
+      1. Which expense is variable?
 
+         - [ ] Monthly rent
+         - [x] Groceries
+         - [ ] Phone plan
 
-      1. Question number 1 -> this is the question (can be numbered or not), it is a list item that starts at the beginning of the line
-        <!-- Each group of options should have an empty line between the question and the options -->
-        - [ ] Incorrect answer -> this is one of the incorrect answers
-        - [ ] Incorrect answer -> this is one of the incorrect answers
-        - [x] Correct answer -> this is the correct answer (is the only one that can be marked with [x])
-        <!-- Note that each answer should be a task list item indented by 3 to 6 spaces. -->
+      2. What should you list first when building a budget?
 
-      2. Question number 2
-        <!-- Each group of options should have an empty line between the question and the options. Each option should be a task list item indented by 3 to 6 spaces. -->
-        - [ ] Incorrect answer
-        - [x] Correct answer
-        - [ ] Incorrect answer
+         - [ ] Your savings goal
+         - [ ] Your largest expense
+         - [x] Your monthly income
 
-
-      --- Second Example ---
-
-      - Question number 1
-
-        - [x] Correct option
-        - [ ] Incorrect option
-        - [ ] Incorrect option
-
-      - Question number 2
-
-        - [ ] Incorrect option
-        - [x] Correct option
-        - [ ] Incorrect option
-  
   - name: select_the_blank
     measures:
       - rubric: content_mastery
@@ -103,13 +86,16 @@ components:
       - rubric: application_problem_solving
         weight: 0.15
     description: >-
-      A select the blank is a component where the user completes a sentence by choosing the correct option from a dropdown for each blank, instead of typing free text. Because the user picks from a predefined list, grading is fully deterministic: the user can never fail due to typos, punctuation, casing or incomplete answers, and the available options give the learner guidance. It consists in a markdown code block with the language set to `select_the_blank`. Inside the code block, you must write the question with the blank (or blanks) to be filled. Each blank consists in _1_, _2_, _3_, etc. In the metadata section, for each blank you must provide the list of options separated by the pipe character `|`. IMPORTANT: the FIRST option of each blank is the correct one. You MUST provide at least 3 options per blank: 1 correct answer and at least 2 plausible distractors. You can also use select the blank for numerical questions.
+      Use it to complete sentences with key terms or categories of a few words. It is not for whole sentences or explanations: use open_text_question for those. A select the blank is a component where the user completes a sentence by choosing the correct option from a dropdown for each blank, instead of typing free text. Because the user picks from a predefined list, grading is fully deterministic: the user can never fail due to typos, punctuation, casing or incomplete answers, and the available options give the learner guidance. It consists in a markdown code block with the language set to `select_the_blank`. Inside the code block, you must write the question with the blank (or blanks) to be filled. Each blank consists in _1_, _2_, _3_, etc. In the metadata section, for each blank you must provide the list of options separated by the pipe character `|`. IMPORTANT: the FIRST option of each blank is the correct one. You MUST provide at least 3 options per blank: 1 correct answer and at least 2 plausible distractors. You can also use select the blank for numerical questions.
     rules:
       - The FIRST option of each blank is always the correct answer; the rest are distractors.
       - Each blank MUST have at least 3 options (1 correct + at least 2 distractors).
       - Options are separated by the pipe character `|`, NOT by commas (commas can be part of an option's text).
       - Distractors must be plausible and related to the topic, never obviously wrong.
-      - Keep options reasonably short so they read well inside a dropdown.
+      - Each option is a term or short phrase of at most four words, never a whole sentence.
+      - The sentences go inside the code block and must be understandable on their own.
+      - Every number in the metadata must appear in the text as _1_, _2_, etc.; a block without blanks renders nothing.
+      - Use at least 3 blanks in total: with fewer, the exercise is too easy.
       - READ-BACK CHECK - When the correct option is inserted into its blank, the WHOLE sentence MUST be grammatically correct and factually true. Re-read each completed sentence to verify before finalizing.
       - UNIQUENESS - Each blank must have exactly ONE correct option given the surrounding text, and that text must contain enough information to identify it unambiguously. NEVER write two blanks whose surrounding text is identical or interchangeable (e.g. the same description reused for two different answers).
       - DISTRACTORS MUST BE WRONG IN CONTEXT - Each distractor, if placed in the blank, MUST make the sentence false or wrong in that specific context. If a distractor would also be a valid answer, the sentence is missing disambiguating information; add it.
@@ -121,10 +107,12 @@ components:
       - blanks where two or more options would be equally valid given the surrounding text
       - sentences that read incorrectly once the correct option is inserted
     example: |
-      ### Let's recall!
+      ### Complete the sentences
 
-      ```select_the_blank 1="Paris|Madrid|Rome" 2="Berlin|Lisbon|Vienna"
-      The capital of France is _1_, the capital of Germany is _2_.
+      ```select_the_blank 1="fixed|variable|annual" 2="variable|fixed|annual" 3="income|expense|saving" 4="budget|receipt|invoice"
+      Rent is a _1_ expense, while groceries are a _2_ expense.
+      A monthly salary counts as _3_.
+      A plan for how money will be used in a month is called a _4_.
       ```
 
       --- Second Example ---
@@ -158,13 +146,15 @@ components:
       - rubric: critical_thinking
         weight: 0.15
     description: >-
-      An ordering component asks the user to arrange a set of items into the correct sequence. It is ideal for processes, step-by-step procedures, chronological events, or ranking things (for example: the lifecycle of an HTTP request, the steps of a git workflow, the steps of a installation process, etc). Grading is fully deterministic: the user's order is compared position by position with the correct one. It consists in a markdown code block with the language set to `ordering`. Inside the code block, write one item per line, IN THE CORRECT ORDER (the renderer shuffles them before showing them to the user, and the user reorders them with up/down arrows). You can optionally add a `title` in the metadata to describe what must be ordered.
+      An ordering component asks the user to arrange a set of items into the correct sequence. It is ideal for processes, step-by-step procedures or chronological events (for example: the lifecycle of an HTTP request, the steps of a git workflow, the steps of a installation process, etc). Grading is fully deterministic: the user's order is compared position by position with the correct one. It consists in a markdown code block with the language set to `ordering`. Inside the code block, write one item per line, IN THE CORRECT ORDER (the renderer shuffles them before showing them to the user, and the user reorders them with up/down arrows). You can optionally add a `title` in the metadata to describe what must be ordered.
     rules:
       - Write the items in the CORRECT order inside the code block; the renderer shuffles them automatically.
       - Write exactly one item per line. Items may optionally start with a number or a list marker (it is stripped automatically).
       - Use between 3 and 6 items; fewer than 3 makes the exercise trivial, more than 6 becomes tedious.
       - There must be a single, unambiguous correct order. Do not use it when several orders could be valid.
       - Keep each item short and self-contained.
+      - Use it only for a sequence the lesson teaches, never for categories, priorities or opinions.
+      - No item may reveal its position.
     avoid:
       - sets where more than one order is acceptable
       - fewer than 3 items
