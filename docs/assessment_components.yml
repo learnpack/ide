@@ -72,6 +72,7 @@ components:
       - Avoid questions with too many options. Each question should have between 3 and 5 options.
       - The question text must not contain the correct answer or repeat an option.
       - Incorrect options must be plausible and as specific as the correct one.
+      - The question always goes in the numbered line, never in the heading above it. A heading is optional and is only a short title.
     goodFor:
       - recall
       - judging a situation
