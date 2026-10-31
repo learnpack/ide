@@ -73,6 +73,7 @@ components:
       - The question text must not contain the correct answer or repeat an option.
       - Incorrect options must be plausible and as specific as the correct one.
       - The question always goes in the numbered line, never in the heading above it. A heading is optional and is only a short title.
+      - Number only multiple choice questions. Headings and other components are never numbered, and the numbering restarts at 1 after any other component.
     goodFor:
       - recall
       - judging a situation
@@ -91,6 +92,32 @@ components:
          - [ ] Your savings goal
          - [ ] Your largest expense
          - [x] Your monthly income
+
+      --- Second Example (a step that mixes components: each one has its own ### title, and only the multiple choice questions are numbered) ---
+
+      ### Check your basics
+
+      1. Which expense is variable?
+
+         - [ ] Monthly rent
+         - [x] Groceries
+         - [ ] Phone plan
+
+      ### Complete the sentences
+
+      ```select_the_blank 1="fixed|variable|annual" 2="income|expense|saving" 3="budget|receipt|invoice"
+      Rent is a _1_ expense.
+      A monthly salary counts as _2_.
+      A plan for how money will be used is called a _3_.
+      ```
+
+      ### Choose the best option
+
+      1. What should you list first when building a budget?
+
+         - [ ] Your largest expense
+         - [x] Your monthly income
+         - [ ] Your savings goal
 
   - name: select_the_blank
     measures:
@@ -123,6 +150,7 @@ components:
     avoid:
       - free text answers (use open_text_question for those)
       - blanks with fewer than 3 options
+      - a blank with only its correct answer, such as 1="fixed", because the learner has nothing to choose
       - never use for visual questions
       - blanks where two or more options would be equally valid given the surrounding text
       - sentences that read incorrectly once the correct option is inserted
