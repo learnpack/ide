@@ -165,14 +165,14 @@ components:
       - rubric: critical_thinking
         weight: 0.15
     description: >-
-      An ordering component asks the user to arrange a set of items into the correct sequence. It is ideal for processes, step-by-step procedures or chronological events (for example: the lifecycle of an HTTP request, the steps of a git workflow, the steps of a installation process, etc). Grading is fully deterministic: the user's order is compared position by position with the correct one. It consists in a markdown code block with the language set to `ordering`. Inside the code block, write one item per line, IN THE CORRECT ORDER (the renderer shuffles them before showing them to the user, and the user reorders them with up/down arrows). You can optionally add a `title` in the metadata to describe what must be ordered.
+      An ordering component asks the user to arrange a set of items into the correct sequence. It is ideal for processes, step-by-step procedures or chronological events (for example: the lifecycle of an HTTP request, the steps of a git workflow, the steps of an installation process, the steps of returning a purchase, etc). Grading is fully deterministic: the user's order is compared position by position with the correct one. It consists in a markdown code block with the language set to `ordering`. Inside the code block, write one item per line, IN THE CORRECT ORDER (the renderer shuffles them before showing them to the user, and the user reorders them with up/down arrows). You can optionally add a `title` in the metadata to describe what must be ordered.
     rules:
       - Write the items in the CORRECT order inside the code block; the renderer shuffles them automatically.
       - Write exactly one item per line. Items may optionally start with a number or a list marker (it is stripped automatically).
       - Use between 3 and 6 items; fewer than 3 makes the exercise trivial, more than 6 becomes tedious.
-      - There must be a single, unambiguous correct order. Do not use it when several orders could be valid.
+      - There must be a single, unambiguous correct order: swapping any two items must make the sequence wrong. Do not use it when several orders could be valid.
       - Keep each item short and self-contained.
-      - Use it only for a sequence the lesson teaches, never for categories, priorities or opinions.
+      - Use it only for a sequence the lesson teaches as steps, never for categories, priorities, opinions or tips.
       - No item may reveal its position.
     goodFor:
       - the steps of a procedure
@@ -180,6 +180,8 @@ components:
       - events in time
     avoid:
       - sets where more than one order is acceptable
+      - actions or attitudes that happen at the same time
+      - lists of tips, qualities or good practices, even if the lesson names them one after another
       - fewer than 3 items
       - never use for visual questions
     example: |
@@ -200,6 +202,17 @@ components:
       git add .
       git commit -m "Save changes"
       git push
+      ```
+
+      --- Third Example ---
+
+      ### Let's get your money back!
+
+      ```ordering title="Order the steps to return an online purchase"
+      Request the return on the website
+      Pack the item
+      Drop the box at the pickup point
+      Check that the refund arrived
       ```
 
   - name: code_challenge_proposal
