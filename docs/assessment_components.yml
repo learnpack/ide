@@ -10,16 +10,30 @@ components:
       - this component is intended only for free form answers
       - never use for visual questions
     goodFor:
+      - explaining a concept in the learner's own words
       - applying a concept by producing a short text
+      - writing or rewriting a short piece, such as a prompt, a reply or a paraphrase
+      - justifying a decision against clear criteria
     props:
       - eval: string (required)
     example: |
-      ### What is console.log in your own words?
+      ### In your own words, what is a variable expense?
 
-      ```question eval="The user needs to write using its own words what is console.log"
-      CORRECT: The console.log is a function that logs a message to the console.
-      INCORRECT: It is used to solve logarithms problems.
-      CORRECT: It prints things to the console.  
+      ```question eval="The answer must explain, in the learner's own words, that a variable expense changes from month to month"
+      CORRECT: It is money you spend that is not the same every month, like groceries.
+      CORRECT: An expense whose amount changes depending on what you use or buy.
+      INCORRECT: It is a payment that stays the same every month.
+      ```
+
+      --- Second Example ---
+
+      ### Write a prompt asking an AI assistant to summarize a customer's complaint email in three bullet points for your supervisor.
+
+      ```question eval="The prompt must state the task, the text to work on, the three bullet point format and the supervisor as the audience"
+      CORRECT: Summarize the customer complaint email below in three bullet points for my supervisor, covering the problem and what the customer asks for.
+      CORRECT: I need to brief my supervisor. Read this complaint email and write a summary of three bullet points.
+      INCORRECT: Summarize this.
+      INCORRECT: Write something about customer complaints.
       ```
     rules:
       - MUST only require a textual answer that can be evaluated without images.
@@ -100,6 +114,11 @@ components:
       - UNIQUENESS - Each blank must have exactly ONE correct option given the surrounding text, and that text must contain enough information to identify it unambiguously. NEVER write two blanks whose surrounding text is identical or interchangeable (e.g. the same description reused for two different answers).
       - DISTRACTORS MUST BE WRONG IN CONTEXT - Each distractor, if placed in the blank, MUST make the sentence false or wrong in that specific context. If a distractor would also be a valid answer, the sentence is missing disambiguating information; add it.
       - CONSISTENT FRAMING - What the learner selects (the blank) must be exactly what the instruction asks them to identify. Do not place the blank where a different part of speech belongs (e.g. asking to pick a method but leaving the blank where a position noun like "end"/"beginning" should go).
+    goodFor:
+      - recalling key terms
+      - classifying something into categories
+      - completing a definition or a rule
+      - numerical answers
     avoid:
       - free text answers (use open_text_question for those)
       - blanks with fewer than 3 options
@@ -155,6 +174,10 @@ components:
       - Keep each item short and self-contained.
       - Use it only for a sequence the lesson teaches, never for categories, priorities or opinions.
       - No item may reveal its position.
+    goodFor:
+      - the steps of a procedure
+      - the stages of a process
+      - events in time
     avoid:
       - sets where more than one order is acceptable
       - fewer than 3 items
@@ -191,6 +214,9 @@ components:
     rules:
       - The main file must be always be named app.extension, where extension is the extension of the file, for example, app.js, app.html, app.css, etc.
       - Keep challenges simple and easy to understand for the student, it must be related to the lesson content and the exercise instructions.
+    goodFor:
+      - practicing a programming concept by writing code
+      - tasks that need a code editor
     avoid:
       - complex code that might not be inferred correctly by an AI model
     example: |
