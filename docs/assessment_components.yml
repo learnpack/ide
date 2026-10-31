@@ -74,6 +74,7 @@ components:
       - Incorrect options must be plausible and as specific as the correct one.
       - The question always goes in the numbered line, never in the heading above it. A heading is optional and is only a short title.
       - Number only multiple choice questions. Headings and other components are never numbered, and the numbering restarts at 1 after any other component.
+      - Each option holds its full text on its own checkbox line. Never write the answers as numbered lines with checkboxes such as - [x] 1 below them.
     goodFor:
       - recall
       - judging a situation
