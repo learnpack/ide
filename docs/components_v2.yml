@@ -1,0 +1,307 @@
+# LearnPack components, version 2.
+#
+# This file describes WHEN to use each component (choose) and WHAT each of its
+# fields must contain (write). It has no markdown syntax: the model returns the
+# data of each component, and code writes the markdown that the IDE renders
+# (learnpack-cli, src/utils/interactivity/structuredComponents.ts).
+#
+# - name: the only identifier of a component. It is the same name as in the v1
+#   files, the key of the component's list in the structured output, and the
+#   value stored in used_components.
+# - category: assessment or explanatory.
+# - decidedBy: syllabus when the course syllabus plans the component, or
+#   interactivity when the interactivity step decides it from the step's text.
+# - visualStyle: only for images; the IDE reads it to offer image styles.
+#
+# Validate changes with: node scripts/validate-components-v2.js
+version: "2.0.0"
+components:
+  - name: multiple_choice_question
+    category: assessment
+    decidedBy: syllabus
+    choose:
+      summary: >-
+        A question with 3 to 5 options and exactly one correct option. Use it to check recall of a fact or to judge a situation.
+      goodFor:
+        - recall
+        - judging a situation
+      avoid:
+        - questions where more than one option could be defended as correct
+        - questions whose answer is a sequence (use ordering) or a short text the learner must produce (use open_text_question)
+      tests:
+        - Is there exactly one option that an expert would choose, while every other option is clearly wrong in this situation?
+    write:
+      fields:
+        id: A short identifier, unique in the step, that the placeholder of this quiz uses.
+        heading: An optional short title shown above the quiz, or null. Never a question and never numbered.
+        questions: The questions of this quiz, in order. Questions that go together without text between them belong to the same quiz.
+        questions.question: The complete question in one paragraph, with everything needed to answer it, such as the words a person said.
+        questions.options: Between 3 and 5 options, each with its full text in text and correct set to true only for the single correct one.
+      rules:
+        - Each question has exactly one correct option.
+        - The question text does not contain the correct answer and does not repeat an option.
+        - Incorrect options are plausible and as specific as the correct one.
+        - Options have similar length; the correct option is not the longest one.
+        - No two options are the same, and no two questions of the step are the same.
+        - Material of several lines, such as code or a dialogue, goes in the lesson text before the quiz, or as inline code inside the question, because only the first paragraph of a question is shown.
+
+  - name: select_the_blank
+    category: assessment
+    decidedBy: syllabus
+    choose:
+      summary: >-
+        Sentences where the learner fills each blank by choosing one option from a list. Use it for key terms, categories, short definitions and numbers.
+      goodFor:
+        - recalling key terms
+        - classifying something into categories
+        - completing a definition or a rule
+        - numerical answers
+      avoid:
+        - answers that are whole sentences or explanations (use open_text_question)
+        - blanks where two or more options would be equally valid
+        - visual questions
+      tests:
+        - Could any distractor also complete its sentence correctly? If so, the sentence needs more context or the distractor must change.
+        - Are the terms different from each other and taught in the course?
+    write:
+      fields:
+        id: A short identifier, unique in the step, that the placeholder of this component uses.
+        heading: An optional short title shown above the sentences, or null.
+        text: The sentences, with each blank written as _1_, _2_, _3_ and so on, each number once and in order. It may span several lines.
+        blanks: One entry per blank, in the order of their numbers.
+        blanks.correct: The correct option for that blank.
+        blanks.distractors: At least 2 plausible wrong options for that blank.
+      rules:
+        - Use at least 3 blanks in total; with fewer, the exercise is too easy.
+        - Each option is a term or short phrase of at most four words, never a whole sentence.
+        - The sentences are understandable on their own.
+        - READ-BACK CHECK - When the correct option is inserted into its blank, the whole sentence is grammatically correct and factually true.
+        - UNIQUENESS - Each blank has exactly one correct option given the surrounding text, and that text identifies it unambiguously. Never write two blanks whose surrounding text is identical or interchangeable.
+        - DISTRACTORS MUST BE WRONG IN CONTEXT - Each distractor, placed in the blank, makes the sentence false or wrong in that context.
+        - CONSISTENT FRAMING - What the learner selects is exactly what the instruction asks them to identify.
+        - Options never contain the character |.
+
+  - name: ordering
+    category: assessment
+    decidedBy: syllabus
+    choose:
+      summary: >-
+        The learner arranges 3 to 6 items into their correct order. Use it only for a sequence with a single valid order that the course teaches as steps.
+      goodFor:
+        - the steps of a procedure
+        - the stages of a process
+        - events in time
+      avoid:
+        - sets where more than one order is acceptable
+        - actions or attitudes that happen at the same time
+        - lists of tips, qualities or good practices, even if the lesson names them one after another
+        - categories, priorities or opinions
+        - visual questions
+      tests:
+        - Swap test - if you swap any two items, is the sequence clearly wrong? If some swap still works, do not use ordering.
+    write:
+      fields:
+        id: A short identifier, unique in the step, that the placeholder of this component uses.
+        heading: An optional short title shown above the component, or null.
+        instruction: A short sentence that says what must be ordered.
+        items: Between 3 and 6 items, written in the CORRECT order. The platform shuffles them for the learner.
+      rules:
+        - Keep each item short and self-contained.
+        - No item reveals its position, for example with words like first, then or finally.
+        - No two items are the same.
+
+  - name: open_text_question
+    category: assessment
+    decidedBy: syllabus
+    choose:
+      summary: >-
+        The learner writes a short text that is evaluated against clear criteria. Use it when the skill is explaining, applying or producing something in words.
+      goodFor:
+        - explaining a concept in the learner's own words
+        - applying a concept by producing a short text
+        - writing or rewriting a short piece, such as a prompt, a reply or a paraphrase
+        - justifying a decision against clear criteria
+      avoid:
+        - reflection questions without clear criteria
+        - tasks that need drawing, sketching, marking or any visual answer
+        - answers that a choice among options would check just as well
+      tests:
+        - Can the answer be evaluated from its text alone, with criteria someone else could apply the same way?
+    write:
+      fields:
+        id: A short identifier, unique in the step, that the placeholder of this component uses.
+        heading: An optional short title shown above the question, or null.
+        question: The task the learner sees, with everything needed to answer it, such as the text to rewrite or the situation.
+        eval: One sentence with the criteria the answer must meet. The learner never sees it.
+        examples: 3 to 5 example answers, each with its text and correct set to true or false. Include at least one correct and one incorrect example.
+      rules:
+        - Only ask for a textual answer that can be evaluated without images.
+        - Never ask the learner to draw, sketch, diagram, circle, shade, underline, point, annotate or mark anything.
+        - Every correct example meets the eval, and every incorrect example fails it.
+        - Answers can be as short as one word or as long as a paragraph.
+
+  - name: code_challenge_proposal
+    category: assessment
+    decidedBy: syllabus
+    choose:
+      summary: >-
+        A proposal for a coding exercise, used by the teacher to generate its files. Use it once in each CODE step of a programming course.
+      goodFor:
+        - practicing a programming concept by writing code
+        - tasks that need a code editor
+      avoid:
+        - courses that are not about programming or APIs
+        - complex code that an AI model might not infer correctly
+      tests:
+        - Is the step of type CODE in a programming course?
+    write:
+      fields:
+        id: A short identifier, unique in the step, that the placeholder of this component uses.
+        description: In at most 20 sentences, what the student must do and which files the exercise needs, in plain text.
+      rules:
+        - The main file is always named app.extension, for example app.js, app.html or app.css.
+        - Keep the challenge simple and related to the lesson content.
+
+  - name: ask_rigo_button
+    category: explanatory
+    decidedBy: syllabus
+    choose:
+      summary: >-
+        A button that sends a question to the Rigo AI assistant. Use it sparingly, to explore a concept or apply it to the learner's own situation.
+      goodFor:
+        - providing hints
+        - exploring a concept or applying it to the learner's own situation
+      avoid:
+        - overuse, because it should encourage independent thinking
+      tests:
+        - Would the learner get something from Rigo that the lesson cannot give, such as help with their own case?
+    write:
+      fields:
+        id: A short identifier, unique in the step, that the placeholder of this button uses.
+        label: The text of the button, for example "Ask Rigo how to declare a variable in JavaScript".
+        question: The question sent to Rigo, written as a normal sentence. It is specific enough to guide a meaningful answer, saying what and how to explain.
+      rules:
+        - The question is specific, never vague.
+
+  - name: mermaid_diagram
+    category: explanatory
+    decidedBy: interactivity
+    choose:
+      summary: >-
+        A diagram drawn from Mermaid code. Use it for processes, sequences and decisions that read better as a diagram.
+      goodFor:
+        - visualization
+        - process explanation
+        - system architecture
+        - data flow
+      avoid:
+        - complex diagrams that might not render well
+      tests:
+        - Does the step explain a process, a sequence or a decision that is easier to follow as a diagram than as text?
+    write:
+      fields:
+        id: A short identifier, unique in the step, that the placeholder of this diagram uses.
+        code: The Mermaid code of the diagram, without code fences, for example starting with graph TD.
+      rules:
+        - Never write parentheses inside [] in the code, because they break the diagram.
+        - Keep diagrams simple to medium in complexity.
+
+  - name: technical_diagram
+    category: explanatory
+    decidedBy: interactivity
+    visualStyle: >-
+      Clean technical diagram with precise lines, clear component boundaries,
+      labeled connections, professional color scheme (blues and grays),
+      flat design, modern technical illustration style, vector-like appearance
+    choose:
+      summary: >-
+        An image showing how technical components are structured, connected or interact within a system.
+      goodFor:
+        - system architecture diagrams
+        - network topology and API interactions
+        - database schema and relationships
+        - component dependency diagrams
+        - data flow between systems
+      avoid:
+        - purely decorative technical imagery
+        - overly complex diagrams (consider mermaid_diagram instead)
+        - sequential processes (use mermaid_diagram)
+        - realistic representations (use realistic_photography instead)
+      tests:
+        - Is the focus on technical relationships and architecture rather than on an idea or a real place?
+    write:
+      fields:
+        id: A short identifier, unique in the step, that the placeholder of this image uses.
+        alt: The complete description of the image. It is the only thing the image generator receives, so everything about the image goes here.
+      rules:
+        - The alt text has at least 30 words describing the components and their relationships.
+        - It specifies visual elements, for example "labeled with", "arrows showing" or "color-coded".
+        - It shows connections or relationships with arrows or lines.
+        - It uses a consistent visual language, such as boxes for components and cylinders for databases.
+
+  - name: conceptual_illustration
+    category: explanatory
+    decidedBy: interactivity
+    visualStyle: >-
+      Simplified illustration style, flat colors, minimal details, friendly and approachable
+      aesthetic, vector art style with smooth shapes, focus on clarity over realism,
+      educational and welcoming visual language
+    choose:
+      summary: >-
+        A friendly illustration that turns an abstract concept into a visual metaphor or a simplified picture.
+      goodFor:
+        - abstract concepts
+        - memory models and heap/stack visualization
+        - conceptual relationships between ideas
+        - visual metaphors for complex topics
+        - explaining how things work conceptually
+        - situations involving people, places or body language
+      avoid:
+        - technical accuracy over clarity (use technical_diagram instead)
+        - realistic depictions (use realistic_photography instead)
+        - step-by-step processes (use mermaid_diagram instead)
+        - purely decorative images without educational purpose
+      tests:
+        - Would this step be harder to understand or remember without the image?
+    write:
+      fields:
+        id: A short identifier, unique in the step, that the placeholder of this image uses.
+        alt: The complete description of the image. It is the only thing the image generator receives, so everything about the image goes here.
+      rules:
+        - The alt text has at least 30 words describing the concept and its visual metaphor.
+        - It simplifies complex ideas into basic visual metaphors.
+        - The image has no text unless it cannot be understood without it - no titles, captions, quotes or dialogue.
+
+  - name: realistic_photography
+    category: explanatory
+    decidedBy: interactivity
+    visualStyle: >-
+      Professional photography style, realistic lighting and shadows, proper depth of field,
+      clean and organized composition, neutral professional background, high-quality
+      photorealistic rendering, appropriate for educational or professional contexts
+    choose:
+      summary: >-
+        A photorealistic image, for when understanding requires a real object, place or professional environment.
+      goodFor:
+        - hardware setup and physical equipment
+        - workspace and development environment examples
+        - real user interfaces
+        - professional workplace scenarios
+        - real-world contexts that require authenticity
+      avoid:
+        - generic stock photos without educational value
+        - purely decorative realistic images
+        - when a diagram or illustration would be clearer
+        - complex technical relationships (use technical_diagram instead)
+        - abstract concepts (use conceptual_illustration instead)
+      tests:
+        - Would an illustration lose context that matters for understanding?
+    write:
+      fields:
+        id: A short identifier, unique in the step, that the placeholder of this image uses.
+        alt: The complete description of the image. It is the only thing the image generator receives, so everything about the image goes here.
+      rules:
+        - The alt text has at least 30 words describing the scene and its educational purpose.
+        - It specifies what to show realistically and why it matters.
+        - If it shows a user interface or a screen, it says which elements to highlight.
+        - The image has no text unless it cannot be understood without it - no titles, captions, quotes or dialogue.
