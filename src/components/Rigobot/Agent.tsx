@@ -412,7 +412,9 @@ ${args.content}
       mode?: "next-three" | "continue-with-all";
     }) => {
       try {
-        const { continueGenerating } = await import("../../utils/creator");
+        const { continueGenerating, isLessonAlreadyGenerating } = await import(
+          "../../utils/creator"
+        );
 
         const currentExercise = useStore.getState().getCurrentExercise();
         const syllabus = useStore.getState().syllabus;
@@ -432,13 +434,21 @@ ${args.content}
           return `Cannot start lesson generation. Current lesson status is "${lesson.status}". This tool is only available when lesson status is PENDING or ERROR.`;
         }
 
-        await continueGenerating(
-          configObject.config.slug,
-          lesson?.uid || "",
-          args.feedback,
-          args.mode || "next-three",
-          token
-        );
+        try {
+          await continueGenerating(
+            configObject.config.slug,
+            lesson?.uid || "",
+            args.feedback,
+            args.mode || syllabus?.generationMode || "next-three",
+            token
+          );
+        } catch (error) {
+          // The store can be behind: the lesson may have started already.
+          if (!isLessonAlreadyGenerating(error)) throw error;
+          toast(t("lesson-already-generating"));
+          getSyllabus();
+          return "The lesson is already being generated, so no new generation was started and the feedback was not applied. Tell the user to wait until it finishes.";
+        }
         toast.success(t("lesson-generation-started"));
         getSyllabus();
 
