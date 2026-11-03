@@ -133,8 +133,9 @@ components:
         heading: An optional short title shown above the question, or null.
         question: The task the learner sees, with everything needed to answer it, such as the text to rewrite or the situation.
         eval: One sentence with the criteria the answer must meet. The learner never sees it.
-        examples: 3 to 5 example answers, each with its text and correct set to true or false. Include at least one correct and one incorrect example.
+        examples: Required, never empty. 3 to 5 example answers a learner could write, each with its text and correct set to true or false, with at least one correct and one incorrect example. The learner never sees them; the evaluator compares answers with them.
       rules:
+        - Always write the examples, even when the eval seems enough.
         - Only ask for a textual answer that can be evaluated without images.
         - Never ask the learner to draw, sketch, diagram, circle, shade, underline, point, annotate or mark anything.
         - Every correct example meets the eval, and every incorrect example fails it.
