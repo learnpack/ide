@@ -96,6 +96,7 @@ export default function RealtimeLesson() {
         lessonId={lesson?.uid || ""}
         description={lesson?.description || ""}
         generationMode={syllabus.generationMode}
+        activity={updates.length}
         onGenerate={async () => {
           setUpdates((prev) => [
             ...prev,
@@ -126,6 +127,7 @@ const ContinueGenerationButton = ({
   status,
   title,
   generationMode,
+  activity,
 }: {
   onGenerate: () => Promise<void>;
   description: string;
@@ -133,6 +135,7 @@ const ContinueGenerationButton = ({
   status: "PENDING" | "GENERATING" | "DONE" | "ERROR";
   title: string;
   generationMode?: TGenerationMode;
+  activity: number;
 }) => {
   const { t } = useTranslation();
 
@@ -196,6 +199,7 @@ const ContinueGenerationButton = ({
         <TimeOutButton
           handleContinue={() => handleContinue()}
           timeoutSeconds={DEV_MODE ? 5 : 120}
+          activity={activity}
         />
       </div>
     );
@@ -313,12 +317,16 @@ const ContinueWithOptions = ({
   );
 };
 
+// Offers a retry only after a while without news. A lesson often takes more
+// than the timeout in total, so the count restarts with every update.
 const TimeOutButton = ({
   handleContinue,
   timeoutSeconds = 10,
+  activity,
 }: {
   handleContinue: () => Promise<void>;
   timeoutSeconds?: number;
+  activity: number;
 }) => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
@@ -327,12 +335,13 @@ const TimeOutButton = ({
   const [round, setRound] = useState(0);
 
   useEffect(() => {
+    setIsVisible(false);
     const timer = setTimeout(() => {
       setIsVisible(true);
     }, timeoutSeconds * 1000);
 
     return () => clearTimeout(timer);
-  }, [timeoutSeconds, round]);
+  }, [timeoutSeconds, round, activity]);
 
   if (!isVisible) {
     return null;
