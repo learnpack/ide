@@ -2,12 +2,13 @@ name: Validate components guide
 
 # learnpack-cli reads docs/components_v2.yml from master on every interactivity
 # generation, so a broken file must not be merged.
+#
+# pull_request and merge_group have no paths filter on purpose: this check is
+# meant to be required on master, and a required check whose workflow is
+# skipped by a path filter stays "Pending" forever and blocks the merge.
 on:
   pull_request:
-    paths:
-      - "docs/components_v2.yml"
-      - "scripts/validate-components-v2.js"
-      - ".github/workflows/validate-components.yml"
+  merge_group:
   push:
     branches: [master]
     paths:
@@ -17,6 +18,7 @@ on:
 
 jobs:
   validate:
+    name: validate-components
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
