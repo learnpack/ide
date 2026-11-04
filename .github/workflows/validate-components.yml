@@ -20,8 +20,17 @@ jobs:
   validate:
     name: validate-components
     runs-on: ubuntu-latest
+    # The job takes ~30 s; fail fast instead of leaving the PR pending if a
+    # step hangs.
+    timeout-minutes: 5
     steps:
+      # The repository is large and the validator only needs these two files.
       - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            docs/components_v2.yml
+            scripts/validate-components-v2.js
+          sparse-checkout-cone-mode: false
       - uses: actions/setup-node@v4
         with:
           node-version: 20
