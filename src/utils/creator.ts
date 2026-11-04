@@ -276,6 +276,13 @@ export const synchronizeLessonFiles = async (
 //   }
 // )
 
+/**
+ * Whether continue-generating refused to start a job because the lesson is
+ * still being generated.
+ */
+export const isLessonAlreadyGenerating = (error: unknown) =>
+  axios.isAxiosError(error) && error.response?.status === 409;
+
 export const continueGenerating = async (
   courseSlug: string,
   lessonId: string,

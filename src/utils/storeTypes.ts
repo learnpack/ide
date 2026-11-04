@@ -247,8 +247,11 @@ export type FormState = {
   purpose: string;
 };
 
+export type TGenerationMode = "next-three" | "continue-with-all";
+
 export type Syllabus = {
   lessons?: Lesson[];
+  generationMode?: TGenerationMode;
   // courseInfo: FormState;
   // sources: ParsedLink[]
 };

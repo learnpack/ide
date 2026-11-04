@@ -5,11 +5,14 @@ import CreatorSocket from "../../managers/creatorSocket";
 import ProgressBar from "../composites/ProgressBar/ProgressBar";
 import { DEV_MODE, slugify } from "../../utils/lib";
 import SimpleButton from "../mockups/SimpleButton";
-import { continueGenerating } from "../../utils/creator";
+import {
+  continueGenerating,
+  isLessonAlreadyGenerating,
+} from "../../utils/creator";
 import toast from "react-hot-toast";
 import "./RealtimeLesson.css";
 import { svgs } from "../../assets/svgs";
-import { Lesson } from "../../utils/storeTypes";
+import { Lesson, TGenerationMode } from "../../utils/storeTypes";
 import CustomDropdown from "../CustomDropdown";
 const socketClient = new CreatorSocket(DEV_MODE ? "http://localhost:3000" : "");
 
@@ -92,12 +95,14 @@ export default function RealtimeLesson() {
         title={lesson?.title || ""}
         lessonId={lesson?.uid || ""}
         description={lesson?.description || ""}
-        onGenerate={() => {
-          getSyllabus();
+        generationMode={syllabus.generationMode}
+        activity={updates.length}
+        onGenerate={async () => {
           setUpdates((prev) => [
             ...prev,
             "🚀 " + t("lesson-generation-started"),
           ]);
+          await getSyllabus();
         }}
       />
 
@@ -121,34 +126,65 @@ const ContinueGenerationButton = ({
   lessonId,
   status,
   title,
+  generationMode,
+  activity,
 }: {
-  onGenerate: () => void;
+  onGenerate: () => Promise<void>;
   description: string;
   lessonId: string;
   status: "PENDING" | "GENERATING" | "DONE" | "ERROR";
   title: string;
+  generationMode?: TGenerationMode;
+  activity: number;
 }) => {
   const { t } = useTranslation();
 
   const token = useStore((state) => state.token);
   const config = useStore((state) => state.configObject);
+  const getSyllabus = useStore((state) => state.getSyllabus);
+  // While a request is on its way, another click would start a second job.
+  const [starting, setStarting] = useState(false);
 
-  const handleContinue = async (
-    mode: "next-three" | "continue-with-all" = "next-three"
-  ) => {
+  // The retry buttons offer no mode, so they keep the one the user picked.
+  const handleContinue = async (mode?: TGenerationMode) => {
+    if (starting) return;
+    setStarting(true);
+    const statusBefore = status;
+
     try {
       await continueGenerating(
         config.config.slug,
         lessonId,
         "",
-        mode,
+        mode || generationMode || "next-three",
         token
       );
       toast.success(t("lesson-generation-started"));
-      onGenerate();
+      await onGenerate();
     } catch (error) {
       console.log("error continue lesson", error);
+
+      if (isLessonAlreadyGenerating(error)) {
+        toast(t("lesson-already-generating"));
+        await getSyllabus();
+        return;
+      }
+
+      // The request can fail while the server keeps working. If the lesson
+      // was not generating before and is now, the generation did start.
+      await getSyllabus();
+      const lessonNow = useStore
+        .getState()
+        .syllabus.lessons?.find((lesson) => lesson.uid === lessonId);
+      if (statusBefore !== "GENERATING" && lessonNow?.status === "GENERATING") {
+        toast.success(t("lesson-generation-started"));
+        await onGenerate();
+        return;
+      }
+
       toast.error(t("error-generating-lesson"));
+    } finally {
+      setStarting(false);
     }
   };
 
@@ -161,8 +197,9 @@ const ContinueGenerationButton = ({
           message={t("waitImGeneratingTheLesson", { step: title })}
         />
         <TimeOutButton
-          handleContinue={handleContinue}
+          handleContinue={() => handleContinue()}
           timeoutSeconds={DEV_MODE ? 5 : 120}
+          activity={activity}
         />
       </div>
     );
@@ -179,7 +216,8 @@ const ContinueGenerationButton = ({
           <SimpleButton
             svg={"🔄"}
             extraClass="border-red rounded padding-small text-red flex-x align-center gap-small bg-red-50"
-            action={() => handleContinue("next-three")}
+            action={() => handleContinue()}
+            disabled={starting}
             text="Retry Generation"
           />
           <SimpleButton
@@ -216,7 +254,10 @@ const ContinueGenerationButton = ({
       </div>
 
       <div className="flex-x gap-small justify-end wrap-wrap">
-        <ContinueWithOptions handleContinue={handleContinue} />
+        <ContinueWithOptions
+          handleContinue={handleContinue}
+          disabled={starting}
+        />
         <SimpleButton
           svg={"🤔"}
           extraClass=" border-blue rounded padding-small text-blue flex-x align-center gap-small svg-blue"
@@ -240,8 +281,10 @@ const ContinueGenerationButton = ({
 
 const ContinueWithOptions = ({
   handleContinue,
+  disabled,
 }: {
-  handleContinue: (mode: "next-three" | "continue-with-all") => void;
+  handleContinue: (mode: TGenerationMode) => void;
+  disabled: boolean;
 }) => {
   const { t } = useTranslation();
   return (
@@ -259,12 +302,14 @@ const ContinueWithOptions = ({
       <SimpleButton
         extraClass=" border-blue rounded padding-small text-blue flex-x align-center gap-small bg-blue-rigo text-white w-100"
         action={() => handleContinue("next-three")}
+        disabled={disabled}
         text={t("generateNextThree")}
         svg={svgs.next}
       />
       <SimpleButton
         extraClass=" border-blue rounded padding-small text-blue flex-x align-center gap-small  bg-blue-rigo text-white w-100"
         action={() => handleContinue("continue-with-all")}
+        disabled={disabled}
         text={t("continueWithAll")}
         svg={svgs.fastForward}
       />
@@ -272,24 +317,31 @@ const ContinueWithOptions = ({
   );
 };
 
+// Offers a retry only after a while without news. A lesson often takes more
+// than the timeout in total, so the count restarts with every update.
 const TimeOutButton = ({
   handleContinue,
   timeoutSeconds = 10,
+  activity,
 }: {
-  handleContinue: () => void;
+  handleContinue: () => Promise<void>;
   timeoutSeconds?: number;
+  activity: number;
 }) => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  // Bumped after each retry, so the button waits the full time again.
+  const [round, setRound] = useState(0);
 
   useEffect(() => {
+    setIsVisible(false);
     const timer = setTimeout(() => {
       setIsVisible(true);
     }, timeoutSeconds * 1000);
 
     return () => clearTimeout(timer);
-  }, [timeoutSeconds]);
+  }, [timeoutSeconds, round, activity]);
 
   if (!isVisible) {
     return null;
@@ -302,10 +354,16 @@ const TimeOutButton = ({
       </p>
       <SimpleButton
         text={loading ? t("loading") : t("retryGeneration")}
+        disabled={loading}
         action={async () => {
           setLoading(true);
-          await handleContinue();
-          setLoading(false);
+          try {
+            await handleContinue();
+          } finally {
+            setLoading(false);
+            setIsVisible(false);
+            setRound((value) => value + 1);
+          }
         }}
         extraClass="bg-blue-rigo text-white padding-small w-fit-content rounded"
       />
