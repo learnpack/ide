@@ -1,0 +1,31 @@
+name: Validate components guide
+
+# learnpack-cli reads docs/components_v2.yml from master on every interactivity
+# generation, so a broken file must not be merged.
+on:
+  pull_request:
+    paths:
+      - "docs/components_v2.yml"
+      - "scripts/validate-components-v2.js"
+      - ".github/workflows/validate-components.yml"
+  push:
+    branches: [master]
+    paths:
+      - "docs/components_v2.yml"
+      - "scripts/validate-components-v2.js"
+      - ".github/workflows/validate-components.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # Only js-yaml is needed. It is installed outside the project so that npm
+      # does not install the whole IDE dependency tree.
+      - run: npm install --prefix "$RUNNER_TEMP/validator" --no-save --ignore-scripts js-yaml@4.1.0
+      - run: node scripts/validate-components-v2.js
+        env:
+          NODE_PATH: ${{ runner.temp }}/validator/node_modules
