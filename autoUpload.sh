@@ -7,9 +7,10 @@
 #   latest: run from master, after merging the PR that bumps the version.
 #           Uploads app.js/app.css, the tarball and the versions manifest.
 #   next:   run from any pushed branch. Uploads only app.js/app.css (open the IDE with ?ideVersion=next).
+#   --no-check: keep the local test content in public/ (next only).
 
 usage() {
-    echo "Usage: ./autoUpload.sh --tag latest|next [--no-check]"
+    echo "Usage: ./autoUpload.sh --tag latest|next [--no-check (next only)]"
 }
 
 CHECK=true
@@ -47,6 +48,12 @@ done
 if [[ "$TAG" != "latest" && "$TAG" != "next" ]]; then
     echo "Error: --tag must be 'latest' or 'next'."
     usage
+    exit 1
+fi
+
+# Vite copies public/ into dist/, so test content left there would end up in the immutable tarball.
+if [[ "$TAG" == "latest" && "$CHECK" == false ]]; then
+    echo "Error: --no-check is only allowed with --tag next (latest tarballs must not include local test content)."
     exit 1
 fi
 

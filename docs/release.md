@@ -53,7 +53,7 @@ flowchart LR
 | Option | Effect |
 | --- | --- |
 | `--tag latest\|next` | Required. Channel to publish. |
-| `--no-check` | Skips `checkDeleted.js`, which deletes local test content (`public/.learn`, `public/exercises`, `public/config.json`) before building. |
+| `--no-check` | Only with `--tag next`. Skips `checkDeleted.js`, which deletes local test content (`public/.learn`, `public/exercises`, `public/config.json`) before building. Use it to keep a sample package you are testing with: `next` doesn't publish a tarball, so that content goes nowhere. `latest` rejects it, because Vite copies `public/` into `dist/` and the content would end up in the published tarball. |
 | `-h`, `--help` | Shows the usage. |
 
 ### Requirements
@@ -69,7 +69,7 @@ following ones don't run.
 
 ```mermaid
 flowchart TD
-    A["autoUpload.sh --tag latest|next"] --> C[checkDeleted.js<br/>skipped with --no-check]
+    A["autoUpload.sh --tag latest|next"] --> C[checkDeleted.js<br/>skipped with --no-check, next only]
     C --> P{preflight.js<br/>all checks pass?}
     P -- no --> X[Abort. Nothing uploaded]
     P -- yes --> V[tsc + vite build]
