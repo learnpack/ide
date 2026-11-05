@@ -4,84 +4,39 @@ const archiver = require('archiver');
 const path = require('path');
 
 const rootDir = path.join(__dirname, '..');
-const packageJsonPath = path.join(rootDir, 'package.json');
-
-const packageJson = require(packageJsonPath);
-let version = packageJson.version;
+const packageJson = require(path.join(rootDir, 'package.json'));
+const version = packageJson.version;
 if (typeof version != "string") throw Error("Invalid package.version found on package.json")
 
-const binPath = __dirname;
-const tarFileName = (v) => `learnpack-${version}.tar.gz`;
-const tarFilePath = path.join(binPath, tarFileName(version));
+// The version is bumped through a PR before releasing (preflight.js refuses a version
+// that is already published), so this script only packs dist/ for that version.
+const tarFilePath = path.join(__dirname, `learnpack-${version}.tar.gz`);
 
-async function incrementVersion(version, incrementType) {
-  const versionParts = version.split('.').map(Number);
+function compressDirectory() {
+  return new Promise((resolve, reject) => {
+    const output = fs.createWriteStream(tarFilePath);
+    console.log(`Generating ${tarFilePath}`);
 
-  if (incrementType === 'major') {
-    versionParts[0]++;
-    versionParts[1] = 0;
-    versionParts[2] = 0;
-  } else if (incrementType === 'middle') {
-    versionParts[1]++;
-    versionParts[2] = 0;
-  } else if (incrementType === 'minor') {
-    versionParts[2]++;
-  }
+    const archive = archiver('tar', {
+      gzip: true,
+      zlib: { level: 9 }
+    });
 
-  return versionParts.join('.');
-}
+    // Resolve only once the file is fully written, so the next step never reads a truncated tarball.
+    output.on('close', resolve);
+    output.on('error', reject);
+    archive.on('error', reject);
 
-async function checkExistingFile() {
-  const inquirer = (await import('inquirer')).default;
-  let _v = version;
-
-  if (fs.existsSync(tarFilePath)) {
-    const answers = await inquirer.prompt([{
-      type: 'list',
-      name: 'action',
-      message: `A file named ${tarFileName(version)} already exists. What would you like to do?`,
-      choices: ['Overwrite', 'Increase Major Version', 'Increase Middle Version', 'Increase Minor Version']
-    }]);
-
-    if (answers.action !== 'Overwrite') {
-      let incrementType;
-      if (answers.action.includes('Major')) {
-        incrementType = 'major';
-      } else if (answers.action.includes('Middle')) {
-        incrementType = 'middle';
-      } else {
-        incrementType = 'minor';
-      }
-      _v = await incrementVersion(version, incrementType);
-      packageJson.version = _v;
-      console.log(`Overriding version at package.json at ${packageJsonPath}`)
-      fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
-    }
-  }
-
-  version = _v;
-  return _v;
-}
-
-async function compressDirectory() {
-  const _v = await checkExistingFile();
-
-  const _outputPath = path.join(binPath, tarFileName(_v));
-  const output = fs.createWriteStream(_outputPath);
-  console.log(`Generating ${_outputPath}`);
-
-  const archive = archiver('tar', {
-    gzip: true,
-    zlib: { level: 9 }
+    archive.pipe(output);
+    // index.html.backup is a local leftover of uploadLearnpack.js; it must not ship to packages.
+    archive.glob('**/*', { cwd: path.join(rootDir, 'dist'), ignore: ['index.html.backup'], dot: true });
+    archive.finalize();
   });
-
-  archive.on('error', (err) => {
-    throw err;
-  });
-
-  archive.pipe(output);
-  archive.directory(path.join(rootDir, 'dist/'), false);
-  archive.finalize();
 }
 
-compressDirectory();
+compressDirectory()
+  .then(() => console.log(`✅ ${path.basename(tarFilePath)} generated`))
+  .catch((err) => {
+    console.error('❌ Error generating the tarball:', err);
+    process.exit(1);
+  });
