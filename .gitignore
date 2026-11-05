@@ -30,3 +30,5 @@ example
 .claude/
 .cursor/
 .codex/
+# IDE tarballs are published to CloudFront (learnpack/ide/); the ones already tracked stay for older CLIs
+bin/*.tar.gz
