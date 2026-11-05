@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Publishes a new IDE release to CloudFront. It does not commit or push anything:
-# master is protected, so the version bump in package.json goes through a PR first.
+# master is protected, so the version bump in package.json goes through a PR first (./bump.sh).
 #
 # Usage: ./autoUpload.sh --tag latest|next [--no-check]
 #   latest: run from master, after merging the PR that bumps the version.

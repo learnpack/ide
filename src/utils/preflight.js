@@ -54,7 +54,7 @@ async function main() {
 
     if (tag === 'latest') {
         if (await objectExists(tarballKey(version))) {
-            fail(`version ${version} is already published. Bump the version in package.json through a PR and release again.`)
+            fail(`version ${version} is already published. Bump it with ./bump.sh, merge the PR and release again.`)
         }
     }
 

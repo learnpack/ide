@@ -52,7 +52,7 @@ async function main() {
 
     const key = tarballKey(version)
     if (await objectExists(key)) {
-        throw new Error(`${key} already exists. Published tarballs are immutable; bump the version through a PR.`)
+        throw new Error(`${key} already exists. Published tarballs are immutable; bump the version with ./bump.sh.`)
     }
 
     // Tarball first, manifest last: the manifest never lists a tarball that is not uploaded yet.

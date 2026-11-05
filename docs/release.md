@@ -2,7 +2,8 @@
 
 The IDE is published to CloudFront (S3 bucket `learnpack-packages`, domain
 `https://d3a7w3e3g8ydll.cloudfront.net`). Releases are run by hand with
-`./autoUpload.sh`. The script never commits or pushes: `master` is protected.
+`./autoUpload.sh`. The script never commits or pushes: `master` is protected, so the
+version bump goes through a PR first, opened with `./bump.sh`.
 
 ## What gets published
 
@@ -22,7 +23,7 @@ CLI merges both lists.
 | --- | --- | --- |
 | Who gets it | Everyone | Only whoever opens the IDE with `?ideVersion=next` |
 | Branch | `master` | Any pushed branch |
-| Version bump needed | Yes, through a PR | No |
+| Version bump needed | Yes, through a PR (`./bump.sh`) | No |
 | Uploads | `app.js`/`app.css`, tarball, `versions.json`, `build.json` | `app.js`/`app.css`, `build.json` |
 
 Use `next` to try a change for real before releasing it to everyone.
@@ -38,9 +39,14 @@ flowchart LR
 
 **latest**
 
-1. Open a PR that bumps `version` in `package.json` (e.g. `5.0.417` → `5.0.418`) and merge it.
-2. `git checkout master && git pull`
-3. `./autoUpload.sh --tag latest`
+1. `./bump.sh "What this release contains"` opens the PR that bumps the version
+   (e.g. `5.0.417` → `5.0.418`).
+2. Get the PR reviewed and merge it.
+3. `git checkout master && git pull`
+4. `./autoUpload.sh --tag latest`
+
+Nothing has to be committed after the release: the tarball and `versions.json` live on
+CloudFront, not in git.
 
 **next**
 
@@ -48,7 +54,30 @@ flowchart LR
 2. `./autoUpload.sh --tag next`
 3. Open the IDE with `?ideVersion=next`.
 
-### Options
+No PR and no version bump.
+
+```mermaid
+flowchart LR
+    A["./bump.sh 'message'"] --> B[PR release/vX.Y.Z] --> C[Merge to master]
+    C --> D["git pull on master"] --> E["./autoUpload.sh --tag latest"]
+```
+
+### `bump.sh` options
+
+| Option | Effect |
+| --- | --- |
+| `"Message"` | Required. Goes into the commit and the PR description. |
+| `--minor`, `--major` | Bump that part instead of the patch (`5.0.417` → `5.1.0` or `6.0.0`). |
+| `--dry-run` | Creates the commit locally, shows it and undoes it. Nothing is pushed. |
+| `-h`, `--help` | Shows the usage. |
+
+What it does: takes the version from `origin/master`, creates `release/v<version>` from
+it, changes only the `version` line of `package.json`, commits
+(`chore(release): set version to X.Y.Z`), pushes, opens the PR with the GitHub CLI and
+goes back to your branch. It needs [`gh`](https://cli.github.com) logged in
+(`gh auth login`) and no uncommitted changes. It doesn't publish anything.
+
+### `autoUpload.sh` options
 
 | Option | Effect |
 | --- | --- |
@@ -114,7 +143,8 @@ because the tarball loads it from CloudFront.
 
 | Message | What to do |
 | --- | --- |
-| `version X is already published` | Bump the version through a PR. Published tarballs are never replaced. |
+| `version X is already published` | Bump the version with `./bump.sh` and merge the PR. Published tarballs are never replaced. |
+| `bump.sh`: `branch release/vX.Y.Z already exists on origin` | A release PR is already open. Merge it, or close it and delete the branch. |
 | `latest releases must run from master` | Switch to `master`, or use `--tag next`. |
 | `not in sync with origin` | `git pull` or `git push`. |
 | `403 ... ListBucket` | The AWS key lacks `s3:ListBucket`. |
