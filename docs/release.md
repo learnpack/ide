@@ -5,37 +5,10 @@ The IDE is published to CloudFront (S3 bucket `learnpack-packages`, domain
 `./autoUpload.sh`. The script never commits or pushes: `master` is protected, so the
 version bump goes through a PR first, opened with `./bump.sh`.
 
-## What gets published
-
-| File | Path on CloudFront | What it is |
-| --- | --- | --- |
-| `app.js`, `app.css` | `learnpack/<tag>/` (`latest` also writes `learnpack/v5/`) | The IDE code. Browsers load it from here. |
-| `learnpack-<version>.tar.gz` | `learnpack/ide/` | The tarball the CLI downloads into `.learn/_app`. Its `index.html` loads `app.js`/`app.css` from CloudFront, so it is a thin shell. Never overwritten. |
-| `versions.json` | `learnpack/ide/versions.json` | List of published tarballs. The CLI reads it to pick a version. |
-| `build.json` | `learnpack/<tag>/build.json` | What is live on each channel: version, branch, commit, date. |
-
-Tarballs up to 5.0.416 live in this repo (`bin/`, `versions.json`), which is frozen. The
-CLI merges both lists.
-
-## Channels (`--tag`)
-
-| | `latest` | `next` |
-| --- | --- | --- |
-| Who gets it | Everyone | Only whoever opens the IDE with `?ideVersion=next` |
-| Branch | `master` | Any pushed branch |
-| Version bump needed | Yes, through a PR (`./bump.sh`) | No |
-| Uploads | `app.js`/`app.css`, tarball, `versions.json`, `build.json` | `app.js`/`app.css`, `build.json` |
-
-Use `next` to try a change for real before releasing it to everyone.
-
-```mermaid
-flowchart LR
-    B[Browser opens the IDE] --> Q{"?ideVersion=next"}
-    Q -- no --> L["learnpack/latest/app.js"]
-    Q -- yes --> N["learnpack/next/app.js"]
-```
-
 ## How to release
+
+`latest` reaches every user; `next` is only for testing a change (see
+[Channels](#channels---tag)).
 
 **latest**
 
@@ -90,6 +63,36 @@ goes back to your branch. It needs [`gh`](https://cli.github.com) logged in
 An `.env` with `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `BUCKET_NAME`
 and `CLOUDFRONT_DOMAIN`. The key needs `s3:PutObject`, `s3:GetObject` and `s3:ListBucket`
 on the bucket.
+
+## What gets published
+
+| File | Path on CloudFront | What it is |
+| --- | --- | --- |
+| `app.js`, `app.css` | `learnpack/<tag>/` (`latest` also writes `learnpack/v5/`) | The IDE code. Browsers load it from here. |
+| `learnpack-<version>.tar.gz` | `learnpack/ide/` | The tarball the CLI downloads into `.learn/_app`. Its `index.html` loads `app.js`/`app.css` from CloudFront, so it is a thin shell. Never overwritten. |
+| `versions.json` | `learnpack/ide/versions.json` | List of published tarballs. The CLI reads it to pick a version. |
+| `build.json` | `learnpack/<tag>/build.json` | What is live on each channel: version, branch, commit, date. |
+
+Tarballs up to 5.0.416 live in this repo (`bin/`, `versions.json`), which is frozen. The
+CLI merges both lists.
+
+## Channels (`--tag`)
+
+| | `latest` | `next` |
+| --- | --- | --- |
+| Who gets it | Everyone | Only whoever opens the IDE with `?ideVersion=next` |
+| Branch | `master` | Any pushed branch |
+| Version bump needed | Yes, through a PR (`./bump.sh`) | No |
+| Uploads | `app.js`/`app.css`, tarball, `versions.json`, `build.json` | `app.js`/`app.css`, `build.json` |
+
+Use `next` to try a change for real before releasing it to everyone.
+
+```mermaid
+flowchart LR
+    B[Browser opens the IDE] --> Q{"?ideVersion=next"}
+    Q -- no --> L["learnpack/latest/app.js"]
+    Q -- yes --> N["learnpack/next/app.js"]
+```
 
 ## What the script does
 
