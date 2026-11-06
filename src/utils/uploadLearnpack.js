@@ -1,8 +1,6 @@
-require('dotenv').config()
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3")
 const fs = require('fs')
 const path = require('path')
-const prompt = require('prompt-sync')({ sigint: true })
+const { uploadFile, getReleaseTag } = require('./releaseS3')
 
 
 // Get the version from the package.json
@@ -10,23 +8,14 @@ let version = require('../../package.json').version
 // Kepp only the first part of the version
 version = version.split('.')[0]
 
-// Ask user for tag
-let tag = ''
-while (!['latest', 'next'].includes(tag)) {
-    tag = prompt('¿A qué tag quieres subir los archivos? (latest/next): ').trim().toLowerCase()
-    if (!['latest', 'next'].includes(tag)) {
-        console.log('Por favor, escribe "latest" o "next".')
-    }
+// The channel comes from autoUpload.sh (--tag latest|next); there is no interactive prompt
+let tag
+try {
+    tag = getReleaseTag()
+} catch (error) {
+    console.error(`❌ ${error.message}`)
+    process.exit(1)
 }
-
-// Initialize S3 Client
-const s3Client = new S3Client({
-    region: process.env.AWS_REGION,
-    credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-    }
-})
 
 function findBuildFiles(startPath) {
     if (!fs.existsSync(startPath)) {
@@ -67,45 +56,8 @@ function findBuildFiles(startPath) {
     return results
 }
 
-const makeFileUrl = (fileName) => {
-    const fileUrl = `https://${process.env.CLOUDFRONT_DOMAIN}/${fileName}`
-    return fileUrl
-}
-
-async function uploadToS3(filePath, fileName, contentType) {
-    try {
-        const fileContent = fs.readFileSync(filePath)
-
-        const uploadParams = {
-            Bucket: process.env.BUCKET_NAME,
-            Key: fileName,
-            Body: fileContent,
-            ContentType: contentType,
-            Metadata: {
-                'Content-Type': contentType
-            },
-            CacheControl: 'no-cache',
-            ContentSecurityPolicy: "default-src 'self'",
-            CrossOriginResourcePolicy: 'cross-origin',
-            AccessControlAllowOrigin: '*',
-            AccessControlAllowMethods: 'GET',
-            AccessControlAllowHeaders: 'Content-Type'
-        }
-
-        const command = new PutObjectCommand(uploadParams)
-        await s3Client.send(command)
-
-        const fileUrl = makeFileUrl(fileName)
-
-        console.log(`✅ File ${fileName} uploaded successfully`)
-        console.log(`📂 URL: ${fileUrl}`)
-
-        return fileUrl
-    } catch (error) {
-        console.error(`❌ Error uploading ${fileName}:`, error)
-        throw error
-    }
-}
+const uploadToS3 = (filePath, fileName, contentType) =>
+    uploadFile({ filePath, key: fileName, contentType })
 
 
 
