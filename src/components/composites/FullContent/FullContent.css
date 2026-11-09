@@ -411,7 +411,20 @@
   }
 
   .full-content-size-compact .full-content-toc {
+    font-size: 14px;
     line-height: 1.6rem;
+  }
+
+  .full-content-size-compact .full-content-exercise {
+    padding: 10px 14px;
+  }
+
+  .full-content-size-compact .full-content-exercise .full-content-hint {
+    font-size: 1em;
+  }
+
+  .full-content-size-compact .full-content-answer-lines span {
+    height: 26px;
   }
 
   .full-content-size-compact .full-content-toc h2 {
@@ -451,11 +464,6 @@
   .full-content-size-compact .full-content-lesson .full-content-image img {
     max-height: 200mm;
   }
-
-  .full-content-size-compact .full-content-lesson .mermaid svg {
-    max-height: 150mm;
-  }
-
   .full-content-size-compact .full-content-watermark {
     font-size: 16px;
   }
@@ -471,7 +479,21 @@
   }
 
   .full-content-size-ultra-compact .full-content-toc {
+    font-size: 12px;
     line-height: 1.4rem;
+  }
+
+  .full-content-size-ultra-compact .full-content-exercise {
+    margin: 12px 0;
+    padding: 8px 12px;
+  }
+
+  .full-content-size-ultra-compact .full-content-exercise .full-content-hint {
+    font-size: 1em;
+  }
+
+  .full-content-size-ultra-compact .full-content-answer-lines span {
+    height: 22px;
   }
 
   .full-content-size-ultra-compact .full-content-toc h2 {
@@ -511,11 +533,6 @@
   .full-content-size-ultra-compact .full-content-lesson .full-content-image img {
     max-height: 170mm;
   }
-
-  .full-content-size-ultra-compact .full-content-lesson .mermaid svg {
-    max-height: 110mm;
-  }
-
   .full-content-size-ultra-compact .full-content-watermark {
     font-size: 14px;
   }
