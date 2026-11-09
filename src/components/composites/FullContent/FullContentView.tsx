@@ -47,7 +47,9 @@ export const FullContentView = () => {
   const [progress, setProgress] = useState({ loaded: 0, total: 0 });
   const [loadError, setLoadError] = useState(false);
   const [isPreparingPdf, setIsPreparingPdf] = useState(false);
+  const [showPdfMenu, setShowPdfMenu] = useState(false);
   const contentRef = useRef<HTMLElement>(null);
+  const pdfMenuRef = useRef<HTMLDivElement>(null);
   const diagramsRendered = useRef<Promise<unknown>>(Promise.resolve());
 
   const courseTitle = resolveCourseTitle(configObject?.config?.title, language);
@@ -85,6 +87,20 @@ export const FullContentView = () => {
       window.removeEventListener("keydown", onKeyDown);
     };
   }, [setOpenedModals]);
+
+  useEffect(() => {
+    if (!showPdfMenu) return;
+    const onClickOutside = (e: MouseEvent) => {
+      if (
+        pdfMenuRef.current &&
+        !pdfMenuRef.current.contains(e.target as Node)
+      ) {
+        setShowPdfMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, [showPdfMenu]);
 
   // The lessons are read from the store when the view opens (or the language
   // changes), so background updates of the exercises don't reload everything
@@ -158,6 +174,12 @@ export const FullContentView = () => {
     window.print();
   };
 
+  const handleSizeSelect = (size: PrintSize) => {
+    setPrintSize(size);
+    setShowPdfMenu(false);
+    requestAnimationFrame(() => downloadPdf());
+  };
+
   return (
     <div
       className={`full-content-overlay full-content-size-${printSize}`}
@@ -178,35 +200,36 @@ export const FullContentView = () => {
           </span>
         </div>
         <div className="full-content-toolbar-actions">
-          <div
-            className="full-content-size-selector"
-            role="radiogroup"
-            aria-label={t("full-content-print-size")}
-          >
-            {(["normal", "compact", "ultra-compact"] as PrintSize[]).map(
-              (size) => (
-                <button
-                  key={size}
-                  className={`full-content-button${printSize === size ? " active" : ""}`}
-                  role="radio"
-                  aria-checked={printSize === size}
-                  onClick={() => setPrintSize(size)}
-                >
-                  {t(`full-content-print-size-${size}`)}
-                </button>
-              )
+          <div className="full-content-pdf-wrapper" ref={pdfMenuRef}>
+            <button
+              className="full-content-button full-content-button-primary"
+              onClick={() => setShowPdfMenu((v) => !v)}
+              disabled={!lessons || isPreparingPdf}
+            >
+              <Icon name="Download" size={16} />
+              {isPreparingPdf
+                ? t("full-content-preparing-pdf")
+                : t("full-content-download-pdf")}
+            </button>
+            {showPdfMenu && (
+              <div className="full-content-pdf-menu">
+                <span className="full-content-pdf-menu-label">
+                  {t("full-content-print-size")}
+                </span>
+                {(["normal", "compact", "ultra-compact"] as PrintSize[]).map(
+                  (size) => (
+                    <button
+                      key={size}
+                      className={`full-content-pdf-menu-option${printSize === size ? " active" : ""}`}
+                      onClick={() => handleSizeSelect(size)}
+                    >
+                      {t(`full-content-print-size-${size}`)}
+                    </button>
+                  )
+                )}
+              </div>
             )}
           </div>
-          <button
-            className="full-content-button full-content-button-primary"
-            onClick={downloadPdf}
-            disabled={!lessons || isPreparingPdf}
-          >
-            <Icon name="Download" size={16} />
-            {isPreparingPdf
-              ? t("full-content-preparing-pdf")
-              : t("full-content-download-pdf")}
-          </button>
           <button
             className="full-content-button"
             onClick={close}
