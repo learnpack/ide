@@ -742,5 +742,9 @@
     "full-content-watermark-source": "Content created by 4Geeks.com",
     "full-content-watermark-owner": "for the exclusive use of",
     "full-content-watermark-learner": "{{name}} – {{email}}",
-    "full-content-watermark-no-distribution": "Distribution prohibited – {{date}}"
+    "full-content-watermark-no-distribution": "Distribution prohibited – {{date}}",
+    "full-content-print-size": "Print size",
+    "full-content-print-size-normal": "Normal",
+    "full-content-print-size-compact": "Compact",
+    "full-content-print-size-ultra-compact": "Ultra compact"
 }

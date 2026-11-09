@@ -41,6 +41,8 @@ export const FullContentView = () => {
   const setOpenedModals = useStore((state) => state.setOpenedModals);
   const user = useStore((state) => state.user);
 
+  type PrintSize = "normal" | "compact" | "ultra-compact";
+  const [printSize, setPrintSize] = useState<PrintSize>("normal");
   const [lessons, setLessons] = useState<TPackageLesson[] | null>(null);
   const [progress, setProgress] = useState({ loaded: 0, total: 0 });
   const [loadError, setLoadError] = useState(false);
@@ -158,7 +160,7 @@ export const FullContentView = () => {
 
   return (
     <div
-      className="full-content-overlay"
+      className={`full-content-overlay full-content-size-${printSize}`}
       role="dialog"
       aria-modal="true"
       aria-label={t("full-content")}
@@ -176,6 +178,25 @@ export const FullContentView = () => {
           </span>
         </div>
         <div className="full-content-toolbar-actions">
+          <div
+            className="full-content-size-selector"
+            role="radiogroup"
+            aria-label={t("full-content-print-size")}
+          >
+            {(["normal", "compact", "ultra-compact"] as PrintSize[]).map(
+              (size) => (
+                <button
+                  key={size}
+                  className={`full-content-button${printSize === size ? " active" : ""}`}
+                  role="radio"
+                  aria-checked={printSize === size}
+                  onClick={() => setPrintSize(size)}
+                >
+                  {t(`full-content-print-size-${size}`)}
+                </button>
+              )
+            )}
+          </div>
           <button
             className="full-content-button full-content-button-primary"
             onClick={downloadPdf}
