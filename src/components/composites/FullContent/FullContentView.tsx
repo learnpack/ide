@@ -42,7 +42,7 @@ export const FullContentView = () => {
   const user = useStore((state) => state.user);
 
   type PrintSize = "normal" | "compact" | "ultra-compact";
-  const [printSize, setPrintSize] = useState<PrintSize>("normal");
+  const [printSize, setPrintSize] = useState<PrintSize>("compact");
   const [lessons, setLessons] = useState<TPackageLesson[] | null>(null);
   const [progress, setProgress] = useState({ loaded: 0, total: 0 });
   const [loadError, setLoadError] = useState(false);
@@ -166,8 +166,10 @@ export const FullContentView = () => {
     // The browser suggests the document title as the PDF file name
     const previousTitle = document.title;
     document.title = [courseTitle, learnerName].filter(Boolean).join(" - ");
+    // Back to the default so a later Ctrl+P doesn't reuse the size chosen here
     const restoreTitle = () => {
       document.title = previousTitle;
+      setPrintSize("compact");
       window.removeEventListener("afterprint", restoreTitle);
     };
     window.addEventListener("afterprint", restoreTitle);
