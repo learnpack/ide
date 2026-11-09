@@ -358,7 +358,8 @@
     line-height: 1.6;
   }
 
-  .full-content-toc + .full-content-lesson {
+  /* Extra class so it also wins over the size rules below */
+  .full-content-overlay .full-content-toc + .full-content-lesson {
     margin-top: 0;
     padding-top: 0;
     border-top: 0;
@@ -375,6 +376,15 @@
   .full-content-lesson .mermaid,
   .full-content-exercise {
     break-inside: avoid;
+  }
+
+  /* Mermaid sizes the SVG with an inline max-width, so it ignores the font
+     size; capping the height keeps a diagram on one page, scaled to fit */
+  .full-content-lesson .mermaid svg {
+    width: auto;
+    max-width: 100% !important;
+    height: auto;
+    max-height: 230mm;
   }
 
   .full-content-lesson h1,
@@ -442,6 +452,10 @@
     max-height: 200mm;
   }
 
+  .full-content-size-compact .full-content-lesson .mermaid svg {
+    max-height: 150mm;
+  }
+
   .full-content-size-compact .full-content-watermark {
     font-size: 16px;
   }
@@ -496,6 +510,10 @@
 
   .full-content-size-ultra-compact .full-content-lesson .full-content-image img {
     max-height: 170mm;
+  }
+
+  .full-content-size-ultra-compact .full-content-lesson .mermaid svg {
+    max-height: 110mm;
   }
 
   .full-content-size-ultra-compact .full-content-watermark {
