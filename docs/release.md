@@ -102,7 +102,8 @@ following ones don't run.
 ```mermaid
 flowchart TD
     A["autoUpload.sh --tag latest|next"] --> C[checkDeleted.js<br/>skipped with --no-check, next only]
-    C --> P{preflight.js<br/>all checks pass?}
+    C --> M["development.js --turn off<br/>DEV_MODE = false in lib.tsx (no write if already false)"]
+    M --> P{preflight.js<br/>all checks pass?}
     P -- no --> X[Abort. Nothing uploaded]
     P -- yes --> V[tsc + vite build]
     V --> U["uploadLearnpack.js<br/>app.js + app.css to learnpack/TAG/"]
@@ -150,6 +151,7 @@ because the tarball loads it from CloudFront.
 | `bump.sh`: `branch release/vX.Y.Z already exists on origin` | A release PR is already open. Merge it, or close it and delete the branch. |
 | `latest releases must run from master` | Switch to `master`, or use `--tag next`. |
 | `not in sync with origin` | `git pull` or `git push`. |
+| `there are uncommitted changes: M src/utils/lib.tsx` and `git diff src/utils/lib.tsx` is empty | Only the line endings changed (an older `development.js` dropped the `\r` of the `DEV_MODE` line on Windows). Run `git checkout -- src/utils/lib.tsx` once and release again. |
 | `403 ... ListBucket` | The AWS key lacks `s3:ListBucket`. |
 | `uploadRelease.js` failed (e.g. network) after the tarball was packed | Fix the cause and run `RELEASE_TAG=latest node src/utils/uploadRelease.js`. It uploads the existing `bin/` tarball and rebuilds the manifest. |
 
