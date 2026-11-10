@@ -218,6 +218,49 @@
   color: var(--color-fail);
 }
 
+.full-content-pdf-wrapper {
+  position: relative;
+}
+
+.full-content-pdf-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  padding: 8px 0;
+  border-radius: var(--standard-border-radius);
+  background-color: var(--bg-1);
+  border: 1px solid var(--light-grey);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+.full-content-pdf-menu-label {
+  padding: 4px 12px 8px;
+  font-size: 12px;
+  color: var(--font-color-secondary);
+}
+
+.full-content-pdf-menu-option {
+  padding: 8px 12px;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font-size: 14px;
+}
+
+.full-content-pdf-menu-option:hover {
+  background-color: var(--color-hovered);
+}
+
+.full-content-pdf-menu-option.active {
+  color: var(--color-active);
+  font-weight: 600;
+}
+
 @media print {
   @page {
     margin: 16mm 14mm;
@@ -315,7 +358,8 @@
     line-height: 1.6;
   }
 
-  .full-content-toc + .full-content-lesson {
+  /* Extra class so it also wins over the size rules below */
+  .full-content-overlay .full-content-toc + .full-content-lesson {
     margin-top: 0;
     padding-top: 0;
     border-top: 0;
@@ -334,6 +378,15 @@
     break-inside: avoid;
   }
 
+  /* Mermaid sizes the SVG with an inline max-width, so it ignores the font
+     size; capping the height keeps a diagram on one page, scaled to fit */
+  .full-content-lesson .mermaid svg {
+    width: auto;
+    max-width: 100% !important;
+    height: auto;
+    max-height: 230mm;
+  }
+
   .full-content-lesson h1,
   .full-content-lesson h2,
   .full-content-lesson h3,
@@ -345,5 +398,142 @@
   .full-content-answer-lines {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+  }
+
+  /* ── Compact ── */
+
+  .full-content-size-compact .full-content-document {
+    padding: 0 2mm;
+  }
+
+  .full-content-size-compact .full-content-cover h1 {
+    font-size: 26px;
+  }
+
+  .full-content-size-compact .full-content-toc {
+    font-size: 14px;
+    line-height: 1.6rem;
+  }
+
+  .full-content-size-compact .full-content-exercise {
+    padding: 10px 14px;
+  }
+
+  .full-content-size-compact .full-content-exercise .full-content-hint {
+    font-size: 1em;
+  }
+
+  .full-content-size-compact .full-content-answer-lines span {
+    height: 26px;
+  }
+
+  .full-content-size-compact .full-content-toc h2 {
+    font-size: 20px;
+  }
+
+  .full-content-size-compact .full-content-lesson {
+    font-size: 12px;
+    line-height: 1.45;
+    margin-top: 20px;
+    padding-top: 14px;
+  }
+
+  .full-content-size-compact .full-content-lesson h1 {
+    font-size: 22px;
+  }
+
+  .full-content-size-compact .full-content-lesson h2 {
+    font-size: 18px;
+  }
+
+  .full-content-size-compact .full-content-lesson h3 {
+    font-size: 16px;
+  }
+
+  .full-content-size-compact .full-content-lesson h4,
+  .full-content-size-compact .full-content-lesson h5,
+  .full-content-size-compact .full-content-lesson h6 {
+    font-size: 14px;
+  }
+
+  .full-content-size-compact .full-content-lesson pre.stdout,
+  .full-content-size-compact .full-content-lesson pre.stderr {
+    font-size: 0.78em;
+  }
+
+  .full-content-size-compact .full-content-lesson .full-content-image img {
+    max-height: 200mm;
+  }
+  .full-content-size-compact .full-content-watermark {
+    font-size: 16px;
+  }
+
+  /* ── Ultra compact ── */
+
+  .full-content-size-ultra-compact .full-content-document {
+    padding: 0;
+  }
+
+  .full-content-size-ultra-compact .full-content-cover h1 {
+    font-size: 20px;
+  }
+
+  .full-content-size-ultra-compact .full-content-toc {
+    font-size: 12px;
+    line-height: 1.4rem;
+  }
+
+  .full-content-size-ultra-compact .full-content-exercise {
+    margin: 12px 0;
+    padding: 8px 12px;
+  }
+
+  .full-content-size-ultra-compact .full-content-exercise .full-content-hint {
+    font-size: 1em;
+  }
+
+  .full-content-size-ultra-compact .full-content-answer-lines span {
+    height: 22px;
+  }
+
+  .full-content-size-ultra-compact .full-content-toc h2 {
+    font-size: 16px;
+  }
+
+  .full-content-size-ultra-compact .full-content-lesson {
+    font-size: 10px;
+    line-height: 1.3;
+    margin-top: 14px;
+    padding-top: 10px;
+  }
+
+  .full-content-size-ultra-compact .full-content-lesson h1 {
+    font-size: 17px;
+  }
+
+  .full-content-size-ultra-compact .full-content-lesson h2 {
+    font-size: 14px;
+  }
+
+  .full-content-size-ultra-compact .full-content-lesson h3 {
+    font-size: 12px;
+  }
+
+  .full-content-size-ultra-compact .full-content-lesson h4,
+  .full-content-size-ultra-compact .full-content-lesson h5,
+  .full-content-size-ultra-compact .full-content-lesson h6 {
+    font-size: 11px;
+  }
+
+  .full-content-size-ultra-compact .full-content-lesson pre.stdout,
+  .full-content-size-ultra-compact .full-content-lesson pre.stderr {
+    font-size: 0.72em;
+  }
+
+  .full-content-size-ultra-compact .full-content-lesson .full-content-image img {
+    max-height: 170mm;
+  }
+  .full-content-size-ultra-compact .full-content-watermark {
+    font-size: 14px;
   }
 }
